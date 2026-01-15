@@ -3,8 +3,11 @@ NOTES:
 * Folders can be 16 characters, Names can be 36
 
 TODO:
-* Add in box next to drag location with credits + Links
+* No few resists => No missing resists\
+* make highlight for best pieces easier to see
 
+* (TODO)Add in box next to drag location with credits + Links
+* Version number
 * Add in positions
 
 * (DONE)Add in options row above Rate by row  (Censor Items, Icon layout size, Include Bonuses when sorting by stat)
