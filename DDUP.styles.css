@@ -295,18 +295,23 @@ th[b-yrayc6w7vb] {
 .rating-row th[b-yrayc6w7vb] {
     position: sticky;
     top: 0;
-    height: 40px;
-    z-index: 2; /* keep it above body cells */
+    z-index: 3;
     background: #f0f0f0;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    padding: 0; /* or a known value */
+    line-height: 40px; /* if you want vertical centering */
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .header-row th[b-yrayc6w7vb] {
     position: sticky;
-    top: 40px;
+    top: 42px;
     z-index: 2; /* keep it above body cells */
     background: #e0e0e0;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+    box-sizing: border-box;  
 }
 
 
@@ -470,5 +475,9 @@ table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
 }
 .credits-by[b-yrayc6w7vb] {
     margin-bottom: 4px;
+}
+
+.hidden-row[b-yrayc6w7vb]{
+    display: none;
 }
 /* /Shared/MainLayout.razor.rz.scp.css */
