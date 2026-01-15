@@ -49,3 +49,23 @@ function arrayBufferToBase64(buffer) {
 
     return btoa(binary);
 }
+
+document.addEventListener("mousedown", e => {
+    if (!e.target.classList.contains("col-resizer")) return;
+
+    const th = e.target.parentElement;
+    const startX = e.pageX;
+    const startWidth = th.offsetWidth;
+
+    const onMouseMove = e => {
+        th.style.width = (startWidth + e.pageX - startX) + "px";
+    };
+
+    const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+});

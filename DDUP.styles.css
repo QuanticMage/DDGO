@@ -39,7 +39,47 @@ table.grid td.cell-quality-ult90[b-yrayc6w7vb] {
     color: #003c8f;
 }
 
+table.grid td.cell-health[b-yrayc6w7vb] 
+{
+    background-color: #fb737330
+}
 
+table.grid td.cell-damage[b-yrayc6w7vb] 
+{
+    background-color: #ffbb7930
+}
+
+table.grid td.cell-range[b-yrayc6w7vb] 
+{
+    background-color: #7cbfff30
+}
+
+table.grid td.cell-rate[b-yrayc6w7vb]
+{
+    background-color: #94ff7530
+}
+
+
+table.grid td.cell-ab1[b-yrayc6w7vb] 
+{
+    background-color: #fe8aff30
+}
+
+table.grid td.cell-ab2[b-yrayc6w7vb]
+{
+    background-color: #8180ff30
+}
+table.grid td.cell-rating[b-yrayc6w7vb] {
+    font-size: 24px;
+    font-weight: 700;
+    background-color: #b4b4b430;
+}
+
+table.grid td.cell-name[b-yrayc6w7vb] {
+    font-size: 20px;
+    background-color: #b4b4b430;
+    font-weight: 500;
+}
 
 table.grid td.cell-quality-ult93[b-yrayc6w7vb] {
     background-color: #d4dfef;
@@ -166,6 +206,7 @@ th.sortable[b-yrayc6w7vb] {
     text-align: left;
     font: inherit;
     cursor: pointer;
+    color: inherit;
 }
 
 th.num .th-btn[b-yrayc6w7vb] {
@@ -198,5 +239,82 @@ th.num .th-btn[b-yrayc6w7vb] {
     font-size: 12px;
     opacity: 0.9;
     text-align: center;
+}
+
+table.grid[b-yrayc6w7vb] {
+    table-layout: fixed; /* IMPORTANT */    
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+th[b-yrayc6w7vb] {
+    position: relative;
+}
+
+.col-resizer[b-yrayc6w7vb] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+}
+
+.grid-wrap[b-yrayc6w7vb] {
+    max-height: 70vh; /* pick what you want */
+    overflow: auto; /* this makes the body scroll */
+    border: 3px solid black;
+}
+
+/* sticky header */
+table.grid thead th[b-yrayc6w7vb] {
+    position: sticky;
+    top: 0;
+    z-index: 2; /* keep it above body cells */
+    background: #e0e0e0;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+}
+
+table.grid th.table-header-primary[b-yrayc6w7vb] {
+    outline: 5px solid #756518;    
+    outline-offset: -5px;
+    background-color: #000000;
+    color: #ffffff;
+    background-clip: padding-box;
+}
+
+table.grid th.table-header-secondary[b-yrayc6w7vb] {
+    outline: 2px solid #00000080;
+    outline-offset: -2px;
+    background-color: #808080;
+    background-clip: padding-box;
+}
+table.grid th.table-header-none[b-yrayc6w7vb] {    
+    background-clip: padding-box;
+}
+
+table.grid tr.row-overlay td[b-yrayc6w7vb] {
+    position: relative; /* anchor */
+}
+
+table.grid tr.row-overlay td[b-yrayc6w7vb]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient( to bottom, #ffe20030 0%, rgba(255, 226, 0, 0.0) 100% );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* keep text/icons above the overlay */
+table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
+    position: relative;
+    z-index: 2;
+}
+
+.summary[b-yrayc6w7vb] {
+    font-size: 24px;
+    padding: 5px 0px 5px 0px;
 }
 /* /Shared/MainLayout.razor.rz.scp.css */
