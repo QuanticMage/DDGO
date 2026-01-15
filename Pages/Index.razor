@@ -648,7 +648,7 @@ else
 
             v.IsHidden = !includeItem;            
         }
-        // reset mode        
+        SetMode(_selectedMode);
     }
 
     static int Add(ref int rating, ref int sides, int idx, int value, int maxStat)
@@ -792,7 +792,7 @@ else
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
 
         for (int i = 0; i < _rows.Count; i++)
-        {
+        {            
             int rating = 0;
             int sides = 0;
             var r = _rows[i];
@@ -855,28 +855,31 @@ else
             sides = (int)((float)sides * mult + 0.99f);
 
             string typeString = r.SubType + " " + r.Type;
-            if (( r.Type == "Helmet") || ( r.Type == "Gauntlet") || ( r.Type == "Boots") || ( r.Type == "Torso"))
+            if (!r.IsHidden)
             {
-                if ( BestPieces.ContainsKey(typeString))
+                if ((r.Type == "Helmet") || (r.Type == "Gauntlet") || (r.Type == "Boots") || (r.Type == "Torso"))
                 {
-                    if (BestPieces[typeString] < rating)
+                    if (BestPieces.ContainsKey(typeString))
+                    {
+                        if (BestPieces[typeString] < rating)
+                            BestPieces[typeString] = rating;
+                    }
+                    else
+                    {
                         BestPieces[typeString] = rating;
-                }   
-                else
-                {
-                    BestPieces[typeString] = rating;
+                    }
                 }
-            }
-            else if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
-            {
-                if ( BestPieces.ContainsKey(r.Type))
+                else if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
                 {
-                    if (BestPieces[r.Type] < rating)
+                    if (BestPieces.ContainsKey(r.Type))
+                    {
+                        if (BestPieces[r.Type] < rating)
+                            BestPieces[r.Type] = rating;
+                    }
+                    else
+                    {
                         BestPieces[r.Type] = rating;
-                }   
-                else
-                {
-                    BestPieces[r.Type] = rating;
+                    }
                 }
             }
 
@@ -926,6 +929,7 @@ else
         {
             bool highlight = false;
             var r = _rows[i];
+            if (r.IsHidden) continue;
             if (r.SubType == bestType)
             {
                 string typeString = r.SubType + " " + r.Type;
