@@ -5,5 +5,6 @@
 	int Level, int MaxLevel,
 	int HHP, int HDmg, int HSpd, int HRate, int Ab1, int Ab2,
 	int THP, int TDmg, int TRange, int TRate,
-	int RG, int RP, int RF, int RL, int Idx);
+	int RG, int RP, int RF, int RL, int Idx, int BestAvailable);
 }
+

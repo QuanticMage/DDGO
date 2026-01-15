@@ -90,7 +90,7 @@ public class DDEquipmentInfo
 			// - Else => "UserEquipName (GeneratedName)"
 			var gen = this.GeneratedName ?? "";
 			var user = this.UserEquipName ?? "";
-			var name = string.IsNullOrWhiteSpace(user) ? gen : $"{user} ({gen})";
+			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor) ? user : $"{user} ({gen})");
 
 			cachedItemRow = new ItemViewRow(
 				Rating: 0,
@@ -119,7 +119,8 @@ public class DDEquipmentInfo
 				RP: Resist(this, 1),
 				RF: Resist(this, 2),
 				RL: Resist(this, 3),
-				Idx: this.Idx
+				Idx: this.Idx,
+				BestAvailable: Idx % 2
 			);
 		}
 		return cachedItemRow;

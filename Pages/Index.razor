@@ -72,21 +72,26 @@
         }
     </div>
 </div>
+
+<div class="summary">@_summary</div>
+
 @if (_rows.Count == 0)
 {  
 }
 else
 {
+    <div class="grid-wrap">
     <table class="grid">
         <colgroup>
             <col style="width:50px" />   @* Rating *@
             <col style="width:50px" />   @* Sides *@
-            <col style="width:16%" />    @* Name (2*) *@
-            <col style="width:16%" />    @* Location (2*) *@
-            <col style="width:80px" />   @* Quality *@
             <col style="width:80px" />   @* Type *@
             <col style="width:80px" />   @* Position *@
 
+            <col style="width:16%" />    @* Name (2*) *@
+            <col style="width:16%" />    @* Location (2*) *@
+            <col style="width:80px" />   @* Quality *@
+            
             <col style="width:50px" />   @* Lvl *@
             <col style="width:50px" />   @* MaxLvl *@
 
@@ -106,173 +111,196 @@ else
             <col style="width:40px" />   @* RF *@
             <col style="width:40px" />   @* RL *@
         </colgroup>
-
+  
         <thead>
             <tr>
                 <th class="sortable num">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
                         Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
                 <th class="sortable num">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Sides))">
                         Sides <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Sides))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
-
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
-                        Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
-                    </button>
-                </th>
-
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
-                        Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
-                    </button>
-                </th>
-
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
-                        Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
-                    </button>
-                </th>
-
+                
                 <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Type))">
                         Type <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Type))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
                 <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Position))">
                         Position <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Position))</span>
                     </button>
+                    <div class="col-resizer"></div>
+                </th>
+                <th class="sortable">
+                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
+                        Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
+                    </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable num">
+                <th class="sortable">
+                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
+                        Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
+                    </button>
+                    <div class="col-resizer"></div>
+                </th>
+
+                <th class="sortable">
+                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
+                        Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
+                    </button>
+                    <div class="col-resizer"></div>
+                </th>
+
+
+                <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
                         Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable num">
+                <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
                         MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHHP)">
                     <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(ItemViewRow.HHP))">
                         <img src="30px-Player_Health.png" alt="HHP" />
                         <span class="hdr-text">HHP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HHP))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHDmg)">
                     <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(ItemViewRow.HDmg))">
                         <img src="30px-Player_Damage.png" alt="HDmg" />
                         <span class="hdr-text">HDmg</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HDmg))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHSpd)">
                     <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(ItemViewRow.HSpd))">
                         <img src="32px-Player_Speed.webp" alt="HSpd" />
                         <span class="hdr-text">HSpd</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HSpd))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHRate)">
                     <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(ItemViewRow.HRate))">
                         <img src="27px-Player_Rate.webp" alt="HRate" />
                         <span class="hdr-text">HRate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HRate))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb1)">
                     <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(ItemViewRow.Ab1))">
                         <img src="32px-Defense_Boost.webp" alt="Ab1" />
                         <span class="hdr-text">Ab1</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab1))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb2)">
                     <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(ItemViewRow.Ab2))">
                         <img src="32px-Hero_Boost_fixed.webp" alt="Ab2" />
                         <span class="hdr-text">Ab2</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab2))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxTHP)">
                     <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(ItemViewRow.THP))">
                         <img src="30px-Defense_Health.webp" alt="THP" />
                         <span class="hdr-text">THP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.THP))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTDmg)">
                     <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(ItemViewRow.TDmg))">
                         <img src="30px-Defense_Damage.webp" alt="TDmg" />
                         <span class="hdr-text">TDmg</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TDmg))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTRange)">
                     <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(ItemViewRow.TRange))">
                         <img src="30px-Defenseaoe.png" alt="TRng" />
                         <span class="hdr-text">TRng</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRange))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(sumIdxTRate)">
                     <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(ItemViewRow.TRate))">
                         <img src="26px-Defense_Rate.webp" alt="TRate" />
                         <span class="hdr-text">TRate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRate))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
                         <img src="damage_resistance_generic.png" alt="ResG" />
                         <span class="hdr-text">ResG</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Poison Resist" @onclick="() => SortBy(nameof(ItemViewRow.RP))">
                         <img src="damage_resistance_poison.png" alt="ResP" />
                         <span class="hdr-text">ResP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RP))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Fire Resist" @onclick="() => SortBy(nameof(ItemViewRow.RF))">
                         <img src="damage_resistance_fire.png" alt="ResF" />
                         <span class="hdr-text">ResF</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RF))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable icon-header num">
+                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Lightning Resist" @onclick="() => SortBy(nameof(ItemViewRow.RL))">
                         <img src="damage_resistance_lightning.png" alt="ResL" />
                         <span class="hdr-text">ResL</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RL))</span>
                     </button>
+                    <div class="col-resizer"></div>
                 </th>
             </tr>
         </thead>
@@ -281,28 +309,28 @@ else
         <tbody>
             @foreach (var r in _rows)
             {
-                <tr @key="r.Idx">
-                    <td class="num">@r.Rating</td>
+                <tr @key="r.Idx" class="@IsBestClass(r.BestAvailable)">
+                    <td class="num cell-rating">@r.Rating</td>
                     <td class="num">@r.Sides</td>
-                    <td class="text">@r.Name</td>
-                    <td class="text location">@r.Location</td>
-                    <td class="text @QualityClass(r.Quality)">@r.Quality</td>
                     <td class="text">@r.Type</td>
                     <td class="text">@r.Position</td>
-
+                    <td class="text cell-name">@r.Name</td>
+                    <td class="text location">@r.Location</td>
+                    <td class="text @QualityClass(r.Quality)">@r.Quality</td>
+                
                     <td class="num">@r.Level</td>
                     <td class="num">@r.MaxLevel</td>
 
-                    <td class="num">@r.HHP</td>
-                    <td class="num">@r.HDmg</td>
-                    <td class="num">@r.HSpd</td>
-                    <td class="num">@r.HRate</td>
-                    <td class="num">@r.Ab1</td>
-                    <td class="num">@r.Ab2</td>
-                    <td class="num">@r.THP</td>
-                    <td class="num">@r.TDmg</td>
-                    <td class="num">@r.TRange</td>
-                    <td class="num">@r.TRate</td>
+                    <td class="num cell-health">@r.HHP</td>
+                    <td class="num cell-damage">@r.HDmg</td>
+                    <td class="num cell-range">@r.HSpd</td>
+                    <td class="num cell-rate">@r.HRate</td>
+                    <td class="num cell-ab1">@r.Ab1</td>
+                    <td class="num cell-ab2">@r.Ab2</td>
+                    <td class="num cell-health">@r.THP</td>
+                    <td class="num cell-damage">@r.TDmg</td>
+                    <td class="num cell-range">@r.TRange</td>
+                    <td class="num cell-rate">@r.TRate</td>
 
                     <td class="num">@r.RG</td>
                     <td class="num">@r.RP</td>
@@ -312,6 +340,7 @@ else
             }
         </tbody>
     </table>
+    </div>
 }
 
 @code {
@@ -322,6 +351,7 @@ else
     private bool _isDragOver;
     private bool _isLoading;
     private bool _hideDropzoneHelp;
+    private string _summary = "";
     private string _status = "";
     private string? _error;
     private DDDatabase db = new();
@@ -395,23 +425,42 @@ else
         else if (idx == 2) sides += value;
     }
 
+    private bool bFactorInResists = false;
+    private int sumIdxHHP = 0;
+    private int sumIdxHDmg = 0;
+    private int sumIdxHSpd = 0;
+    private int sumIdxHRate = 0;
+    private int sumIdxAb1 = 0;
+    private int sumIdxAb2 = 0;
+    private int sumIdxTHP = 0;
+    private int sumIdxTDmg = 0;
+    private int sumIdxTRange = 0;
+    private int sumIdxTRate = 0;
+
+    private static string HeaderShadingStyle(int idx)
+    {
+        if (idx == 1) return "table-header-primary";
+        if (idx == 2) return "table-header-secondary";
+        return "table-header-none";
+    }
+
     private void SetMode(string mode)
     {
         _selectedMode = mode;
 
         // ignore = 0, rating = 1, sides = 2
         int[] sum = new int[3];
-        bool bFactorInResists = false;
-        int sumIdxHHP = 0;
-        int sumIdxHDmg = 0;
-        int sumIdxHSpd = 0;
-        int sumIdxHRate = 0;
-        int sumIdxAb1 = 0;
-        int sumIdxAb2 = 0;
-        int sumIdxTHP = 0;
-        int sumIdxTDmg = 0;
-        int sumIdxTRange = 0;
-        int sumIdxTRate = 0;
+        bFactorInResists = false;
+        sumIdxHHP = 0;
+        sumIdxHDmg = 0;
+        sumIdxHSpd = 0;
+        sumIdxHRate = 0;
+        sumIdxAb1 = 0;
+        sumIdxAb2 = 0;
+        sumIdxTHP = 0;
+        sumIdxTDmg = 0;
+        sumIdxTRange = 0;
+        sumIdxTRate = 0;
 
         switch( mode )
         {
@@ -486,7 +535,7 @@ else
                 break;
         }
 
-
+        Dictionary<string, int> BestPieces = new Dictionary<string, int>();
 
         for (int i = 0; i < _rows.Count; i++)
         {
@@ -541,13 +590,79 @@ else
             rating = (int)((float)rating * mult + 0.5f);
             sides = (int)((float)sides * mult + 0.5f);
 
+            string typeString = r.Type + " " + r.Position;
+            if (( r.Type != "") && (r.Position != ""))
+            {
+                if ( BestPieces.ContainsKey(typeString))
+                {
+                    if (BestPieces[typeString] < rating)
+                        BestPieces[typeString] = rating;
+                }   
+                else
+                {
+                    BestPieces[typeString] = rating;
+                }
+            }
+
             _rows[i] = _rows[i] with
                 {
                     Rating = rating,
-                    Sides = sides
-                };
+                    Sides = sides,
+                    BestAvailable = 0
+             };
         }
 
+        // find best armor set
+        //-------------------------
+        string[] Types = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
+        int[] Scores = new int[5];
+        foreach ( var v in BestPieces )
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (v.Key.StartsWith(Types[i]))
+                {
+                    Scores[i] += v.Value;
+                }
+            }
+        }
+
+        string bestType = Types[0];
+        int bestScore = Scores[0];
+        for (int i = 1; i < 5; i++)
+        {
+            if (bestScore < Scores[i])
+            {
+                bestScore = Scores[i];
+                bestType = Types[i];
+            }
+        }
+
+        for (int i = 0; i < _rows.Count; i++)
+        {
+            bool highlight = false;
+            var r = _rows[i];
+            if (r.Type == bestType)
+            {
+                string typeString = r.Type + " " + r.Position;
+                if ( BestPieces.ContainsKey(typeString))
+                {
+                    int rating = BestPieces[typeString];    
+                    if (r.Rating == rating)
+                    {
+                        highlight = true;
+                        BestPieces[typeString] = -99999;
+                    }
+                }                                
+            }
+            _rows[i] = _rows[i] with
+            {
+                BestAvailable = (highlight ? 1 : 0)
+            };
+        }
+
+        _summary = $"Best Armor Set: {bestType} ({bestScore})";
+       //-------------------------
         _sortDesc = true;
         _sortColumn = "";
         SortBy("Rating");
@@ -674,6 +789,13 @@ else
             _ => 0
         };
     }
+
+    private static string IsBestClass(int c)
+    {
+        if (c == 1) return "row-overlay";
+        return "";
+    }
+
 
     private static string QualityClass(string quality)
     {
