@@ -64,7 +64,7 @@ public class DDEquipmentInfo
 	public string Location = "";
 
 	public string Quality = "";
-	public string Position = "";
+	public string SubType = "";
 	public string Type = "";
 
 	public int FolderID;
@@ -72,6 +72,9 @@ public class DDEquipmentInfo
 	public bool bIsSecondary;
 	public int UserSellPrice;
 	public bool bIsArmor;
+	public bool bIsEvent;
+	public bool bIsEquipped;
+	public bool bIsFewResists;
 
 	public ItemViewRow? cachedItemRow = null;
 
@@ -90,7 +93,7 @@ public class DDEquipmentInfo
 			// - Else => "UserEquipName (GeneratedName)"
 			var gen = this.GeneratedName ?? "";
 			var user = this.UserEquipName ?? "";
-			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor) ? user : $"{user} ({gen})");
+			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user)) ? user : $"{user} ({gen})");
 
 			cachedItemRow = new ItemViewRow(
 				Rating: 0,
@@ -99,7 +102,7 @@ public class DDEquipmentInfo
 				Location: this.Location ?? "",
 				Quality: this.Quality ?? "",
 				Type: this.Type ?? "",
-				Position: this.Position ?? "",
+				SubType: this.SubType ?? "",
 				Level: this.Level,
 				MaxLevel: this.MaxLevel,
 
@@ -191,6 +194,7 @@ public class DDDatabase
 			{
 				DDEquipmentInfo equipment = ReadEquipment(reader);
 				equipment.Location = "Character > " + hero.Name;
+				equipment.bIsEquipped = true;
 				if (equipment == null) { Status = "Load: Failed to parse equipment"; return; }				
 				Items.Add(equipment);
 			}
@@ -334,28 +338,35 @@ public class DDDatabase
 
 			Items[i].Quality = quality;
 			Items[i].Type = type;
-			Items[i].Position = pos;
+			Items[i].SubType = pos;
 			Items[i].bIsArmor = isArmor;
 			Items[i].Idx = i;
+
+			Items[i].bIsEvent = Items[i].Template.Contains("Event");
+			Items[i].bIsFewResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
 
 			if (ItemNamesAndText.Map.ContainsKey(Items[i].Template))
 			{
 				List<string> ItemInfo = ItemNamesAndText.Map[Items[i].Template];
-				if (ItemInfo.Count == 2)
+				if (ItemInfo.Count == 4)
 				{
-					Items[i].Description = ItemInfo[0];
-					Items[i].GeneratedName = ItemInfo[1];
+					Items[i].Description = ItemInfo[2];
+					Items[i].GeneratedName = ItemInfo[3];
 				}
-				else if ((ItemInfo.Count > 2) && ( Items[i].NameVariantIdx >= 0) && (Items[i].NameVariantIdx < ItemInfo.Count - 2))
+				else if ((ItemInfo.Count > 4) && ( Items[i].NameVariantIdx >= 0) && (Items[i].NameVariantIdx < ItemInfo.Count - 4))
 				{
-					Items[i].Description = ItemInfo[0];
-					Items[i].GeneratedName = ItemInfo[2 + Items[i].NameVariantIdx];
+					Items[i].Description = ItemInfo[2];
+					Items[i].GeneratedName = ItemInfo[4 + Items[i].NameVariantIdx];
 				}
 				else
 				{
-					Items[i].Description = "Unknown+";
+					Items[i].Description = "Unknown";
 					Items[i].GeneratedName = Items[i].Template;
-				}			
+				}
+				Items[i].Type = ItemInfo[0];
+				Items[i].SubType = ItemInfo[1];
+				Items[i].bIsArmor = (ItemInfo[0] == "Helmet") || (ItemInfo[0] == "Gauntlet") || (ItemInfo[0] == "Boots") || (ItemInfo[0] == "Torso");
+				if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
 			}
 			else
 			{

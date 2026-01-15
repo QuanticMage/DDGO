@@ -2,36 +2,57 @@
 @implements IDisposable
 @using Microsoft.JSInterop
 
-<h1>Dungeon Defender Gear Optimizer</h1>
 
-<div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
-    <div class="dropzone-text">
-        Drag your <b>DunDefHeroes.dun</b> file here
-        @if (!_hideDropzoneHelp)
-        {
-            <div class="dropzone-subtext @( _hideDropzoneHelp ? "hidden" : "" )">
-                <ul>
-                    <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
-                    <li>Go to Dungeon Defenders in your Steam library, right-click, Manage > Browse Local Files</li>
-                    <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
-                    <li>No data is uploaded to any server, this is all run locally on your computer.</li>
-                </ul>
+
+<div class="top-pane">
+    <div class="left-pane">
+        <h1>Dungeon Defender Gear Optimizer</h1>
+        <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
+            <div class="dropzone-text">
+                Drag your <b>DunDefHeroes.dun</b> file here
+                @if (!_hideDropzoneHelp)
+                {
+                    <div class="dropzone-subtext @( _hideDropzoneHelp ? "hidden" : "" )">
+                        <ul>
+                            <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
+                            <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
+                            <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
+                            <li>No data is uploaded to any server, this is all run locally on your computer.</li>
+                        </ul>
+                    </div>
+                }
             </div>
-        }
-    </div>
 
-    @if (_isLoading)
-    {
-        <div class="status">Loading… @_status</div>
-    }
-    else if (!string.IsNullOrEmpty(_error))
-    {
-        <div class="status error">@_error</div>
-    }
-    else if (!string.IsNullOrEmpty(_status))
-    {
-        <div class="status">@_status</div>
-    }
+            @if (_isLoading)
+            {
+                <div class="status">Loading… @_status</div>
+            }
+            else if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="status error">@_error</div>
+            }
+            else if (!string.IsNullOrEmpty(_status))
+            {
+                <div class="status">@_status</div>
+            }
+        </div>
+    </div>
+    <aside class="info-pane">
+        <h3 class="links-title">Credits</h3>
+        <div class="credits">
+            <div class="credits-by">App by <i>Mage</i></div>
+            <div class="credits-thanks">Special Thanks to <i>Scryllix, TBolt, Chiku, and the DDRnG community</i></div>
+        </div>
+
+    <h3 class="links-title">Quick Links</h3>
+    <ul class="link-list">
+        <li><a href="https://dungeondefenders.wiki.gg" rel="noopener">Dungeon Defender's Wiki</a></li>
+        <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2968079729" rel="noopener">Chiku’s Guide</a></li>
+        <li><a href="https://docs.google.com/spreadsheets/d/11v0h3LLUDYEkTxvkLVWUzYv8wXvjZ1cPTJJ-o1QqVDM/edit?gid=1598543540#gid=1598543540" rel="noopener">Best-in-Slot Doc</a></li>
+        <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>
+        
+    </ul>
+</aside>
 </div>
 <div class="toolbar-line">
     <label class="toolbar-label">Rate by:</label>
@@ -52,26 +73,42 @@
         }
     </div>
 </div>
-
 <div class="toolbar-line">
-    <label class="toolbar-label">Filter:</label>
-    <div class="toolbar-row">
-        @foreach (var opt in _filterOptions)
-        {
-            <input class="tool-radio"
-                   type="radio"
-                   name="filterOptions"
-                   id="@($"filter-{opt.Value}")"
-                   value="@opt.Value"
-                   checked="@(_selectedFilter == opt.Value)"
-                   @onchange="() => SetFilter(opt.Value)" />
+    <label class="toolbar-label">Filters:</label>
 
-            <label class="tool-btn" for="@($"filter-{opt.Value}")">
-                @opt.Label
-            </label>
-        }
+    <div class="filters-groups">
+        @RenderFilterGroup("Armor Material", ArmorMaterialFilters)
+        @RenderFilterGroup("Type", TypeFilters)
+        @RenderFilterGroup("Other", OtherFilters)
     </div>
 </div>
+
+@code {
+    private RenderFragment RenderFilterGroup(string title, IEnumerable<FilterOption> opts) => __builder =>
+    {
+        <div class="filter-group">
+            <div class="filter-group-title">@title</div>
+            <div class="toolbar-row">
+                @foreach (var opt in opts)
+                {
+                    var id = $"filter-{opt.Label.Replace(" ", "-")}";
+
+                    <input type="checkbox"
+                           id="@id"
+                           class="tool-filter"
+                           checked="@((_selectedFilter & opt.Filter) != 0)"
+                           @onchange="(e) => SetFilterFlag(opt.Filter, (bool)e.Value!)" />
+
+                    <label class="tool-btn @(((_selectedFilter & opt.Filter) != 0) ? "active" : "")"
+                           for="@id">
+                        @opt.Label
+                    </label>
+                }
+            </div>
+        </div>;
+    };
+}
+
 
 <div class="summary">@_summary</div>
 
@@ -83,47 +120,149 @@ else
     <div class="grid-wrap">
     <table class="grid">
         <colgroup>
-            <col style="width:50px" />   @* Rating *@
-            <col style="width:50px" />   @* Sides *@
-            <col style="width:80px" />   @* Type *@
-            <col style="width:80px" />   @* Position *@
+            <col style="width:70px" />   @* Rating *@
+            <col style="width:55px" />   @* Sides *@
+            <col style="width:65px" />   @* Type *@
+            <col style="width:65px" />   @* Position *@
 
-            <col style="width:16%" />    @* Name (2*) *@
-            <col style="width:16%" />    @* Location (2*) *@
+            <col style="width:10%" />    @* Name (2*) *@
+            <col style="width:15%" />    @* Location (2*) *@
             <col style="width:80px" />   @* Quality *@
             
-            <col style="width:50px" />   @* Lvl *@
-            <col style="width:50px" />   @* MaxLvl *@
+            <col style="width:55px" />   @* Lvl *@
+            <col style="width:55px" />   @* MaxLvl *@
 
-            <col style="width:50px" />   @* HHP *@
-            <col style="width:50px" />   @* HDmg *@
-            <col style="width:50px" />   @* HSpd *@
-            <col style="width:50px" />   @* HRate *@
-            <col style="width:50px" />   @* Ab1 *@
-            <col style="width:50px" />   @* Ab2 *@
-            <col style="width:50px" />   @* THP *@
-            <col style="width:50px" />   @* TDmg *@
-            <col style="width:50px" />   @* TRange *@
-            <col style="width:50px" />   @* TRate *@
+            <col style="width:60px" />   @* HHP *@
+            <col style="width:60px" />   @* HDmg *@
+            <col style="width:60px" />   @* HSpd *@
+            <col style="width:60px" />   @* HRate *@
+            <col style="width:60px" />   @* Ab1 *@
+            <col style="width:60px" />   @* Ab2 *@
+            <col style="width:60px" />   @* THP *@
+            <col style="width:60px" />   @* TDmg *@
+            <col style="width:60px" />   @* TRange *@
+            <col style="width:60px" />   @* TRate *@
 
-            <col style="width:40px" />   @* RG *@
-            <col style="width:40px" />   @* RP *@
-            <col style="width:40px" />   @* RF *@
-            <col style="width:40px" />   @* RL *@
+            <col style="width:50px" />   @* RG *@
+            <col style="width:50px" />   @* RP *@
+            <col style="width:50px" />   @* RF *@
+            <col style="width:50px" />   @* RL *@
         </colgroup>
   
         <thead>
-            <tr>
-                <th class="sortable num">
+            <tr class="rating-row">
+                <th colspan="9" class="hint-text">Click names to sort, or stars to adjust the rating calculation</th>
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HHP))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.HHP))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HDmg))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.HDmg))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HSpd))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.HSpd))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HRate))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab1))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.Ab1))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab2))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.Ab2))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.THP))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.THP))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TDmg))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.TDmg))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TRange))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.TRange))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TRate))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.TRate))" />
+                    </button>
+                </th>
+
+                <!-- Resists (all toggle the same flag, but still distinct columns) -->
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RG))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.RG))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RP))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.RP))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RF))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.RF))" />
+                    </button>
+                </th>
+
+                <th>
+                    <button type="button" class="importance-button"
+                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RL))">
+                        <img src="@GetImportanceImage(nameof(ItemViewRow.RL))" />
+                    </button>
+                </th>
+            </tr>
+            <tr class="header-row">
+                <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
                         Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable num">
+                <th class="sortable">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Sides))">
-                        Sides <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Sides))</span>
+                         Sides <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Sides))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>
@@ -136,8 +275,8 @@ else
                 </th>
 
                 <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Position))">
-                        Position <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Position))</span>
+                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.SubType))">
+                        SubType <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.SubType))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>
@@ -179,7 +318,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHHP)">
                     <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(ItemViewRow.HHP))">
-                        <img src="30px-Player_Health.png" alt="HHP" />
+                        <img src="png/Hero Health.png" alt="HHP" />
                         <span class="hdr-text">HHP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HHP))</span>
                     </button>
@@ -188,7 +327,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHDmg)">
                     <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(ItemViewRow.HDmg))">
-                        <img src="30px-Player_Damage.png" alt="HDmg" />
+                        <img src="png/Hero Damage.png" alt="HDmg" />
                         <span class="hdr-text">HDmg</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HDmg))</span>
                     </button>
@@ -197,7 +336,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHSpd)">
                     <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(ItemViewRow.HSpd))">
-                        <img src="32px-Player_Speed.webp" alt="HSpd" />
+                        <img src="png/Move Speed.png" alt="HSpd" />
                         <span class="hdr-text">HSpd</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HSpd))</span>
                     </button>
@@ -206,7 +345,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHRate)">
                     <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(ItemViewRow.HRate))">
-                        <img src="27px-Player_Rate.webp" alt="HRate" />
+                        <img src="png/Cast Rate.png" alt="HRate" />
                         <span class="hdr-text">HRate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HRate))</span>
                     </button>
@@ -215,7 +354,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb1)">
                     <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(ItemViewRow.Ab1))">
-                        <img src="32px-Defense_Boost.webp" alt="Ab1" />
+                        <img src="png/AB1/Monk AB1.png" alt="Ab1" />
                         <span class="hdr-text">Ab1</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab1))</span>
                     </button>
@@ -224,7 +363,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb2)">
                     <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(ItemViewRow.Ab2))">
-                        <img src="32px-Hero_Boost_fixed.webp" alt="Ab2" />
+                        <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
                         <span class="hdr-text">Ab2</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab2))</span>
                     </button>
@@ -233,7 +372,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxTHP)">
                     <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(ItemViewRow.THP))">
-                        <img src="30px-Defense_Health.webp" alt="THP" />
+                        <img src="png/Tower Health.png" alt="THP" />
                         <span class="hdr-text">THP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.THP))</span>
                     </button>
@@ -242,7 +381,7 @@ else
 
                 <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTDmg)">
                     <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(ItemViewRow.TDmg))">
-                        <img src="30px-Defense_Damage.webp" alt="TDmg" />
+                        <img src="png/Tower Damage.png" alt="TDmg" />
                         <span class="hdr-text">TDmg</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TDmg))</span>
                     </button>
@@ -251,7 +390,7 @@ else
 
                 <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTRange)">
                     <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(ItemViewRow.TRange))">
-                        <img src="30px-Defenseaoe.png" alt="TRng" />
+                        <img src="png/Tower Range.png" alt="TRng" />
                         <span class="hdr-text">TRng</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRange))</span>
                     </button>
@@ -260,7 +399,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxTRate)">
                     <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(ItemViewRow.TRate))">
-                        <img src="26px-Defense_Rate.webp" alt="TRate" />
+                        <img src="png/Tower Rate.png" alt="TRate" />
                         <span class="hdr-text">TRate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRate))</span>
                     </button>
@@ -269,7 +408,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
-                        <img src="damage_resistance_generic.png" alt="ResG" />
+                        <img src="png/Generic Resistance.png" alt="ResG" />
                         <span class="hdr-text">ResG</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
                     </button>
@@ -278,7 +417,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Poison Resist" @onclick="() => SortBy(nameof(ItemViewRow.RP))">
-                        <img src="damage_resistance_poison.png" alt="ResP" />
+                        <img src="png/Poison Resistance.png" alt="ResP" />
                         <span class="hdr-text">ResP</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RP))</span>
                     </button>
@@ -287,7 +426,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Fire Resist" @onclick="() => SortBy(nameof(ItemViewRow.RF))">
-                        <img src="damage_resistance_fire.png" alt="ResF" />
+                        <img src="png/Fire Resistance.png" alt="ResF" />
                         <span class="hdr-text">ResF</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RF))</span>
                     </button>
@@ -296,7 +435,7 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Lightning Resist" @onclick="() => SortBy(nameof(ItemViewRow.RL))">
-                        <img src="damage_resistance_lightning.png" alt="ResL" />
+                        <img src="png/Lightning Resistance.png" alt="ResL" />
                         <span class="hdr-text">ResL</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RL))</span>
                     </button>
@@ -313,7 +452,7 @@ else
                     <td class="num cell-rating">@r.Rating</td>
                     <td class="num">@r.Sides</td>
                     <td class="text">@r.Type</td>
-                    <td class="text">@r.Position</td>
+                    <td class="text">@r.SubType</td>
                     <td class="text cell-name">@r.Name</td>
                     <td class="text location">@r.Location</td>
                     <td class="text @QualityClass(r.Quality)">@r.Quality</td>
@@ -321,21 +460,21 @@ else
                     <td class="num">@r.Level</td>
                     <td class="num">@r.MaxLevel</td>
 
-                    <td class="num cell-health">@r.HHP</td>
-                    <td class="num cell-damage">@r.HDmg</td>
-                    <td class="num cell-range">@r.HSpd</td>
-                    <td class="num cell-rate">@r.HRate</td>
-                    <td class="num cell-ab1">@r.Ab1</td>
-                    <td class="num cell-ab2">@r.Ab2</td>
-                    <td class="num cell-health">@r.THP</td>
-                    <td class="num cell-damage">@r.TDmg</td>
-                    <td class="num cell-range">@r.TRange</td>
-                    <td class="num cell-rate">@r.TRate</td>
+                    <td class="num cell-health">@GetValue(r,r.HHP)</td>
+                    <td class="num cell-damage">@GetValue(r,r.HDmg)</td>
+                    <td class="num cell-range">@GetValue(r,r.HSpd)</td>
+                    <td class="num cell-rate">@GetValue(r,r.HRate)</td>
+                    <td class="num cell-ab1">@GetValue(r,r.Ab1)</td>
+                    <td class="num cell-ab2">@GetValue(r,r.Ab2)</td>
+                    <td class="num cell-health">@GetValue(r,r.THP)</td>
+                    <td class="num cell-damage">@GetValue(r,r.TDmg)</td>
+                    <td class="num cell-range">@GetValue(r,r.TRange)</td>
+                    <td class="num cell-rate">@GetValue(r,r.TRate)</td>
 
-                    <td class="num">@r.RG</td>
-                    <td class="num">@r.RP</td>
-                    <td class="num">@r.RF</td>
-                    <td class="num">@r.RL</td>
+                    <td class="resist">@r.RG</td>
+                    <td class="resist">@r.RP</td>
+                    <td class="resist">@r.RF</td>
+                    <td class="resist">@r.RL</td>
                 </tr>
             }
         </tbody>
@@ -344,7 +483,7 @@ else
 }
 
 @code {
-    [Inject] private IJSRuntime JS { get; set; } = default!;
+        [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private readonly string _dropZoneId = "dropzone";
     private DotNetObjectReference<Index>? _dotNetRef;
@@ -357,72 +496,212 @@ else
     private DDDatabase db = new();
     private List<ItemViewRow> _rows = new();
     private record ModeOption(string Value, string Label);
+    private record FilterOption( Filters Filter, string Label);
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
 
-
-    private readonly List<ModeOption> _filterOptions = new()
+    [Flags]
+    private enum Filters
     {
-        new("All", "All"),
-        new("Any Armor", "Any Armor"),
-        new("Pristine", "Pristine"),
-        new("Chain", "Chain"),
-        new("Mail", "Mail"),
-        new("Plate", "Plate"),
-        new("Leather", "Leather"),
+        None            = 0,
+
+        // Armor types
+        Pristine        = 1 << 0,
+        Chain           = 1 << 1,
+        Mail            = 1 << 2,
+        Plate           = 1 << 3,
+        Leather         = 1 << 4,
+
+        // Equipment slots
+        Helmet          = 1 << 5,
+        Torso           = 1 << 6,
+        Gauntlet        = 1 << 7,
+        Boots           = 1 << 8,
+        Brooch          = 1 << 9,
+        Mask            = 1 << 10,
+        Bracers         = 1 << 11,
+        Shield          = 1 << 12,
+
+        // Categories
+        Pets            = 1 << 13,
+        Weapons         = 1 << 14,
+        Items           = 1 << 15,
+
+        // Exclusions / modifiers
+        NoEvents        = 1 << 16,
+        NoFewResists    = 1 << 17,
+        NoEquipped      = 1 << 18,
+        CensorUltPP     = 1 << 19,
+    }
+
+    private readonly List<FilterOption> _filterOptions = new()
+    {   
+        new(Filters.Pristine,     "Pristine"),
+        new(Filters.Chain,        "Chain"),
+        new(Filters.Mail,         "Mail"),
+        new(Filters.Plate,        "Plate"),
+        new(Filters.Leather,      "Leather"),
+
+        new(Filters.Helmet,       "Helmet"),
+        new(Filters.Torso,        "Torso"),
+        new(Filters.Gauntlet,     "Gauntlet"),
+        new(Filters.Boots,        "Boots"),
+        new(Filters.Brooch,       "Brooch"),
+        new(Filters.Mask,         "Mask"),
+        new(Filters.Bracers,      "Bracers"),
+        new(Filters.Shield,       "Shield"),
+
+        new(Filters.Pets,         "Pets"),
+        new(Filters.Weapons,      "Weapons"),
+        new(Filters.Items,        "Items"),
+
+        new(Filters.NoEvents,     "No Events"),
+        new(Filters.NoFewResists, "No Few Resists"),
+        new(Filters.NoEquipped,   "No Equipped"),
+        new(Filters.CensorUltPP,  "Censor Ult++"),        
     };
+
     private readonly List<ModeOption> _modeOptions = new()
     {
-        new("Total Stats", "Total Stats"),
-        new("Tower App", "Tower App"),
-        new("Tower Hermit", "Tower Hermit"),
-        new("Tower Monk", "Tower Monk"),
-        new("Tower EV", "Tower EV"),
-        new("Minions", "Minions"),
+        new("Builder Stats", "Builder Stats"),
+        new("Hero Stats", "Hero Stats"),
+        new("Builder App", "Builder App"),
+        new("Builder Hermit", "Builder Hermit"),
+        new("Builder Monk/Huntress", "Builder Monk/Huntress"),
+        new("Builder EV", "Builder EV"),
+        new("Builder Summoner", "Builder Summoner"),
+        new("Tower Boost/Upgrader", "Tower Boost/Upgrader"),
         new("DPS AB1", "DPS AB1"),
         new("DPS AB2", "DPS AB2"),
-        new("Jester", "Jester"),
-        new("Upgrader/TB", "Upgrader/TB"),
+        new("DPS Countess", "DPS Countess"),
+        new("DPS Jester", "DPS Jester"),
+
     };
 
     private string _selectedMode = "";
-    private string _selectedFilter = "";
+    private Filters _selectedFilter = 0;
 
 
-    private void SetFilter(string filter)
+    private void SetFilterFlag(Filters filter, bool enabled)
+    {
+        Filters newFilters = _selectedFilter;
+
+        if (enabled)
+            newFilters |= filter;
+        else
+            newFilters &= ~filter;        
+
+        SetFilters(newFilters);
+    }
+    private IEnumerable<FilterOption> ArmorMaterialFilters =>
+    _filterOptions.Where(o =>
+        o.Filter is Filters.Pristine or Filters.Chain or Filters.Mail or Filters.Plate or Filters.Leather);
+
+    private IEnumerable<FilterOption> TypeFilters =>
+        _filterOptions.Where(o =>
+            o.Filter is Filters.Helmet or Filters.Torso or Filters.Gauntlet or Filters.Boots
+                   or Filters.Brooch or Filters.Mask or Filters.Bracers or Filters.Shield
+                   or Filters.Pets or Filters.Weapons or Filters.Items);
+
+    private IEnumerable<FilterOption> OtherFilters =>
+        _filterOptions.Where(o =>
+            o.Filter is Filters.NoEvents or Filters.NoFewResists or Filters.NoEquipped or Filters.CensorUltPP);
+
+
+    private void SetFilters(Filters filter)
     {
         _selectedFilter = filter;
-        _rows.Clear();
-        if (filter == "All")
+
+        if (filter.HasFlag(Filters.CensorUltPP))
         {
-            for (int i = 0; i < db.Items.Count; i++)
-                _rows.Add(db.Items[i].ToItemViewRow());
-        } 
-        else if (filter == "Any Armor")
-        {
-            for (int i = 0; i < db.Items.Count; i++)
-            {
-                if (db.Items[i].bIsArmor)
-                    _rows.Add(db.Items[i].ToItemViewRow());
-            }
+            StateHasChanged();
+            return;
         }
-        else 
+
+        _rows.Clear();
+
+        for (int i = 0; i < db.Items.Count; i++)
         {
-            for (int i = 0; i < db.Items.Count; i++)
-            {
-                if (db.Items[i].bIsArmor && (db.Items[i].Type == filter))
-                    _rows.Add(db.Items[i].ToItemViewRow());
-            }
+            bool includeType = false;
+            bool includeSubType = false;
+            DDEquipmentInfo item = db.Items[i];
+            if ((item.SubType == "Pristine") && filter.HasFlag(Filters.Pristine))
+                includeSubType = true;
+
+            if ((item.SubType == "Chain") && filter.HasFlag(Filters.Chain))
+                includeSubType = true;
+
+            if ((item.SubType == "Mail") && filter.HasFlag(Filters.Mail))
+                includeSubType = true;
+
+            if ((item.SubType == "Plate") && filter.HasFlag(Filters.Plate))
+                includeSubType = true;
+
+            if ((item.SubType == "Leather") && filter.HasFlag(Filters.Leather))
+                includeSubType = true;
+
+            if ((item.Type == "Helmet") && filter.HasFlag(Filters.Helmet))
+                includeType = true;
+
+            if ((item.Type == "Torso") && filter.HasFlag(Filters.Torso))
+                includeType = true;
+
+            if ((item.Type == "Gauntlet") && filter.HasFlag(Filters.Gauntlet))
+                includeType = true;
+
+            if ((item.Type == "Boots") && filter.HasFlag(Filters.Boots))
+                includeType = true;
+
+            if ((item.Type == "Brooch") && filter.HasFlag(Filters.Brooch))
+                includeType = true;
+
+            if ((item.Type == "Mask") && filter.HasFlag(Filters.Mask))
+                includeType = true;
+
+            if ((item.Type == "Bracers") && filter.HasFlag(Filters.Bracers))
+                includeType = true;
+
+            if ((item.Type == "Shield") && filter.HasFlag(Filters.Shield))
+                includeType = true;
+
+            if ((item.Type == "Pet") && filter.HasFlag(Filters.Pets))
+                includeType = true;
+
+            if ((item.Type == "Weapon") && filter.HasFlag(Filters.Weapons))
+                includeType = true;
+
+            if ((item.Type == "Item") && filter.HasFlag(Filters.Items))
+                includeType = true;
+
+            bool includeItem = includeType && (!item.bIsArmor || includeSubType);
+
+            // negative filters
+            if ((item.bIsEvent) && filter.HasFlag(Filters.NoEvents))
+                includeItem = false;
+
+            if ((item.bIsFewResists) && filter.HasFlag(Filters.NoFewResists))
+                includeItem = false;
+
+            if ((item.bIsEquipped) && filter.HasFlag(Filters.NoEquipped))
+                includeItem = false;
+
+            if (includeItem)
+                _rows.Add(item.ToItemViewRow());
         }
 
         // reset mode
         SetMode(_selectedMode);
     }
 
-    static void Add(ref int rating, ref int sides, int idx, int value)
+    static int Add(ref int rating, ref int sides, int idx, int value, int maxStat)
     {
         if (idx == 1) rating += value;
         else if (idx == 2) sides += value;
+
+        int levelsLeft = (maxStat - value);
+        if (levelsLeft < 0) levelsLeft = 0;
+        if (idx != 1) levelsLeft = 0;
+        return levelsLeft;
     }
 
     private bool bFactorInResists = false;
@@ -444,6 +723,14 @@ else
         return "table-header-none";
     }
 
+    private string GetValue( ItemViewRow row, int v )
+    {
+        string num = v.ToString();
+        if ((row.Quality != "Ult++") || !_selectedFilter.HasFlag(Filters.CensorUltPP))
+            return num;
+        return num.Substring(0, num.Length - 1) + "x";
+    }
+
     private void SetMode(string mode)
     {
         _selectedMode = mode;
@@ -462,50 +749,61 @@ else
         sumIdxTRange = 0;
         sumIdxTRate = 0;
 
-        switch( mode )
+        switch (mode)
         {
-            case "Total Stats":
+            case "Builder Stats":                
+                sumIdxTHP = 1;
+                sumIdxTDmg = 1;
+                sumIdxTRange = 1;
+                sumIdxTRate = 1;
+                break;
+            case "Hero Stats":
                 sumIdxHHP = 1;
                 sumIdxHDmg = 1;
                 sumIdxHSpd = 1;
                 sumIdxHRate = 1;
                 sumIdxAb1 = 1;
                 sumIdxAb2 = 1;
-                sumIdxTHP = 1;
-                sumIdxTDmg = 1;
-                sumIdxTRange = 1;
-                sumIdxTRate = 1;
-                break;
-            case "Tower App":
+                break;            
+            case "Builder App":
                 sumIdxTHP = 2;
                 sumIdxTDmg = 1;
                 sumIdxTRange = 1;
                 sumIdxTRate = 1;
                 break;
-            case "Tower Hermit":
+            case "Builder Hermit":
                 sumIdxTHP = 1;
                 sumIdxTDmg = 1;
                 sumIdxTRange = 1;
                 sumIdxTRate = 2;
                 break;
-            case "Tower Monk":
+            case "Builder Monk/Huntress":
                 sumIdxTHP = 2;
                 sumIdxTDmg = 2;
                 sumIdxTRange = 1;
                 sumIdxTRate = 2;
                 break;
-            case "Tower EV":
+            case "Builder EV":
                 sumIdxTHP = 2;
                 sumIdxTDmg = 1;
                 sumIdxTRange = 2;
                 sumIdxTRate = 2;
                 break;
-            case "Minions":
+            case "Builder Summoner":
                 sumIdxTHP = 1;
                 sumIdxTDmg = 2;
                 sumIdxTRange = 2;
                 sumIdxTRate = 2;
                 break;
+
+            case "Tower Boost/Upgrader":
+                bFactorInResists = true;
+                sumIdxHHP = 2;
+                sumIdxHDmg = 2;
+                sumIdxHRate = 2;
+                sumIdxAb1 = 1;
+                break;
+
             case "DPS AB1":
                 bFactorInResists = true;
                 sumIdxHHP = 2;
@@ -520,21 +818,26 @@ else
                 sumIdxHRate = 2;
                 sumIdxAb2 = 1;
                 break;
-            case "Jester":
+            case "DPS Countess":
                 bFactorInResists = true;
                 sumIdxHHP = 2;
                 sumIdxHDmg = 1;
-                sumIdxHRate = 2;                
-                break;
-            case "Upgrader/TB":
+                sumIdxHRate = 2;
+                sumIdxAb1 = 2;
+                sumIdxAb2 = 2;
+                break;                   
+            case "DPS Jester":
                 bFactorInResists = true;
                 sumIdxHHP = 2;
-                sumIdxHDmg = 2;                
+                sumIdxHDmg = 1;
                 sumIdxHRate = 2;
-                sumIdxAb1 = 1;                
-                break;
+                break;                   
         }
+        RecalculateRatings();
+    }
 
+    private void RecalculateRatings()
+    {
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
 
         for (int i = 0; i < _rows.Count; i++)
@@ -542,28 +845,37 @@ else
             int rating = 0;
             int sides = 0;
             var r = _rows[i];
-            Add(ref rating, ref sides, sumIdxHHP, r.HHP);
-            Add(ref rating, ref sides, sumIdxHDmg, r.HDmg);
-            Add(ref rating, ref sides, sumIdxHSpd, r.HSpd);
-            Add(ref rating, ref sides, sumIdxHRate, r.HRate);
-            Add(ref rating, ref sides, sumIdxAb1, r.Ab1);
-            Add(ref rating, ref sides, sumIdxAb2, r.Ab2);
-            Add(ref rating, ref sides, sumIdxTHP, r.THP);
-            Add(ref rating, ref sides, sumIdxTDmg, r.TDmg);
-            Add(ref rating, ref sides, sumIdxTRange, r.TRange);
-            Add(ref rating, ref sides, sumIdxTRate, r.TRate);
-
-            float mult = 1.25f;
+            float mult = 1.0f;
             int maxR = 31;
+            int maxStatLevel = 0;
 
             // fix this if we do more than armor
-            if (r.Quality == "Ult++") { mult = 1.4f; maxR = 29; }
-            else if (r.Quality == "Ult+") { mult = 1.4f; maxR = 29; }
-            else if (r.Quality == "Ult93") { mult = 1.4f; maxR = 29; }
-            else if (r.Quality == "Ult90") { mult = 1.4f; maxR = 29; }
-            else if (r.Quality == "Supreme") { mult = 1.3666f; maxR = 30; }
-            else if (r.Quality == "Transcendent") { mult = 1.3333f; maxR = 31; }
-            else if (r.Quality == "Mythical") { mult = 1.3f; maxR = 31; }
+            if (r.Quality == "Ult++") { mult = 1.4f; maxR = 29; maxStatLevel = 999; }
+            else if (r.Quality == "Ult+") { mult = 1.4f; maxR = 29; maxStatLevel = 700; }
+            else if (r.Quality == "Ult93") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
+            else if (r.Quality == "Ult90") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
+            else if (r.Quality == "Supreme") { mult = 1.3666f; maxR = 30; maxStatLevel = 500; }
+            else if (r.Quality == "Transcendent") { mult = 1.3333f; maxR = 31;maxStatLevel = 420;  }
+            else if (r.Quality == "Mythical") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
+
+            if ((r.Type != "Helmet") && (r.Type != "Torso") && (r.Type != "Gauntlet") && (r.Type != "Boots"))
+            {
+                mult = 1.0f; maxR = 0;
+            }
+
+            int maxGrowthLevels = 0;
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHHP, r.HHP, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHDmg, r.HDmg, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHSpd, r.HSpd, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHRate, r.HRate, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxAb1, r.Ab1, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxAb2, r.Ab2, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTHP, r.THP, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTDmg, r.TDmg, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTRange, r.TRange, maxStatLevel);
+            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTRate, r.TRate, maxStatLevel);
+
+
 
             int levelsLeft = r.MaxLevel - r.Level;
             int resG = r.RG;
@@ -583,15 +895,16 @@ else
             int remainingUpgrades = upgradesRequiredForResists - overcappedUpgradesNeeded + remainingOvercappedUpgrades;
             int levelsForStatsLeft = Math.Max(0, levelsLeft - remainingUpgrades);
 
-            if (!bFactorInResists) levelsForStatsLeft = levelsLeft;
+            if (!bFactorInResists || (maxR == 0)) levelsForStatsLeft = levelsLeft;
 
-            rating += levelsForStatsLeft;
+            rating += Math.Min(levelsForStatsLeft, maxGrowthLevels);
 
-            rating = (int)((float)rating * mult + 0.5f);
-            sides = (int)((float)sides * mult + 0.5f);
+            // actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.
+            rating = (int)((float)rating * mult + 0.99f);
+            sides = (int)((float)sides * mult + 0.99f);
 
-            string typeString = r.Type + " " + r.Position;
-            if (( r.Type != "") && (r.Position != ""))
+            string typeString = r.SubType + " " + r.Type;
+            if (( r.Type == "Helmet") || ( r.Type == "Gauntlet") || ( r.Type == "Boots") || ( r.Type == "Torso"))
             {
                 if ( BestPieces.ContainsKey(typeString))
                 {
@@ -603,48 +916,68 @@ else
                     BestPieces[typeString] = rating;
                 }
             }
-
-            _rows[i] = _rows[i] with
+            else if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
+            {
+                if ( BestPieces.ContainsKey(r.Type))
                 {
-                    Rating = rating,
-                    Sides = sides,
-                    BestAvailable = 0
-             };
+                    if (BestPieces[r.Type] < rating)
+                        BestPieces[r.Type] = rating;
+                }   
+                else
+                {
+                    BestPieces[r.Type] = rating;
+                }
+            }
+
+            _rows[i].Rating = rating;
+            _rows[i].Sides = sides;
+            _rows[i].BestAvailable = 0;
         }
 
         // find best armor set
         //-------------------------
-        string[] Types = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
+        string[] SubTypes = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
+        string[] AccessoryTypes = { "Brooch", "Mask", "Bracers", "Shield" };
         int[] Scores = new int[5];
+        int RatingFromAccessories = 0;
         foreach ( var v in BestPieces )
         {
             for (int i = 0; i < 5; i++)
             {
-                if (v.Key.StartsWith(Types[i]))
+                if (v.Key.StartsWith(SubTypes[i]))
                 {
                     Scores[i] += v.Value;
                 }
             }
+            for (int i = 0; i < 4; i++)
+            {
+                if (v.Key.StartsWith(AccessoryTypes[i]))
+                {
+                    RatingFromAccessories += v.Value;
+                }
+            }
         }
 
-        string bestType = Types[0];
+        string bestType = SubTypes[0];
         int bestScore = Scores[0];
         for (int i = 1; i < 5; i++)
         {
             if (bestScore < Scores[i])
             {
                 bestScore = Scores[i];
-                bestType = Types[i];
+                bestType = SubTypes[i];
             }
         }
+
+        string NameString = "";
 
         for (int i = 0; i < _rows.Count; i++)
         {
             bool highlight = false;
             var r = _rows[i];
-            if (r.Type == bestType)
+            if (r.SubType == bestType)
             {
-                string typeString = r.Type + " " + r.Position;
+                string typeString = r.SubType + " " + r.Type;
                 if ( BestPieces.ContainsKey(typeString))
                 {
                     int rating = BestPieces[typeString];    
@@ -652,21 +985,93 @@ else
                     {
                         highlight = true;
                         BestPieces[typeString] = -99999;
+                        NameString += r.Name + " ";
                     }
                 }                                
             }
-            _rows[i] = _rows[i] with
+
+            if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
             {
-                BestAvailable = (highlight ? 1 : 0)
-            };
+                if (BestPieces.ContainsKey(r.Type))
+                {
+                    int rating = BestPieces[r.Type];    
+                    if (r.Rating == rating)
+                    {
+                        highlight = true;
+                        BestPieces[r.Type] = -99999;
+                        NameString += r.Name + " ";
+                    }
+                }
+            }
+
+            _rows[i].BestAvailable = (highlight ? 1 : 0);
         }
 
-        _summary = $"Best Armor Set: {bestType} ({bestScore})";
-       //-------------------------
+
+        _summary = $"Best Armor Set: {bestType} ({bestScore + RatingFromAccessories})";
+        //-------------------------
         _sortDesc = true;
         _sortColumn = "";
         SortBy("Rating");
     }
+
+
+
+    private void ChangeImportance( string column )
+    {
+
+        switch (column)
+        {
+            case nameof(ItemViewRow.HHP):     sumIdxHHP     = (sumIdxHHP + 1) % 3; break;
+            case nameof(ItemViewRow.HDmg):    sumIdxHDmg    = (sumIdxHDmg + 1) % 3; break;
+            case nameof(ItemViewRow.HSpd):    sumIdxHSpd    = (sumIdxHSpd + 1) % 3; break;
+            case nameof(ItemViewRow.HRate):   sumIdxHRate   = (sumIdxHRate + 1) % 3; break;
+            case nameof(ItemViewRow.Ab1):     sumIdxAb1     = (sumIdxAb1 + 1) % 3; break;
+            case nameof(ItemViewRow.Ab2):     sumIdxAb2     = (sumIdxAb2 + 1) % 3; break;
+            case nameof(ItemViewRow.THP):     sumIdxTHP     = (sumIdxTHP + 1) % 3; break;
+            case nameof(ItemViewRow.TDmg):    sumIdxTDmg    = (sumIdxTDmg + 1) % 3; break;
+            case nameof(ItemViewRow.TRange):  sumIdxTRange  = (sumIdxTRange + 1) % 3; break;
+            case nameof(ItemViewRow.TRate):   sumIdxTRate   = (sumIdxTRate + 1) % 3; break;
+
+            case nameof(ItemViewRow.RG):  bFactorInResists = !bFactorInResists; break;
+            case nameof(ItemViewRow.RP):  bFactorInResists = !bFactorInResists; break;
+            case nameof(ItemViewRow.RF):  bFactorInResists = !bFactorInResists; break;
+            case nameof(ItemViewRow.RL):  bFactorInResists = !bFactorInResists; break;
+        }
+        RecalculateRatings();
+
+    }
+
+    private string GetImportanceImage( string column )
+    {       
+        int idx = column switch
+        {
+            nameof(ItemViewRow.HHP)     => sumIdxHHP,
+            nameof(ItemViewRow.HDmg)    => sumIdxHDmg,
+            nameof(ItemViewRow.HSpd)    => sumIdxHSpd,
+            nameof(ItemViewRow.HRate)   => sumIdxHRate,
+            nameof(ItemViewRow.Ab1)     => sumIdxAb1,
+            nameof(ItemViewRow.Ab2)     => sumIdxAb2,
+            nameof(ItemViewRow.THP)     => sumIdxTHP,
+            nameof(ItemViewRow.TDmg)    => sumIdxTDmg,
+            nameof(ItemViewRow.TRange)  => sumIdxTRange,
+            nameof(ItemViewRow.TRate)   => sumIdxTRate,
+            nameof(ItemViewRow.RG)      => bFactorInResists?1:0,
+            nameof(ItemViewRow.RP)      => bFactorInResists?1:0,
+            nameof(ItemViewRow.RF)      => bFactorInResists?1:0,
+            nameof(ItemViewRow.RL)      => bFactorInResists?1:0,
+            _ => 0
+        };
+
+        return idx switch
+        {
+            0 => "png/importance-none.png",
+            1 => "png/importance-rating.png",
+            2 => "png/importance-side.png",
+            _ => ""
+        };
+    }
+
     private void SortBy(string column)
     {
         if (_sortColumn == column)
@@ -679,6 +1084,7 @@ else
 
         ApplySort();
     }
+
     private void ApplySort()
     {
         var q = _rows.AsEnumerable();
@@ -688,8 +1094,8 @@ else
 
         // Stable tie-breaker so rows don’t “shuffle” weirdly when values match
         IOrderedEnumerable<ItemViewRow> Order(IOrderedEnumerable<ItemViewRow> ordered)
-            => ordered.ThenBy(r => r.Name, ci)
-                      .ThenBy(r => r.Location, ci);
+            =>  ordered.ThenByDescending(r => r.Rating)
+                       .ThenByDescending(r => r.Sides) ;
 
         q = (_sortColumn, _sortDesc) switch
         {
@@ -758,8 +1164,8 @@ else
             (nameof(ItemViewRow.Type), true) => Order(q.OrderByDescending(r => r.Type, ci)),
             (nameof(ItemViewRow.Type), false) => Order(q.OrderBy(r => r.Type, ci)),
 
-            (nameof(ItemViewRow.Position), true) => Order(q.OrderByDescending(r => r.Position, ci)),
-            (nameof(ItemViewRow.Position), false) => Order(q.OrderBy(r => r.Position, ci)),
+            (nameof(ItemViewRow.SubType), true) => Order(q.OrderByDescending(r => r.SubType, ci)),
+            (nameof(ItemViewRow.SubType), false) => Order(q.OrderBy(r => r.SubType, ci)),
 
             // Quality: use a tier rank (DD-style), not alphabetical
             (nameof(ItemViewRow.Quality), true) => Order(q.OrderByDescending(r => QualityRank(r.Quality))),
@@ -855,8 +1261,8 @@ else
             else
             {
                 _status = db.Status;
-                SetFilter("Any Armor");
-                SetMode("Tower App");
+                SetFilters(Filters.Chain | Filters.Mail | Filters.Pristine | Filters.Leather | Filters.Plate | Filters.Helmet | Filters.Torso | Filters.Gauntlet | Filters.Boots | Filters.NoEvents );
+                SetMode("Builder App");
     
                 _hideDropzoneHelp = true;              
             }
@@ -874,7 +1280,9 @@ else
     }
     
     static int[] ResistRequirements =
-        { 39, 39, 38, 38, 37, 37, 36, 36, 35, 34,  // -20 to -11
+        {   
+            42,42,42,41,41,41,40,40,40,              // -29 to -21
+            39, 39, 38, 38, 37, 37, 36, 36, 35, 34,  // -20 to -11
 			33, 32, 31, 30, 29, 28, 27, 26, 25, 24,  // -10 to -1
 			23, 23, 22, 21, 20, 19, 18, 17, 16, 15,  // 0 to 9
 			14, 13, 12, 11, 10, 9, 9, 8, 8, 7, // 10 to 19
@@ -882,13 +1290,13 @@ else
 
 
     public static int GetUpgradesRequired(int tgt, int g, int p, int f, int l)
-    {
+    {       
         int delta = tgt - 29;
 
-        int greq = ((g >= -20) && (g < 31)) ? ResistRequirements[g + 20] + delta : 0;
-        int preq = ((p >= -20) && (p < 31)) ? ResistRequirements[p + 20] + delta : 0;
-        int freq = ((f >= -20) && (f < 31)) ? ResistRequirements[f + 20] + delta : 0;
-        int lreq = ((l >= -20) && (l < 31)) ? ResistRequirements[l + 20] + delta : 0;
+        int greq = ((g >= -29) && (g < 31)) ? ResistRequirements[g + 29] + delta : 0;
+        int preq = ((p >= -29) && (p < 31)) ? ResistRequirements[p + 29] + delta : 0;
+        int freq = ((f >= -29) && (f < 31)) ? ResistRequirements[f + 29] + delta : 0;
+        int lreq = ((l >= -29) && (l < 31)) ? ResistRequirements[l + 29] + delta : 0;
 
         if (greq < 0) greq = 0;
         if (preq < 0) preq = 0;
