@@ -1,6 +1,7 @@
 ﻿using DDUP;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml.Linq;
 
@@ -64,8 +65,8 @@ public class DDEquipmentInfo
 	public string Location = "";
 
 	public string Quality = "";
-	public string SubType = "";
 	public string Type = "";
+	public string Set = "";
 
 	public int FolderID;
 	public int IndexInFolder;	
@@ -74,7 +75,7 @@ public class DDEquipmentInfo
 	public bool bIsArmor;
 	public bool bIsEvent;
 	public bool bIsEquipped;
-	public bool bIsFewResists;
+	public bool bIsMissingResists;
 
 	public ItemViewRow? cachedItemRow = null;
 
@@ -95,6 +96,16 @@ public class DDEquipmentInfo
 			var user = this.UserEquipName ?? "";
 			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user)) ? user : $"{user} ({gen})");
 
+			bool bIsEligibleForBest =
+				(this.Type == "Boots") ||
+				(this.Type == "Helmet") ||
+				(this.Type == "Torso") ||
+				(this.Type == "Gauntlet") ||
+				(this.Type == "Bracers") ||
+				(this.Type == "Brooch") ||
+				(this.Type == "Mask");
+				
+
 			cachedItemRow = new ItemViewRow(
 				Rating: 0,
 				Sides: 0,
@@ -102,7 +113,7 @@ public class DDEquipmentInfo
 				Location: this.Location ?? "",
 				Quality: this.Quality ?? "",
 				Type: this.Type ?? "",
-				SubType: this.SubType ?? "",
+				Set: this.Set ?? "",
 				Level: this.Level,
 				MaxLevel: this.MaxLevel,
 
@@ -126,8 +137,10 @@ public class DDEquipmentInfo
 				BestAvailable: Idx % 2,
 
 				IsEquipped: this.bIsEquipped,
-				IsFewResists: this.bIsFewResists,
-				IsEvent: this.bIsEvent
+				IsMissingResists: this.bIsMissingResists,
+				IsEvent: this.bIsEvent,
+				IsArmor: this.bIsArmor,
+				IsEligibleForBest: bIsEligibleForBest
 			);
 		}
 		return cachedItemRow;
@@ -161,7 +174,6 @@ public class DDDatabase
 	public List<DDEquipmentInfo> Items = [];
 	public Dictionary<int, DDFolder> ItemBoxFolders = [];
 	public Dictionary<int, DDFolder> ShopFolders = [];
-
 
 	private const uint UE3_COMPRESSED_TAG = 0x9E2A83C1;
 	public async Task LoadFromDun(byte[] byteArray)
@@ -325,58 +337,66 @@ public class DDDatabase
 			else if (itemInfo.NameQualityIdx == 1) quality = "Legendary";
 			else if (itemInfo.NameQualityIdx == 0) quality = "Godly";
 
-			string type = "";
+			string type = "Unknown";
+			string set = "";
 			bool isArmor = false;
-			if (itemInfo.Template.Contains("_Chain")) { type = "Chain"; isArmor = true; }
-			else if (itemInfo.Template.Contains("_Mail")) {type = "Mail"; isArmor = true; }
-			else if (itemInfo.Template.Contains("_Pristine")){ type = "Pristine"; isArmor = true; }
-			else if (itemInfo.Template.Contains("_Leather")){ type = "Leather"; isArmor = true; }
-			else if (itemInfo.Template.Contains("_Plate")) {type = "Plate"; isArmor = true; }
+			Items[i].Description = "Unknown";
+			Items[i].GeneratedName = Items[i].Template;
 
+			bool bIsEvent = false;
 
-			string pos = "";
-			if (itemInfo.Template.Contains("Torso")) pos = "Torso";
-			else if (itemInfo.Template.Contains("Gauntlet")) pos = "Gauntlet";
-			else if (itemInfo.Template.Contains("Helmet")) pos = "Helmet";
-			else if (itemInfo.Template.Contains("Boots")) pos = "Boots";
+			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
+			{
+				ItemEntry entry = ItemTemplateInfo.Map[itemInfo.Template];
+				if (entry.EquipmentType == EquipmentType.Weapon) { type = "Weapon"; }
+				else if (entry.EquipmentType == EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
+				else if (entry.EquipmentType == EquipmentType.Torso) { type = "Torso"; isArmor = true; }
+				else if (entry.EquipmentType == EquipmentType.Gloves) { type = "Gauntlet"; isArmor = true; }
+				else if (entry.EquipmentType == EquipmentType.Boots) { type = "Boots"; isArmor = true; }
+				else if (entry.EquipmentType == EquipmentType.Bracers) { type = "Bracers"; }
+				else if (entry.EquipmentType == EquipmentType.Brooch) { type = "Brooch"; }
+				else if (entry.EquipmentType == EquipmentType.Mask) { type = "Mask"; }
+				else if (entry.EquipmentType == EquipmentType.Shield) { type = "Shield"; }
+				else if (entry.EquipmentType == EquipmentType.Familiar) { type = "Pet"; }
+				else if (entry.EquipmentType == EquipmentType.Currency) { type = "Currency"; }
+
+				if (entry.EquipmentSet == EquipmentSet.None) { set = ""; }
+				else if (entry.EquipmentSet == EquipmentSet.Leather) { set = "Leather"; }
+				else if (entry.EquipmentSet == EquipmentSet.Pristine) { set = "Pristine"; }
+				else if (entry.EquipmentSet == EquipmentSet.Plate) { set = "Plate"; }
+				else if (entry.EquipmentSet == EquipmentSet.Mail) { set = "Mail"; }
+				else if (entry.EquipmentSet == EquipmentSet.Chain) { set = "Chain"; }
+				else if (entry.EquipmentSet == EquipmentSet.Zamira) { set = "Zamira"; }
+				else if (entry.EquipmentSet == EquipmentSet.Any) { set = "Any"; }
+
+				if (entry.WeaponType == WeaponType.Squire) { set = "Squire"; }
+				else if (entry.WeaponType == WeaponType.Huntress) { set = "Huntress"; }
+				else if (entry.WeaponType == WeaponType.Apprentice) { set = "Apprentice"; }
+				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
+				
+
+				Items[i].Description = entry.Description;
+				if ( entry.Names.Count > 0)
+				{
+					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
+					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
+				}
+
+				bIsEvent |= Items[i].Description != entry.Description;
+				bIsEvent |= entry.BaseForgerName != "";
+				bIsEvent |= (Items[i].ForgerName != entry.BaseForgerName) && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
+			}
 
 			Items[i].Quality = quality;
 			Items[i].Type = type;
-			Items[i].SubType = pos;
+			Items[i].Set = set;
 			Items[i].bIsArmor = isArmor;
 			Items[i].Idx = i;
 
-			Items[i].bIsEvent = Items[i].Template.Contains("Event");
-			Items[i].bIsFewResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
+			bIsEvent |= Items[i].Template.Contains("Event");
 
-			if (ItemNamesAndText.Map.ContainsKey(Items[i].Template))
-			{
-				List<string> ItemInfo = ItemNamesAndText.Map[Items[i].Template];
-				if (ItemInfo.Count == 4)
-				{
-					Items[i].Description = ItemInfo[2];
-					Items[i].GeneratedName = ItemInfo[3];
-				}
-				else if ((ItemInfo.Count > 4) && ( Items[i].NameVariantIdx >= 0) && (Items[i].NameVariantIdx < ItemInfo.Count - 4))
-				{
-					Items[i].Description = ItemInfo[2];
-					Items[i].GeneratedName = ItemInfo[4 + Items[i].NameVariantIdx];
-				}
-				else
-				{
-					Items[i].Description = "Unknown";
-					Items[i].GeneratedName = Items[i].Template;
-				}
-				Items[i].Type = ItemInfo[0];
-				Items[i].SubType = ItemInfo[1];
-				Items[i].bIsArmor = (ItemInfo[0] == "Helmet") || (ItemInfo[0] == "Gauntlet") || (ItemInfo[0] == "Boots") || (ItemInfo[0] == "Torso");
-				if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
-			}
-			else
-			{
-				Items[i].Description = "Unknown";
-				Items[i].GeneratedName = Items[i].Template;
-			}
+			Items[i].bIsEvent = bIsEvent;
+			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));			
 		}
 	}
 
@@ -521,18 +541,21 @@ public class DDDatabase
 		e.ForgerName = ReadFString(reader);   // 0xc4a
 		e.Description = ReadFString(reader);   // 0xc55
 		e.Template = ReadFString(reader);      // 0xc59
-
-		// 6 bytes
-		_ = reader.ReadInt32();
-		_ = reader.ReadByte();
-		_ = reader.ReadByte();
+		_ = ReadFString(reader); // timestamp
 
 		e.FolderID = reader.ReadInt32();
-		e.bIsSecondary = reader.ReadInt32() > 0 ? true : false;
-		// 142 bytes??
+		e.bIsSecondary = reader.ReadByte() > 0 ? true : false;
 
-		// no idea what these are
-		_ = reader.ReadBytes(142);
+		_ = reader.ReadBytes(40); // equipment_ids
+		_ = reader.ReadBytes(40); // equipment_tiers
+		_ = ReadLinearColor(reader); // linear color
+		_ = ReadFString(reader); // feature string
+
+		_ = reader.ReadByte(); // hide quality descriptor
+		_ = reader.ReadByte(); // feature byte 1
+		_ = reader.ReadByte(); // feature byte 2
+
+		_ = reader.ReadBytes(40);  // feature array
 
 		return e;
 	}

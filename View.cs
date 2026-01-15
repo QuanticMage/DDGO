@@ -29,7 +29,7 @@
 
 		// Exclusions / modifiers
 		NoEvents = 1 << 16,
-		NoFewResists = 1 << 17,
+		NoMissingResists = 1 << 17,
 		NoEquipped = 1 << 18,
 	}
 
@@ -42,7 +42,7 @@
 		public string Location { get; set; }
 		public string Quality { get; set; }
 		public string Type { get; set; }
-		public string SubType { get; set; }
+		public string Set { get; set; }
 
 		public int Level { get; set; }
 		public int MaxLevel { get; set; }
@@ -71,9 +71,12 @@
 
 		public bool IsEvent{ get; set; }
 
-		public bool IsFewResists { get; set; }
+		public bool IsMissingResists { get; set; }
 
 		public bool IsEquipped { get; set; }
+		public bool IsArmor { get; set; }
+
+		public bool IsEligibleForBest { get; set; }
 
 		public int BestAvailable { get; set; }
 
@@ -84,7 +87,7 @@
 				string Location,
 				string Quality,
 				string Type,
-				string SubType,
+				string Set,
 				int Level,
 				int MaxLevel,
 
@@ -108,8 +111,10 @@
 				int BestAvailable,
 				
 				bool IsEvent,
-				bool IsFewResists,
-				bool IsEquipped)
+				bool IsMissingResists,
+				bool IsEquipped,
+				bool IsArmor,
+				bool IsEligibleForBest)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -118,7 +123,7 @@
 			this.Location = Location;
 			this.Quality = Quality;
 			this.Type = Type;
-			this.SubType = SubType;
+			this.Set = Set;
 
 			this.Level = Level;
 			this.MaxLevel = MaxLevel;
@@ -144,8 +149,10 @@
 			this.BestAvailable = BestAvailable;
 
 			this.IsEvent = IsEvent;
-			this.IsFewResists = IsFewResists;
+			this.IsMissingResists = IsMissingResists;
 			this.IsEquipped = IsEquipped;
+			this.IsArmor = IsArmor;
+			this.IsEligibleForBest = IsEligibleForBest;
 		}
 	}
 }

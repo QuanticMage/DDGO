@@ -6,7 +6,8 @@
 
 <div class="top-pane">
     <div class="left-pane">
-        <h1>Dungeon Defender Gear Optimizer</h1>
+        <h1>Dungeon Defender Gear Optimizer</h1>        
+        <div class="build"><i>Jan 15 2026 - Version 0.5</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
@@ -38,10 +39,9 @@
         </div>
     </div>
     <aside class="info-pane">
-        <h3 class="links-title">Credits</h3>
-        <div class="credits">
-            <div class="credits-by">App by <i>Mage</i></div>
-            <div class="credits-thanks">Special Thanks to <i>Scryllix, TBolt, Chiku, and the DDRnG community</i></div>
+        <div class="credits">            
+            <div class="credits-by">Created by <i>Mage and Tbolt</i></div>
+            <div class="credits-thanks">Special Thanks to <i>Scryllix, Chiku, and the DDRnG community</i></div>            
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -49,9 +49,8 @@
         <li><a href="https://dungeondefenders.wiki.gg" rel="noopener">Dungeon Defender's Wiki</a></li>
         <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2968079729" rel="noopener">Chiku’s Guide</a></li>
         <li><a href="https://docs.google.com/spreadsheets/d/11v0h3LLUDYEkTxvkLVWUzYv8wXvjZ1cPTJJ-o1QqVDM/edit?gid=1598543540#gid=1598543540" rel="noopener">Best-in-Slot Doc</a></li>
-        <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>
-        
-    </ul>
+        <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>           
+    </ul>    
 </aside>
 </div>
 <div class="toolbar-line">
@@ -77,7 +76,7 @@
     <label class="toolbar-label">Filters:</label>
 
     <div class="filters-groups">
-        @RenderFilterGroup("Armor Material", ArmorMaterialFilters)
+        @RenderFilterGroup("Set", ArmorMaterialFilters)
         @RenderFilterGroup("Type", TypeFilters)
         @RenderFilterGroup("Other", OtherFilters)
     </div>
@@ -151,106 +150,111 @@ else
   
         <thead>
             <tr class="rating-row">
-                <th colspan="9" class="hint-text">Click names to sort, or stars to adjust the rating calculation</th>
-                <th>
-                    <button type="button" class="importance-button"
+                <th colspan="9" class="hint-text">Click names to sort, or stars to adjust the rating calculation -></th>
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.HHP))">
                         <img src="@GetImportanceImage(nameof(ItemViewRow.HHP))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                    <th class="importance-cell">
+                    <div class="th-center">
+                   <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.HDmg))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.HDmg))" />
+                            <img src="@GetImportanceImage(nameof(ItemViewRow.HDmg))" />
                     </button>
+                    </div>
                 </th>
-
-                <th>
-                    <button type="button" class="importance-button"
+                     <th class="importance-cell">
+                    <div class="th-center">
+               <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.HSpd))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.HSpd))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.HSpd))" />
                     </button>
+                     </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                    <th class="importance-cell">
+                    <div class="th-center">
+                        <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.HRate))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
                     </button>
-                </th>
+                    </div>
+                </th class="importance-cell">
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab1))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.Ab1))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab1))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab2))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.Ab2))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab2))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.THP))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.THP))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.THP))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.TDmg))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.TDmg))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TDmg))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.TRange))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.TRange))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TRange))" />
                     </button>
+                    </div>
                 </th>
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.TRate))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.TRate))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TRate))" />
                     </button>
+                    </div>
+
                 </th>
 
                 <!-- Resists (all toggle the same flag, but still distinct columns) -->
 
-                <th>
-                    <button type="button" class="importance-button"
+                <th class="importance-cell">
+                    <div class="th-center">
+                    <button type="button"
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.RG))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.RG))" />
+                            <img  src="@GetImportanceImage(nameof(ItemViewRow.RG))" />
                     </button>
+                    </div>
                 </th>
+                <th></th>
+                <th></th>
+                <th></th>
 
-                <th>
-                    <button type="button" class="importance-button"
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RP))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.RP))" />
-                    </button>
-                </th>
-
-                <th>
-                    <button type="button" class="importance-button"
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RF))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.RF))" />
-                    </button>
-                </th>
-
-                <th>
-                    <button type="button" class="importance-button"
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RL))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.RL))" />
-                    </button>
-                </th>
             </tr>
             <tr class="header-row">
                 <th class="sortable">
@@ -275,8 +279,8 @@ else
                 </th>
 
                 <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.SubType))">
-                        SubType <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.SubType))</span>
+                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Set))">
+                        Set <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Set))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>
@@ -452,7 +456,7 @@ else
                     <td class="num cell-rating">@r.Rating</td>
                     <td class="num">@r.Sides</td>
                     <td class="text">@r.Type</td>
-                    <td class="text">@r.SubType</td>
+                    <td class="text">@r.Set</td>
                     <td class="text cell-name">@r.Name</td>
                     <td class="text location">@r.Location</td>
                     <td class="text @QualityClass(r.Quality)">@r.Quality</td>
@@ -519,11 +523,10 @@ else
         new(Filters.Shield,       "Shield"),
 
         new(Filters.Pets,         "Pets"),
-        new(Filters.Weapons,      "Weapons"),
-        new(Filters.Items,        "Items"),
+        new(Filters.Weapons,      "Weapons"),        
 
         new(Filters.NoEvents,     "No Events"),
-        new(Filters.NoFewResists, "No Few Resists"),
+        new(Filters.NoMissingResists, "No Missing Resists"),
         new(Filters.NoEquipped,   "No Equipped"),        
     };
 
@@ -571,7 +574,7 @@ else
 
     private IEnumerable<FilterOption> OtherFilters =>
         _filterOptions.Where(o =>
-            o.Filter is Filters.NoEvents or Filters.NoFewResists or Filters.NoEquipped );
+            o.Filter is Filters.NoEvents or Filters.NoMissingResists or Filters.NoEquipped );
 
 
     private void SetFilters(Filters filter)
@@ -585,20 +588,20 @@ else
             bool includeType = false;
 
             bool includeSubType = false;
-            bool isArmor = ((v.SubType == "Pristine") || (v.SubType == "Chain") || (v.SubType == "Mail") || (v.SubType == "Plate") || (v.SubType == "Leather"));
-            if ((v.SubType == "Pristine") && filter.HasFlag(Filters.Pristine))
+            bool isArmor = v.IsArmor;
+            if (((v.Set == "Pristine") || (v.Set == "Any")) && filter.HasFlag(Filters.Pristine))
                 includeSubType = true; 
 
-            if ((v.SubType == "Chain") && filter.HasFlag(Filters.Chain))
+            if (((v.Set == "Chain") || (v.Set == "Any")) && filter.HasFlag(Filters.Chain))
                 includeSubType = true;
 
-            if ((v.SubType == "Mail") && filter.HasFlag(Filters.Mail))
+            if (((v.Set == "Mail") || (v.Set == "Any")) && filter.HasFlag(Filters.Mail))
                 includeSubType = true;
 
-            if ((v.SubType == "Plate") && filter.HasFlag(Filters.Plate))
+            if (((v.Set == "Plate") || (v.Set == "Any")) && filter.HasFlag(Filters.Plate))
                 includeSubType = true;
 
-            if ((v.SubType == "Leather") && filter.HasFlag(Filters.Leather))
+            if (((v.Set == "Leather") || (v.Set == "Any")) && filter.HasFlag(Filters.Leather))
                 includeSubType = true;
 
             if ((v.Type == "Helmet") && filter.HasFlag(Filters.Helmet))
@@ -640,7 +643,7 @@ else
             if ((v.IsEvent) && filter.HasFlag(Filters.NoEvents))
                 includeItem = false;
 
-            if ((v.IsFewResists) && filter.HasFlag(Filters.NoFewResists))
+            if ((v.IsMissingResists) && filter.HasFlag(Filters.NoMissingResists))
                 includeItem = false;
 
             if ((v.IsEquipped) && filter.HasFlag(Filters.NoEquipped))
@@ -651,10 +654,10 @@ else
         SetMode(_selectedMode);
     }
 
-    static int Add(ref int rating, ref int sides, int idx, int value, int maxStat)
+    static int AddRating(ref int rating, ref int sides, int idx, int value, int maxStat, float mult)
     {
-        if (idx == 1) rating += value;
-        else if (idx == 2) sides += value;
+        if (idx == 1) rating += (int)Math.Ceiling(value * mult);
+        else if (idx == 2) sides += (int)Math.Ceiling(value * mult);
 
         int levelsLeft = (maxStat - value);
         if (levelsLeft < 0) levelsLeft = 0;
@@ -787,6 +790,29 @@ else
         RecalculateRatings();
     }
 
+    private void TestForBestPiece(string type, string set, int rating, Dictionary<string, int> BestPieces)
+    {
+        if ( set == "Any" )
+        {
+            TestForBestPiece(type, "Chain", rating, BestPieces);
+            TestForBestPiece(type, "Pristine", rating, BestPieces);
+            TestForBestPiece(type, "Plate", rating, BestPieces);
+            TestForBestPiece(type, "Mail", rating, BestPieces);
+            TestForBestPiece(type, "Leather", rating, BestPieces);
+            return;
+        }
+
+        string key = set + "_" + type;
+
+        if (BestPieces.ContainsKey(key))
+        {
+            if (BestPieces[key] < rating)
+                BestPieces[key] = rating;
+        }
+        else
+            BestPieces[key] = rating;
+    }
+
     private void RecalculateRatings()
     {
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
@@ -815,18 +841,16 @@ else
             }
 
             int maxGrowthLevels = 0;
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHHP, r.HHP, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHDmg, r.HDmg, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHSpd, r.HSpd, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxHRate, r.HRate, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxAb1, r.Ab1, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxAb2, r.Ab2, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTHP, r.THP, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTDmg, r.TDmg, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTRange, r.TRange, maxStatLevel);
-            maxGrowthLevels += Add(ref rating, ref sides, sumIdxTRate, r.TRate, maxStatLevel);
-
-
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxHHP, r.HHP, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxHDmg, r.HDmg, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxHSpd, r.HSpd, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxHRate, r.HRate, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxAb1, r.Ab1, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxAb2, r.Ab2, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxTHP, r.THP, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxTDmg, r.TDmg, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxTRange, r.TRange, maxStatLevel, mult);
+            maxGrowthLevels += AddRating(ref rating, ref sides, sumIdxTRate, r.TRate, maxStatLevel, mult);
 
             int levelsLeft = r.MaxLevel - r.Level;
             int resG = r.RG;
@@ -848,39 +872,13 @@ else
 
             if (!bFactorInResists || (maxR == 0)) levelsForStatsLeft = levelsLeft;
 
-            rating += Math.Min(levelsForStatsLeft, maxGrowthLevels);
+            rating += (int)Math.Ceiling(Math.Min(levelsForStatsLeft, maxGrowthLevels) * mult);
 
             // actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.
-            rating = (int)((float)rating * mult + 0.99f);
-            sides = (int)((float)sides * mult + 0.99f);
-
-            string typeString = r.SubType + " " + r.Type;
-            if (!r.IsHidden)
+            
+            if (!r.IsHidden && r.IsEligibleForBest)
             {
-                if ((r.Type == "Helmet") || (r.Type == "Gauntlet") || (r.Type == "Boots") || (r.Type == "Torso"))
-                {
-                    if (BestPieces.ContainsKey(typeString))
-                    {
-                        if (BestPieces[typeString] < rating)
-                            BestPieces[typeString] = rating;
-                    }
-                    else
-                    {
-                        BestPieces[typeString] = rating;
-                    }
-                }
-                else if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
-                {
-                    if (BestPieces.ContainsKey(r.Type))
-                    {
-                        if (BestPieces[r.Type] < rating)
-                            BestPieces[r.Type] = rating;
-                    }
-                    else
-                    {
-                        BestPieces[r.Type] = rating;
-                    }
-                }
+                TestForBestPiece(r.Type, r.Set, rating, BestPieces);                
             }
 
             _rows[i].Rating = rating;
@@ -890,36 +888,27 @@ else
 
         // find best armor set
         //-------------------------
-        string[] SubTypes = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
-        string[] AccessoryTypes = { "Brooch", "Mask", "Bracers", "Shield" };
+        string[] Sets = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
         int[] Scores = new int[5];
-        int RatingFromAccessories = 0;
         foreach ( var v in BestPieces )
         {
             for (int i = 0; i < 5; i++)
             {
-                if (v.Key.StartsWith(SubTypes[i]))
+                if (v.Key.StartsWith(Sets[i]))
                 {
                     Scores[i] += v.Value;
                 }
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                if (v.Key.StartsWith(AccessoryTypes[i]))
-                {
-                    RatingFromAccessories += v.Value;
-                }
-            }
+            }            
         }
 
-        string bestType = SubTypes[0];
+        string bestSet = Sets[0];
         int bestScore = Scores[0];
         for (int i = 1; i < 5; i++)
         {
             if (bestScore < Scores[i])
             {
                 bestScore = Scores[i];
-                bestType = SubTypes[i];
+                bestSet = Sets[i];
             }
         }
 
@@ -929,10 +918,10 @@ else
         {
             bool highlight = false;
             var r = _rows[i];
-            if (r.IsHidden) continue;
-            if (r.SubType == bestType)
+            if (r.IsHidden || !r.IsEligibleForBest) continue;
+            if ((r.Set == bestSet) || (r.Set == "Any"))
             {
-                string typeString = r.SubType + " " + r.Type;
+                string typeString = bestSet + "_" + r.Type;
                 if ( BestPieces.ContainsKey(typeString))
                 {
                     int rating = BestPieces[typeString];    
@@ -945,25 +934,11 @@ else
                 }                                
             }
 
-            if ((r.Type == "Brooch") || (r.Type == "Mask") || (r.Type == "Bracers") || (r.Type == "Shield"))
-            {
-                if (BestPieces.ContainsKey(r.Type))
-                {
-                    int rating = BestPieces[r.Type];    
-                    if (r.Rating == rating)
-                    {
-                        highlight = true;
-                        BestPieces[r.Type] = -99999;
-                        NameString += r.Name + " ";
-                    }
-                }
-            }
-
             _rows[i].BestAvailable = (highlight ? 1 : 0);
         }
 
 
-        _summary = $"Best Armor Set: {bestType} ({bestScore + RatingFromAccessories})";
+        _summary = $"Best Armor Set: {bestSet} ({bestScore})";
         //-------------------------
         _sortDesc = true;
         _sortColumn = "";
@@ -1076,7 +1051,7 @@ else
                 nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
                 nameof(ItemViewRow.Location) => CmpStr(a.Location, b.Location),
                 nameof(ItemViewRow.Type)     => CmpStr(a.Type, b.Type),
-                nameof(ItemViewRow.SubType)  => CmpStr(a.SubType, b.SubType),
+                nameof(ItemViewRow.Set )    => CmpStr(a.Set, b.Set),
 
                 nameof(ItemViewRow.Quality)  => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
                 _ => Cmp(a.Rating, b.Rating),
@@ -1117,7 +1092,7 @@ else
     private static string GetRowClass(int c, bool h)
     {
         if (h) return "hidden-row";
-        if (c == 1) return "row-overlay";
+        if (c == 1) return "highlighted-row";
         return "";
     }
 

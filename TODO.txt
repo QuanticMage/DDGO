@@ -3,8 +3,9 @@ NOTES:
 * Folders can be 16 characters, Names can be 36
 
 TODO:
-* No few resists => No missing resists\
+* No Missing Resists => No missing resists\
 * make highlight for best pieces easier to see
+* make stats perfect
 
 * (TODO)Add in box next to drag location with credits + Links
 * Version number

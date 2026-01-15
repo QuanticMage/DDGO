@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36202.13 d17.14
+VisualStudioVersion = 17.14.36202.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDUP", "DDUP.csproj", "{0D935D87-2290-4A90-B6DD-B47279BFDCCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ItemAttributeMiner", "ItemAttributeMiner\ItemAttributeMiner.csproj", "{55235635-2C66-4B62-8107-03B4F1D9C8E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{0D935D87-2290-4A90-B6DD-B47279BFDCCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D935D87-2290-4A90-B6DD-B47279BFDCCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D935D87-2290-4A90-B6DD-B47279BFDCCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
