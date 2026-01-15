@@ -104,9 +104,7 @@ table.grid td.cell-quality-ultplusplus[b-yrayc6w7vb] {
 table.grid td[class^="cell-quality-"][b-yrayc6w7vb] {
     border-left: 4px solid rgba(0, 0, 0, 0.18);
 }
-table.grid tbody tr:nth-child(even) td[class^="cell-quality-"][b-yrayc6w7vb] {
-    filter: brightness(0.97);
-}
+
 
 th.icon-header[b-yrayc6w7vb] {
     padding: 1px 1px;
@@ -305,6 +303,11 @@ th[b-yrayc6w7vb] {
     box-sizing: border-box;
     overflow: hidden;
 }
+.rating-row td[b-yrayc6w7vb] {
+    display: flex;
+    align-items: center;
+}
+
 
 .header-row th[b-yrayc6w7vb] {
     position: sticky;
@@ -314,7 +317,10 @@ th[b-yrayc6w7vb] {
     box-sizing: border-box;  
 }
 
-
+table.grid td[b-yrayc6w7vb],
+table.grid th[b-yrayc6w7vb] {
+    overflow: hidden; /* THIS is what clips */
+}
 table.grid th.table-header-primary[b-yrayc6w7vb] {
     outline: 2px solid #00000080;
     outline-offset: -2px;
@@ -333,19 +339,19 @@ table.grid th.table-header-none[b-yrayc6w7vb] {
     background-clip: padding-box;
 }
 
-table.grid tr.row-overlay td[b-yrayc6w7vb] {
+table.grid tr.highlighted-row td[b-yrayc6w7vb] {
     position: relative; /* anchor */
 }
 
-table.grid tr.row-overlay td[b-yrayc6w7vb]::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient( to bottom, #ffe20030 0%, rgba(255, 226, 0, 0.0) 100% );
-    pointer-events: none;
-    z-index: 1;
-}
-
+    table.grid tr.highlighted-row td[b-yrayc6w7vb]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
+        rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
+        pointer-events: none;
+        z-index: 1;
+    }
 /* keep text/icons above the overlay */
 table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
     position: relative;
@@ -358,29 +364,42 @@ table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
     padding: 5px 0px 5px 0px;
 }
 
-.importance-button[b-yrayc6w7vb] {
-    border: none;
-    background: transparent;
-    padding: 2px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+th.importance-cell[b-yrayc6w7vb] {
+    padding: 0;
 }
 
-.importance-button img[b-yrayc6w7vb]{
-    width: 60px;
-    height:auto;
-    max-width:100%;
-    max-height:100%;
-    object-fit: contain;
-}
-.rating-image[b-yrayc6w7vb] {
-    width: 60px;
+    th.importance-cell .th-center[b-yrayc6w7vb] {
+        height: 100%;
+        width: 100%;
+        display: grid;
+        place-items: center;
+        min-width: 0; 
+        min-height: 0;
+    }
+
+    th.importance-cell button[b-yrayc6w7vb] {
+        display: grid;
+        place-items: center;
+        border: none;
+        background: transparent;
+        padding: 2px;
+        cursor: pointer;
+        min-width: 0; 
+        min-height: 0;
+    }
+
+th.importance-cell button img[b-yrayc6w7vb] {
+    width: 30px;
     height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    display: block;
+    min-width: 0; 
+    min-height: 0;
+}
+
+.rating-image[b-yrayc6w7vb] {
+    width: 10px;
+    height:auto;
+    display:block;    
 }
 
 .hint-text[b-yrayc6w7vb]{
@@ -468,7 +487,7 @@ table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
         }
 
 .credits[b-yrayc6w7vb] {
-    font-size: 15px; /* bigger */
+    font-size: 14px; /* bigger */
     opacity: 0.9;
     line-height: 1.45;
     margin-bottom: 10px; /* space before Links */
@@ -479,5 +498,15 @@ table.grid tr.row-overlay td > *[b-yrayc6w7vb] {
 
 .hidden-row[b-yrayc6w7vb]{
     display: none;
+}
+
+.build[b-yrayc6w7vb]
+{
+    color: #00000080;
+    font-size: 12px;    
+}
+
+h1[b-yrayc6w7vb] {
+    margin-bottom: 0px;
 }
 /* /Shared/MainLayout.razor.rz.scp.css */
