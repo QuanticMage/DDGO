@@ -460,16 +460,16 @@ else
                     <td class="num">@r.Level</td>
                     <td class="num">@r.MaxLevel</td>
 
-                    <td class="num cell-health">@GetValue(r,r.HHP)</td>
-                    <td class="num cell-damage">@GetValue(r,r.HDmg)</td>
-                    <td class="num cell-range">@GetValue(r,r.HSpd)</td>
-                    <td class="num cell-rate">@GetValue(r,r.HRate)</td>
-                    <td class="num cell-ab1">@GetValue(r,r.Ab1)</td>
-                    <td class="num cell-ab2">@GetValue(r,r.Ab2)</td>
-                    <td class="num cell-health">@GetValue(r,r.THP)</td>
-                    <td class="num cell-damage">@GetValue(r,r.TDmg)</td>
-                    <td class="num cell-range">@GetValue(r,r.TRange)</td>
-                    <td class="num cell-rate">@GetValue(r,r.TRate)</td>
+                    <td class="num cell-health">@r.HHP</td>
+                    <td class="num cell-damage">@r.HDmg</td>
+                    <td class="num cell-range">@r.HSpd</td>
+                    <td class="num cell-rate">@r.HRate</td>
+                    <td class="num cell-ab1">@r.Ab1</td>
+                    <td class="num cell-ab2">@r.Ab2</td>
+                    <td class="num cell-health">@r.THP</td>
+                    <td class="num cell-damage">@r.TDmg</td>
+                    <td class="num cell-range">@r.TRange</td>
+                    <td class="num cell-rate">@r.TRate</td>
 
                     <td class="resist">@r.RG</td>
                     <td class="resist">@r.RP</td>
@@ -530,8 +530,7 @@ else
         // Exclusions / modifiers
         NoEvents        = 1 << 16,
         NoFewResists    = 1 << 17,
-        NoEquipped      = 1 << 18,
-        CensorUltPP     = 1 << 19,
+        NoEquipped      = 1 << 18,        
     }
 
     private readonly List<FilterOption> _filterOptions = new()
@@ -557,8 +556,7 @@ else
 
         new(Filters.NoEvents,     "No Events"),
         new(Filters.NoFewResists, "No Few Resists"),
-        new(Filters.NoEquipped,   "No Equipped"),
-        new(Filters.CensorUltPP,  "Censor Ult++"),        
+        new(Filters.NoEquipped,   "No Equipped"),        
     };
 
     private readonly List<ModeOption> _modeOptions = new()
@@ -605,18 +603,12 @@ else
 
     private IEnumerable<FilterOption> OtherFilters =>
         _filterOptions.Where(o =>
-            o.Filter is Filters.NoEvents or Filters.NoFewResists or Filters.NoEquipped or Filters.CensorUltPP);
+            o.Filter is Filters.NoEvents or Filters.NoFewResists or Filters.NoEquipped );
 
 
     private void SetFilters(Filters filter)
     {
         _selectedFilter = filter;
-
-        if (filter.HasFlag(Filters.CensorUltPP))
-        {
-            StateHasChanged();
-            return;
-        }
 
         _rows.Clear();
 
@@ -723,13 +715,6 @@ else
         return "table-header-none";
     }
 
-    private string GetValue( ItemViewRow row, int v )
-    {
-        string num = v.ToString();
-        if ((row.Quality != "Ult++") || !_selectedFilter.HasFlag(Filters.CensorUltPP))
-            return num;
-        return num.Substring(0, num.Length - 1) + "x";
-    }
 
     private void SetMode(string mode)
     {
@@ -1084,97 +1069,60 @@ else
 
         ApplySort();
     }
+    private static readonly StringComparer Ci = StringComparer.OrdinalIgnoreCase;
 
-    private void ApplySort()
+   private void ApplySort()
     {
-        var q = _rows.AsEnumerable();
+        int dir = _sortDesc ? -1 : 1;
 
-        // Case-insensitive for strings
-        var ci = StringComparer.OrdinalIgnoreCase;
+        int Cmp(int a, int b) => a.CompareTo(b);
+        int CmpStr(string? a, string? b) => Ci.Compare(a ?? "", b ?? "");
 
-        // Stable tie-breaker so rows don’t “shuffle” weirdly when values match
-        IOrderedEnumerable<ItemViewRow> Order(IOrderedEnumerable<ItemViewRow> ordered)
-            =>  ordered.ThenByDescending(r => r.Rating)
-                       .ThenByDescending(r => r.Sides) ;
-
-        q = (_sortColumn, _sortDesc) switch
+        int Compare(ItemViewRow a, ItemViewRow b)
         {
-            // Numeric
-            (nameof(ItemViewRow.Rating), true) => Order(q.OrderByDescending(r => r.Rating)),
-            (nameof(ItemViewRow.Rating), false) => Order(q.OrderBy(r => r.Rating)),
+            int c = _sortColumn switch
+            {
+                nameof(ItemViewRow.Rating)   => Cmp(a.Rating, b.Rating),
+                nameof(ItemViewRow.Sides)    => Cmp(a.Sides, b.Sides),
+                nameof(ItemViewRow.Level)    => Cmp(a.Level, b.Level),
+                nameof(ItemViewRow.MaxLevel) => Cmp(a.MaxLevel, b.MaxLevel),
 
-            (nameof(ItemViewRow.Sides), true) => Order(q.OrderByDescending(r => r.Sides)),
-            (nameof(ItemViewRow.Sides), false) => Order(q.OrderBy(r => r.Sides)),
+                nameof(ItemViewRow.HHP)      => Cmp(a.HHP, b.HHP),
+                nameof(ItemViewRow.HDmg)     => Cmp(a.HDmg, b.HDmg),
+                nameof(ItemViewRow.HSpd)     => Cmp(a.HSpd, b.HSpd),
+                nameof(ItemViewRow.HRate)    => Cmp(a.HRate, b.HRate),
+                nameof(ItemViewRow.Ab1)      => Cmp(a.Ab1, b.Ab1),
+                nameof(ItemViewRow.Ab2)      => Cmp(a.Ab2, b.Ab2),
+                nameof(ItemViewRow.THP)      => Cmp(a.THP, b.THP),
+                nameof(ItemViewRow.TDmg)     => Cmp(a.TDmg, b.TDmg),
+                nameof(ItemViewRow.TRange)   => Cmp(a.TRange, b.TRange),
+                nameof(ItemViewRow.TRate)    => Cmp(a.TRate, b.TRate),
 
-            (nameof(ItemViewRow.Level), true) => Order(q.OrderByDescending(r => r.Level)),
-            (nameof(ItemViewRow.Level), false) => Order(q.OrderBy(r => r.Level)),
+                nameof(ItemViewRow.RG)       => Cmp(a.RG, b.RG),
+                nameof(ItemViewRow.RP)       => Cmp(a.RP, b.RP),
+                nameof(ItemViewRow.RF)       => Cmp(a.RF, b.RF),
+                nameof(ItemViewRow.RL)       => Cmp(a.RL, b.RL),
 
-            (nameof(ItemViewRow.MaxLevel), true) => Order(q.OrderByDescending(r => r.MaxLevel)),
-            (nameof(ItemViewRow.MaxLevel), false) => Order(q.OrderBy(r => r.MaxLevel)),
+                nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
+                nameof(ItemViewRow.Location) => CmpStr(a.Location, b.Location),
+                nameof(ItemViewRow.Type)     => CmpStr(a.Type, b.Type),
+                nameof(ItemViewRow.SubType)  => CmpStr(a.SubType, b.SubType),
 
-            (nameof(ItemViewRow.HHP), true) => Order(q.OrderByDescending(r => r.HHP)),
-            (nameof(ItemViewRow.HHP), false) => Order(q.OrderBy(r => r.HHP)),
+                nameof(ItemViewRow.Quality)  => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
+                _ => Cmp(a.Rating, b.Rating),
+            };
 
-            (nameof(ItemViewRow.HDmg), true) => Order(q.OrderByDescending(r => r.HDmg)),
-            (nameof(ItemViewRow.HDmg), false) => Order(q.OrderBy(r => r.HDmg)),
+            // primary sort direction
+            c *= dir;
+            if (c != 0) return c;
 
-            (nameof(ItemViewRow.HSpd), true) => Order(q.OrderByDescending(r => r.HSpd)),
-            (nameof(ItemViewRow.HSpd), false) => Order(q.OrderBy(r => r.HSpd)),
+            // tie-breakers (desc, like you were doing)
+            c = b.Rating.CompareTo(a.Rating);
+            if (c != 0) return c;
+            return b.Sides.CompareTo(a.Sides);
+        }
 
-            (nameof(ItemViewRow.HRate), true) => Order(q.OrderByDescending(r => r.HRate)),
-            (nameof(ItemViewRow.HRate), false) => Order(q.OrderBy(r => r.HRate)),
-
-            (nameof(ItemViewRow.Ab1), true) => Order(q.OrderByDescending(r => r.Ab1)),
-            (nameof(ItemViewRow.Ab1), false) => Order(q.OrderBy(r => r.Ab1)),
-
-            (nameof(ItemViewRow.Ab2), true) => Order(q.OrderByDescending(r => r.Ab2)),
-            (nameof(ItemViewRow.Ab2), false) => Order(q.OrderBy(r => r.Ab2)),
-
-            (nameof(ItemViewRow.THP), true) => Order(q.OrderByDescending(r => r.THP)),
-            (nameof(ItemViewRow.THP), false) => Order(q.OrderBy(r => r.THP)),
-
-            (nameof(ItemViewRow.TDmg), true) => Order(q.OrderByDescending(r => r.TDmg)),
-            (nameof(ItemViewRow.TDmg), false) => Order(q.OrderBy(r => r.TDmg)),
-
-            (nameof(ItemViewRow.TRange), true) => Order(q.OrderByDescending(r => r.TRange)),
-            (nameof(ItemViewRow.TRange), false) => Order(q.OrderBy(r => r.TRange)),
-
-            (nameof(ItemViewRow.TRate), true) => Order(q.OrderByDescending(r => r.TRate)),
-            (nameof(ItemViewRow.TRate), false) => Order(q.OrderBy(r => r.TRate)),
-
-            (nameof(ItemViewRow.RG), true) => Order(q.OrderByDescending(r => r.RG)),
-            (nameof(ItemViewRow.RG), false) => Order(q.OrderBy(r => r.RG)),
-
-            (nameof(ItemViewRow.RP), true) => Order(q.OrderByDescending(r => r.RP)),
-            (nameof(ItemViewRow.RP), false) => Order(q.OrderBy(r => r.RP)),
-
-            (nameof(ItemViewRow.RF), true) => Order(q.OrderByDescending(r => r.RF)),
-            (nameof(ItemViewRow.RF), false) => Order(q.OrderBy(r => r.RF)),
-
-            (nameof(ItemViewRow.RL), true) => Order(q.OrderByDescending(r => r.RL)),
-            (nameof(ItemViewRow.RL), false) => Order(q.OrderBy(r => r.RL)),
-
-            // Strings (case-insensitive)
-            (nameof(ItemViewRow.Name), true) => Order(q.OrderByDescending(r => r.Name, ci)),
-            (nameof(ItemViewRow.Name), false) => Order(q.OrderBy(r => r.Name, ci)),
-
-            (nameof(ItemViewRow.Location), true) => Order(q.OrderByDescending(r => r.Location, ci)),
-            (nameof(ItemViewRow.Location), false) => Order(q.OrderBy(r => r.Location, ci)),
-
-            (nameof(ItemViewRow.Type), true) => Order(q.OrderByDescending(r => r.Type, ci)),
-            (nameof(ItemViewRow.Type), false) => Order(q.OrderBy(r => r.Type, ci)),
-
-            (nameof(ItemViewRow.SubType), true) => Order(q.OrderByDescending(r => r.SubType, ci)),
-            (nameof(ItemViewRow.SubType), false) => Order(q.OrderBy(r => r.SubType, ci)),
-
-            // Quality: use a tier rank (DD-style), not alphabetical
-            (nameof(ItemViewRow.Quality), true) => Order(q.OrderByDescending(r => QualityRank(r.Quality))),
-            (nameof(ItemViewRow.Quality), false) => Order(q.OrderBy(r => QualityRank(r.Quality))),
-
-            _ => Order(q.OrderByDescending(r => r.Rating))
-        };
-
-        _rows = q.ToList();
+        _rows.Sort(Compare);
     }
 
     private static int QualityRank(string? q)
