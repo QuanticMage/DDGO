@@ -448,7 +448,7 @@ else
         <tbody>
             @foreach (var r in _rows)
             {
-                <tr @key="r.Idx" class="@IsBestClass(r.BestAvailable)">
+                <tr @key="r.Idx" class="@GetRowClass(r.BestAvailable, r.IsHidden)">
                     <td class="num cell-rating">@r.Rating</td>
                     <td class="num">@r.Sides</td>
                     <td class="text">@r.Type</td>
@@ -483,7 +483,7 @@ else
 }
 
 @code {
-        [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private readonly string _dropZoneId = "dropzone";
     private DotNetObjectReference<Index>? _dotNetRef;
@@ -500,38 +500,6 @@ else
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
 
-    [Flags]
-    private enum Filters
-    {
-        None            = 0,
-
-        // Armor types
-        Pristine        = 1 << 0,
-        Chain           = 1 << 1,
-        Mail            = 1 << 2,
-        Plate           = 1 << 3,
-        Leather         = 1 << 4,
-
-        // Equipment slots
-        Helmet          = 1 << 5,
-        Torso           = 1 << 6,
-        Gauntlet        = 1 << 7,
-        Boots           = 1 << 8,
-        Brooch          = 1 << 9,
-        Mask            = 1 << 10,
-        Bracers         = 1 << 11,
-        Shield          = 1 << 12,
-
-        // Categories
-        Pets            = 1 << 13,
-        Weapons         = 1 << 14,
-        Items           = 1 << 15,
-
-        // Exclusions / modifiers
-        NoEvents        = 1 << 16,
-        NoFewResists    = 1 << 17,
-        NoEquipped      = 1 << 18,        
-    }
 
     private readonly List<FilterOption> _filterOptions = new()
     {   
@@ -610,79 +578,77 @@ else
     {
         _selectedFilter = filter;
 
-        _rows.Clear();
+        //_rows.Clear();
 
-        for (int i = 0; i < db.Items.Count; i++)
+        foreach (var v in _rows )
         {
             bool includeType = false;
+
             bool includeSubType = false;
-            DDEquipmentInfo item = db.Items[i];
-            if ((item.SubType == "Pristine") && filter.HasFlag(Filters.Pristine))
+            bool isArmor = ((v.SubType == "Pristine") || (v.SubType == "Chain") || (v.SubType == "Mail") || (v.SubType == "Plate") || (v.SubType == "Leather"));
+            if ((v.SubType == "Pristine") && filter.HasFlag(Filters.Pristine))
+                includeSubType = true; 
+
+            if ((v.SubType == "Chain") && filter.HasFlag(Filters.Chain))
                 includeSubType = true;
 
-            if ((item.SubType == "Chain") && filter.HasFlag(Filters.Chain))
+            if ((v.SubType == "Mail") && filter.HasFlag(Filters.Mail))
                 includeSubType = true;
 
-            if ((item.SubType == "Mail") && filter.HasFlag(Filters.Mail))
+            if ((v.SubType == "Plate") && filter.HasFlag(Filters.Plate))
                 includeSubType = true;
 
-            if ((item.SubType == "Plate") && filter.HasFlag(Filters.Plate))
+            if ((v.SubType == "Leather") && filter.HasFlag(Filters.Leather))
                 includeSubType = true;
 
-            if ((item.SubType == "Leather") && filter.HasFlag(Filters.Leather))
-                includeSubType = true;
-
-            if ((item.Type == "Helmet") && filter.HasFlag(Filters.Helmet))
+            if ((v.Type == "Helmet") && filter.HasFlag(Filters.Helmet))
                 includeType = true;
 
-            if ((item.Type == "Torso") && filter.HasFlag(Filters.Torso))
+            if ((v.Type == "Torso") && filter.HasFlag(Filters.Torso))
                 includeType = true;
 
-            if ((item.Type == "Gauntlet") && filter.HasFlag(Filters.Gauntlet))
+            if ((v.Type == "Gauntlet") && filter.HasFlag(Filters.Gauntlet))
                 includeType = true;
 
-            if ((item.Type == "Boots") && filter.HasFlag(Filters.Boots))
+            if ((v.Type == "Boots") && filter.HasFlag(Filters.Boots))
                 includeType = true;
 
-            if ((item.Type == "Brooch") && filter.HasFlag(Filters.Brooch))
+            if ((v.Type == "Brooch") && filter.HasFlag(Filters.Brooch))
                 includeType = true;
 
-            if ((item.Type == "Mask") && filter.HasFlag(Filters.Mask))
+            if ((v.Type == "Mask") && filter.HasFlag(Filters.Mask))
                 includeType = true;
 
-            if ((item.Type == "Bracers") && filter.HasFlag(Filters.Bracers))
+            if ((v.Type == "Bracers") && filter.HasFlag(Filters.Bracers))
                 includeType = true;
 
-            if ((item.Type == "Shield") && filter.HasFlag(Filters.Shield))
+            if ((v.Type == "Shield") && filter.HasFlag(Filters.Shield))
                 includeType = true;
 
-            if ((item.Type == "Pet") && filter.HasFlag(Filters.Pets))
+            if ((v.Type == "Pet") && filter.HasFlag(Filters.Pets))
                 includeType = true;
 
-            if ((item.Type == "Weapon") && filter.HasFlag(Filters.Weapons))
+            if ((v.Type == "Weapon") && filter.HasFlag(Filters.Weapons))
                 includeType = true;
 
-            if ((item.Type == "Item") && filter.HasFlag(Filters.Items))
+            if ((v.Type == "Item") && filter.HasFlag(Filters.Items))
                 includeType = true;
 
-            bool includeItem = includeType && (!item.bIsArmor || includeSubType);
+            bool includeItem = includeType && (!isArmor || includeSubType);
 
             // negative filters
-            if ((item.bIsEvent) && filter.HasFlag(Filters.NoEvents))
+            if ((v.IsEvent) && filter.HasFlag(Filters.NoEvents))
                 includeItem = false;
 
-            if ((item.bIsFewResists) && filter.HasFlag(Filters.NoFewResists))
+            if ((v.IsFewResists) && filter.HasFlag(Filters.NoFewResists))
                 includeItem = false;
 
-            if ((item.bIsEquipped) && filter.HasFlag(Filters.NoEquipped))
+            if ((v.IsEquipped) && filter.HasFlag(Filters.NoEquipped))
                 includeItem = false;
 
-            if (includeItem)
-                _rows.Add(item.ToItemViewRow());
+            v.IsHidden = !includeItem;            
         }
-
-        // reset mode
-        SetMode(_selectedMode);
+        // reset mode        
     }
 
     static int Add(ref int rating, ref int sides, int idx, int value, int maxStat)
@@ -1071,7 +1037,7 @@ else
     }
     private static readonly StringComparer Ci = StringComparer.OrdinalIgnoreCase;
 
-   private void ApplySort()
+    private void ApplySort()
     {
         int dir = _sortDesc ? -1 : 1;
 
@@ -1144,8 +1110,9 @@ else
         };
     }
 
-    private static string IsBestClass(int c)
+    private static string GetRowClass(int c, bool h)
     {
+        if (h) return "hidden-row";
         if (c == 1) return "row-overlay";
         return "";
     }
@@ -1209,6 +1176,12 @@ else
             else
             {
                 _status = db.Status;
+                _rows.Clear();
+                for (int i =0; i < db.Items.Count; i++)
+                {
+                    _rows.Add(db.Items[i].ToItemViewRow());
+                }
+
                 SetFilters(Filters.Chain | Filters.Mail | Filters.Pristine | Filters.Leather | Filters.Plate | Filters.Helmet | Filters.Torso | Filters.Gauntlet | Filters.Boots | Filters.NoEvents );
                 SetMode("Builder App");
     

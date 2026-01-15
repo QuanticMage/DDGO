@@ -1,5 +1,38 @@
 ﻿namespace DDUP
 {
+	[Flags]
+	public enum Filters
+	{
+		None = 0,
+
+		// Armor types
+		Pristine = 1 << 0,
+		Chain = 1 << 1,
+		Mail = 1 << 2,
+		Plate = 1 << 3,
+		Leather = 1 << 4,
+
+		// Equipment slots
+		Helmet = 1 << 5,
+		Torso = 1 << 6,
+		Gauntlet = 1 << 7,
+		Boots = 1 << 8,
+		Brooch = 1 << 9,
+		Mask = 1 << 10,
+		Bracers = 1 << 11,
+		Shield = 1 << 12,
+
+		// Categories
+		Pets = 1 << 13,
+		Weapons = 1 << 14,
+		Items = 1 << 15,
+
+		// Exclusions / modifiers
+		NoEvents = 1 << 16,
+		NoFewResists = 1 << 17,
+		NoEquipped = 1 << 18,
+	}
+
 	public sealed class ItemViewRow
 	{
 		public int Rating { get; set; }
@@ -34,6 +67,14 @@
 		// IMPORTANT: keep this stable/unique for @key
 		public int Idx { get; set; }
 
+		public bool IsHidden { get; set; }
+
+		public bool IsEvent{ get; set; }
+
+		public bool IsFewResists { get; set; }
+
+		public bool IsEquipped { get; set; }
+
 		public int BestAvailable { get; set; }
 
 		public ItemViewRow(
@@ -64,7 +105,11 @@
 				int RF,
 				int RL,
 				int Idx,
-				int BestAvailable)
+				int BestAvailable,
+				
+				bool IsEvent,
+				bool IsFewResists,
+				bool IsEquipped)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -97,6 +142,10 @@
 
 			this.Idx = Idx;
 			this.BestAvailable = BestAvailable;
+
+			this.IsEvent = IsEvent;
+			this.IsFewResists = IsFewResists;
+			this.IsEquipped = IsEquipped;
 		}
 	}
 }

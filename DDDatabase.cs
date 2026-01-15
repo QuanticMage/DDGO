@@ -123,7 +123,11 @@ public class DDEquipmentInfo
 				RF: Resist(this, 2),
 				RL: Resist(this, 3),
 				Idx: this.Idx,
-				BestAvailable: Idx % 2
+				BestAvailable: Idx % 2,
+
+				IsEquipped: this.bIsEquipped,
+				IsFewResists: this.bIsFewResists,
+				IsEvent: this.bIsEvent
 			);
 		}
 		return cachedItemRow;
