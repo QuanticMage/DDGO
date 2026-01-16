@@ -3,7 +3,7 @@
 	public class Ratings
 	{
 		const int NRoles = 10;
-		static string[] Roles = { "Builder App", "Dps AB2", "DPS AB1", "Builder Summoner", "Builder Hermit", "Gunwitch", "Builder TRange", "Builder EV", "Tower Boost AB1", "Guardian Summoner" };
+		static string[] Roles = { "Builder App", "Dps AB2", "Dps AB1", "Builder Summoner", "Builder Hermit", "Gunwitch", "Builder TRange", "Builder EV", "Tower Boost AB1", "Guardian Summoner" };
 		
 				
 		static int[][] CV_Values =

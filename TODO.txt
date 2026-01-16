@@ -4,10 +4,23 @@ NOTES:
 
 TODO:
 
-* CV Value estimator
+* The best recommended pieces though thing should ignore armor that can't be brought to max resits
+* Sorting by max'd out resists
+* Better event item tracking + valuing
+
+* Things without full resists should not get evaluated for dps classes
+* Things that aren't armor shouldn't get armor prices (lol)
+* CV diamonds/etc
+
+* Use achievement shields for ratings?
+
+
+
+
+* (DONE)CV Value estimator
 * (DONE)Ult++ Censoring
-* Add in positions
-* Usefulness rating
+* (DONE)Add in positions
+* (DONE)Usefulness rating
 
 * (DONE)No Missing Resists => No missing resists\
 * (DONE)make highlight for best pieces easier to see
