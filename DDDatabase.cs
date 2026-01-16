@@ -1,6 +1,7 @@
 ﻿using DDUP;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml.Linq;
@@ -67,7 +68,7 @@ public class DDEquipmentInfo
 	public string Quality = "";
 	public string Type = "";
 	public string Set = "";
-
+	
 	public int FolderID;
 	public int IndexInFolder;	
 	public bool bIsSecondary;
@@ -76,6 +77,8 @@ public class DDEquipmentInfo
 	public bool bIsEvent;
 	public bool bIsEquipped;
 	public bool bIsMissingResists;
+
+	public int EventItemValue = 0;
 
 	public ItemViewRow? cachedItemRow = null;
 
@@ -155,7 +158,7 @@ public class DDEquipmentInfo
 				RL: Resist(this, 3),
 				Idx: this.Idx,
 				BestAvailable: Idx % 2,
-				Value: 0,
+				Value: EventItemValue,
 				BestFor: "",
 
 				IsEquipped: this.bIsEquipped,
@@ -408,22 +411,59 @@ public class DDDatabase
 					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
 				}
 				else
-					bIsEvent |= true;	
+					bIsEvent |= true;
 
-				bIsEvent |= entry.BaseForgerName != "";
-				bIsEvent |= (Items[i].UserEquipName != " ") && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
+				// event items are those that
+				// * can't be dropped
+				// * can't be sold 
+				// * have a forger name that isn't the default but aren't at max level+ " " + or have a max lvl of 1 or >550
+
+				bIsEvent |= (Items[i].bNoDrop > 0);
+				bIsEvent |= (Items[i].bNoSell > 0);
+				bIsEvent |= (Items[i].ForgerName.Trim() != "") && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
+
+				var gen = Items[i].GeneratedName.Trim() ?? "";
+				var user = Items[i].UserEquipName.Trim() ?? "";
+
+				if (EventPriceGuide.Prices.ContainsKey(gen))
+				{
+					bIsEvent = true;
+					Items[i].EventItemValue = EventPriceGuide.Prices[gen];
+				}
+
+				if (EventPriceGuide.Prices.ContainsKey(user))
+				{
+					bIsEvent = true;
+					Items[i].EventItemValue = EventPriceGuide.Prices[user];
+				}
+
+
+				if (( gen == "Crystal Heart") || (gen == "Diamond"))
+				{
+					int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1:0 ) +
+										((Items[i].Stats[(int)DDStat.TowerRange] == 800) ? 1 : 0) +
+									((Items[i].Stats[(int)DDStat.TowerRate] == 800) ? 1 : 0) +
+									((Items[i].Stats[(int)DDStat.TowerDamage] == 800) ? 1 : 0);
+
+					if (cappedStats == 0) Items[i].EventItemValue = 5;
+					else if (cappedStats == 1) Items[i].EventItemValue = 10;
+					else if (cappedStats == 2) Items[i].EventItemValue = 15;
+					else if (cappedStats == 3) Items[i].EventItemValue = 250;
+					else if (cappedStats == 4) Items[i].EventItemValue = 25000;
+				}
 			}
 
 			Items[i].Quality = quality;
 			Items[i].Type = type;
 			Items[i].Set = set;
 			Items[i].bIsArmor = isArmor;
-			Items[i].Idx = i;
+			Items[i].Idx = i;			
 
 			bIsEvent |= Items[i].Template.Contains("Event");
 
 			Items[i].bIsEvent = bIsEvent;
-			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));			
+			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
+			Console.WriteLine(Items[i].Template+ " " + Items[i].UserEquipName + " " +  Items[i].Color1.R+ " " + Items[i].Color1.G + " " + Items[i].Color1.B+ " " + Items[i].Color1.R+ " " + Items[i].Color1.G+ " " + Items[i].Color1.B);
 		}
 	}
 
