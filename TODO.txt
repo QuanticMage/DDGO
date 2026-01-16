@@ -4,17 +4,19 @@ NOTES:
 
 TODO:
 
-* The best recommended pieces though thing should ignore armor that can't be brought to max resits
-* Sorting by max'd out resists
-* Better event item tracking + valuing
+* What page items are on
+* Drag new file
 
-* Things without full resists should not get evaluated for dps classes
-* Things that aren't armor shouldn't get armor prices (lol)
-* CV diamonds/etc
+
+* (DONE) The best recommended pieces though thing should ignore armor that can't be brought to max resits
+* (DONE) Sorting by max'd out resists
+* (DONE) Better event item tracking + valuing
+
+* (DONE) Things without full resists should not get evaluated for dps classes
+* (DONE) Things that aren't armor shouldn't get armor prices (lol)
+* (DONE)CV diamonds/etc
 
 * Use achievement shields for ratings?
-
-
 
 
 * (DONE)CV Value estimator

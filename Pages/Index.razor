@@ -7,7 +7,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 15 2026 - Version 0.6</i></div>    
+        <div class="build"><i>Jan 16 2026 - Version 0.7</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
@@ -565,7 +565,7 @@ else
         new("Hero Stats", "Hero Stats"),
         new("Builder App", "Builder App"),
         new("Builder Hermit", "Builder Hermit"),
-        new("Builder Monk/Huntress", "Builder Monk/Huntress"),
+        new("Builder TRange", "Builder TRange"),
         new("Builder EV", "Builder EV"),
         new("Builder Summoner", "Builder Summoner"),
         new("Tower Boost/Upgrader", "Tower Boost/Upgrader"),
@@ -578,20 +578,22 @@ else
 
     private (string text, string icon) GetValueDisplay(ItemViewRow row)
     {
-        if (row.IsEvent)
-            return ("💎???", "");
+        /*if (row.IsEvent)
+        return ("💎???", "");*/
 
-        if (row.Value > 0)
+    if (row.Value > 0)
         {
-            return ("💎" + row.Value.ToString() + "cv", "");
+            if (row.Value > 150)
+                return ("💰Auction", "");
+            else
+                return ("💎" + row.Value.ToString() + "cv", "");
         }
         else
         {
             if (row.Value > -150) return ("⭐️⭐️⭐️", "");// "png/ValueHighest.png");
             else if (row.Value > -300) return ("⭐️⭐️", "");// "png/ValueHigh.png");
             else if (row.Value > -450) return ("⭐️", "");//"png/ValueMid.png");
-            else  return ("❌", "");// "png/ValueLow.png");
-               
+            else  return ("❌", "");// "png/ValueLow.png");               
         }
 
     }
@@ -780,7 +782,7 @@ else
                 sumIdxTRange = 1;
                 sumIdxTRate = 2;
                 break;
-            case "Builder Monk/Huntress":
+            case "Builder TRange":
                 sumIdxTHP = 2;
                 sumIdxTDmg = 2;
                 sumIdxTRange = 1;
@@ -1167,13 +1169,18 @@ else
                     ItemViewRow itemViewRow = db.Items[i].ToItemViewRow();
                     _rows.Add(itemViewRow);
 
-                    (itemViewRow.Value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
+                    (int value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
+                    
+                    // don't override set event values
+                    if ( itemViewRow.Value == 0)
+                        itemViewRow.Value = value;
                 }
 
                 // now go through and get relative value
                 foreach( var v in _rows )
                 {
-                    if (v.Value <= 0)
+                    // only override if we don't have a value yet
+                    if (v.Value == 0)
                     {
                         // calculate relative rating for value (goes from -1000 to 0)
                         (v.Value, v.BestFor) = Ratings.GetBestValue(false, v);

@@ -66,7 +66,12 @@
 				// return CV value
 				if (bestValue != 0)
 				{
-					return (bestValue, Roles[bestIndex]);
+					if (vr.IsArmor)
+					{
+						// round to nearest 10cv to not imply precision
+						return ((int)((float)bestValue / 10.0f + 0.5f) * 10, Roles[bestIndex]);
+					}
+					return (0, "");
 				}
 				return (0,"");
 			}
@@ -163,15 +168,23 @@
 				(vr.ResistanceTarget - ((resP < 23) ? 23 : resP)) +
 				(vr.ResistanceTarget - ((resF < 23) ? 23 : resF)) +
 				(vr.ResistanceTarget - ((resL < 23) ? 23 : resL));
-
+			
 			int remainingOvercappedUpgrades = Math.Min(overcappedUpgrades, overcappedUpgradesNeeded);
 			int remainingUpgrades = upgradesRequiredForResists - overcappedUpgradesNeeded + remainingOvercappedUpgrades;
+
+			int allowedMisplaced = (vr.Quality == "Supreme") ? -2 : 0;
+			bool cantHitResistCap = (levelsLeft - remainingUpgrades < allowedMisplaced);
+
 			int levelsForStatsLeft = Math.Max(0, levelsLeft - remainingUpgrades);
 
 			if (!factorInResists || (vr.ResistanceTarget == 0)) levelsForStatsLeft = levelsLeft;
 
 			rating += (int)Math.Ceiling(Math.Min(levelsForStatsLeft, maxGrowthLevels) * vr.SetBonus);
 
+			if (factorInResists && cantHitResistCap)
+			{
+				rating = 0;	
+			}		
 			// actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.
 
 			return (rating, sides);
@@ -204,7 +217,7 @@
 			int greq = ((g >= -29) && (g < 31)) ? ResistRequirements[g + 29] + delta : 0;
 			int preq = ((p >= -29) && (p < 31)) ? ResistRequirements[p + 29] + delta : 0;
 			int freq = ((f >= -29) && (f < 31)) ? ResistRequirements[f + 29] + delta : 0;
-			int lreq = ((l >= -29) && (l < 31)) ? ResistRequirements[l + 29] + delta : 0;
+			int lreq = ((l >= -29) && (l < 31)) ? ResistRequirements[l + 29] + delta : 0;			
 
 			if (greq < 0) greq = 0;
 			if (preq < 0) preq = 0;
