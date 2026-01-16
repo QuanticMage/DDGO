@@ -1,11 +1,27 @@
-﻿namespace DDUP
+﻿using Microsoft.AspNetCore.Components.Web.Virtualization;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using static System.Net.WebRequestMethods;
+
+namespace DDUP
 {
+	using System.Text.Json;
+
+	public sealed class PriceEntry
+	{
+		public int estimatedPrice { get; set; }
+	}
 	public class Ratings
 	{
 		const int NRoles = 10;
 		static string[] Roles = { "Builder App", "Dps AB2", "Dps AB1", "Builder Summoner", "Builder Hermit", "Gunwitch", "Builder TRange", "Builder EV", "Tower Boost AB1", "Guardian Summoner" };
+		static string[] APIRoles = { "app", "dps ab2", "dps ab1", "summoner", "hermit", "gunwitch", "trange", "builder ev", "tb", "" };
+		static Dictionary<int, ItemViewRow> JsonQueries = [];
+		static List<string> ValuableItemList = new();
+		static int JsonQueryIndex = 0;
 		
-				
+
 		static int[][] CV_Values =
 		{
 			new [] { 2000, 25, 2050, 35, 2100, 50, 2150, 80, 2200, 150, 2250, 220, 2300, 500, 2350, 1000, 2400, 2000 }, // app builder
@@ -24,12 +40,86 @@
 		static Dictionary<string, float>[] BestRatings = new Dictionary<string, float>[NRoles];
 		public static void ClearBestRatings()
 		{
+			ValuableItemList.Clear();
+			JsonQueryIndex = 0;
+			JsonQueries.Clear();
+
 			for (int i = 0; i < NRoles; i++) { BestRatings[i] = new Dictionary<string, float>();}
+		}
+
+		private static readonly HttpClient _http = new HttpClient();
+
+		public static async Task AsyncShiroPriceAPICall( DDUP.Pages.Index index)
+		{
+			// skip this for now
+
+			if (ValuableItemList.Count == 0)
+				return;
+			string json = JsonSerializer.Serialize(ValuableItemList);
+			string encoded = Uri.EscapeDataString(json);
+
+			var url = $"https://est.overflow.fun/estimate?mass={encoded}";
+			Console.WriteLine("Sending " + url);
+
+			// Force a timeout so "hang" becomes an error you can see
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+			try
+			{
+				using var req = new HttpRequestMessage(HttpMethod.Get, url);
+				req.Headers.UserAgent.ParseAdd("DDGO/1.0"); // sometimes helps with picky servers
+
+				using var resp = await _http.SendAsync(
+					req,
+					HttpCompletionOption.ResponseHeadersRead,
+					cts.Token);
+
+				Console.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+
+				var body = await resp.Content.ReadAsStringAsync(cts.Token);
+				Console.WriteLine(body);
+				var prices = JsonSerializer
+					.Deserialize<List<PriceEntry>>(body)!
+					.Select(x => x.estimatedPrice)
+					.ToList();
+
+				if (prices.Count == JsonQueries.Count)
+				{
+					for (int i = 0; i < prices.Count; i++)
+					{
+						Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value +"=>" + prices[i]);
+						// update price estimates
+						JsonQueries[i].Value = prices[i];						
+					}					
+				}
+				else
+				{
+					Console.WriteLine("Query Count Mismatch!");
+				}
+
+			}
+			catch (TaskCanceledException ex)
+			{
+				Console.WriteLine("Timed out (or cancelled): " + ex.Message);
+			}
+			catch (HttpRequestException ex)
+			{
+				Console.WriteLine("HttpRequestException: " + ex.Message);
+				if (ex.InnerException != null)
+					Console.WriteLine("Inner: " + ex.InnerException.Message);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Other exception: " + ex);
+			}
+
+			index.CalculateVanityTotals();
+			index.SetPriceStatus("Armor prices live using Shiro's API");
 		}
 
 		// always measure CV first to also get the BestRatings populated
 		public static (int, string) GetBestValue(bool measureCV, ItemViewRow vr)
-		{
+		{		
 			int[] ratings = new int[NRoles];
 			
 			(ratings[0], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, false); // app builder
@@ -42,11 +132,19 @@
 			(ratings[7], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, false); // builder ev
 			(ratings[8], _) = EvalRating(vr, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, true); // tb			
 			(ratings[9], _) = EvalRating(vr, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, true); // guardian summoner	
-
+			
+			string category = vr.Type;
+			if (vr.IsArmor && !vr.IsEvent)
+			{
+				category = vr.Type + "_" + vr.Set;
+			}
+			
 			if (measureCV)
 			{
 				int bestValue = 0;
 				int bestIndex = 0;
+				int bestIndexNot9 = 0;
+				int bestValueNot9 = 0;
 				for (int i = 0; i < NRoles; i++)
 				{
 					int value = (int)(EvaluateExponential(ratings[i], CV_Values[i]));
@@ -55,12 +153,25 @@
 						bestValue = value;
 						bestIndex = i;
 					}
+					// no price check for summoner hp/ab2 on api
+					if ((value > bestValueNot9) && (i != 9))
+					{
+						bestValueNot9 = value;
+						bestIndexNot9 = i;
+					}
+					
 
 					// best overall ratings per category
-					if ((!BestRatings[i].ContainsKey(vr.Type)) || (ratings[i] > BestRatings[i][vr.Type]))
+					if ((!BestRatings[i].ContainsKey(category)) || (ratings[i] > BestRatings[i][category]))
 					{
-						BestRatings[i][vr.Type] = ratings[i];
-					}
+						BestRatings[i][category] = ratings[i];
+					}					
+				}
+
+				if ((bestValueNot9 > 0) && (vr.IsArmor) && (!vr.IsEvent))
+				{
+					ValuableItemList.Add(ratings[bestIndexNot9] + " " + APIRoles[bestIndexNot9]);
+					JsonQueries[JsonQueryIndex++] = vr;
 				}
 
 				// return CV value
@@ -82,9 +193,9 @@
 				int bestIndex = 0;
 				for (int i = 0; i < NRoles; i++)
 				{
-					if (BestRatings[i].ContainsKey(vr.Type))
+					if (BestRatings[i].ContainsKey(category))
 					{
-						int value = (int)(ratings[i] * 1000 / BestRatings[i][vr.Type]);
+						int value = (int)(ratings[i] * 1000 / BestRatings[i][category]);
 						if (value > bestValue)
 						{
 							bestValue = value;

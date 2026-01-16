@@ -10,9 +10,34 @@
 </head>
 
 <body>
+
     <div id="app">Loading...</div>
+
 
     <script src="dropzone.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.setupGlobalTooltips = (dotNetHelper) => {
+            document.addEventListener('mouseover', (e) => {
+                const target = e.target.closest('[data-tooltip]');
+                if (target) {
+                    const rect = target.getBoundingClientRect();
+                    // We pass position and text back to Blazor
+                    dotNetHelper.invokeMethodAsync('ShowGlobalTooltip',
+                        target.getAttribute('data-tooltip'),
+                        rect.left + (rect.width / 2),
+                        rect.top
+                    );
+                }
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                if (e.target.closest('[data-tooltip]')) {
+                    dotNetHelper.invokeMethodAsync('HideGlobalTooltip');
+                }
+            });
+        };
+    </script>
 </body>
+
 </html>

@@ -73,3 +73,62 @@ table.grid {
     table.grid tbody tr:nth-child(even) {
         background: #f7f7f7;
     }
+
+.tooltip-box {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    /* Colors that match your filter buttons */
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    border: 1px solid #ddd;
+    /* Matches your app's rounded corners */
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    /* Matches the soft depth of your container cards */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* Anchoring logic */
+    transform: translate(-50%, -100%);
+    margin-top: -8px;
+    white-space: nowrap;
+    /* Optional: subtle fade-in */
+    animation: tooltip-fade 0.15s ease-out;
+    white-space: pre-wrap;
+}
+
+@keyframes tooltip-fade {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -95%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%);
+    }
+}
+.tooltip-box::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #ddd transparent transparent transparent;
+}
+
+/* Interior part of the arrow to match white background */
+.tooltip-box::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #fff transparent transparent transparent;
+    z-index: 1;
+}

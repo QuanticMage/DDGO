@@ -554,4 +554,65 @@ h1[b-yrayc6w7vb] {
         min-width: 25px;
         min-height: 25px;       
     }
+.stats-row[b-yrayc6w7vb] {
+    display: flex; /* Lays children out in a row */
+    flex-wrap: wrap; /* Allows them to move to next line if window is narrow */
+    gap: 16px; /* Creates perfect spacing between cards */
+    margin-bottom: 20px;
+    align-items: stretch; /* Ensures all cards are the same height */
+}
+
+.metric-card[b-yrayc6w7vb] {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    padding: 12px 18px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    /* Optional: gives cards a consistent minimum width */
+    min-width: 150px;
+}
+
+.metric-label[b-yrayc6w7vb] {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.metric-main[b-yrayc6w7vb] {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.metric-number[b-yrayc6w7vb] {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #224;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.metric-type[b-yrayc6w7vb] {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: capitalize;
+}
+
+
+.highlighted-card-type[b-yrayc6w7vb] {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #444;
+    text-transform: capitalize;
+}
+
+.highlighted-card[b-yrayc6w7vb] {
+    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
+    rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );    
+}
 /* /Shared/MainLayout.razor.rz.scp.css */

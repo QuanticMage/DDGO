@@ -3,11 +3,10 @@
 @using Microsoft.JSInterop
 
 
-
 <div class="top-pane">
     <div class="left-pane">
-        <h1>Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 16 2026 - Version 0.7</i></div>    
+        <h1 >Dungeon Defender Gear Optimizer</h1>        
+        <div class="build"><i>Jan 16 2026 - Version 0.8</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
@@ -18,7 +17,7 @@
                             <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
                             <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
-                            <li>No data is uploaded to any server, this is all run locally on your computer.</li>
+                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices.</li>
                         </ul>
                     </div>
                 }
@@ -35,12 +34,15 @@
             else if (!string.IsNullOrEmpty(_status))
             {
                 <div class="status">@_status</div>
+                <div class="status">@_status2</div>
             }
         </div>
     </div>
     <aside class="info-pane">
         <div class="credits">            
-            <div class="credits-by">Created by <i>Mage and Tbolt</i></div>
+            <div class="credits-by">Created by <i>Mage</i></div>
+            <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
+            <div class="credits-thanks">Price estimator by <i>Shiro</i></div>
             <div class="credits-thanks">Special Thanks to <i>Scryllix, SteveTrevor, Shiro, Chiku, and the DDRnG community</i></div>            
         </div>
 
@@ -110,6 +112,32 @@
 
 
 <div class="summary">@_summary</div>
+
+<div class="stats-row">
+  <div class="metric-card highlighted-card")>
+    <span class="metric-label">Best Filtered Armor Set</span>
+    <div class="metric-main">
+      <span class="metric-number">@BestArmorRating</span>
+      <span class="metric-type  highlighted-card-type">@BestArmorType</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <span class="metric-label">Vanity Account Armor Total</span>    
+    <div class="metric-main">
+      <span class="metric-number">@ArmorTotalValue</span>
+      <span class="metric-type">CV</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <span class="metric-label">Vanity Account Event Total</span>
+    <div class="metric-main">
+      <span class="metric-number">@EventTotalValue</span>
+      <span class="metric-type">CV</span>
+    </div>
+  </div>
+</div>
 
 @if (_rows.Count == 0)
 {  
@@ -257,15 +285,15 @@ else
                 <th></th>
 
             </tr>
-            <tr class="header-row">
-                <th class="sortable">
+            <tr class="header-row" >
+                <th class="sortable" data-tooltip=@Tips["Rating"]>
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
                         Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable">
+                <th class="sortable" data-tooltip=@Tips["Value"]>
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
                          Estimated Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
                     </button>
@@ -524,6 +552,7 @@ else
     private bool _hideDropzoneHelp;
     private string _summary = "";
     private string _status = "";
+    private string _status2 = "";
     private string? _error;
     private DDDatabase db = new();
     private List<ItemViewRow> _rows = new();
@@ -532,6 +561,19 @@ else
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
 
+    public void SetPriceStatus(string stat)
+    {
+        _status2 = stat;
+        StateHasChanged();        
+    }
+
+    // TOOLTIPS GO HERE
+
+    private static readonly Dictionary<string, string> Tips = new()
+    {
+        ["Rating"] = "Rating for the given selected\n stats.  Small number is sides.",
+        ["Value"] = "Estimated value based on highest value role.  \nStars show how good it is relative\n to your best piece of that type for any role.\nIf you see a wrong price, \nlet Shiro and Mage know.",       
+    };
 
     private readonly List<FilterOption> _filterOptions = new()
     {   
@@ -583,17 +625,21 @@ else
 
     if (row.Value > 0)
         {
-            if (row.Value > 150)
+            if (row.Value > 300)
                 return ("💰Auction", "");
             else
                 return ("💎" + row.Value.ToString() + "cv", "");
         }
         else
         {
-            if (row.Value > -150) return ("⭐️⭐️⭐️", "");// "png/ValueHighest.png");
-            else if (row.Value > -300) return ("⭐️⭐️", "");// "png/ValueHigh.png");
-            else if (row.Value > -450) return ("⭐️", "");//"png/ValueMid.png");
-            else  return ("❌", "");// "png/ValueLow.png");               
+            if ((row.Type != "Weapon") && (row.Type != "Pet"))
+            {
+                if (row.Value > -100) return ("⭐️⭐️⭐️", "");// "png/ValueHighest.png");
+                else if (row.Value > -200) return ("⭐️⭐️", "");// "png/ValueHigh.png");
+                else if (row.Value > -300) return ("⭐️", "");//"png/ValueMid.png");
+                else  return ("❌", "");// "png/ValueLow.png");               
+            }
+            return ("", "");
         }
 
     }
@@ -712,7 +758,7 @@ else
 
             v.IsHidden = !includeItem;            
         }
-        SetMode(_selectedMode);
+        RecalculateRatings();
     }
 
 
@@ -869,6 +915,9 @@ else
             BestPieces[key] = rating;
     }
 
+    public int BestArmorRating = 0;
+    public string BestArmorType = "";
+
     private void RecalculateRatings()
     {
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
@@ -943,8 +992,9 @@ else
             _rows[i].BestAvailable = (highlight ? 1 : 0);
         }
 
-
-        _summary = $"Best Armor Set: {bestSet} ({bestScore})";
+        BestArmorRating = bestScore;
+        BestArmorType = bestSet;
+        //_summary = $"Best Armor Set: {bestSet} ({bestScore})";
         //-------------------------
         _sortDesc = true;
         _sortColumn = "";
@@ -1121,7 +1171,7 @@ else
         if (!firstRender) return;
 
         _dotNetRef = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);
+        await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                
     }
 
     public void Dispose()
@@ -1170,7 +1220,7 @@ else
                     _rows.Add(itemViewRow);
 
                     (int value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
-                    
+
                     // don't override set event values
                     if ( itemViewRow.Value == 0)
                         itemViewRow.Value = value;
@@ -1187,12 +1237,15 @@ else
                     }
                 }
 
-
+                CalculateVanityTotals();
+                SetPriceStatus("Prices estimated by table");
+                // don't care about when it gets back
+                _ = Ratings.AsyncShiroPriceAPICall(this);
 
 
                 SetFilters(Filters.Chain | Filters.Mail | Filters.Pristine | Filters.Leather | Filters.Plate | Filters.Helmet | Filters.Torso | Filters.Gauntlet | Filters.Boots | Filters.NoEvents );
                 SetMode("Builder App");
-    
+
                 _hideDropzoneHelp = true;              
             }
         }
@@ -1207,7 +1260,7 @@ else
             StateHasChanged();
         }
     }
-    
+
     private string SortGlyph(string col)
     {
         if (_sortColumn != col) return "";
@@ -1218,6 +1271,25 @@ else
     {
         // Example: you’ll replace with your own action
         _status = $"Button clicked at {DateTime.Now:T}";
+
+    }
+
+    public int ArmorTotalValue = 0;
+    public int EventTotalValue = 0;
+
+    public void CalculateVanityTotals()
+    {
+        int at = 0;
+        int et = 0;
+        foreach  (var v in _rows)
+        {
+            if ( v.IsArmor && !v.IsEvent && v.Value > 0)
+                at += v.Value;
+            if ( v.IsEvent && v.Value > 0)
+                et += v.Value;
+        }
+        ArmorTotalValue = at;
+        EventTotalValue = et;
     }
 
 }

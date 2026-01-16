@@ -1,7 +1,65 @@
 ﻿@inherits LayoutComponentBase
+@inject ITooltipService TooltipService
+@implements IDisposable
 
 <div class="page">
     <main class="content">
         @Body
     </main>
 </div>
+
+@* This is the Master Tooltip Instance *@
+@if (_isVisible)
+{
+    <div class="tooltip-box" style="top: @(_y)px; left: @(_x)px;">
+        @_text
+    </div>
+}
+
+@code {
+    private bool _isVisible;
+    private string _text = "";
+    private double _x, _y;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await TooltipService.InitializeAsync();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        TooltipService.OnShow += ShowTooltip;
+        TooltipService.OnHide += HideTooltip;
+    }
+
+    private void ShowTooltip(string text, double x, double y)
+    {
+        // Use InvokeAsync to ensure the UI thread handles the update
+        InvokeAsync(() =>
+        {
+            _text = text;
+            _x = x;
+            _y = y;
+            _isVisible = true;
+            StateHasChanged();
+        });
+    }
+
+    private void HideTooltip()
+    {
+        InvokeAsync(() =>
+        {
+            _isVisible = false;
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        TooltipService.OnShow -= ShowTooltip;
+        TooltipService.OnHide -= HideTooltip; // Don't forget to unsubscribe both!
+    }
+}

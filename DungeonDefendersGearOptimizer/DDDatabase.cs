@@ -463,7 +463,7 @@ public class DDDatabase
 
 			Items[i].bIsEvent = bIsEvent;
 			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
-			Console.WriteLine(Items[i].Template+ " " + Items[i].UserEquipName + " " +  Items[i].Color1.R+ " " + Items[i].Color1.G + " " + Items[i].Color1.B+ " " + Items[i].Color1.R+ " " + Items[i].Color1.G+ " " + Items[i].Color1.B);
+			//Console.WriteLine(Items[i].Template+ " " + Items[i].UserEquipName + " " +  Items[i].Color1.R+ " " + Items[i].Color1.G + " " + Items[i].Color1.B+ " " + Items[i].Color1.R+ " " + Items[i].Color1.G+ " " + Items[i].Color1.B);
 		}
 	}
 

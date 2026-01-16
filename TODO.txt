@@ -6,12 +6,15 @@ TODO:
 
 * What page items are on
 * Drag new file
-* Use set for gear star rating
 * Weapon stats / ranks
-* Overall account estimate
 * Export to csv
-* Hover tooltips
+* (partial) Hover tooltips
+* convert icons based on sort
+* Use set for gear star rating
 
+* (DONE)Fix bug with filter resetting columns
+* (DONE)Overall account estimate
+* (DONE) Added tooltip support - will be ongoing
 
 * (DONE) The best recommended pieces though thing should ignore armor that can't be brought to max resits
 * (DONE) Sorting by max'd out resists
