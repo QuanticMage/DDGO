@@ -20,6 +20,11 @@ td.location[b-yrayc6w7vb] {
     font-size: 0.85em; /* or 12px */
 }
 
+td.bestfor[b-yrayc6w7vb] {
+    font-size: 0.8em; /* or 12px */
+    color:#00000080;
+}
+
 table.grid td.cell-quality-default[b-yrayc6w7vb] {
 }
 
@@ -74,10 +79,21 @@ table.grid td.cell-ab2[b-yrayc6w7vb]
     background-color: #8180ff30
 }
 table.grid td.cell-rating[b-yrayc6w7vb] {
-    font-size: 24px;
-    font-weight: 700;
     background-color: #b4b4b430;
 }
+.rating-primary[b-yrayc6w7vb] {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.rating-sides[b-yrayc6w7vb] {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-left: 4px;
+    vertical-align: baseline; /* keeps it aligned nicely */
+}
+
 
 table.grid td.cell-name[b-yrayc6w7vb] {
     font-size: 20px;
@@ -509,4 +525,33 @@ th.importance-cell button img[b-yrayc6w7vb] {
 h1[b-yrayc6w7vb] {
     margin-bottom: 0px;
 }
+.value-icon[b-yrayc6w7vb] {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+}
+
+    /* normal icon + text */
+    .value-icon .icon[b-yrayc6w7vb] {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        min-height: 20px;
+        object-fit: contain;
+        display: block;
+    }
+
+    .value-icon.value-icon-only[b-yrayc6w7vb] {
+        justify-content:center;
+        width: 100%;
+    }
+
+    /* icon-only mode */
+    .value-icon.value-icon-only .icon[b-yrayc6w7vb] {
+        width: 25px;
+        height: 25px;
+        min-width: 25px;
+        min-height: 25px;       
+    }
 /* /Shared/MainLayout.razor.rz.scp.css */
