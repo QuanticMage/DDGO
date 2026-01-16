@@ -1,7 +1,7 @@
 param(
   [string]$Project = "DungeonDefendersGearOptimizer\DDUP.csproj",
   [string]$Source  = "DungeonDefendersGearOptimizer\bin\Release\net8.0\publish\wwwroot",
-  [string]$Target  = "Docs",
+  [string]$Target  = "docs",
   [string]$Base    = "/DDGO/"
 )
 
