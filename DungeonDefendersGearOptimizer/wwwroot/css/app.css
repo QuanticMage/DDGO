@@ -1,0 +1,75 @@
+body {
+    font-family: system-ui, Segoe UI, Arial, sans-serif;
+    margin: 0;
+    padding: 18px;
+}
+
+.content {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+}
+
+.dropzone {
+    border: 2px dashed #888;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 12px 0 10px 0;
+    user-select: none;
+    background: #fafafa;
+}
+
+    .dropzone.over {
+        border-color: #444;
+        background: #f0f0f0;
+    }
+
+.dropzone-text {
+    font-size: 18px;
+}
+
+.dropzone-subtext {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+    .status.error {
+        color: #b00020;
+        opacity: 1.0;
+    }
+
+button.action {
+    margin: 8px 0 14px 0;
+    padding: 8px 12px;
+}
+
+.hint {
+    opacity: 0.7;
+}
+
+table.grid {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+    table.grid th, table.grid td {
+        border: 1px solid #bbb;
+        padding: 6px 8px;
+    }
+
+    table.grid thead th {
+        background: #eee;
+        text-align: left;
+    }
+
+    table.grid tbody tr:nth-child(even) {
+        background: #f7f7f7;
+    }
