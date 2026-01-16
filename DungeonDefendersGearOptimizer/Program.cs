@@ -12,7 +12,7 @@ public class Program
 
 		builder.RootComponents.Add<App>("#app");
 		builder.RootComponents.Add<HeadOutlet>("head::after");
-
+		builder.Services.AddScoped<ITooltipService, TooltipService>();
 		await builder.Build().RunAsync();
 	}
 }
