@@ -104,7 +104,27 @@ public class DDEquipmentInfo
 				(this.Type == "Bracers") ||
 				(this.Type == "Brooch") ||
 				(this.Type == "Mask");
-				
+
+			float mult = 1.0f;
+			int maxR = 0;
+			int maxStatLevel = 0;
+
+			// fix this if we do more than armor
+			if (this.Quality == "Ult++") { mult = 1.4f; maxR = 29; maxStatLevel = 999; }
+			else if (this.Quality == "Ult+") { mult = 1.4f; maxR = 29; maxStatLevel = 700; }
+			else if (this.Quality == "Ult93") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
+			else if (this.Quality == "Ult90") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
+			else if (this.Quality == "Supreme") { mult = 1.3666f; maxR = 30; maxStatLevel = 500; }
+			else if (this.Quality == "Transcendent") { mult = 1.3333f; maxR = 31; maxStatLevel = 420; }
+			else if (this.Quality == "Mythical") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
+			else { mult = 1.25f; maxR = 31; maxStatLevel = 300; }
+
+			if (!this.bIsArmor)
+			{
+				mult = 1.0f;
+				maxR = 0;
+			}
+
 
 			cachedItemRow = new ItemViewRow(
 				Rating: 0,
@@ -135,17 +155,24 @@ public class DDEquipmentInfo
 				RL: Resist(this, 3),
 				Idx: this.Idx,
 				BestAvailable: Idx % 2,
+				Value: 0,
+				BestFor: "",
 
 				IsEquipped: this.bIsEquipped,
 				IsMissingResists: this.bIsMissingResists,
 				IsEvent: this.bIsEvent,
 				IsArmor: this.bIsArmor,
-				IsEligibleForBest: bIsEligibleForBest
+				IsEligibleForBest: bIsEligibleForBest,
+
+				SetBonus: mult,
+				MaxStat: maxStatLevel,
+				ResistanceTarget: maxR
 			);
 		}
 		return cachedItemRow;
 	}
 };
+
 
 public class DDHeroInfo
 {
@@ -369,21 +396,22 @@ public class DDDatabase
 				else if (entry.EquipmentSet == EquipmentSet.Any) { set = "Any"; }
 
 				if (entry.WeaponType == WeaponType.Squire) { set = "Squire"; }
-				else if (entry.WeaponType == WeaponType.Huntress) { set = "Huntress"; }
-				else if (entry.WeaponType == WeaponType.Apprentice) { set = "Apprentice"; }
+				else if (entry.WeaponType == WeaponType.Huntress) { set = "Hunt"; }
+				else if (entry.WeaponType == WeaponType.Apprentice) { set = "App"; }
 				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
 				
 
 				Items[i].Description = entry.Description;
-				if (( entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
-				{					
+				if ((entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
+				{
 					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
 					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
 				}
+				else
+					bIsEvent |= true;	
 
-				bIsEvent |= Items[i].Description != entry.Description;
 				bIsEvent |= entry.BaseForgerName != "";
-				bIsEvent |= (Items[i].ForgerName != entry.BaseForgerName) && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
+				bIsEvent |= (Items[i].UserEquipName != " ") && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
 			}
 
 			Items[i].Quality = quality;

@@ -31,6 +31,7 @@
 		NoEvents = 1 << 16,
 		NoMissingResists = 1 << 17,
 		NoEquipped = 1 << 18,
+		Censor = 1 << 19,
 	}
 
 	public sealed class ItemViewRow
@@ -77,8 +78,14 @@
 		public bool IsArmor { get; set; }
 
 		public bool IsEligibleForBest { get; set; }
-
 		public int BestAvailable { get; set; }
+		public int Value { get; set; }
+		public string BestFor { get; set; }
+
+		public float SetBonus { get; set; }
+		public int ResistanceTarget { get; set; }
+		public int MaxStat { get; set; }
+
 
 		public ItemViewRow(
 				int Rating,
@@ -109,6 +116,12 @@
 				int RL,
 				int Idx,
 				int BestAvailable,
+				int Value,
+				string BestFor,
+
+				float SetBonus,
+				int ResistanceTarget,
+				int MaxStat,
 				
 				bool IsEvent,
 				bool IsMissingResists,
@@ -153,6 +166,12 @@
 			this.IsEquipped = IsEquipped;
 			this.IsArmor = IsArmor;
 			this.IsEligibleForBest = IsEligibleForBest;
+			this.Value = Value;
+			this.BestFor = BestFor;
+
+			this.SetBonus = SetBonus;
+			this.MaxStat = MaxStat;
+			this.ResistanceTarget = ResistanceTarget;
 		}
 	}
 }

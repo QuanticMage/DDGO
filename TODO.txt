@@ -4,10 +4,9 @@ NOTES:
 
 TODO:
 
-* Add in positions
 * CV Value estimator
-* Ult++ Censoring
-* Template name someitmes in ()s  Retanizer (EvilEye full template)
+* (DONE)Ult++ Censoring
+* Add in positions
 * Usefulness rating
 
 * (DONE)No Missing Resists => No missing resists\
