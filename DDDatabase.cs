@@ -275,7 +275,6 @@ public class DDDatabase
 				await Task.Yield();
 			}
 		}
-
 		// Shopkeeper sales- we just discard
 		int shopSetCount = reader.ReadInt32();
 		for (int i = 0; i < shopSetCount; i++)
@@ -341,7 +340,7 @@ public class DDDatabase
 			string set = "";
 			bool isArmor = false;
 			Items[i].Description = "Unknown";
-			Items[i].GeneratedName = Items[i].Template;
+			Items[i].GeneratedName = (Items[i].ForgerName != "")? Items[i].ForgerName : Items[i].Template;
 
 			bool bIsEvent = false;
 
@@ -376,8 +375,8 @@ public class DDDatabase
 				
 
 				Items[i].Description = entry.Description;
-				if ( entry.Names.Count > 0)
-				{
+				if (( entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
+				{					
 					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
 					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
 				}
