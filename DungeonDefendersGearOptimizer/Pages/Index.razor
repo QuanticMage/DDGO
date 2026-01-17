@@ -36,6 +36,14 @@
                 <div class="status">@_status</div>
                 <div class="status">@_status2</div>
             }
+            
+            @if (_showLivePrices && _hideDropzoneHelp)
+            {
+                <button class="live-btn" @onclick="GetLivePrices">
+                    Get Live Prices
+                </button>
+            }
+
         </div>
     </div>
     <aside class="info-pane">
@@ -43,7 +51,7 @@
             <div class="credits-by">Created by <i>Mage</i></div>
             <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
             <div class="credits-thanks">Price estimator by <i>Shiro</i></div>
-            <div class="credits-thanks">Special Thanks to <i>Scryllix, SteveTrevor, Shiro, Chiku, Cerium, and the DDRnG community</i></div>            
+            <div class="credits-thanks">Special Thanks to <i>Scryllix, SteveTrevor, Shiro, Chiku, Thales, Cerium, and the DDRnG community</i></div>            
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -55,13 +63,6 @@
     </ul>    
 </aside>
 </div>
-
-@if (_showLivePrices && _hideDropzoneHelp)
-{
-    <button class="live-btn" @onclick="GetLivePrices">
-        Get Live Prices
-    </button>
-}
 
 <div class="toolbar-line">
     <label class="toolbar-label">Rate by:</label>
