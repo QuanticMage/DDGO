@@ -285,7 +285,7 @@ public class DDDatabase
 			int eCount = hero.EquipmentCount;
 			for (int j = 0; j < eCount; j++)
 			{
-				Console.WriteLine(j);
+				//Console.WriteLine(j);
 				DDEquipmentInfo equipment = ReadEquipment(reader);
 				equipment.Location = "Character > " + hero.Name;
 				equipment.bIsEquipped = true;

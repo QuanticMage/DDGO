@@ -25,7 +25,7 @@ namespace DDUP
 
 	public static class EventPriceGuide
 	{
-		public static Dictionary<uint, EventItemInfo> HashToEventInfo = [];
+		public static Dictionary<uint, EventItemInfo> HashToEventInfo = []; 
 		public static readonly Dictionary<string, EventItemInfo> Prices = new()
 		{
 			["Admiral Djinn"] =	new EventItemInfo("Tactical Shiny Core Shatters Drippy Demon", 37 ),
@@ -85,7 +85,7 @@ namespace DDUP
 			["Cinnamon"] = new EventItemInfo("Luminous Brutal Obelisk Boosts Swift Raider", 183 ),
 			["Cloud Bracers"] = new EventItemInfo("Cooked Endless Monk Wipes Fire Swarm", 326 ),
 			["Cobra's Whisper"] = new EventItemInfo("Ancient Nerfed Guardian Fortifies Locked Minion", 108 ),
-			["Copper Egg"] = new EventItemInfo("",175 ),
+			["Copper Egg"] = new EventItemInfo("Mid Chaotic Warden Summons Nerfed Invader", 175 ),
 			["Crimson"] = new EventItemInfo("Wild Grim Huntress Clutches Buffed Shaman", 64 ),
 			// crystalline defender: Sweaty Brutal Lightning Spams Ancient Dragon??			
 			["Cursed Brownie"] = new EventItemInfo("Tilted Corrupted Beacon Spams Heroic Abomination", 88 ),
@@ -195,7 +195,7 @@ namespace DDUP
 			// Ocean also: Brutal Nerfed Fireball Carries Sweaty Wyvern
 			["Ocean"] = new EventItemInfo("Tilted Fortified Lightning Carries Enchanted Kobold", 61 ),
 			["Odin's Mask"] = new EventItemInfo("Mythic Mid Tower Carries Chaotic Goblin", 44 ),
-			["Olaf"] = new EventItemInfo("",413 ),
+			["Olaf"] = new EventItemInfo("Cracked Radiant Aura Throws Radiant Brood", 413 ),
 			["Old One's Stache"] = new EventItemInfo("Enchanted Enchanted Protector Breaches Shiny Horde", 46 ),
 			["Overload"] = new EventItemInfo("Grim Shattered Forge Defends Cracked Invader", 112 ),
 			["Overlord"] = new EventItemInfo("Swift Shattered Squire Repels Ancient Assassin",125 ),
@@ -210,7 +210,7 @@ namespace DDUP
 			["Pole of the South Star"] = new EventItemInfo("Cooked Grim Huntress Fortifies Beloved Kobold", 107 ),
 			["Poseidon's Shorebreaker"] = new EventItemInfo("Goated Endless Champion Ratios Goated Pack", 147 ),
 			["Power Gauntlets"] = new EventItemInfo("Drippy Cooked Barricade Explodes Hardened Abomination", 50 ),
-			["Proto VPC"] = new EventItemInfo("",4000 ),
+			["Proto VPC"] = new EventItemInfo("Ancient Locked Apprentice Pops Cooked Fiend", 4000 ),
 			["Pumpkin Head Celebration"] = new EventItemInfo("Brutal Swift Trap Wipes Shattered Dragon", 542 ),
 			["Pumpkin Peak"] = new EventItemInfo("Tactical Wild Champion Yeets Luminous Assassin", 55 ),
 			["Queen Georgia"] = new EventItemInfo("Chaotic Buffed Harpoon Snowballs Goated Ogre", 60 ),
@@ -227,7 +227,7 @@ namespace DDUP
 			["Sapphire"] = new EventItemInfo("Tilted Juicy Warden Repairs Drippy Raider", 52 ),
 			["Serpent of the North"] = new EventItemInfo("Juicy Endless Harpoon Summons Goated Overlord", 71 ),
 			["Shield of Mirrors"] = new EventItemInfo("Mythic Brutal Sentinel Yeets Drippy Destroyer", 52 ),
-			["Silver Egg"] = new EventItemInfo("",192 ),			
+			["Silver Egg"] = new EventItemInfo("Fragile Wild Squire Launches Ancient Pack", 192 ),			
 			["Skittles (Blue)"] = new EventItemInfo("Endless Corrupted Builder Carries Corrupted Cultist", 50 ),
 			["Skittles (Green)"] = new EventItemInfo("Buffed Brutal Armory Fortifies Drippy Fiend", 50 ),
 			["Skittles (Orange)"] = new EventItemInfo("Swift Chaotic Spike Repairs Fragile Goblin", 50 ),
@@ -252,7 +252,7 @@ namespace DDUP
 			["Something Red"] = new EventItemInfo("Nerfed Brutal Obelisk Farms Sweaty Ravager", 57 ),
 			["Something Violet"] = new EventItemInfo("Mid Juicy Builder Launches Cooked Brute", 50 ),
 			["Something Yellow"] = new EventItemInfo("Grim Radiant Relic Carries Brutal Beast", 50 ),
-			["Spartan Shield"] = new EventItemInfo("",133 ),
+			["Spartan Shield"] = new EventItemInfo("Locked Tactical Stronghold Shocks Buffed Invader", 133 ),
 			["Spartan Spear"] = new EventItemInfo("Tilted Hardened Monk Carries Tactical Cultist", 113 ),
 			["Spazmatism"] = new EventItemInfo("Sweaty Ancient Monk Smashes Mid Demon", 256 ),
 			["Spearmint"] = new EventItemInfo("Fortified Nerfed Armory Carries Mid Fiend", 46 ),
@@ -268,10 +268,8 @@ namespace DDUP
 			["Strawberry Rock"] = new EventItemInfo("Corrupted Fortified Forge Rushes Tilted Pillager", 150 ),
 			["Sun Staff"] = new EventItemInfo("Fire Cooked Obelisk Builds Chaotic Necromancer", 400 ),
 			["Sword of Valor (Blue)"] = new EventItemInfo("Wild Beloved Obelisk Yeets Shattered Marauder", 46 ),
-			// verify green
-			["Sword of Valor (Green)"] = new EventItemInfo("Heroic Corrupted Banner Repairs Heroic Pack", 46 ),
-			// verify red
-			["Sword of Valor (Red)"] = new EventItemInfo("Fragile Luminous Banner Repairs Cooked Pack", 46 ),
+			["Sword of Valor (Green)"] = new EventItemInfo("Fragile Luminous Banner Repairs Cooked Pack", 46 ),			
+			["Sword of Valor (Red)"] = new EventItemInfo("Shattered Enchanted Spike Pops Fragile Goblin", 46 ),
 			["Tabula Rasa"] = new EventItemInfo("Enchanted Fragile Trap Farms Goated Dragon", 300 ),
 			["Talay's Doom"] = new EventItemInfo("Mythic Ancient Tower Clutches Goated Berserker", 64 ),
 			["Terra's Magicite Brooch"] = new EventItemInfo("Tactical Mythic Champion Repels Heroic Invader", 40 ),
@@ -289,10 +287,9 @@ namespace DDUP
 			["Thread of Destiny"] = new EventItemInfo("Mythic Nerfed Warden Deletes Sweaty Fiend", 80 ),
 			["Thread of Life"] = new EventItemInfo("Wild Ancient Sigil Throws Tilted Raider", 95 ),
 			["Tinkerer's Demise"] = new EventItemInfo("Grim Cooked Forge Snowballs Radiant Ravager", 148 ),
-			["To Froya"] = new EventItemInfo("",125 ),
+			["To Froya"] = new EventItemInfo("Mythic Corrupted Barricade Camps Drippy Pillager", 125 ),
 			["Toy Sword"] = new EventItemInfo("Tactical Fire Huntress Repairs Endless Goblin", 53 ),
-			["Trick or Treater"] = new EventItemInfo("Tilted Mythic Crystal Fortifies Beloved Horde", 100 ),
-			
+			["Trick or Treater"] = new EventItemInfo("Tilted Mythic Crystal Fortifies Beloved Horde", 100 ),			
 			["Ultimate Crystalline Defender"] = new EventItemInfo("Ancient Brutal Trap Burns Mid Invader", 93 ),
 			["Ultimate Dungeon Defender"] = new EventItemInfo("Ancient Brutal Trap Burns Mid Invader", 560 ),
 			["Umbriel"] = new EventItemInfo("Tilted Enchanted Vanguard Farms Wild Abomination", 90 ),
