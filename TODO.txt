@@ -12,9 +12,16 @@ TODO:
 * convert icons based on sort
 * Use set for gear star rating
 
+* look into PWA (progressive web app)
+* Event collector list
+* Show Colors
+* Cache save file
+
+
 * (DONE)Fix bug with filter resetting columns
 * (DONE)Overall account estimate
 * (DONE) Added tooltip support - will be ongoing
+
 
 * (DONE) The best recommended pieces though thing should ignore armor that can't be brought to max resits
 * (DONE) Sorting by max'd out resists

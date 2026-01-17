@@ -18,6 +18,7 @@ body {
     margin: 12px 0 10px 0;
     user-select: none;
     background: #fafafa;
+    z-index: 1000000;
 }
 
     .dropzone.over {
@@ -73,30 +74,52 @@ table.grid {
     table.grid tbody tr:nth-child(even) {
         background: #f7f7f7;
     }
-
 .tooltip-box {
     position: fixed;
+    /* Use a high z-index, but ensure it doesn't trap focus */
     z-index: 10000;
+    /* 1. CRITICAL: Prevents the tooltip from ever becoming a drop target */
     pointer-events: none;
-    /* Colors that match your filter buttons */
-    background: rgba(255, 255, 255, 0.95);
+    user-select: none;
+    background: rgba(255, 255, 255, 0.98);
     color: #333;
     border: 1px solid #ddd;
-    /* Matches your app's rounded corners */
     padding: 6px 12px;
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 500;
-    /* Matches the soft depth of your container cards */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    /* Anchoring logic */
+    /* 2. ENHANCED ANCHORING: Added a small 'will-change' hint 
+       to help Firefox optimize rendering during drags */
     transform: translate(-50%, -100%);
-    margin-top: -8px;
-    white-space: nowrap;
-    /* Optional: subtle fade-in */
-    animation: tooltip-fade 0.15s ease-out;
+    margin-top: -12px;
     white-space: pre-wrap;
+    will-change: transform, opacity;
+    animation: tooltip-fade 0.15s ease-out;
 }
+
+    /* 3. ARROW CLEANUP: Explicitly ensuring pseudo-elements are non-reactive */
+    .tooltip-box::after,
+    .tooltip-box::before {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-style: solid;
+        pointer-events: none; /* Reinforced */
+    }
+
+    .tooltip-box::after {
+        border-width: 6px;
+        border-color: #ddd transparent transparent transparent;
+    }
+
+    .tooltip-box::before {
+        border-width: 5px;
+        border-color: #fff transparent transparent transparent;
+        z-index: 1;
+    }
 
 @keyframes tooltip-fade {
     from {
@@ -108,27 +131,4 @@ table.grid {
         opacity: 1;
         transform: translate(-50%, -100%);
     }
-}
-.tooltip-box::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #ddd transparent transparent transparent;
-}
-
-/* Interior part of the arrow to match white background */
-.tooltip-box::before {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: #fff transparent transparent transparent;
-    z-index: 1;
 }
