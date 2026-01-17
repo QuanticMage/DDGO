@@ -132,3 +132,23 @@ table.grid {
         transform: translate(-50%, -100%);
     }
 }
+
+.swatch-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.swatch-name {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 2px solid #00000080;
+    box-sizing: border-box;
+}

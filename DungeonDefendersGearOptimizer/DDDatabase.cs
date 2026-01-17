@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 public enum DDStat : int
@@ -28,6 +30,44 @@ public enum DDStat : int
 public struct DDLinearColor
 {
 	public float R, G, B, A;
+	public string ToCString()
+	{
+		float r = R;
+		float g = G;
+		float b = B;
+		float a = A;
+
+		// --- Normalize RGB if any component > 1 ---
+		float maxRgb = Math.Max(r, Math.Max(g, b));
+		if (maxRgb > 1.0f)
+		{
+			float inv = 1.0f / maxRgb;
+			r *= inv;
+			g *= inv;
+			b *= inv;
+		}
+
+		// --- Clamp all channels ---
+		r = Clamp01(r);
+		g = Clamp01(g);
+		b = Clamp01(b);
+		a = Clamp01(a); // A is clamped, not normalized
+
+		// --- Convert to 0–255 ---
+		uint Ri = (uint)(r * 255.0f + 0.5f);
+		uint Gi = (uint)(g * 255.0f + 0.5f);
+		uint Bi = (uint)(b * 255.0f + 0.5f);
+		uint Ai = (uint)(a * 255.0f + 0.5f);
+
+		return $"#{Ri:X2}{Gi:X2}{Bi:X2}";
+	}
+
+	private static float Clamp01(float v)
+	{
+		if (v < 0f) return 0f;
+		if (v > 1f) return 1f;
+		return v;
+	}
 };
 
 public struct DDFolder
@@ -79,6 +119,7 @@ public class DDEquipmentInfo
 	public bool bIsMissingResists;
 
 	public int EventItemValue = 0;
+	public string FunHashString = "";
 
 	public ItemViewRow? cachedItemRow = null;
 
@@ -95,10 +136,13 @@ public class DDEquipmentInfo
 			// Name rule:
 			// - If UserEquipName empty => GeneratedName
 			// - Else => "UserEquipName (GeneratedName)"
-			var gen = this.GeneratedName ?? "";
+			var gen = Regex.Replace(this.GeneratedName, "<[^>]*>", "").Trim();
+		
+	
 			var user = this.UserEquipName ?? "";
-			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user)) ? user : $"{user} ({gen})");
+			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent)) ? user : $"{user} ({gen})");
 
+			
 			bool bIsEligibleForBest =
 				(this.Type == "Boots") ||
 				(this.Type == "Helmet") ||
@@ -111,7 +155,7 @@ public class DDEquipmentInfo
 			float mult = 1.0f;
 			int maxR = 0;
 			int maxStatLevel = 0;
-
+			
 			// fix this if we do more than armor
 			if (this.Quality == "Ult++") { mult = 1.4f; maxR = 29; maxStatLevel = 999; }
 			else if (this.Quality == "Ult+") { mult = 1.4f; maxR = 29; maxStatLevel = 700; }
@@ -133,7 +177,7 @@ public class DDEquipmentInfo
 				Rating: 0,
 				Sides: 0,
 				Name: name,
-				Location: this.Location ?? "",
+				Location: this.Location,//this.Description + $"{Color1.R},{Color1.G},{Color1.B},{Color1.A} -  {Color2.R},{Color2.G},{Color2.B},{Color2.A}" ?? "",
 				Quality: this.Quality ?? "",
 				Type: this.Type ?? "",
 				Set: this.Set ?? "",
@@ -169,7 +213,10 @@ public class DDEquipmentInfo
 
 				SetBonus: mult,
 				MaxStat: maxStatLevel,
-				ResistanceTarget: maxR
+				ResistanceTarget: maxR,
+				FunHashString: this.FunHashString,
+				Color1: Color1.ToCString(),
+				Color2: Color2.ToCString()
 			);
 		}
 		return cachedItemRow;
@@ -373,7 +420,9 @@ public class DDDatabase
 			Items[i].Description = "Unknown";
 			Items[i].GeneratedName = (Items[i].ForgerName != "")? Items[i].ForgerName : Items[i].Template;
 
-			bool bIsEvent = false;
+			Items[i].Quality = quality;
+			Items[i].bIsArmor = isArmor;
+			Items[i].Idx = i;
 
 			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
 			{
@@ -390,6 +439,17 @@ public class DDDatabase
 				else if (entry.EquipmentType == EquipmentType.Familiar) { type = "Pet"; }
 				else if (entry.EquipmentType == EquipmentType.Currency) { type = "Currency"; }
 
+				if ((Items[i].Level == 1)  && (Items[i].MaxLevel == 1) &&
+					(Items[i].Stats[1] == 0) && (Items[i].Stats[2] == 0) &&
+					(Items[i].Stats[3] == 0) &&	(Items[i].Stats[4] == 0) &&
+					(Items[i].Stats[5] == 0) && (Items[i].Stats[6] == 0) &&
+					(Items[i].Stats[7] == 0) && (Items[i].Stats[8] == 0) &&
+					(Items[i].Stats[9] == 0) && (Items[i].Stats[10] == 0))
+				{
+					type = "Currency";
+				}
+					
+
 				if (entry.EquipmentSet == EquipmentSet.None) { set = ""; }
 				else if (entry.EquipmentSet == EquipmentSet.Leather) { set = "Leather"; }
 				else if (entry.EquipmentSet == EquipmentSet.Pristine) { set = "Pristine"; }
@@ -403,67 +463,58 @@ public class DDDatabase
 				else if (entry.WeaponType == WeaponType.Huntress) { set = "Hunt"; }
 				else if (entry.WeaponType == WeaponType.Apprentice) { set = "App"; }
 				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
-				
+
 
 				Items[i].Description = entry.Description;
 				if ((entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
 				{
 					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
 					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
-				}
-				else
-					bIsEvent |= true;
-
-				// event items are those that
-				// * can't be dropped
-				// * can't be sold 
-				// * have a forger name that isn't the default but aren't at max level+ " " + or have a max lvl of 1 or >550
-
-				bIsEvent |= (Items[i].bNoDrop > 0);
-				bIsEvent |= (Items[i].bNoSell > 0);
-				bIsEvent |= (Items[i].ForgerName.Trim() != "") && ((Items[i].Level != Items[i].MaxLevel) || (Items[i].Level > 550) || (Items[i].MaxLevel == 1));
-
-				var gen = Items[i].GeneratedName.Trim() ?? "";
-				var user = Items[i].UserEquipName.Trim() ?? "";
-
-				if (EventPriceGuide.Prices.ContainsKey(gen))
-				{
-					bIsEvent = true;
-					Items[i].EventItemValue = EventPriceGuide.Prices[gen];
-				}
-
-				if (EventPriceGuide.Prices.ContainsKey(user))
-				{
-					bIsEvent = true;
-					Items[i].EventItemValue = EventPriceGuide.Prices[user];
-				}
-
-				// exclude magicite
-
-				if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))
-				{
-					int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1:0 ) +
-										((Items[i].Stats[(int)DDStat.TowerRange] == 800) ? 1 : 0) +
-									((Items[i].Stats[(int)DDStat.TowerRate] == 800) ? 1 : 0) +
-									((Items[i].Stats[(int)DDStat.TowerDamage] == 800) ? 1 : 0);
-
-					if (cappedStats == 0) Items[i].EventItemValue = 5;
-					else if (cappedStats == 1) Items[i].EventItemValue = 10;
-					else if (cappedStats == 2) Items[i].EventItemValue = 15;
-					else if (cappedStats == 3) Items[i].EventItemValue = 250;
-					else if (cappedStats == 4) Items[i].EventItemValue = 1000; // magicite likely
-				}
+				}				
 			}
 
-			Items[i].Quality = quality;
+			int c1r = (int)Items[i].Color1.R * 100;
+			int c1g = (int)Items[i].Color1.G * 100;
+			int c1b = (int)Items[i].Color1.B * 100;
+			int c1a = (int)Items[i].Color1.B * 100;
+			int c2r = (int)Items[i].Color2.R * 100;
+			int c2g = (int)Items[i].Color2.G * 100;
+			int c2b = (int)Items[i].Color2.B * 100;
+			int c2a = (int)Items[i].Color1.B * 100;
+			int flags = (Items[i].bNoSell > 0 ? 1 : 0) + (Items[i].bNoDrop > 0 ? 2 : 0);
+
+			string dataForHash = $"{Items[i].Description}.{Items[i].Template}.{Items[i].MaxLevel}.{c1r}{c1g}{c1b}{c1a}.{c2r}{c2g}{c2b}{c2a}.{Items[i].NameVariantIdx}{Items[i].NameQualityIdx}{Items[i].NameResistIdx}.{flags}";
+
+			uint hash = ItemHash.StringToInt30(dataForHash);
+			
+			Items[i].FunHashString = ItemHash.Int30ToPhrase(hash);
+
+			string gen = Items[i].GeneratedName.Trim();
+			
+			// exclude magicite
+
+			if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))
+			{
+				int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1:0 ) +
+									((Items[i].Stats[(int)DDStat.TowerRange] == 800) ? 1 : 0) +
+								((Items[i].Stats[(int)DDStat.TowerRate] == 800) ? 1 : 0) +
+								((Items[i].Stats[(int)DDStat.TowerDamage] == 800) ? 1 : 0);
+
+				if (cappedStats == 0) Items[i].EventItemValue = 5;
+				else if (cappedStats == 1) Items[i].EventItemValue = 10;
+				else if (cappedStats == 2) Items[i].EventItemValue = 15;
+				else if (cappedStats == 3) Items[i].EventItemValue = 250;
+				else if (cappedStats == 4) Items[i].EventItemValue = 1000; // magicite likely
+			}
+			
 			Items[i].Type = type;
 			Items[i].Set = set;
-			Items[i].bIsArmor = isArmor;
-			Items[i].Idx = i;			
 
-			bIsEvent |= Items[i].Template.Contains("Event");
-
-			Items[i].bIsEvent = bIsEvent;
+			Items[i].bIsEvent = (EventPriceGuide.HashToEventInfo.ContainsKey(hash));
+			if (Items[i].bIsEvent)
+			{
+				Items[i].EventItemValue = EventPriceGuide.HashToEventInfo[hash].Price;
+			}
 			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
 			//Console.WriteLine(Items[i].Template+ " " + Items[i].UserEquipName + " " +  Items[i].Color1.R+ " " + Items[i].Color1.G + " " + Items[i].Color1.B+ " " + Items[i].Color1.R+ " " + Items[i].Color1.G+ " " + Items[i].Color1.B);
 		}

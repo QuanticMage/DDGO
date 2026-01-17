@@ -1,0 +1,21 @@
+﻿<!--<span class="swatch-row" title="@Title">
+    <span class="swatch-name">@Name</span>
+
+    <span class="swatch-stack">
+        <span  style="--sw:@Color1;"></span>
+        <span  style="--sw:@Color2;"></span>
+    </span>
+</span>-->
+
+<span class="swatch"
+      style="background: linear-gradient(to bottom, @Color1 50%, @Color2 50%);">
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter, EditorRequired] public string Color1 { get; set; } = "#ffffff";
+    [Parameter, EditorRequired] public string Color2 { get; set; } = "#ffffff";
+
+    // optional: tooltip text
+    [Parameter] public string? Title { get; set; }
+}

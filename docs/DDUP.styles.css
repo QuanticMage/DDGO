@@ -25,6 +25,13 @@ td.bestfor[b-yrayc6w7vb] {
     color:#00000080;
 }
 
+table.grid[b-yrayc6w7vb] 
+{
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
 table.grid td.cell-quality-default[b-yrayc6w7vb] {
 }
 
@@ -99,6 +106,7 @@ table.grid td.cell-name[b-yrayc6w7vb] {
     font-size: 20px;
     background-color: #b4b4b430;
     font-weight: 500;
+    position: relative;
 }
 
 table.grid td.cell-quality-ult93[b-yrayc6w7vb] {
@@ -614,5 +622,28 @@ h1[b-yrayc6w7vb] {
 .highlighted-card[b-yrayc6w7vb] {
     background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
     rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );    
+}
+
+.name-row[b-yrayc6w7vb] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.name-name[b-yrayc6w7vb] {
+    flex: 1;
+    min-width: 0; /* allows wrapping */
+    display:block;
+    padding-right: 48px;
+}
+
+.name-colors[b-yrayc6w7vb] {
+    opacity: 0.8;
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    display: inline-flex;
+    gap: 6px;
 }
 /* /Shared/MainLayout.razor.rz.scp.css */

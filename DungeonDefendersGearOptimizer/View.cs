@@ -27,13 +27,14 @@
 		// Categories
 		Pets = 1 << 13,
 		Weapons = 1 << 14,
-		Items = 1 << 15,
+		Currency = 1 << 15,
+		Events = 1<< 16,
 
 		// Exclusions / modifiers
-		NoEvents = 1 << 16,
-		NoMissingResists = 1 << 17,
-		NoEquipped = 1 << 18,
-		Censor = 1 << 19,
+		NoEvents = 1 << 17,
+		NoMissingResists = 1 << 18,
+		NoEquipped = 1 << 19,
+		Censor = 1 << 20,
 	}
 
 	public sealed class ItemViewRow
@@ -79,6 +80,9 @@
 		public bool IsEquipped { get; set; }
 		public bool IsArmor { get; set; }
 
+		public string Color1 { get; set; }
+		public string Color2 { get; set; }
+
 		public bool IsEligibleForBest { get; set; }
 		public int BestAvailable { get; set; }
 		public int Value { get; set; }
@@ -88,7 +92,7 @@
 		public int ResistanceTarget { get; set; }
 		public int MaxStat { get; set; }
 
-
+		public string FunHashString { get; set; }
 		public ItemViewRow(
 				int Rating,
 				int Sides,
@@ -120,10 +124,14 @@
 				int BestAvailable,
 				int Value,
 				string BestFor,
+				string FunHashString,
 
 				float SetBonus,
 				int ResistanceTarget,
 				int MaxStat,
+
+				string Color1, 
+				string Color2,
 				
 				bool IsEvent,
 				bool IsMissingResists,
@@ -174,6 +182,9 @@
 			this.SetBonus = SetBonus;
 			this.MaxStat = MaxStat;
 			this.ResistanceTarget = ResistanceTarget;
+			this.FunHashString = FunHashString;
+			this.Color1 = Color1;
+			this.Color2 = Color2;
 		}
 	}
 }

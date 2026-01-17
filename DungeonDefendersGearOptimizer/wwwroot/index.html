@@ -18,26 +18,104 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
         window.setupGlobalTooltips = (dotNetHelper) => {
-            document.addEventListener('mouseover', (e) => {
-                const target = e.target.closest('[data-tooltip]');
-                if (target) {
-                    const rect = target.getBoundingClientRect();
-                    // We pass position and text back to Blazor
-                    dotNetHelper.invokeMethodAsync('ShowGlobalTooltip',
-                        target.getAttribute('data-tooltip'),
-                        rect.left + (rect.width / 2),
-                        rect.top
-                    );
-                }
-            });
+            let helpKeyDown = false;
+            let hoveredTarget = null;
+            let lastTooltipText = null;   // ⭐ track current tooltip text
+            let copiedThisPress = false;  // ⭐ avoid repeat copies while holding H
 
-            document.addEventListener('mouseout', (e) => {
-                if (e.target.closest('[data-tooltip]')) {
-                    dotNetHelper.invokeMethodAsync('HideGlobalTooltip');
+            const hasNormal = (el) => el?.hasAttribute("data-tooltip");
+            const hasHelp = (el) => el?.hasAttribute("h-tooltip");
+
+            const getActiveTooltipText = (el) => {
+                if (!el) return null;
+
+                if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
+                if (hasNormal(el)) return el.getAttribute("data-tooltip");
+                if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
+
+                return null;
+            };
+
+            const showFor = (el) => {
+                const text = getActiveTooltipText(el);
+                if (!text) return;
+
+                lastTooltipText = text; // ⭐ remember it
+
+                const rect = el.getBoundingClientRect();
+                dotNetHelper.invokeMethodAsync(
+                    "ShowGlobalTooltip",
+                    text,
+                    rect.left + rect.width / 2,
+                    rect.top
+                );
+            };
+
+            const hide = () => {
+                lastTooltipText = null;
+                dotNetHelper.invokeMethodAsync("HideGlobalTooltip");
+            };
+
+            document.addEventListener("mouseover", (e) => {
+                const el = e.target.closest("[data-tooltip],[h-tooltip]");
+                if (!el) return;
+
+                hoveredTarget = el;
+                showFor(el);
+            }, true);
+
+            document.addEventListener("mouseout", (e) => {
+                const from = e.target.closest("[data-tooltip],[h-tooltip]");
+                if (!from) return;
+
+                if (hoveredTarget && e.relatedTarget && hoveredTarget.contains(e.relatedTarget))
+                    return;
+
+                hoveredTarget = null;
+                hide();
+            }, true);
+
+            window.addEventListener("keydown", async (e) => {
+                if (e.key !== "h" && e.key !== "H") return;
+                if (helpKeyDown) return;
+
+                helpKeyDown = true;
+                copiedThisPress = false;
+
+                if (hoveredTarget && hasHelp(hoveredTarget)) {
+                    showFor(hoveredTarget);
                 }
-            });
+
+                // ⭐ COPY TO CLIPBOARD ON H PRESS
+                if (lastTooltipText && !copiedThisPress) {
+                    try {
+                        await navigator.clipboard.writeText(lastTooltipText);
+                        copiedThisPress = true;
+                    } catch {
+                        // ignore clipboard failures silently
+                    }
+                }
+            }, true);
+
+            window.addEventListener("keyup", (e) => {
+                if (e.key !== "h" && e.key !== "H") return;
+
+                helpKeyDown = false;
+                copiedThisPress = false;
+
+                if (hoveredTarget) {
+                    const text = getActiveTooltipText(hoveredTarget);
+                    if (text) showFor(hoveredTarget);
+                    else hide();
+                } else {
+                    hide();
+                }
+            }, true);
         };
     </script>
+
+
+
 </body>
 
 </html>

@@ -6,7 +6,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 16 2026 - Version 0.8</i></div>    
+        <div class="build"><i>Jan 16 2026 - Version 0.9</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
@@ -55,6 +55,42 @@
     </ul>    
 </aside>
 </div>
+<div style="
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 16px;
+  background-color: #c9c9f9;
+  max-width: 600px;
+">
+  <p>
+    <b>Hello, DDRnG Community!</b><br />
+    Some event items aren’t identified correctly, and I could use your help fixing that.
+  </p>
+
+  <p>
+    <b>If you spot an unmarked event item:</b>
+  </p>
+
+  <ol>
+    <li>Hover over the item’s name in the table.</li>
+    <li>Press <b>H</b> to display and copy its 6-word hash. </li>
+    <li>(Hash prevents hackers from copying the item)</li>
+    <li>
+      Send me a message on Discord: <b>&#64;Mage</b><br />
+      Include the item name and hash.
+    </li>
+  </ol>
+
+  <p>
+    <b>Example:</b><br />
+    Spartan Spear: Tilted Hardened Monk Carries Tactical Cultist
+  </p>
+
+  <p>
+    Thanks for helping improve this! 🙂 -Mage
+  </p>
+</div>
+
 <div class="toolbar-line">
     <label class="toolbar-label">Rate by:</label>
     <div class="toolbar-row">
@@ -74,6 +110,10 @@
         }
     </div>
 </div>
+
+
+
+
 <div class="toolbar-line">
     <label class="toolbar-label">Filters:</label>
 
@@ -513,7 +553,24 @@ else
                     <td class="text bestfor">@r.BestFor</td>
                     <td class="text">@r.Type</td>
                     <td class="text">@r.Set</td>
-                    <td class="text cell-name">@r.Name</td>
+                     <td class="text cell-name" h-tooltip="@GetFunHash(r)">
+                        @if (r.Color1 != "#000000" || r.Color2 != "#000000")
+                        {
+                            <span class="name-row">
+                                 <span class="name-name">
+                                    @r.Name
+                                </span>
+
+                                <span class="name-colors">
+                                    <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
+                                </span>                       
+                            </span>
+                        }
+                        else
+                        {
+                            @r.Name
+                        }
+                    </td>
                     <td class="text location">@r.Location</td>
                     <td class="text @QualityClass(r.Quality)">@r.Quality</td>
                 
@@ -594,6 +651,8 @@ else
 
         new(Filters.Pets,         "Pets"),
         new(Filters.Weapons,      "Weapons"),        
+        new(Filters.Currency,     "Currency"),
+        new(Filters.Events,       "Events"),
 
         new(Filters.NoEvents,     "No Events"),
         new(Filters.NoMissingResists, "No Missing Resists"),
@@ -632,7 +691,7 @@ else
         }
         else
         {
-            if ((row.Type != "Weapon") && (row.Type != "Pet"))
+            if ((row.Type != "Weapon") && (row.Type != "Pet") && (row.Type != "Currency"))
             {
                 if (row.Value > -100) return ("⭐️⭐️⭐️", "");// "png/ValueHighest.png");
                 else if (row.Value > -200) return ("⭐️⭐️", "");// "png/ValueHigh.png");
@@ -668,7 +727,7 @@ else
         _filterOptions.Where(o =>
             o.Filter is Filters.Helmet or Filters.Torso or Filters.Gauntlet or Filters.Boots
                    or Filters.Brooch or Filters.Mask or Filters.Bracers or Filters.Shield
-                   or Filters.Pets or Filters.Weapons or Filters.Items);
+                   or Filters.Pets or Filters.Weapons or Filters.Currency or Filters.Events);
 
     private IEnumerable<FilterOption> OtherFilters =>
         _filterOptions.Where(o =>
@@ -741,9 +800,12 @@ else
             if ((v.Type == "Weapon") && filter.HasFlag(Filters.Weapons))
                 includeType = true;
 
-            if ((v.Type == "Item") && filter.HasFlag(Filters.Items))
+            if ((v.Type == "Currency") && filter.HasFlag(Filters.Currency))
                 includeType = true;
-
+            
+            if ((v.IsEvent) && filter.HasFlag(Filters.Events))
+                includeType = true;
+            
             bool includeItem = includeType && (!isArmor || includeSubType);
 
             // negative filters
@@ -1292,4 +1354,9 @@ else
         EventTotalValue = et;
     }
 
+
+    public string GetFunHash(ItemViewRow ivr)
+    {
+        return ivr.FunHashString;
+    }
 }

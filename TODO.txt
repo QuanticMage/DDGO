@@ -4,6 +4,9 @@ NOTES:
 
 TODO:
 
+* (DONE)Show Colors
+* (DONE)Make Event items work and still give H codes
+
 * What page items are on
 * Drag new file
 * Weapon stats / ranks
@@ -14,8 +17,8 @@ TODO:
 
 * look into PWA (progressive web app)
 * Event collector list
-* Show Colors
 * Cache save file
+* Figure out weird striping on table
 
 
 * (DONE)Fix bug with filter resetting columns
