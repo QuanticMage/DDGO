@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DDUP
@@ -18,13 +19,13 @@ namespace DDUP
 			Price = price;
 			NumericHash = 0;
 			ItemHash.TryPhraseToInt30(hashPhrase, out NumericHash);
-			EventPriceGuide.HashToEventInfo[NumericHash] = this;
+			EventPriceGuide.HashToEventInfo[NumericHash] = this;			
 		}
 	}
 
 	public static class EventPriceGuide
 	{
-		public static Dictionary<uint, EventItemInfo> HashToEventInfo = [];
+		public static Dictionary<uint, EventItemInfo> HashToEventInfo = [];		
 		static readonly EventItemInfo[] EventInfo = 
 		{
 			new ("Admiral Djinn", "Tactical Shiny Core Shatters Drippy Demon", 37),
@@ -59,9 +60,10 @@ namespace DDUP
 			new ("bLACK mAGICK", "Corrupted Nerfed Beacon Pops Tactical Berserker", 91),
 			new ("Black Satin Peak", "Brutal Radiant Obelisk Shocks Cracked Brute", 57),
 			new ("Black Shades", "Heroic Chaotic Trap Shocks Fire Wretch", 932),
-			new ("Blahaj", "Mythic Enchanted Obelisk Rushes Beloved Pack", 287),			
-			new ("Blessed Brownie", "Juicy Enchanted Totem Locks Sweaty Wretch", 764), //??
-			new ("Blessed Brownie", "Fortified Luminous Lightning Camps Locked Invader", 764),
+			new ("Blahaj", "Mythic Enchanted Obelisk Rushes Beloved Pack", 287),
+			new ("Blessed Brownie", "Grim Brutal Sigil Deletes Heroic Fiend", 764), //2021
+			new ("Blessed Brownie", "Juicy Enchanted Totem Locks Sweaty Wretch", 764), //2023
+			new ("Blessed Brownie", "Fortified Luminous Lightning Camps Locked Invader", 764),//2024
 			new ("Bling! Bling! Bracers", "Fortified Mythic Warden Deletes Corrupted Shaman", 60),
 			new ("Blu", "Beloved Ancient Fireball Repels Juicy Overlord", 51),
 			new ("Blueberry", "Enchanted Buffed Stronghold Channels Heroic Wyvern", 182),
@@ -135,12 +137,31 @@ namespace DDUP
 			new ("Goron Tunic", "Drippy Beloved Warden Farms Mythic Ravager", 62),
 			new ("Grapes", "Nerfed Radiant Vanguard Farms Mythic Pack", 219),
 
-			new ("Greater Magicite of Christmas", "Sweaty Mythic Armory Freezes Hardened Raider", 2913), // ?
-			new ("Greater Magicite of Christmas", "Tilted Drippy Banner Carries Enchanted Abomination", 2913), // 2024 
+			new ("Greater Magicite of Christmas", "Swift Buffed Barricade Shatters Tilted Orc", 2913), // 2017
+			new ("Greater Magicite of Christmas", "Drippy Cracked Workshop Ratios Cracked Overlord", 2913), // 2018 
+			new ("Greater Magicite of Christmas", "Fragile Grim Champion Yeets Corrupted Corruptor", 2913), // 2019
+			new ("Greater Magicite of Christmas", "Luminous Tilted Totem Throws Luminous Destroyer", 2913), // 2020
+			new ("Greater Magicite of Christmas", "Brutal Fragile Vanguard Breaches Enchanted Ogre", 2913), // 2021
+			new ("Greater Magicite of Christmas", "Hardened Buffed Lightning Pops Enchanted Goblin", 2913), // 2022
+			new ("Greater Magicite of Christmas", "Fragile Grim Champion Yeets Corrupted Corruptor", 2913), // 2023
+			new ("Greater Magicite of Christmas", "Shiny Wild Apprentice Rushes Sweaty Goblin", 2913), // 2024 
+			new ("Greater Magicite of Christmas", "Sweaty Mythic Armory Freezes Hardened Raider", 2913), // 2025?
+
+			//new ("Greater Magicite of Christmas", "Tilted Drippy Banner Carries Enchanted Abomination", 2913), // ??
+			
+			new ("Greater Magicite of Love", "Endless Locked Builder Wipes Ancient Swarm", 11875), // 2022
 			new ("Greater Magicite of Love", "Hardened Swift Fireball Boosts Fragile Berserker", 11875), // 2023
+			new ("Greater Magicite of Love", "Brutal Heroic Stronghold Boosts Luminous Invader", 11875), // 2024
+			new ("Greater Magicite of Love", "Juicy Corrupted Obelisk Locks Nerfed Pillager", 11875), // 2025
+			new ("Greater Magicite of Love", "Shiny Beloved Crystal Farms Drippy Kobold", 11875), // 2026
+			
 			new ("Greater Magicite of Pumpkin", "Hardened Nerfed Fireball Throws Shiny Shaman", 378), // 2022			
-			new ("Greater Magicite of the Water", "Tactical Shiny Champion Summons Sweaty Wretch", 20165), // 2022?
-			new ("Greater Magicite of the Water", "Cracked Fire Trap Repels Tilted Assassin", 20165), // 2019
+			
+			new ("Greater Magicite of the Water", "Tactical Shiny Champion Summons Sweaty Wretch", 20165), // 2022
+			new ("Greater Magicite of the Water", "Wild Cracked Obelisk Locks Tilted Overlord", 20165), // 2024
+			new ("Greater Magicite of the Water", "Chaotic Shiny Monk Spams Hardened Minion", 20165), // 2025
+			
+			
 			new ("Greater Magicite of the Wind", "Tilted Mid Stronghold Repels Chaotic Berserker", 374),
 
 			// Grinch Hat prototype Hardened Shattered Sigil Clutches Shattered Necromancer
