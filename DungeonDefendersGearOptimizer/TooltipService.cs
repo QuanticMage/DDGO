@@ -1,15 +1,20 @@
 ﻿using Microsoft.JSInterop;
 
-public interface ITooltipService
+public interface ITooltipService : IAsyncDisposable
 {
 	event Action<string, double, double> OnShow;
 	event Action OnHide;
 	Task InitializeAsync();
 }
 
-public class TooltipService : ITooltipService
+public sealed class TooltipService : ITooltipService
 {
 	private readonly IJSRuntime _js;
+
+	// Keep this alive for the life of the app/service
+	private DotNetObjectReference<TooltipService>? _dotNetRef;
+	private bool _initialized;
+
 	public event Action<string, double, double>? OnShow;
 	public event Action? OnHide;
 
@@ -17,14 +22,25 @@ public class TooltipService : ITooltipService
 
 	public async Task InitializeAsync()
 	{
-		// This passes a reference of THIS service to JS so it can call our methods
-		var dotNetHelper = DotNetObjectReference.Create(this);
-		await _js.InvokeVoidAsync("setupGlobalTooltips", dotNetHelper);
+		if (_initialized) return;
+		_initialized = true;
+
+		_dotNetRef = DotNetObjectReference.Create(this);
+		await _js.InvokeVoidAsync("setupGlobalTooltips", _dotNetRef);
 	}
 
 	[JSInvokable("ShowGlobalTooltip")]
-	public void Show(string text, double x, double y) => OnShow?.Invoke(text, x, y);
+	public void ShowGlobalTooltip(string text, double x, double y)
+		=> OnShow?.Invoke(text, x, y);
 
 	[JSInvokable("HideGlobalTooltip")]
-	public void Hide() => OnHide?.Invoke();
+	public void HideGlobalTooltip()
+		=> OnHide?.Invoke();
+
+	public ValueTask DisposeAsync()
+	{
+		_dotNetRef?.Dispose();
+		_dotNetRef = null;
+		return ValueTask.CompletedTask;
+	}
 }
