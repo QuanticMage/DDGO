@@ -22,10 +22,6 @@ namespace DDUP
 		}
 	}
 
-	//Egg: Enchanted Nerfed Vanguard Throws Fortified Corruptor
-	// Golden Egg: Mid Chaotic Aura Ratios Drippy Goblin
-	// 
-
 	public static class EventPriceGuide
 	{
 		public static Dictionary<uint, EventItemInfo> HashToEventInfo = [];
@@ -34,9 +30,9 @@ namespace DDUP
 			new ("Admiral Djinn", "Tactical Shiny Core Shatters Drippy Demon", 37),
 			new ("Ahoy", "Ancient Hardened Protector Pops Tactical Minion", 53),
 			new ("Aimer", "Goated Juicy Sigil Locks Goated Berserker", 48),
-			new ("Air Plane", "Shattered Shiny Fireball Snowballs Chaotic Necromancer", 109), // ?? 			
-			new ("Air Plane", "Cracked Hardened Barricade Repairs Luminous Corruptor", 109),
-			new ("Aladdins Wish", "Hardened Fragile Stronghold Launches Mythic Spider", 42),
+			new ("Air Plane", "Shattered Shiny Fireball Snowballs Chaotic Necromancer", 109), 
+			// new ("Air Plane", "Cracked Hardened Barricade Repairs Luminous Corruptor", 109), //?
+			new ("Aladdins Wish", "Hardened Fragile Stronghold Launches Mythic Spider", 42), 
 			new ("Alpha", "Luminous Beloved Apprentice Fortifies Brutal Goblin", 601),
 			new ("aMAZEing Vision", "Shattered Locked Barricade Farms Heroic Spider", 59),
 			new ("Amor 14k", "Juicy Radiant Sigil Locks Fire Invader", 78),
@@ -55,7 +51,7 @@ namespace DDUP
 			new ("Armguard of Smog", "Grim Brutal Relic Carries Drippy Brute", 79),
 			new ("Armguard of Toxic Waste", "Mid Swift Builder Shatters Nerfed Fiend", 75),
 			new ("Azure Peak", "Shiny Beloved Huntress Deletes Brutal Assassin", 66),			
-			new ("Ball Blaster", "Enchanted Luminous Huntress Throws Sweaty Brood", 85),	 //??		
+			//new ("Ball Blaster", "Enchanted Luminous Huntress Throws Sweaty Brood", 85),	 //??		
 			new ("Ball Blaster", "Locked Tilted Huntress Throws Enchanted Pack", 85),
 			new ("Battlecruiser Debris Mask", "Ancient Fire Workshop Repairs Fragile Shaman", 52),
 			new ("Bean's Leftovers", "Wild Brutal Squire Builds Enchanted Wyvern", 42),
@@ -105,7 +101,7 @@ namespace DDUP
 			new ("Dunce Cap", "Fragile Cracked Trap Shocks Mid Fiend", 69),
 			new ("Dunce Cap", "Heroic Hardened Trap Shocks Hardened Fiend", 69),
 			new ("Dwarven Miners Mask", "Enchanted Juicy Aura Wipes Goated Brood", 43),			
-			new ("Egg (Blue)", "Mid Chaotic Aura Ratios Drippy Goblin", 113), //?			
+			//new ("Egg (Blue)", "Mid Chaotic Aura Ratios Drippy Goblin", 113), //?			
 			new ("Egg (Blue)", "Enchanted Nerfed Vanguard Throws Fortified Corruptor", 113),
 			new ("Egg (Green)", "Brutal Nerfed Apprentice Snowballs Sweaty Necromancer", 121),
 			new ("Egg (Red)", "Enchanted Hardened Warden Launches Grim Assassin", 121),
@@ -125,7 +121,7 @@ namespace DDUP
 			new ("Firestorm", "Mid Beloved Sigil Breaches Grim Swarm", 57),
 			new ("First Contact", "Sweaty Brutal Relic Burns Drippy Warlock", 64),
 			new ("Furious George", "Tilted Fragile Warden Carries Chaotic Necromancer", 40),			
-			new ("Gaia's Last Gift", "Juicy Ancient Relic Deletes Tilted Wretch", 117), // etheria version
+			//new ("Gaia's Last Gift", "Juicy Ancient Relic Deletes Tilted Wretch", 117), // etheria version
 			new ("Gaia's Last Gift", "Fortified Shattered Spike Farms Ancient Destroyer", 117),
 			new ("Gamma", "Luminous Shattered Totem Pops Mythic Invader", 411),
 			new ("Genie King's Prized Jewel", "Tactical Locked Sigil Defends Mid Invader", 55),
@@ -199,8 +195,8 @@ namespace DDUP
 			new ("Neptune", "Shiny Tilted Beacon Wins Fragile Ogre", 133),
 			new ("New Patch Celebration", "Corrupted Radiant Sentinel Boosts Goated Ogre", 530),
 			new ("Obunga's Other Half", "Mythic Radiant Harpoon Clutches Drippy Shaman", 71),
-			new ("Ocean", "Brutal Nerfed Fireball Carries Sweaty Wyvern", 61), // ?
-			new ("Ocean", "Tilted Fortified Lightning Carries Enchanted Kobold", 61),
+			new ("Ocean", "Brutal Nerfed Fireball Carries Sweaty Wyvern", 61),
+			//new ("Ocean", "Tilted Fortified Lightning Carries Enchanted Kobold", 61),
 			new ("Odin's Mask", "Mythic Mid Tower Carries Chaotic Goblin", 44),
 			new ("Olaf", "Cracked Radiant Aura Throws Radiant Brood", 413),
 			new ("Old One's Stache", "Enchanted Enchanted Protector Breaches Shiny Horde", 46),
@@ -227,10 +223,9 @@ namespace DDUP
 			new ("Rock's Feather", "Mythic Swift Lightning Summons Ancient Cultist", 50),
 			new ("Rockshatter", "Fragile Fragile Sigil Shatters Chaotic Kobold", 111),
 			new ("Rosemary", "Beloved Corrupted Vanguard Defends Mythic Beast", 243),
-			new ("Sahara", "Chaotic Brutal Aura Farms Juicy Minion", 62),
-			
-			new ("Salem", "Shattered Endless Sigil Burns Goated Ravager", 69),		//?	
-			new ("Salem", "Beloved Corrupted Vanguard Defends Mythic Beast", 69),
+			new ("Sahara", "Chaotic Brutal Aura Farms Juicy Minion", 62),			
+			new ("Salem", "Shattered Endless Sigil Burns Goated Ravager", 69),		
+			//new ("Salem", "Beloved Corrupted Vanguard Defends Mythic Beast", 69),
 			new ("Santa's Spare Hat", "Tilted Swift Builder Burns Hardened Assassin", 61),
 			new ("Sapphire", "Tilted Juicy Warden Repairs Drippy Raider", 52),
 			new ("Serpent of the North", "Juicy Endless Harpoon Summons Goated Overlord", 71),
@@ -253,8 +248,8 @@ namespace DDUP
 			new ("Something Lime", "Brutal Ancient Obelisk Withstands Buffed Fiend", 50),
 			new ("Something Navy", "Brutal Tactical Relic Fortifies Hardened Ravager", 73),
 			new ("Something Orange", "Nerfed Luminous Monk Channels Hardened Necromancer", 60),			
-			new ("Something Pink", "Grim Sweaty Fireball Channels Sweaty Shaman", 1059), //?
-			new ("Something Pink", "Nerfed Shattered Fireball Channels Enchanted Shaman", 1059),
+			new ("Something Pink", "Grim Sweaty Fireball Channels Sweaty Shaman", 1059), 
+			//new ("Something Pink", "Nerfed Shattered Fireball Channels Enchanted Shaman", 1059),
 			new ("Something Purple", "Fire Wild Obelisk Burns Beloved Marauder", 45),
 			new ("Something Red", "Nerfed Brutal Obelisk Farms Sweaty Ravager", 57),
 			new ("Something Violet", "Mid Juicy Builder Launches Cooked Brute", 50),
@@ -281,7 +276,7 @@ namespace DDUP
 			new ("Talay's Doom", "Mythic Ancient Tower Clutches Goated Berserker", 64),
 			new ("Terra's Magicite Brooch", "Tactical Mythic Champion Repels Heroic Invader", 40),
 			new ("Tess", "Heroic Fragile Squire Wipes Buffed Demon", 463),
-			new ("The Cavalry", "Swift Heroic Lightning Builds Fire Pack", 63), // seahorse edition
+			//new ("The Cavalry", "Swift Heroic Lightning Builds Fire Pack", 63), // seahorse edition
 			new ("The Cavalry", "Fire Fragile Fireball Builds Fortified Pack", 63),
 			new ("The Devil's Poolskimmer", "Ancient Cooked Tower Locks Sweaty Assassin", 52),
 			new ("The Downpour", "Fragile Luminous Trap Burns Hardened Raider", 261),

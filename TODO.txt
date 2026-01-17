@@ -4,12 +4,13 @@ NOTES:
 
 TODO:
 
-* (DONE)Show Colors
-* (DONE)Make Event items work and still give H codes
-* Figure out remaining event anomalies
-** double check list
-** look at differences between items that are different
+* Options - show best, censor, etc
 
+* More tooltips / documentation
+* Weapon love
+* Pages of items
+
+* Note about event items and where to send 6 words - somehow let people know so they don't panic :)
 
 * What page items are on
 * Drag new file
@@ -17,16 +18,21 @@ TODO:
 * Export to csv
 * (partial) Hover tooltips
 * convert icons based on sort
-* Use set for gear star rating
 
 * look into PWA (progressive web app)
 * Event collector list
 * Cache save file
 * Figure out weird striping on table
 
+* (DONE) Show Colors
+* (DONE) Make Event items work and still give H codes
+* (DONE) Figure out remaining event anomalies
+* (DONE) double check list
+* (DONE) look at differences between items that are different
+* (DONE) Use set for gear star rating
 
-* (DONE)Fix bug with filter resetting columns
-* (DONE)Overall account estimate
+* (DONE) Fix bug with filter resetting columns
+* (DONE) Overall account estimate
 * (DONE) Added tooltip support - will be ongoing
 
 
