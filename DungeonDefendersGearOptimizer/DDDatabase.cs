@@ -238,6 +238,7 @@ public class DDDatabase
 			int eCount = hero.EquipmentCount;
 			for (int j = 0; j < eCount; j++)
 			{
+				Console.WriteLine(j);
 				DDEquipmentInfo equipment = ReadEquipment(reader);
 				equipment.Location = "Character > " + hero.Name;
 				equipment.bIsEquipped = true;
@@ -437,8 +438,9 @@ public class DDDatabase
 					Items[i].EventItemValue = EventPriceGuide.Prices[user];
 				}
 
+				// exclude magicite
 
-				if (( gen == "Crystal Heart") || (gen == "Diamond"))
+				if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))
 				{
 					int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1:0 ) +
 										((Items[i].Stats[(int)DDStat.TowerRange] == 800) ? 1 : 0) +
@@ -449,7 +451,7 @@ public class DDDatabase
 					else if (cappedStats == 1) Items[i].EventItemValue = 10;
 					else if (cappedStats == 2) Items[i].EventItemValue = 15;
 					else if (cappedStats == 3) Items[i].EventItemValue = 250;
-					else if (cappedStats == 4) Items[i].EventItemValue = 25000;
+					else if (cappedStats == 4) Items[i].EventItemValue = 1000; // magicite likely
 				}
 			}
 
@@ -642,7 +644,6 @@ public class DDDatabase
 			r.ReadByte(); // ? 
 		}
 	}
-
 
 	private void ReadOptions(BinaryReader reader)
 	{ 
