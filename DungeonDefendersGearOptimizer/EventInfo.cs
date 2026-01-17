@@ -10,6 +10,9 @@ namespace DDUP
 		public string ItemName;
 		public string HashPhrase;
 		public uint NumericHash;
+
+		public string NewHashPhrase = "";
+		public uint NewNumericHash;
 		public int Price;
 
 		public EventItemInfo(string itemName, string hashPhrase, int price)
@@ -20,7 +23,7 @@ namespace DDUP
 			NumericHash = 0;
 			ItemHash.TryPhraseToInt30(hashPhrase, out NumericHash);
 			EventPriceGuide.HashToEventInfo[NumericHash] = this;			
-		}
+		}			
 	}
 
 	public static class EventPriceGuide
