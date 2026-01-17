@@ -646,4 +646,16 @@ h1[b-yrayc6w7vb] {
     display: inline-flex;
     gap: 6px;
 }
+
+live-btn[b-yrayc6w7vb] {
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    background: #f3f3ff;
+    cursor: pointer;
+}
+
+.live-btn:hover[b-yrayc6w7vb] {
+    background: #e6e6ff;
+}
 /* /Shared/MainLayout.razor.rz.scp.css */

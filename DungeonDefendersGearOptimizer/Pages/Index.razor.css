@@ -645,3 +645,15 @@ h1 {
     display: inline-flex;
     gap: 6px;
 }
+
+live-btn {
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    background: #f3f3ff;
+    cursor: pointer;
+}
+
+.live-btn:hover {
+    background: #e6e6ff;
+}
