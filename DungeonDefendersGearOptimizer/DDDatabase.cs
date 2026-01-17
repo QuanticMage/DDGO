@@ -421,7 +421,6 @@ public class DDDatabase
 			Items[i].GeneratedName = (Items[i].ForgerName != "")? Items[i].ForgerName : Items[i].Template;
 
 			Items[i].Quality = quality;
-			Items[i].bIsArmor = isArmor;
 			Items[i].Idx = i;
 
 			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
@@ -448,7 +447,8 @@ public class DDDatabase
 				{
 					type = "Currency";
 				}
-					
+				Items[i].bIsArmor = isArmor;
+
 
 				if (entry.EquipmentSet == EquipmentSet.None) { set = ""; }
 				else if (entry.EquipmentSet == EquipmentSet.Leather) { set = "Leather"; }
