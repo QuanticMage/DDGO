@@ -4,29 +4,29 @@ NOTES:
 
 TODO:
 
-* Options - show best, censor, etc
+* Add new hash with stat 0, and if maxlvl > 2000, just use 2000
+* Special case Black Shades, Victoria, and Malory?
+* Note about event items and where to send 6 words - somehow let people know so they don't panic :)
+* Event collector list
+* Figure out weird striping on table
+* Store options and cache file
+* Options - show best, censor
+* Clean up filters
+* Explain ratings better
+* Column resizing
+* Use for loops for rows
+* Clean up .css
+* Display move speed and size (items/pets/accessories)
 
 * More tooltips / documentation
-* Weapon love
-* Pages of items
-
-* Note about event items and where to send 6 words - somehow let people know so they don't panic :)
-* Convert hashes to use stat(0) instead of maxlvl?
-* Special case - GM of Water, GM of Water? GM of Love? Blessed Brownie, Krampus Hat?
-* Victoria, Malory, OG Black Shades
-
-
-* What page items are on
-* Drag new file
 * Weapon stats / ranks
+* Pages of items
+* Drag new file
 * Export to csv
 * (partial) Hover tooltips
 * convert icons based on sort
 
 * look into PWA (progressive web app)
-* Event collector list
-* Cache save file
-* Figure out weird striping on table
 
 * (DONE) Show Colors
 * (DONE) Make Event items work and still give H codes
@@ -47,9 +47,6 @@ TODO:
 * (DONE) Things without full resists should not get evaluated for dps classes
 * (DONE) Things that aren't armor shouldn't get armor prices (lol)
 * (DONE)CV diamonds/etc
-
-* Use achievement shields for ratings?
-
 
 * (DONE)CV Value estimator
 * (DONE)Ult++ Censoring
@@ -72,44 +69,7 @@ TODO:
 * (DONE)Always sort by rating 2ndarily
 * (DONE)Add in primary / secondary toggles- clear rate by (Custom) when doing this, or just set which one is valid
 
-Scrylix:
-* Filters - Event Items, Pet, Accessory, Weapons
-* Wider columns, wrap names for longer names (rating, maxlvl, quality, every item stat)
-* Display move speed and size (items/pets/accessories)
-* Display stats for rating and side (make clearer)
-* Let the user upload a save without refreshing
-* Save settings via cookies.  Exclude certain item types.
-* Diamonds + Hearts show up as turtle treadmills and clog up everything
-* Tower -> Builder   Minions = Builder Summoner
-
-* Hero Boost Monk
-* Gunwitch (normal + Icy needle)
-* AB1+AB2 DPS
-* Countess (HDMG with AB1+AB2 sides)
-
-Examples (should factor in resistances for TB/Upper/Jester/DPS):
-AB1 (Tower Boost/Upgrader)
-AB2 Specced DPS (monk) - AB2 with HDMG side
-GW (gunwitch) - HDMG with TDMG and rate sides (icy needly is TRANGE with HDMG side)
-AB1 DPS (warden) - HDMG with AB1 side
-AB2 DPS (huntress) - HDMG with AB2 side
-AB1 + AB2 DPS (countess) - HDMG with AB1 and AB2 sides
-HP (summoner) - HP
-
-Bugs:
 * (DONE) Only apply x1.4 to armor
 * (DONE)Figure out why cv diamonds show up as "Turtle on Treadmill" - maybe need rename
 * (DONE)"Temp Name"
 * (DONE)Figure out why off by 1 sometimes
-
-
-Short term:
-Total builder / Total DPS stats instead of mixed
-Credit TBolt, me, Scrylix
-Link to Chiku + Dundef planner + BIS guide 
-Enable Censor Items for SS
-Next best set (or exclude equipment)
-
-Price Estimator
-Best normalized rank across all categories (!)  ("Usefulness")
-Rank amongst similar slot items
