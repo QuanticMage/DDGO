@@ -5,7 +5,7 @@ NOTES:
 TODO:
 
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
-* Special case Black Shades, Victoria, and Malory?
+* Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)
 * Event collector list
 * Figure out weird striping on table
@@ -17,6 +17,18 @@ TODO:
 * Use for loops for rows
 * Clean up .css
 * Display move speed and size (items/pets/accessories)
+* https://fonts.google.com/specimen/Fredoka
+* https://fonts.google.com/specimen/Belanosima
+
+* Parse event item list and hashes from external file that someone else can maintain
+* Choose what columns to show?  (stats, resists, total resists, etc)
+
+* look into Event Armory map
+* best ui elements - uiverse.com
+* Table: Add details button that gives a popup of info
+* Filters: +Filters that adds to the row, click to remove
+* Rating: maybe same for +primary/secondary/etc?
+
 
 * More tooltips / documentation
 * Weapon stats / ranks
@@ -27,6 +39,10 @@ TODO:
 * convert icons based on sort
 
 * look into PWA (progressive web app)
+
+* 3-piece resistances 
+//"To use a 3-resistance piece in your armor setup, you need another piece of the same type with enough upgrades. Aim for around 350 to 380 upgrades across both pieces.
+//For example, if your helmet lacks fire resistance, pair it with boots that cover all four resistances. Ensure the combined resistances on both pieces sum to 82% with the set bonus. Upgrade the 3-resistance piece to 35% and the other piece to 23% on its three resistances, with the missing one reaching 58%. "
 
 * (DONE) Show Colors
 * (DONE) Make Event items work and still give H codes
