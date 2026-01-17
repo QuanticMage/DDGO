@@ -11,6 +11,10 @@ TODO:
 * Pages of items
 
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)
+* Convert hashes to use stat(0) instead of maxlvl?
+* Special case - GM of Water, GM of Water? GM of Love? Blessed Brownie, Krampus Hat?
+* Victoria, Malory, OG Black Shades
+
 
 * What page items are on
 * Drag new file
