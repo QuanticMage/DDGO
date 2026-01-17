@@ -6,6 +6,10 @@ TODO:
 
 * (DONE)Show Colors
 * (DONE)Make Event items work and still give H codes
+* Figure out remaining event anomalies
+** double check list
+** look at differences between items that are different
+
 
 * What page items are on
 * Drag new file
