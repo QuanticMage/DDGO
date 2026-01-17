@@ -114,7 +114,8 @@ namespace DDUP
 			}
 
 			index.CalculateVanityTotals();
-			index.SetPriceStatus("Armor prices live using Shiro's API");
+			index.SetPriceStatus("Armor prices live using Shiro's API", false);
+			
 		}
 
 		// always measure CV first to also get the BestRatings populated

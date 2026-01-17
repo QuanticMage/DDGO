@@ -17,7 +17,7 @@
                             <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
                             <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
-                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices.</li>
+                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices, and only if you hit the "Get Live Prices" button.</li>
                         </ul>
                     </div>
                 }
@@ -55,6 +55,13 @@
     </ul>    
 </aside>
 </div>
+
+@if (_showLivePrices && _hideDropzoneHelp)
+{
+    <button class="live-btn" @onclick="GetLivePrices">
+        Get Live Prices
+    </button>
+}
 
 <div class="toolbar-line">
     <label class="toolbar-label">Rate by:</label>
@@ -114,8 +121,6 @@
         </div>;
     };
 }
-
-
 <div class="summary">@_summary</div>
 
 <div class="stats-row">
@@ -575,6 +580,7 @@ else
     private string _summary = "";
     private string _status = "";
     private string _status2 = "";
+    private bool _showLivePrices = true;
     private string? _error;
     private DDDatabase db = new();
     private List<ItemViewRow> _rows = new();
@@ -583,10 +589,12 @@ else
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
 
-    public void SetPriceStatus(string stat)
+    public void SetPriceStatus(string stat, bool showLivePrices)
     {
         _status2 = stat;
+        _showLivePrices = showLivePrices;
         StateHasChanged();        
+
     }
 
     // TOOLTIPS GO HERE
@@ -767,10 +775,10 @@ else
 
             if ((v.Type == "Currency") && filter.HasFlag(Filters.Currency))
                 includeType = true;
-            
+
             if ((v.IsEvent) && filter.HasFlag(Filters.Events))
                 includeType = true;
-            
+
             bool includeItem = includeType && (!isArmor || includeSubType);
 
             // negative filters
@@ -1265,10 +1273,8 @@ else
                 }
 
                 CalculateVanityTotals();
-                SetPriceStatus("Prices estimated by table");
-                // don't care about when it gets back
-                _ = Ratings.AsyncShiroPriceAPICall(this);
-
+                SetPriceStatus("Prices estimated by table", true);
+                // don't care about when it gets back              
 
                 SetFilters(Filters.Chain | Filters.Mail | Filters.Pristine | Filters.Leather | Filters.Plate | Filters.Helmet | Filters.Torso | Filters.Gauntlet | Filters.Boots | Filters.NoEvents );
                 SetMode("Builder App");
@@ -1323,5 +1329,10 @@ else
     public string GetFunHash(ItemViewRow ivr)
     {
         return ivr.FunHashString;
+    }
+
+    private void GetLivePrices()
+    {
+        _ = Ratings.AsyncShiroPriceAPICall(this);        
     }
 }
