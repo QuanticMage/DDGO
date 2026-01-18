@@ -4,6 +4,13 @@ NOTES:
 
 TODO:
 
+* Added in all event pieces with sheet prices (if any missing let me know)
+* (1.10) Fixed a ceiling bug with ratings (off-by-1) due to how upgrades were predicted to be allocated
+
+* Filter conversion to new format
+
+
+
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
 * Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)
@@ -19,6 +26,8 @@ TODO:
 * Display move speed and size (items/pets/accessories)
 * https://fonts.google.com/specimen/Fredoka
 * https://fonts.google.com/specimen/Belanosima
+
+https://www.youtube.com/watch?v=cuIFJyKtr4c
 
 * Parse event item list and hashes from external file that someone else can maintain
 * Choose what columns to show?  (stats, resists, total resists, etc)

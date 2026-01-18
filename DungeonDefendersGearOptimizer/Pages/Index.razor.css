@@ -599,8 +599,7 @@ h1 {
 .metric-number {
     font-size: 1.8rem;
     font-weight: 800;
-    color: #224;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    color: #224;    
 }
 
 .metric-type {
@@ -656,4 +655,41 @@ live-btn {
 
 .live-btn:hover {
     background: #e6e6ff;
+}
+
+
+.filters-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filters-column .fg {
+    width: 100%;
+    max-width: 1400px; 
+}
+
+.filters-column .fg-chiprow {
+    flex-wrap: nowrap;
+    overflow-x: auto; /* safety valve, rarely used */
+}
+
+/* Optional: hide scrollbar unless needed */
+.filters-column .fg-chiprow::-webkit-scrollbar {
+    height: 8px;
+}
+
+.filters-column .fg-chiprow::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 999px;
+}
+.filters-menu-header {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(40, 50, 120, 0.85);
+    padding: 6px 10px 8px 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(60, 70, 140, 0.25);
 }

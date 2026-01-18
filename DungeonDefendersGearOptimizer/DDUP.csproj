@@ -13,4 +13,5 @@
 	<Compile Remove="**\bin\**;**\obj\**" />
   </ItemGroup>
 
+
 </Project>

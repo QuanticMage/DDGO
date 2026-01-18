@@ -83,8 +83,91 @@
         }
     </div>
 </div>
+<div class="filters-menu-header">
+    Filters
+</div>
 
 
+<div class="filters-column">
+<FilterChips Title="Type" Theme="type"
+             Options="_typeOptions"
+             Placeholder="None"
+             ShowNoneAll="true"
+             MenuMaxHeightPx="520"
+             @bind-Selected="_selectedTypes"
+             Presets="@(new[]
+             {
+                 new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
+             })"  />       
+
+<FilterChips Title="Set" Theme="set"
+             Options="_setOptions"
+             Placeholder="None"
+             ShowNoneAll="true"
+             MenuMaxHeightPx="520"
+             @bind-Selected="_selectedSets"    
+             Presets="@(new[]
+             {
+                 new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
+                new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
+             })"  />       
+
+<FilterChips Title="Other" Theme="other"
+             Options="_otherOptions"
+             Placeholder="None"
+             @bind-Selected="_selectedOther" />
+</div>
+
+@code {
+    private List<string> _selectedTypes = new();
+    private List<string> _selectedSets = new();
+    private List<string> _selectedOther = new();
+
+    
+
+    private readonly List<FilterChips.Option> _typeOptions = new()
+    {
+
+        new("Helmet"),
+        new("Torso"),
+        new("Gauntlet"),
+        new("Boots"),
+        new("Brooch"),
+        new("Mask"),
+        new("Bracers"),
+        new("Shield"),        
+        new("Pets"),
+        new("Weapons"),      
+        new("Currency"),             
+    };
+
+    private readonly List<FilterChips.Option> _setOptions = new()
+    {
+        new("Pristine"),
+        new("Chain"),
+        new("Mail"),
+        new("Plate"),
+        new("Leather"),      
+        new("Zamira"),      
+        new("Squire"),
+        new("Apprentice"),
+        new("Monk"),
+        new("Huntress"),        
+    };
+
+    private readonly List<FilterChips.Option> _otherOptions = new()
+    {
+        // MUTEX subset: event tri-modal via two mutually-exclusive toggles + implicit default
+        new("Only Events",    MutexGroup: "eventMode"),
+        new("Exclude Events", MutexGroup: "eventMode"),
+
+        // Normal toggles (stackable with each other and with event mode)
+        new("Only Equipped", MutexGroup: "equipMode"),        
+        new("Exclude Equipped", MutexGroup: "equipMode"),        
+
+        new("Exclude Missing Resists"),          
+    };
+}
 
 
 <div class="toolbar-line">
@@ -506,11 +589,11 @@ else
                     </td>
                     <td>
                         @{
-                            var (text, icon, price) = GetValueDisplay(r);
+                            var (text, icon, tooltip) = GetValueDisplay(r);
                             bool hasText = !string.IsNullOrWhiteSpace(text);
                             bool hasIcon = !string.IsNullOrWhiteSpace(icon);
                         }
-                        <span class="value-icon @(hasText? "" : "value-icon-only")" h-tooltip="@price">
+                        <span class="value-icon @(hasText? "" : "value-icon-only")" data-tooltip="@tooltip">
                             @if (hasIcon)
                             {
                                 <img class="icon" src="@icon"/>
@@ -651,7 +734,7 @@ else
         new("Guardian Summoner", "Guardian Summoner")
     };
 
-    private (string text, string icon, string price) GetValueDisplay(ItemViewRow row)
+    private (string text, string icon, string tooltip) GetValueDisplay(ItemViewRow row)
     {
         /*if (row.IsEvent)
         return ("💎???", "");*/
@@ -659,9 +742,9 @@ else
     if (row.Value > 0)
         {
             if (row.Value > 300)
-                return ("💰Auction", "", row.Value.ToString() + "cv");
+                return ("💰Auction", "", "Estimated " + row.Value.ToString() + "cv");
             else
-                return ("💎" + row.Value.ToString() + "cv", "", row.Value.ToString() + "cv");
+                return ("💎" + row.Value.ToString() + "cv", "", "");
         }
         else
         {
