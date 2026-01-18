@@ -255,17 +255,19 @@ namespace DDUP
 		{
 			int rating = 0;
 			int sides = 0;
+			float fracLeftOver = 0;
 			int maxGrowthLevels = 0;
-			maxGrowthLevels += AddRating(ref rating, ref sides, hhp, vr.HHP, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, hdmg, vr.HDmg, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, hspd, vr.HSpd, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, hrate, vr.HRate, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ab1, vr.Ab1, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ab2, vr.Ab2, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, thp, vr.THP, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, tdmg, vr.TDmg, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, trange, vr.TRange, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, trate, vr.TRate, vr.MaxStat, vr.SetBonus);
+
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hhp, vr.HHP, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hdmg, vr.HDmg, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hspd, vr.HSpd, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hrate, vr.HRate, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ab1, vr.Ab1, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ab2, vr.Ab2, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, thp, vr.THP, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, tdmg, vr.TDmg, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, trange, vr.TRange, vr.MaxStat, vr.SetBonus);
+			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, trate, vr.TRate, vr.MaxStat, vr.SetBonus);
 
 			int levelsLeft = vr.MaxLevel - vr.Level;
 			int resG = vr.RG;
@@ -291,7 +293,12 @@ namespace DDUP
 
 			if (!factorInResists || (vr.ResistanceTarget == 0)) levelsForStatsLeft = levelsLeft;
 
-			rating += (int)Math.Ceiling(Math.Min(levelsForStatsLeft, maxGrowthLevels) * vr.SetBonus);
+
+			// apply fractional rounding to leveling up, if there's anything to level up
+			// this isn't perfect; it doesn't know what order you might upgrade an item with two primary stats
+			// but at least it's mostly accurate
+			// This keeps cap at 840 for Ult90s, and 0 for things with no range stat (for instance), while not messing with fully upgraded items
+			rating += (int)Math.Ceiling((Math.Max(0, Math.Min(levelsForStatsLeft, maxGrowthLevels) - fracLeftOver)) * vr.SetBonus);
 
 			if (factorInResists && cantHitResistCap)
 			{
@@ -302,14 +309,28 @@ namespace DDUP
 			return (rating, sides);
 		}
 
-		private static int AddRating(ref int rating, ref int sides, int idx, int value, int maxStat, float mult)
+		private static int AddRating(ref int rating, ref int sides, ref float fracLeftOver, int idx, int value, int maxStat, float mult)
 		{
-			if (idx == 1) rating += (value > 0) ? (int)Math.Ceiling(value * mult) : value;
-			else if (idx == 2) sides += (value > 0) ? (int)Math.Ceiling(value * mult) : value;
+			// find the ceiling when we get the set bonus
+			int bonus = (int)Math.Ceiling(value * mult);
+			
+			int ratingAdd = 0;
+			int sidesAdd = 0;
+
+			if (idx == 1) ratingAdd = (value > 0) ? bonus : value;
+			else if (idx == 2) sidesAdd = (value > 0) ? bonus : value;
+
+			rating += ratingAdd;
+			sides += sidesAdd;
 
 			int levelsLeft = (maxStat - value);
 			if (levelsLeft < 0) levelsLeft = 0;
 			if (idx != 1) levelsLeft = 0;
+
+			// save off the fraction that is left over to the next int just in case we're doing an upgrade at all here
+			if (levelsLeft > 0)
+				fracLeftOver = Math.Max(fracLeftOver, bonus - (value * mult));
+
 			return levelsLeft;
 		}
 

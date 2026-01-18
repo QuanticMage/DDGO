@@ -6,7 +6,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 17 2026 - Version 0.9d</i></div>    
+        <div class="build"><i>Jan 17 2026 - Version 0.9e</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
@@ -506,14 +506,14 @@ else
                     </td>
                     <td>
                         @{
-                            var (text, icon) = GetValueDisplay(r);
+                            var (text, icon, price) = GetValueDisplay(r);
                             bool hasText = !string.IsNullOrWhiteSpace(text);
                             bool hasIcon = !string.IsNullOrWhiteSpace(icon);
                         }
-                        <span class="value-icon @(hasText? "" : "value-icon-only")">
+                        <span class="value-icon @(hasText? "" : "value-icon-only")" h-tooltip="@price">
                             @if (hasIcon)
                             {
-                            <img class="icon" src="@icon"/>
+                                <img class="icon" src="@icon"/>
                             }
                             @if (hasText)
                             {
@@ -651,7 +651,7 @@ else
         new("Guardian Summoner", "Guardian Summoner")
     };
 
-    private (string text, string icon) GetValueDisplay(ItemViewRow row)
+    private (string text, string icon, string price) GetValueDisplay(ItemViewRow row)
     {
         /*if (row.IsEvent)
         return ("💎???", "");*/
@@ -659,20 +659,20 @@ else
     if (row.Value > 0)
         {
             if (row.Value > 300)
-                return ("💰Auction", "");
+                return ("💰Auction", "", row.Value.ToString() + "cv");
             else
-                return ("💎" + row.Value.ToString() + "cv", "");
+                return ("💎" + row.Value.ToString() + "cv", "", row.Value.ToString() + "cv");
         }
         else
         {
             if ((row.Type != "Weapon") && (row.Type != "Pet") && (row.Type != "Currency"))
             {
-                if (row.Value > -100) return ("⭐️⭐️⭐️", "");// "png/ValueHighest.png");
-                else if (row.Value > -200) return ("⭐️⭐️", "");// "png/ValueHigh.png");
-                else if (row.Value > -300) return ("⭐️", "");//"png/ValueMid.png");
-                else  return ("❌", "");// "png/ValueLow.png");               
+                if (row.Value > -100) return ("⭐️⭐️⭐️", "", "");// "png/ValueHighest.png");
+                else if (row.Value > -200) return ("⭐️⭐️", "", "");// "png/ValueHigh.png");
+                else if (row.Value > -300) return ("⭐️", "", "");//"png/ValueMid.png");
+                else  return ("❌", "", "");// "png/ValueLow.png");               
             }
-            return ("", "");
+            return ("", "", "");
         }
 
     }
