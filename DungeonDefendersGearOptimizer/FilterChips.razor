@@ -1,0 +1,375 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using System.Linq
+
+<div class="fg fg-@Theme" tabindex="0" @onkeydown="OnRootKeyDown">
+    <div class="fg-control">
+        <button type="button"
+                class="fg-btn @(_open ? "open" : "")"
+                @onclick="ToggleOpen"
+                title="@Title">
+            <span class="fg-btntitle">@Title</span>
+            <span class="fg-caret">▾</span>
+        </button>
+
+        <div class="fg-chiprow">
+            @if (Selected.Count == 0)
+            {
+                <span class="fg-placeholder">@Placeholder</span>
+            }
+            else
+            {
+                @foreach (var value in Selected)
+                {
+                    <button @key="value"
+                            type="button"
+                            class="fg-chip"
+                            title="Remove"
+                            @onclick="() => Remove(value)">
+                        <span class="fg-chiptext">@GetLabel(value)</span>
+                        <span class="fg-x" aria-hidden="true">x</span>
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    @if (_open)
+    {
+        <div class="fg-backdrop" @onclick="Close"></div>
+
+        <div class="fg-menu"
+             tabindex="0"
+             style="--menuMaxHeight:@(MenuMaxHeightPx)px;"
+             @ref="_menuRef"
+             @onkeydown="OnMenuKeyDown"
+             @onkeydown:preventDefault="true"
+             @onkeydown:stopPropagation="true"
+             @onclick:stopPropagation="true">
+
+            <div class="fg-menu-header">
+                <div class="fg-menu-title">
+                    Select @Title
+                </div>                
+                <div class="fg-menu-actions">
+                    @if (ShowNoneAll)
+                    {
+                        <button type="button" class="fg-action" @onclick="() => ApplyPreset(Array.Empty<string>())">None</button>
+                        <button type="button" class="fg-action" @onclick="ApplyAll">All</button>
+                    }
+                    @if (Presets.Count > 0)
+                    {
+                        @foreach (var p in Presets)
+                        {
+                            <button type="button" class="fg-action" @onclick="() => ApplyPreset(p.Values)">
+                                @p.Label
+                            </button>
+                        }
+                    }
+                </div>                                
+            </div>
+
+            @for (int i = 0; i < Options.Count; i++)
+            {
+                var opt = Options[i];
+                var isOn = IsSelected(opt.Value);
+
+                <button @key="opt.Value"
+                        type="button"
+                        tabindex="-1"
+                        @onmousedown:preventDefault="true"
+                        class="fg-menuitem
+                                   @(isOn ? "on" : "")
+                                   @(_keyboardNavActive && _activeIndex == i ? "active" : "")"
+                        @onmouseover="() => _activeIndex = i"
+                        @onclick="() => ToggleOption(opt)">
+                    <span class="fg-check">@((isOn) ? "✓" : "")</span>
+                    <span class="fg-label">@GetLabel(opt.Value)</span>
+                </button>
+            }
+        </div>
+    }    
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "No filters selected";
+    [Parameter] public int MenuMaxHeightPx { get; set; } = 360;
+
+
+/// <summary>
+/// "type", "set", "other" (used for color-coding via CSS)
+/// </summary>
+[Parameter] public string Theme { get; set; } = "type";
+
+    public record Option(string Value, string? MutexGroup = null);
+
+    [Parameter] public IReadOnlyList<Option> Options { get; set; } = Array.Empty<Option>();
+
+    [Parameter] public List<string> Selected { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SelectedChanged { get; set; }
+
+    private bool _open;
+
+    // IMPORTANT: no keyboard highlight until user presses Up/Down/Home/End
+    private int _activeIndex = -1;
+    private bool _keyboardNavActive = false;
+
+    // Where keyboard selection should start when it becomes active
+    private int _defaultIndex = 0;
+
+    private ElementReference _menuRef;
+    private bool _focusMenuNextRender;
+
+    public record Preset(string Label, IReadOnlyList<string>? Values = null);
+
+    [Parameter] public IReadOnlyList<Preset> Presets { get; set; } = Array.Empty<Preset>();
+    [Parameter] public bool ShowNoneAll { get; set; }    
+    [Parameter] public bool CloseMenuOnPreset { get; set; } = true;
+    [Parameter] public bool EnforceMutexGroupsInPresets { get; set; } = true;
+
+    protected override void OnParametersSet()
+    {
+        // Keep default index sane.
+        if (Options.Count <= 0)
+        {
+            _defaultIndex = 0;
+            _activeIndex = -1;
+            _keyboardNavActive = false;
+            return;
+        }
+
+        // If we currently have an active index (keyboard mode), clamp it.
+        if (_activeIndex >= 0)
+            _activeIndex = Math.Clamp(_activeIndex, 0, Options.Count - 1);
+
+        // Keep default in range.
+        _defaultIndex = Math.Clamp(_defaultIndex, 0, Options.Count - 1);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusMenuNextRender)
+        {
+            _focusMenuNextRender = false;
+            try { await _menuRef.FocusAsync(); } catch { }
+        }
+    }
+
+    private void ToggleOpen()
+    {
+        _open = !_open;
+
+        if (_open)
+        {
+            // Compute where keyboard nav should START if the user presses an arrow key,
+            // but do NOT show a keyboard highlight yet.
+            if (Options.Count > 0)
+            {
+                var firstSelected = Selected.Count > 0
+                    ? Options.ToList().FindIndex(o => Selected.Contains(o.Value))
+                    : -1;
+
+                _defaultIndex = (firstSelected >= 0) ? firstSelected : 0;
+            }
+
+            _keyboardNavActive = false;
+            _activeIndex = -1;
+
+            _focusMenuNextRender = true;
+        }
+        else
+        {
+            Close();
+        }
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _keyboardNavActive = false;
+        _activeIndex = -1;
+    }
+
+    private bool IsSelected(string value) => Selected.Contains(value);
+
+    private string GetLabel(string value) => value;
+
+    private async Task Remove(string value)
+    {
+        if (Selected.Remove(value))
+            await SelectedChanged.InvokeAsync(Selected);
+    }
+
+    private async Task ToggleOption(Option opt)
+    {
+        if (Selected.Contains(opt.Value))
+        {
+            Selected.Remove(opt.Value);
+            await SelectedChanged.InvokeAsync(Selected);
+            return;
+        }
+
+        // Mutex (radio-like) subset
+        if (!string.IsNullOrWhiteSpace(opt.MutexGroup))
+        {
+            var toRemove = Options
+                .Where(o => o.MutexGroup == opt.MutexGroup && o.Value != opt.Value)
+                .Select(o => o.Value)
+                .Where(v => Selected.Contains(v))
+                .ToList();
+
+            foreach (var v in toRemove)
+                Selected.Remove(v);
+        }
+
+        Selected.Add(opt.Value);
+        await SelectedChanged.InvokeAsync(Selected);
+    }
+
+    // Root handler: if menu is open, route keys like the menu would.
+    private void OnRootKeyDown(KeyboardEventArgs e)
+    {
+        if (!_open) return;
+        _ = HandleMenuKey(e.Key);
+    }
+
+    private void OnMenuKeyDown(KeyboardEventArgs e)
+    {
+        _ = HandleMenuKey(e.Key);
+    }
+
+    private async Task HandleMenuKey(string key)
+    {
+        if (!_open) return;
+
+        if (Options.Count == 0)
+        {
+            if (key == "Escape") Close();
+            return;
+        }
+
+        switch (key)
+        {
+            case "Escape":
+                Close();
+                return;
+
+            case "ArrowDown":
+                if (!_keyboardNavActive)
+                {
+                    _keyboardNavActive = true;
+                    _activeIndex = Math.Clamp(_defaultIndex, 0, Options.Count - 1);
+                }
+                else
+                {
+                    _activeIndex = Math.Min(_activeIndex + 1, Options.Count - 1);
+                }
+                StateHasChanged();
+                return;
+
+            case "ArrowUp":
+                if (!_keyboardNavActive)
+                {
+                    _keyboardNavActive = true;
+                    // If user presses Up first, start at defaultIndex (often first selected),
+                    // but if you prefer "wrap to end", change to Options.Count - 1.
+                    _activeIndex = Math.Clamp(_defaultIndex, 0, Options.Count - 1);
+                }
+                else
+                {
+                    _activeIndex = Math.Max(_activeIndex - 1, 0);
+                }
+                StateHasChanged();
+                return;
+
+            case "Home":
+                _keyboardNavActive = true;
+                _activeIndex = 0;
+                StateHasChanged();
+                return;
+
+            case "End":
+                _keyboardNavActive = true;
+                _activeIndex = Options.Count - 1;
+                StateHasChanged();
+                return;
+
+            case "Enter":
+            case " ":
+                // Only toggle if the user has actually started keyboard navigation.
+                if (_keyboardNavActive && _activeIndex >= 0 && _activeIndex < Options.Count)
+                {
+                    await ToggleOption(Options[_activeIndex]);
+                    StateHasChanged();
+                }
+                return;
+        }
+    }
+
+    private async Task SelectNone()
+    {
+        if (Selected.Count == 0) return;
+        Selected.Clear();
+        await SelectedChanged.InvokeAsync(Selected);
+    }
+
+    private async Task SelectAll()
+    {
+        // Select only non-mutex options so we never violate radio-like groups.
+        var desired = Options
+            .Where(o => string.IsNullOrWhiteSpace(o.MutexGroup))
+            .Select(o => o.Value)
+            .Distinct()
+            .ToList();
+
+        bool changed = false;
+        foreach (var v in desired)
+        {
+            if (!Selected.Contains(v))
+            {
+                Selected.Add(v);
+                changed = true;
+            }
+        }
+
+        if (changed)
+            await SelectedChanged.InvokeAsync(Selected);
+    }
+    private async Task ApplyPreset(IReadOnlyList<string> values)
+    {
+        var allowed = new HashSet<string>(Options.Select(o => o.Value), StringComparer.Ordinal);
+
+        // keep only values that exist in Options
+        var desired = values.Where(allowed.Contains).ToList();
+
+        if (EnforceMutexGroupsInPresets)
+        {
+            // only keep one value per MutexGroup
+            var mutexByValue = Options
+                .Where(o => !string.IsNullOrWhiteSpace(o.MutexGroup))
+                .ToDictionary(o => o.Value, o => o.MutexGroup!, StringComparer.Ordinal);
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            desired = desired.Where(v =>
+            {
+                if (!mutexByValue.TryGetValue(v, out var g)) return true;
+                return seen.Add(g);
+            }).ToList();
+        }
+
+        // update in-place
+        Selected.Clear();
+        Selected.AddRange(desired);
+
+        await SelectedChanged.InvokeAsync(Selected);
+
+        if (CloseMenuOnPreset)
+            Close(); // whatever you already use to close the menu
+    }
+    private Task ApplyAll()
+    {
+        // If you want All to respect mutex groups, reuse the same ApplyPreset logic:
+        var all = Options.Select(o => o.Value).ToList();
+        return ApplyPreset(all);
+    }
+}

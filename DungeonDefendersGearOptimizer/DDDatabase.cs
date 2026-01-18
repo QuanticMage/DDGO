@@ -460,8 +460,8 @@ public class DDDatabase
 				else if (entry.EquipmentSet == EquipmentSet.Any) { set = "Any"; }
 
 				if (entry.WeaponType == WeaponType.Squire) { set = "Squire"; }
-				else if (entry.WeaponType == WeaponType.Huntress) { set = "Hunt"; }
-				else if (entry.WeaponType == WeaponType.Apprentice) { set = "App"; }
+				else if (entry.WeaponType == WeaponType.Huntress) { set = "Huntress"; }
+				else if (entry.WeaponType == WeaponType.Apprentice) { set = "Apprentice"; }
 				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
 
 

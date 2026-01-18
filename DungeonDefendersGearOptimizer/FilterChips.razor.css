@@ -1,0 +1,335 @@
+﻿/* =========================
+FilterChips.razor.css
+State-first chips + neutral controls
+========================= */
+
+/* --- Theme variables (override per group) --- */
+.fg {
+	font: inherit;
+	--accent1: rgba(120,120,255,0.95);
+	--accent2: rgba(160,170,255,0.85);
+	--accentSoft: rgba(120,120,255,0.14);
+	--accentSoft2: rgba(120,120,255,0.22);
+	--menuBg1: rgba(230,235,255,0.98);
+	--menuBg2: rgba(215,220,245,0.96);
+	--menuBorder: rgba(80,90,160,0.35);
+	--ink: rgba(0,0,0,0.78);
+}
+
+/* Type / Set / Other palettes */
+.fg-type {
+	--accent1: rgba(170,95,255,0.95);
+	--accent2: rgba(215,150,255,0.85);
+	--accentSoft: rgba(170,95,255,0.14);
+	--accentSoft2: rgba(170,95,255,0.22);
+	--menuBg1: rgba(242,230,255,0.98);
+	--menuBg2: rgba(230,210,255,0.96);
+	--menuBorder: rgba(130,80,190,0.38);
+}
+
+.fg-set {
+	--accent1: rgba(70,140,255,0.95);
+	--accent2: rgba(120,190,255,0.85);
+	--accentSoft: rgba(70,140,255,0.14);
+	--accentSoft2: rgba(70,140,255,0.22);
+	--menuBg1: rgba(225,240,255,0.98);
+	--menuBg2: rgba(205,228,255,0.96);
+	--menuBorder: rgba(55,115,190,0.38);
+}
+
+.fg-other {
+	--accent1: rgba(95,155,150,0.90);
+	--accent2: rgba(150,195,190,0.85);
+	--accentSoft: rgba(95,155,150,0.14);
+	--accentSoft2: rgba(95,155,150,0.22);
+	--menuBg1: rgba(235,248,246,0.98);
+	--menuBg2: rgba(220,238,235,0.96);
+	--menuBorder: rgba(75,135,130,0.35);
+}
+
+/* ===== Filter Group Shell ===== */
+.fg {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 8px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 6px;
+	border-radius: 12px;
+	border: 1px solid rgba(0,0,0,0.12);
+	background: linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(245,245,255,0.86));
+	box-shadow: 0 8px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);	
+}
+
+/* ===== Control area ===== */
+.fg-control {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: auto;
+}
+
+.fg-btn {
+	font: inherit;
+	min-height: 30px;
+	border: 1px solid var(--menuBorder);
+	background: linear-gradient( to bottom, var(--accentSoft2), var(--accentSoft) );
+	color: rgba(0,0,0,0.80);
+	border-radius: 999px;
+	padding: 5px 10px;
+	font-weight: 800;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 3px rgba(0,0,0,0.08);
+	transition: background 90ms ease, box-shadow 90ms ease, transform 90ms ease;
+}
+
+	.fg-btn:hover {
+		background: linear-gradient( to bottom, var(--accentSoft2), rgba(255,255,255,0.85) );
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 3px 8px rgba(0,0,0,0.12);
+	}
+
+	.fg-btn:active {
+		transform: translateY(1px);
+		box-shadow: inset 0 2px 6px rgba(0,0,0,0.14);
+	}
+
+	.fg-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(0,0,0,0.10), 0 0 0 6px var(--accentSoft2);
+	}
+
+.fg-btntitle {
+	font-size: 13px;
+	letter-spacing: 0.2px;
+}
+
+.fg-caret {
+	opacity: 0.6;
+	font-size: 16px;
+}
+
+/* ===== Chip row ===== */
+.fg-chiprow {
+	font: inherit;
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: nowrap;
+	min-height: 24px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	white-space: normal;
+	text-overflow: unset;
+	padding: 0px 4px;
+	border-radius: 999px;
+	background: transparent;
+	border: none;
+}
+
+/* Placeholder */
+.fg-placeholder {
+	opacity: 0.6;
+	font-weight: 750;
+	padding: 1px 6px;
+	font-size: 12.5px;
+	white-space: nowrap;
+}
+
+/* ===== Chips = ACTIVE STATE ===== */
+.fg-chip {
+	font: inherit;
+	border: 1px solid rgba(0,0,0,0.16);
+	background: linear-gradient( to bottom, color-mix(in srgb, var(--accent1) 65%, white), color-mix(in srgb, var(--accent2) 65%, white) );
+	color: rgba(0,0,0,0.92);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(0,0,0,0.16);
+	border-radius: 999px;
+	padding: 5px 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	font-weight: 500;
+	font-size: 15px;
+	min-height: 30px;
+	white-space: nowrap;
+	transition: transform 90ms ease, box-shadow 90ms ease, filter 90ms ease;
+}
+	.fg-chip:hover {
+		transform: translateY(-1px);
+		filter: saturate(1.03);
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 12px 26px rgba(0,0,0,0.20);
+	}
+
+	.fg-chip:active {
+		transform: translateY(0px);
+	}
+
+	.fg-chip:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(0,0,0,0.12), 0 0 0 6px var(--accentSoft2), 0 18px 34px rgba(0,0,0,0.22);
+	}
+
+
+.fg-btntitle,
+.fg-chiptext {
+	line-height: 1;
+	display: inline-block;
+}
+/* X glyph */
+.fg-x {
+	width: 12px;
+	height: 18px;
+	border-radius: 999px;
+	justify-content: center;
+	color: rgba(0,0,0,0.3);
+	font-size: 12px;
+	line-height: 1;	
+}
+
+/* ===== Backdrop ===== */
+.fg-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(30,40,80,0.10);
+	z-index: 999;
+}
+
+/* ===== Dropdown Menu ===== */
+.fg-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	min-width: 280px;
+	max-height: var(--menuMaxHeight, 360px);
+	overflow: auto;
+	padding: 10px;
+	border-radius: 16px;
+	background: linear-gradient(to bottom, var(--menuBg1), var(--menuBg2));
+	border: 1px solid var(--menuBorder);
+	box-shadow: 0 28px 60px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.65);
+	z-index: 1000;
+}
+.fg-menu-title {
+	font-size: 11px;
+	font-weight: 950;
+	letter-spacing: 0.7px;
+	text-transform: uppercase;
+	color: rgba(20,30,70,0.78);
+}
+
+.fg-menu-header {
+	font: inherit;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	align-items: baseline;
+	justify-content: space-between;
+	font-size: 11px;
+	font-weight: 950;
+	letter-spacing: 0.7px;
+	text-transform: uppercase;
+	color: rgba(20,30,70,0.78);
+	padding: 6px 10px 10px 10px;
+	margin-bottom: 10px;
+	border-bottom: 1px solid rgba(20,30,70,0.14);
+}
+
+.fg-menu-actions {
+	font: inherit;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	opacity: 0.9;
+}
+
+.fg-action {
+	font: inherit;
+	border: 1px solid rgba(0,0,0,0.12);
+	background: rgba(255,255,255,0.70);
+	color: rgba(0,0,0,0.76);
+	border-radius: 999px;
+	padding: 3px 9px;
+	font-size: 14px;
+	font-weight: 750;
+	letter-spacing: 0.4px;
+	cursor: pointer;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+}
+
+	.fg-action:hover {
+		background: rgba(255,255,255,0.86);
+	}
+
+	.fg-action:active {
+		transform: translateY(1px);
+	}
+
+/* ===== Menu items ===== */
+.fg-menuitem {
+	font: inherit;
+	width: 100%;
+	border: none;
+	background: rgba(255,255,255,0.55);
+	cursor: pointer;
+	padding: 9px 12px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 750;
+	font-size: 13px;
+	color: rgba(0,0,0,0.80);
+	text-align: left;
+	transition: background 90ms ease, transform 90ms ease, box-shadow 90ms ease;
+}
+
+	.fg-menuitem:hover {
+		background: rgba(255,255,255,0.72);
+		transform: translateX(2px);
+	}
+
+	.fg-menuitem.on {
+		background: linear-gradient(to right, var(--accentSoft2), var(--accentSoft));
+		box-shadow: inset 3px 0 0 var(--accent1);
+	}
+
+	.fg-menuitem.active {
+		box-shadow: inset 0 0 0 2px rgba(0,0,0,0.10), inset 3px 0 0 var(--accent1);
+		background: rgba(255,255,255,0.78);
+	}
+
+/* Scrollbars unchanged */
+.fg-menu::-webkit-scrollbar {
+	width: 10px;
+}
+
+.fg-menu::-webkit-scrollbar-thumb {
+	background: rgba(0,0,0,0.16);
+	border-radius: 999px;
+	border: 3px solid rgba(255,255,255,0.65);
+}
+
+.fg-menu::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fg-chiprow::-webkit-scrollbar {
+	height: 8px;
+}
+
+.fg-chiprow::-webkit-scrollbar-thumb {
+	background: rgba(0,0,0,0.14);
+	border-radius: 999px;
+	border: 2px solid rgba(255,255,255,0.6);
+}
+
+.fg-chiprow::-webkit-scrollbar-track {
+	background: transparent;
+}
