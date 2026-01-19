@@ -335,6 +335,7 @@ State-first chips + neutral controls
 	background: transparent;
 }
 /* /Pages/Index.razor.rz.scp.css */
+
 .dropzone[b-yrayc6w7vb]{
     width:100%;
     max-width:560px;
@@ -841,10 +842,10 @@ th.importance-cell button img[b-yrayc6w7vb] {
     border: 1px solid rgba(0,0,0,0.12);    
 }
 
-    .info-pane h3[b-yrayc6w7vb] {
-        margin: 0 0 8px 0;
-        font-size: 16px;
-    }
+.info-pane h3[b-yrayc6w7vb] {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+}
 
 .link-list[b-yrayc6w7vb] {
     font-size: 13px; /* smaller */
@@ -1162,4 +1163,18 @@ live-btn[b-yrayc6w7vb] {
 .utility-select select:hover[b-yrayc6w7vb] {
     border-color: #4a6cf7;
 }
+
+.toolbar > *[b-yrayc6w7vb] {
+    min-width: 0;
+}   
 /* /Shared/MainLayout.razor.rz.scp.css */
+body[b-h2gurlbtpz] {
+	margin: 0;
+	padding: 0;
+}
+
+main.content[b-h2gurlbtpz] {
+	padding: 10px;
+	box-sizing: border-box;
+	max-width: 100%;
+}

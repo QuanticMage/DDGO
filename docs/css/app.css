@@ -1,14 +1,17 @@
 body {
     font-family: 'Belanosima', system-ui;
     margin: 0;
-    padding: 18px;    
+    padding: 10px;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .content {
-    max-width: none;
+    box-sizing: border-box;
+    max-width: 100%;
     width: 100%;
     margin: 0;
-    padding: 16px;
+    padding: 0px;
 }
 
 .dropzone {
