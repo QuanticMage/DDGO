@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "DDUP",
   "resources": {
-    "hash": "sha256-CRx/9xTF8N/i0yqnqWcL+8HY+sUkTCKyOctOMc6ObZo=",
+    "hash": "sha256-v4exSLYqSdVIG72kkvV2N1SxKT6HvIKnnfzaHAxszlg=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-7Sr9r0634sTFicx8ls0XdrHWZCCap615Q5ByQIrsd0Y="
     },
@@ -50,7 +50,7 @@
       "System.Text.RegularExpressions.wasm": "sha256-yg2PCbrOmPMI8E+Z9j0h5Eu9kLuvX7fUkI5vHJxJJX4=",
       "System.Threading.wasm": "sha256-l1N5mKqZevUN7pZgyKazOGsgCY/8IzY+BCQqre7Ty9c=",
       "System.Private.CoreLib.wasm": "sha256-k8kOBlE8aO8zYgd80EGzQXjlcQ8hUVlBoNSaPrnVkd4=",
-      "DDUP.wasm": "sha256-GFU68/BdB/JT/B2drfAnq+m9VfgtMdt/Z56nrM+gJ9I="
+      "DDUP.wasm": "sha256-hoZQa14CvZ1dBsCnoQ/DNlcIFOaJWWQU9X6wCDheLUM="
     }
   },
   "cacheBootResources": true,
