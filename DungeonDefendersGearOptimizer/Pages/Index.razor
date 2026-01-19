@@ -18,7 +18,7 @@
                             <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
                             <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
-                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices, and only if you hit the "Get Live Prices" button.</li>
+                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices, and only if you check "Get Live Prices".</li>
                         </ul>
                     </div>
 
@@ -1339,17 +1339,17 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
-        if (firstRender)
-        {
-            _dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);
-            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                
+        _dotNetRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                     
 
-            var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
-             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
-            StateHasChanged();
-        }
+        if (!firstRender) return;
+
+        await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);     
+        var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
+        _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
+        StateHasChanged();
+
+
     }
 
     public void Dispose()
@@ -1357,17 +1357,20 @@ else
         _dotNetRef?.Dispose();
     }
 
+    private bool _isDraggingOver = false;
     // Called by JS when user drags over / leaves to let us style the dropzone
     [JSInvokable]
     public void SetDragOver(bool isOver)
     {
-        _isDragOver = isOver;
+        if (_isDraggingOver == isOver) return;
+
+        _isDraggingOver = isOver;
         StateHasChanged();
     }
 
     // Called by JS after it reads the dropped file as base64
     [JSInvokable]
-    public async Task OnFileDropped(string fileName, string base64Bytes)
+    public async Task OnFileDropped(string fileName, byte[] bytes)
     {
         _error = null;
         _isLoading = true;
@@ -1376,9 +1379,6 @@ else
 
         try
         {
-            // Raw binary bytes
-            byte[] bytes = Convert.FromBase64String(base64Bytes);
-
             _status = $"Parsing {fileName} ({bytes.Length:N0} bytes)";
             StateHasChanged();
 
@@ -1434,6 +1434,7 @@ else
         {
             _showContent = false;            
             _error = $"Error: {ex.Message} {db.Status}";
+            _isLoading = false;
         }
         finally
         {
