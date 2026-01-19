@@ -1,6 +1,7 @@
-﻿namespace DDUP
+﻿using Microsoft.AspNetCore.Components;
+
+namespace DDUP
 {
-	
 
 	[Flags]
 	public enum Filters
