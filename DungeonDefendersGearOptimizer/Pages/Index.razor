@@ -1,57 +1,128 @@
 ﻿@page "/"
 @implements IDisposable
 @using Microsoft.JSInterop
-
+@using System.Text.Json
 
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 18 2026 - Version 0.10b</i></div>    
-        <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
-            <div class="dropzone-text">
-                Drag your <b>DunDefHeroes.dun</b> file here
-                    
-                @if (!_showContent)
-                {
-                    <div class="dropzone-subtext @( _hideDropzoneHelp ? "hidden" : "" )">
+        <div class="build"><i>Jan 19 2026 - Version 1.0</i></div>    
+        <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
+
+            @* ===== EMPTY STATE ===== *@
+            @if (!_showContent)
+            {
+                <!-- <div class="dz2-eyebrow">Get started</div>-->
+                <div class="dz2-card">
+                   <!--<div class="dz2-title">
+                        <span class="dz2-ico" aria-hidden="true">📄</span>
+                        <span>Load your .dun file</span>
+                    </div>-->
+
+                    <div class="dz2-sub">
+                        Select your data file to get started.
+                    </div>
+
+                    <div class="dz2-drop">
+                        <div class="dz2-drop-inner">
+                            <div class="dz2-drop-icon" aria-hidden="true">📁</div>
+                            <div class="dz2-drop-text">Drag &amp; Drop File Here</div>
+                            <div class="dz2-drop-hint">
+                                Drag your <b>DunDefHeroes.dun</b> file into this box
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dz2-or">
+                        <span class="dz2-or-line"></span>
+                        <span class="dz2-or-text">Or</span>
+                        <span class="dz2-or-line"></span>
+                    </div>
+
+                    <button type="button" class="dz2-btn dz2-btn-primary" @onclick="OpenFileDialog">
+                        <span class="dz2-btn-icon" aria-hidden="true">📁</span>
+                        <span>Browse for file…</span>
+                    </button>
+
+                    <button type="button"
+                            class="dz2-help"
+                            aria-expanded="@(!_hideDropzoneHelp)"
+                            @onclick="TogglePrepHelp">
+                        <span class="dz2-help-caret" aria-hidden="true">@(_hideDropzoneHelp ? "▸" : "▾")</span>
+                        <span>How do I find or prepare the file?</span>
+                    </button>
+
+                    <div class="dz2-help-body @( _hideDropzoneHelp ? "hidden" : "" )">
                         <ul>
                             <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
-                            <li>Then click on the Binaries\Win32 or Win64 folder (whichever version you run), and drag the DunDefHeroes.dun file here.</li>
-                            <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices, and only if you check "Get Live Prices".</li>
+                            <li>Then open the Binaries\Win32 or Win64 folder (whichever you run), and drag <b>DunDefHeroes.dun</b> here.</li>
+                            <li>This runs locally. Only aggregate armor ratings are sent to Shiro’s API for live prices, and only if you enable live prices.</li>
                         </ul>
+
+                        @if (_canLoadLast)
+                        {
+                            <div class="dz2-actions">
+                                <button type="button" class="dz2-btn dz2-btn-dark" @onclick="LoadLastFile">
+                                    <span class="dz2-btn-icon" aria-hidden="true">⟳</span>
+                                    <span>Reload last file from disk (Chrome/Edge)</span>
+                                </button>
+                            </div>
+                        }
                     </div>
+                </div>
+            }
+            else
+            {
+                @* ===== LOADED STATE ===== *@
+                <div class="dz2-card-loaded">
+                    <!--<div class="dz2-filelabel">Loaded file</div>-->
+                        <div class="dz2-filename">@_loadedFileName</div>                                                
+                    
 
-                    @if (_canLoadLast)
+                    <!--<div class="status">
+                        Loaded on @LastLoadedText
+                    </div>-->
+                         @* ===== STATUS LINE (keeps your existing loading/error/status behavior) ===== *@
+                    @if (_isLoading)
                     {
-                        <div class="dropzone-actions">
-                            <button type="button" class="tool-btn" @onclick="LoadLastFile">
-                               Load from previous dropped file path (Chrome/Edge)
-                            </button>
-                        </div>
+                        <div class="status">Loading… @_status</div>
                     }
-                }
-            </div>
+                    else if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="status error">@_error</div>
+                    }
+                    else if (!string.IsNullOrEmpty(_status))
+                    {
+                        <div class="status">@_status</div>
+                        <!--<div class="status">@_status2</div>-->
+                    }
+                    @* Optional: only show if you want it *@
+                    @if (_showOutOfDateHint)
+                    {
+                        <div class="dz2-hint">A newer version may exist on disk.</div>
+                    }
 
-            @if (_isLoading)
-            {
-                <div class="status">Loading… @_status</div>
-            }
-            else if (!string.IsNullOrEmpty(_error))
-            {
-                <div class="status error">@_error</div>
-            }
-            else if (!string.IsNullOrEmpty(_status))
-            {
-                <div class="status">@_status</div>
-                <div class="status">@_status2</div>
-            }            
+                    <div class="dz2-actions">
+                        @if (_canLoadLast)
+                        {
+                            <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="LoadLastFile">
+                                <span class="dz2-btn-icon" aria-hidden="true">⟳</span>
+                                <span>Reload</span>
+                            </button>
+                        }
 
+                        <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="OpenFileDialog">
+                            <span>Load new</span>
+                        </button>
+                    </div>
+                </div>
+            }       
         </div>
     </div>
     <aside class="info-pane">
         <div class="credits">            
-            <div class="credits-by">Created by <i>Mage</i></div>
+            <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
             <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
             <div class="credits-thanks">Price estimator by <i>Shiro</i></div>
             <div class="credits-thanks">Special Thanks to <i>Scryllix, SteveTrevor, Shiro, Chiku, Thales, Cerium, and the DDRnG community</i></div>            
@@ -78,7 +149,7 @@
         <input type="checkbox"
                class="tool-filter"
                checked="@_censor"
-               @onchange="@((e) => { _censor = (bool)e.Value!; StateHasChanged(); })" />
+               @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
         <span>Censor Ult++</span>
     </label>
 
@@ -87,7 +158,7 @@
         <input type="checkbox"
                class="tool-filter"
                checked="@_highlight"
-               @onchange="@((e) => { _highlight = (bool)e.Value!; StateHasChanged(); })" />
+               @onchange="@((e) => { _highlight = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
         <span>Highlight Best</span>
     </label>
     
@@ -96,7 +167,7 @@
         <input type="checkbox"
                class="tool-filter"
                checked="@_livePrices"
-               @onchange="@((e) => { _livePrices = (bool)e.Value; if (_livePrices) GetLivePrices(); })" />
+               @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
         <span>Get Live Prices</span>
     </label>
 
@@ -710,6 +781,8 @@ else
 @code {
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
+    private int CurrentUIOptionsVersion = 1;
+
     private readonly string _dropZoneId = "dropzone";
     private DotNetObjectReference<Index>? _dotNetRef;
     private bool _isDragOver;
@@ -732,11 +805,87 @@ else
     private bool _showContent = false;
     private bool _canLoadLast = false;
     private ElementReference _tableRef;
+    private string? _loadedFileName;
+    private DateTime? _lastLoadedAt;
+    private UiState _ui = DefaultState();
+
+
+    public sealed record UiState(
+        int Version = 1,
+        string RatingMode = "Builder App",
+        string Layout = "3x5",
+        bool ShowLivePrices = false,
+        List<string>? SelectedTypes = null,
+        List<string>? SelectedSets = null,
+        List<string>? SelectedOther = null)
+    {
+        public List<string> SelectedTypesSafe => SelectedTypes ?? new();
+        public List<string> SelectedSetsSafe => SelectedSets ?? new();
+        public List<string> SelectedOtherSafe => SelectedOther ?? new();
+    }
+
+    static UiState DefaultState() => new(
+        Version: 1,
+        RatingMode: "Builder App",
+        Layout: "3x5",
+        ShowLivePrices: false,
+        SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
+        SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
+        SelectedOther: new() { "Exclude Events" }
+        );
+
+    private void ApplyUiToFields()
+    {
+        _selectedMode = _ui.RatingMode;
+        _itemboxSize  = _ui.Layout;
+        _livePrices   = _ui.ShowLivePrices;
+
+        _selectedTypes = _ui.SelectedTypesSafe.ToList();
+        _selectedSets  = _ui.SelectedSetsSafe.ToList();
+        _selectedOther = _ui.SelectedOtherSafe.ToList();
+        
+        SetMode(_selectedMode);
+        ApplyChipFilters();
+    }
+
+    private void SyncFieldsToUi()
+    {
+        _ui = _ui with
+        {
+            Version = CurrentUIOptionsVersion,
+            RatingMode = _selectedMode,
+            Layout = _itemboxSize,
+            ShowLivePrices = _livePrices,
+            SelectedTypes = _selectedTypes.ToList(),
+            SelectedSets = _selectedSets.ToList(),
+            SelectedOther = _selectedOther.ToList()
+        };
+    }
+
+
+    // If you want the “newer version…” line (otherwise keep false forever)
+    private bool _showOutOfDateHint = false;
+
+    private string LastLoadedText =>
+        _lastLoadedAt is null ? "just now" : Humanize(_lastLoadedAt.Value);
+
+    private static string Humanize(DateTime dt)
+    {
+        var span = DateTime.Now - dt;
+        if (span.TotalSeconds < 30) return "just now";
+        if (span.TotalMinutes < 1) return $"{(int)span.TotalSeconds} seconds ago";
+        if (span.TotalHours < 1) return $"{(int)span.TotalMinutes} minutes ago";
+        if (span.TotalDays < 1) return $"{(int)span.TotalHours} hours ago";
+        return $"{(int)span.TotalDays} days ago";
+    }
+
+    private void TogglePrepHelp() => _hideDropzoneHelp = !_hideDropzoneHelp;
+
 
     private void OnItemboxSizeChanged(ChangeEventArgs e)
     {
         _itemboxSize = e.Value?.ToString() ?? "3x5";
-
+        QueueSaveUiState();
         StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
     }
 
@@ -919,7 +1068,7 @@ else
 
             v.IsHidden = !includeItem;
         }
-
+        QueueSaveUiState();
         RecalculateRatings();
     }
 
@@ -942,7 +1091,6 @@ else
         if (idx == 2) return "table-header-secondary";
         return "table-header-none";
     }
-
 
     private void SetMode(string mode)
     {
@@ -1051,6 +1199,7 @@ else
                 sumIdxAb2 = 1;
                 break;
         }
+        QueueSaveUiState();
         RecalculateRatings();
     }
 
@@ -1336,6 +1485,103 @@ else
         else if (quality == "Mythical") return "cell-quality-mythical";
         else return "cell-quality-default";
     }
+    const string UiStateKey = "ddgo.uiState.v1";
+
+    CancellationTokenSource? _saveCts;
+
+    void QueueSaveUiState()
+{
+    _saveCts?.Cancel();
+    _saveCts = new CancellationTokenSource();
+    var token = _saveCts.Token;
+
+    _ = DebouncedSaveAsync(token);
+}
+
+private async Task DebouncedSaveAsync(CancellationToken token)
+{
+    try
+    {
+        await Task.Delay(500, token);
+
+        // Make sure _ui reflects the latest UI fields
+        SyncFieldsToUi();
+
+        var json = JsonSerializer.Serialize(_ui);
+        await InvokeAsync(() => JS.InvokeVoidAsync("appState.set", UiStateKey, json));
+    }
+    catch (OperationCanceledException) { }
+    catch (Exception ex)
+    {
+        // Don’t swallow silently while debugging:
+        Console.WriteLine("Save UI state failed: " + ex);
+    }
+}
+    protected override async Task OnInitializedAsync()
+    {
+        _dotNetRef = DotNetObjectReference.Create(this);
+        // 1) UI state
+        var json = await JS.InvokeAsync<string?>("appState.get", UiStateKey);
+        if (!string.IsNullOrWhiteSpace(json))
+        {
+            try { _ui = MigrateAndNormalize(json) ?? DefaultState(); }
+            catch { _ui = DefaultState(); }
+        }
+        else _ui = DefaultState();
+
+        ApplyUiToFields();
+
+        if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
+        {
+            var ok = await JS.InvokeAsync<bool>("dropzone.tryLoadLastHandleAndRead", _dotNetRef); // returns true if it loaded bytes & called into .NET or returned bytes
+            if (ok) return;
+        }
+
+        var oldFileName = await JS.InvokeAsync<string?>("dropzone.tryLoadCachedFilename", _dotNetRef); // from IndexedDB
+        var cached = await JS.InvokeAsync<byte[]?>("dropzone.tryLoadCachedDunBytes", _dotNetRef); // from IndexedDB
+        if (cached is { Length: > 0 })
+            await LoadDunBytesAsync(oldFileName ??"", cached);
+    }
+
+
+    static UiState NormalizeV1(UiState s)
+    {
+        return s with
+        {
+            SelectedTypes = s.SelectedTypes ?? new(),
+            SelectedSets = s.SelectedSets ?? new(),
+            SelectedOther = s.SelectedOther ?? new(),
+            RatingMode = string.IsNullOrWhiteSpace(s.RatingMode)
+                ? "Builder App"
+                : s.RatingMode,
+            Layout = string.IsNullOrWhiteSpace(s.Layout)
+                ? "3x5"
+                : s.Layout
+        };
+    }
+
+    static UiState MigrateAndNormalize(string json)
+    {
+        UiState? state;
+
+        try
+        {
+            state = JsonSerializer.Deserialize<UiState>(json);
+        }
+        catch
+        {
+            return DefaultState();
+        }
+
+        if (state is null)
+            return DefaultState();
+
+        return state.Version switch
+        {
+            1 => NormalizeV1(state),
+            _ => DefaultState() // unknown future version
+        };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -1357,78 +1603,85 @@ else
         _dotNetRef?.Dispose();
     }
 
-    private bool _isDraggingOver = false;
     // Called by JS when user drags over / leaves to let us style the dropzone
     [JSInvokable]
     public void SetDragOver(bool isOver)
     {
-        if (_isDraggingOver == isOver) return;
-
-        _isDraggingOver = isOver;
+        if (_isDragOver == isOver) return;
+        _isDragOver = isOver;
         StateHasChanged();
+    }
+
+
+    public async Task LoadDunBytesAsync(string fileName, byte[] bytes)
+    {
+        _loadedFileName = fileName;
+        _lastLoadedAt = DateTime.Now;
+        _showOutOfDateHint = false; // set true later if you detect staleness
+        _error = null;
+        _isLoading = true;
+        _status = $"Reading {fileName}…";
+        await db.LoadFromDun(bytes);
+        if (!db.IsReady)
+        {
+            _error = db.Status;               
+        }
+        else
+        {
+            _status = db.Status;
+            _rows.Clear();
+            Ratings.ClearBestRatings();
+            for (int i =0; i < db.Items.Count; i++)
+            {
+                ItemViewRow itemViewRow = db.Items[i].ToItemViewRow();
+                _rows.Add(itemViewRow);
+
+                (int value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
+
+                // don't override set event values
+                if ( itemViewRow.Value == 0)
+                    itemViewRow.Value = value;
+            }
+
+            // now go through and get relative value
+            foreach( var v in _rows )
+            {
+                // only override if we don't have a value yet
+                if (v.Value == 0)
+                {
+                    // calculate relative rating for value (goes from -1000 to 0)
+                    (v.Value, v.BestFor) = Ratings.GetBestValue(false, v);
+                }
+            }
+
+            CalculateVanityTotals();
+            SetPriceStatus("Prices estimated by table", true);
+            // don't care about when it gets back              
+
+            ApplyChipFilters();
+
+            /*// Default view: armor pieces (4 slots), all armor sets, exclude events.
+            _selectedTypes = new() { "Helmet", "Torso", "Gauntlet", "Boots" };
+            _selectedSets = new() { "Chain", "Mail", "Pristine", "Leather", "Plate" };
+            _selectedOther = new() { "Exclude Events" };
+            SetMode("Builder App");*/
+
+            _showContent = true;
+        }
     }
 
     // Called by JS after it reads the dropped file as base64
     [JSInvokable]
     public async Task OnFileDropped(string fileName, byte[] bytes)
     {
-        _error = null;
-        _isLoading = true;
-        _status = $"Reading {fileName}…";
+        
         StateHasChanged();
 
         try
         {
             _status = $"Parsing {fileName} ({bytes.Length:N0} bytes)";
             StateHasChanged();
-
-            await db.LoadFromDun(bytes);
-            if (!db.IsReady)
-            {
-                _error = db.Status;               
-            }
-            else
-            {
-                _status = db.Status;
-                _rows.Clear();
-                Ratings.ClearBestRatings();
-                for (int i =0; i < db.Items.Count; i++)
-                {
-                    ItemViewRow itemViewRow = db.Items[i].ToItemViewRow();
-                    _rows.Add(itemViewRow);
-
-                    (int value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
-
-                    // don't override set event values
-                    if ( itemViewRow.Value == 0)
-                        itemViewRow.Value = value;
-                }
-
-                // now go through and get relative value
-                foreach( var v in _rows )
-                {
-                    // only override if we don't have a value yet
-                    if (v.Value == 0)
-                    {
-                        // calculate relative rating for value (goes from -1000 to 0)
-                        (v.Value, v.BestFor) = Ratings.GetBestValue(false, v);
-                    }
-                }
-
-                CalculateVanityTotals();
-                SetPriceStatus("Prices estimated by table", true);
-                // don't care about when it gets back              
-
-                // Default view: armor pieces (4 slots), all armor sets, exclude events.
-                _selectedTypes = new() { "Helmet", "Torso", "Gauntlet", "Boots" };
-                _selectedSets = new() { "Chain", "Mail", "Pristine", "Leather", "Plate" };
-                _selectedOther = new() { "Exclude Events" };
-                ApplyChipFilters();
-
-                SetMode("Builder App");
-
-                _showContent = true;
-            }
+            await LoadDunBytesAsync(fileName, bytes);
         }
         catch (Exception ex)
         {
@@ -1496,6 +1749,22 @@ else
         if (!ok)
         {
             _status = "No remembered file yet (or the browser blocked access). Drop the file once, or use the Open button.";
+            StateHasChanged();
+        }
+    }
+    private async Task OpenFileDialog()
+    {
+        _error = null;
+        _status = "";
+        _status2 = "";
+        StateHasChanged();
+
+        // Opens file picker, reads bytes in JS, then calls OnFileDropped(fileName, bytes)
+        bool ok = await JS.InvokeAsync<bool>("dropzone.pickFile", _dotNetRef);
+
+        if (!ok)
+        {
+            _status = "No file selected.";
             StateHasChanged();
         }
     }

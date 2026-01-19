@@ -4,7 +4,24 @@ NOTES:
 
 TODO:
 
+*** Auto-reload with data
+*** Time stamp (Data last loaded X/Y/Z) with button to reload last data file / open file chooser (where we save off file)
+*** Drag always works
+
+1. Fix double-load
+2. Persist
+3. Add in loaders + UI
+
+Jan 19, 2026 V1.0 
+* Settings and last-loaded-file persistence
+* Much better file loading and reloading
+* Firefox compatibilty (to the extent that its possible).  Best experience is with Chrome and Edge
+
+
+
+
 * Achievement list
+* Centered tooltips at edge of window
 
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
 * Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
