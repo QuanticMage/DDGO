@@ -4,6 +4,8 @@ NOTES:
 
 TODO:
 
+* Achievement list
+
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
 * Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)

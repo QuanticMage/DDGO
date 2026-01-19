@@ -1,0 +1,10 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
+main.content {
+	padding: 10px;
+	box-sizing: border-box;
+	max-width: 100%;
+}
