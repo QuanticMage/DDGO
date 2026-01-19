@@ -6,11 +6,11 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defender Gear Optimizer</h1>        
-        <div class="build"><i>Jan 17 2026 - Version 0.9e</i></div>    
+        <div class="build"><i>Jan 18 2026 - Version 0.10</i></div>    
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
-                @if (!_hideDropzoneHelp)
+                @if (!_showContent)
                 {
                     <div class="dropzone-subtext @( _hideDropzoneHelp ? "hidden" : "" )">
                         <ul>
@@ -35,14 +35,7 @@
             {
                 <div class="status">@_status</div>
                 <div class="status">@_status2</div>
-            }
-            
-            @if (_showLivePrices && _hideDropzoneHelp)
-            {
-                <button class="live-btn" @onclick="GetLivePrices">
-                    Get Live Prices
-                </button>
-            }
+            }            
 
         </div>
     </div>
@@ -60,41 +53,54 @@
         <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2968079729" rel="noopener">Chiku’s Guide</a></li>
         <li><a href="https://docs.google.com/spreadsheets/d/11v0h3LLUDYEkTxvkLVWUzYv8wXvjZ1cPTJJ-o1QqVDM/edit?gid=1598543540#gid=1598543540" rel="noopener">Best-in-Slot Doc</a></li>
         <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>           
+        <li><a href="https://docs.google.com/spreadsheets/d/1XzYuWB4I9RoNe8x-DD2M1koWs72tW8sTgyQ_n-d7l-E/edit?pli=1&gid=2059687993#gid=2059687993" rel="noopener">Event price sheet</a></li>
     </ul>    
 </aside>
 </div>
+
+@if (@_showContent)
+{
 <div class="utility-row">
-    <span class="utility-label">⚙</span>
+    <span class="utility-label"><font face="Arial">⚙️</font></span>
 
     <label class="utility-toggle">
+        @* Added @onchange to trigger UI refresh when toggled *@
         <input type="checkbox"
                class="tool-filter"
                checked="@_censor"
-               />
-        <span>Censor Ult+</span>
+               @onchange="@((e) => { _censor = (bool)e.Value!; StateHasChanged(); })" />
+        <span>Censor Ult++</span>
     </label>
-
-    <span class="utility-sep">•</span>
 
     <label class="utility-toggle">
+        @* Added @onchange to trigger UI refresh when toggled *@
         <input type="checkbox"
                class="tool-filter"
-               checked="@_highlight"/>
+               checked="@_highlight"
+               @onchange="@((e) => { _highlight = (bool)e.Value!; StateHasChanged(); })" />
         <span>Highlight Best</span>
     </label>
-
-    <span class="utility-spacer"></span>
+    
+    <label class="utility-toggle">
+        @* Added @onchange to trigger UI refresh when toggled *@
+        <input type="checkbox"
+               class="tool-filter"
+               checked="@_livePrices"
+               @onchange="@((e) => { _livePrices = (bool)e.Value; if (_livePrices) GetLivePrices(); })" />
+        <span>Get Live Prices</span>
+    </label>
 
     <label class="utility-select">
         <span>Itembox size</span>
-        <select @bind="_itemboxSize">
+        @* Added @onchange to recalculate page numbers when size changes *@
+        <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged">
             <option value="3x5">3×5</option>
             <option value="4x5">4×5</option>
-            <option value="5x5">5×5</option>
+            <option value="4x6">4×6</option>
         </select>
     </label>
 </div>
-
+<br/>
 <div class="info-pane rateby-pane">    
     <div class="rateby-header">
         Rating Mode
@@ -265,7 +271,7 @@ else
 {
    
     <div class="grid-wrap">
-    <table class="grid">
+    <table class="grid" @ref="_tableRef">
         <colgroup>
             <col style="width:80px" />   @* Rating *@
             <col style="width:65px" />   @* Value *@
@@ -688,6 +694,7 @@ else
         </tbody>
     </table>
     </div>
+    }
 }
 
 @code {
@@ -710,8 +717,17 @@ else
     private bool _sortDesc = true;
     private bool _censor = true;
     private bool _highlight = true;
+    private bool _livePrices = false;
     private string _itemboxSize = "3x5";
+    private bool _showContent = false;
+    private ElementReference _tableRef;
 
+    private void OnItemboxSizeChanged(ChangeEventArgs e)
+    {
+        _itemboxSize = e.Value?.ToString() ?? "3x5";
+
+        StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
+    }
 
     public string GetLocation( ItemViewRow viewRow)
     {
@@ -726,6 +742,7 @@ else
         if (_itemboxSize == "4x6") itemsPerPage = 24;
 
         int subFolderItems = (db.SubfolderCount.ContainsKey(viewRow.Location)) ? db.SubfolderCount[viewRow.Location] : 0;
+
         itemsPerPage-= subFolderItems;
         int pageNumber = (int)(viewRow.IndexInFolder / itemsPerPage) + 1;
         return viewRow.Location + " (" + pageNumber.ToString() + ")";
@@ -812,10 +829,10 @@ else
         else
             return s.Substring(0, s.Length - 1) + "x";
     }
-    
+
     int VisibleCount => _rows.Count(r => !r.IsHidden);
     int TotalCount => _rows.Count;
-    
+
     private void ApplyChipFilters()
     {
         if (_rows.Count == 0)
@@ -1215,6 +1232,13 @@ else
 
         int Compare(ItemViewRow a, ItemViewRow b)
         {
+            int loc = 0;
+            if ( _sortColumn == nameof(ItemViewRow.Location))
+            {
+                loc = CmpStr(a.Location, b.Location); 
+                if ( loc == 0) loc = Cmp(a.IndexInFolder, b.IndexInFolder);                
+            } 
+
             int c = _sortColumn switch
             {
                 nameof(ItemViewRow.Rating)   => Cmp(a.Rating, b.Rating),
@@ -1240,7 +1264,8 @@ else
                 nameof(ItemViewRow.RL)       => Cmp(a.RL, b.RL),
 
                 nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
-                nameof(ItemViewRow.Location) => CmpStr(a.Location, b.Location),
+                nameof(ItemViewRow.Location) => loc,
+
                 nameof(ItemViewRow.Type)     => CmpStr(a.Type, b.Type),
                 nameof(ItemViewRow.Set )    => CmpStr(a.Set, b.Set),
 
@@ -1267,7 +1292,7 @@ else
     {
         q = (q ?? "").Trim();
 
-        
+
         return q switch
         {
             "Ult++" => 7,
@@ -1304,9 +1329,12 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
-        _dotNetRef = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);
+            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                
+        }
     }
 
     public void Dispose()
@@ -1384,12 +1412,12 @@ else
 
                 SetMode("Builder App");
 
-                _hideDropzoneHelp = true;              
+                _showContent = true;
             }
         }
         catch (Exception ex)
         {
-            _hideDropzoneHelp = false;
+            _showContent = false;            
             _error = $"Error: {ex.Message} {db.Status}";
         }
         finally

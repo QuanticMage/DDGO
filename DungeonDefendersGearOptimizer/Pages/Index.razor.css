@@ -303,10 +303,11 @@ th {
     position: absolute;
     top: 0;
     right: 0;
-    width: 5px;
+    width: 8px;
     height: 100%;
     cursor: col-resize;
     user-select: none;
+    z-index: 5;
 }
 
 .grid-wrap {
@@ -340,6 +341,11 @@ th {
     z-index: 2; /* keep it above body cells */
     background: #e0e0e0;
     box-sizing: border-box;  
+}
+
+table.grid { 
+    table-layout:fixed;
+    width:100%;
 }
 
 table.grid td,
@@ -749,40 +755,50 @@ live-btn {
 .tool-radio:not(:checked) + .tool-btn {
     opacity: 0.75;
 }
-
 /* =========================
    Slim Utility Row
    ========================= */
 
 .utility-row {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
+    width: auto;
+    gap: 12px;
+    padding: 8px 12px;
     font-size: 13px;
     color: #444;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+    background-color: #f9f9f9; /* Added a subtle background to distinguish from the table */
+    border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
 .utility-label {
-    opacity: 0.6;
-    font-size: 14px;
+    opacity: 0.7;
+    font-size: 16px; /* Slightly larger for the gear icon */
 }
 
 .utility-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     cursor: pointer;
     user-select: none;
+    font-weight: 500;
 }
 
-    .utility-toggle input {
-        accent-color: #4a6cf7;
-    }
+
+.utility-row .tool-filter {
+    position: static; /* Reset from absolute */
+    opacity: 1; /* Reset from 0 */
+    pointer-events: auto; /* Re-enable clicking */
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #4a6cf760;
+}
 
 .utility-sep {
-    opacity: 0.4;
+    opacity: 0.3;
+    margin: 0 4px;
 }
 
 .utility-spacer {
@@ -792,29 +808,20 @@ live-btn {
 .utility-select {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
-    .utility-select select {
-        padding: 2px 6px;
-        font-size: 13px;
-        border-radius: 6px;
-        border: 1px solid rgba(0,0,0,0.25);
-        background: #fff;
-    }
-
-
-
-.utility-check {
-    width: 14px;
-    height: 14px;
-    margin: 0;
-}
-
-.utility-dd {
-    padding: 2px 6px;
+.utility-select select {
+    padding: 3px 8px;
     font-size: 13px;
     border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.25);
+    border: 1px solid rgba(0,0,0,0.2);
     background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.utility-select select:hover {
+    border-color: #4a6cf7;
 }

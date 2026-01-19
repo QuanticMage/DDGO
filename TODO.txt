@@ -4,13 +4,6 @@ NOTES:
 
 TODO:
 
-* Added in all event pieces with sheet prices (if any missing let me know)
-* (1.10) Fixed a ceiling bug with ratings (off-by-1) due to how upgrades were predicted to be allocated
-
-* Filter conversion to new format
-
-
-
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
 * Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)
@@ -98,3 +91,19 @@ https://www.youtube.com/watch?v=cuIFJyKtr4c
 * (DONE)Figure out why cv diamonds show up as "Turtle on Treadmill" - maybe need rename
 * (DONE)"Temp Name"
 * (DONE)Figure out why off by 1 sometimes
+
+1.10
+* UI Redesign / Cleanup to prepare for the future
+* Items now show what page they are located on (when sorted by level)
+* Added in all event pieces with sheet prices 
+* Fixed a ceiling bug with ratings (off-by-1) due to how upgrades were predicted to be allocated
+
+TODO:
+* Store options and cache most recent .dun file
+* Finish tooltips
+* Event collection tracker
+* Add popup for details not shown in table
+* Weapon and pet non-stat data (move speed, size, weapon damage, etc.)
+
+
+
