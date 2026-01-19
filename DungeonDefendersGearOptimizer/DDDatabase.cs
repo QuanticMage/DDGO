@@ -385,6 +385,8 @@ public class DDDatabase
 		BuildItemLocations("ItemBox", ItemBoxFolders);
 		BuildItemLocations("Shop", ShopFolders);
 
+		SubfolderCount.Clear();
+
 		CalculateSubFolderCounts("ItemBox", ItemBoxFolders);
 		CalculateSubFolderCounts("Shop", ShopFolders);
 
@@ -544,8 +546,7 @@ public class DDDatabase
 
 	public void CalculateSubFolderCounts(string inventory, Dictionary<int, DDFolder> folders)
 	{
-		SubfolderCount.Clear();
-
+		
 		foreach (var folder in folders.Values)
 		{
 			// 1. Construct the hierarchy name (e.g., "GrandParent > Parent > Child")
