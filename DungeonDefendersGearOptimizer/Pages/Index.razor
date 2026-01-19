@@ -10,6 +10,7 @@
         <div id="@_dropZoneId" class="dropzone @( _isDragOver ? "over" : "" )">
             <div class="dropzone-text">
                 Drag your <b>DunDefHeroes.dun</b> file here
+                    
                 @if (!_showContent)
                 {
                     <div class="dropzone-subtext @( _hideDropzoneHelp ? "hidden" : "" )">
@@ -20,6 +21,15 @@
                             <li>This is all run locally on your computer. Only aggregate armor ratings are sent to Shiro's API for live prices, and only if you hit the "Get Live Prices" button.</li>
                         </ul>
                     </div>
+
+                    @if (_canLoadLast)
+                    {
+                        <div class="dropzone-actions">
+                            <button type="button" class="tool-btn" @onclick="LoadLastFile">
+                                Load last file (Chrome/Edge)
+                            </button>
+                        </div>
+                    }
                 }
             </div>
 
@@ -720,6 +730,7 @@ else
     private bool _livePrices = false;
     private string _itemboxSize = "3x5";
     private bool _showContent = false;
+    private bool _canLoadLast = false;
     private ElementReference _tableRef;
 
     private void OnItemboxSizeChanged(ChangeEventArgs e)
@@ -1334,6 +1345,10 @@ else
             _dotNetRef = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);
             await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                
+
+            var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
+             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
+            StateHasChanged();
         }
     }
 
@@ -1467,5 +1482,20 @@ else
     private void GetLivePrices()
     {
         _ = Ratings.AsyncShiroPriceAPICall(this);        
+    }
+    private async Task LoadLastFile()
+    {
+        _error = null;
+        _status = "";
+        _status2 = "";
+
+        // Only returns true in Chrome/Edge *and* if a handle was saved before.
+        bool ok = await JS.InvokeAsync<bool>("dropzone.loadLast", _dotNetRef);
+
+        if (!ok)
+        {
+            _status = "No remembered file yet (or the browser blocked access). Drop the file once, or use the Open button.";
+            StateHasChanged();
+        }
     }
 }

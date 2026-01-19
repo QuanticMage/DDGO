@@ -1,6 +1,7 @@
 ﻿window.dropzone = (function () {
     let bound = false;
 
+    // ===== base64 helper =====
     function arrayBufferToBase64(buffer) {
         const bytes = new Uint8Array(buffer);
         let binary = "";
@@ -10,8 +11,87 @@
             const chunk = bytes.subarray(i, i + chunkSize);
             binary += String.fromCharCode.apply(null, chunk);
         }
-
         return btoa(binary);
+    }
+
+    // ===== IndexedDB for persisting file handles (Chrome/Edge) =====
+    const DB_NAME = "dropzone_db";
+    const DB_VER = 1;
+    const STORE = "kv";
+    const LAST_HANDLE_KEY = "lastFileHandle";
+
+    function openDb() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(DB_NAME, DB_VER);
+            req.onupgradeneeded = () => {
+                const db = req.result;
+                if (!db.objectStoreNames.contains(STORE)) {
+                    db.createObjectStore(STORE);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function idbSet(key, value) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE, "readwrite");
+            tx.objectStore(STORE).put(value, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    async function idbGet(key) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE, "readonly");
+            const req = tx.objectStore(STORE).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    // ===== File System Access helpers =====
+    function supportsFileSystemAccessFromDrop(e) {
+        const items = e.dataTransfer && e.dataTransfer.items;
+        return !!(items && items.length && items[0] && typeof items[0].getAsFileSystemHandle === "function");
+    }
+
+    async function tryGetDroppedFileHandle(e) {
+        if (!supportsFileSystemAccessFromDrop(e)) return null;
+
+        // Prefer the first item. (You can expand to support multiple later.)
+        const item = e.dataTransfer.items[0];
+        try {
+            const handle = await item.getAsFileSystemHandle();
+            if (handle && handle.kind === "file") return handle;
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
+    async function ensureReadPermission(handle) {
+        // Newer Chrome/Edge have queryPermission/requestPermission
+        if (typeof handle.queryPermission === "function") {
+            const q = await handle.queryPermission({ mode: "read" });
+            if (q === "granted") return true;
+        }
+        if (typeof handle.requestPermission === "function") {
+            const r = await handle.requestPermission({ mode: "read" });
+            return r === "granted";
+        }
+        // If APIs not present, best effort
+        return true;
+    }
+
+    async function readFileAndSend(dotNetRef, file) {
+        const buf = await file.arrayBuffer();
+        const b64 = arrayBufferToBase64(buf);
+        await dotNetRef.invokeMethodAsync("OnFileDropped", file.name, b64);
     }
 
     return {
@@ -24,8 +104,7 @@
                 e.stopPropagation();
             };
 
-            // Firefox-proof: prevent default navigation for file drops anywhere
-            // Capture phase means overlays/tooltips can't steal it.
+            // Prevent default navigation for drops anywhere (capture phase)
             document.addEventListener("dragenter", (e) => {
                 stop(e);
                 dotNetRef.invokeMethodAsync("SetDragOver", true);
@@ -38,8 +117,6 @@
             }, true);
 
             document.addEventListener("dragleave", (e) => {
-                // dragleave fires a lot; only clear when leaving the document
-                // relatedTarget is null when leaving the window in many browsers
                 if (!e.relatedTarget) {
                     stop(e);
                     dotNetRef.invokeMethodAsync("SetDragOver", false);
@@ -50,51 +127,67 @@
                 stop(e);
                 dotNetRef.invokeMethodAsync("SetDragOver", false);
 
+                // 1) Try to capture a persistent handle (Chrome/Edge)
+                const handle = await tryGetDroppedFileHandle(e);
+                if (handle) {
+                    try {
+                        // Save handle for "Load last file"
+                        await idbSet(LAST_HANDLE_KEY, handle);
+
+                        // Read now (requires permission; drop usually implies user intent)
+                        const ok = await ensureReadPermission(handle);
+                        if (ok) {
+                            const file = await handle.getFile();
+                            await readFileAndSend(dotNetRef, file);
+                            return;
+                        }
+                        // If permission denied, fall through to normal file
+                    } catch {
+                        // fall through
+                    }
+                }
+
+                // 2) Fallback: standard dropped File (no path, no persistence)
                 const files = e.dataTransfer && e.dataTransfer.files;
                 if (!files || files.length === 0) return;
 
-                const file = files[0];
-                const buf = await file.arrayBuffer();
-                const b64 = arrayBufferToBase64(buf);
-
-                await dotNetRef.invokeMethodAsync("OnFileDropped", file.name, b64);
+                await readFileAndSend(dotNetRef, files[0]);
             }, true);
 
             console.log("Global drop enabled (anywhere on page).");
+        },
+
+        // Call this from a "Load last file" button in your UI (Chrome/Edge only)
+        loadLast: async function (dotNetRef) {
+            try {
+                const handle = await idbGet(LAST_HANDLE_KEY);
+                if (!handle) return false;
+
+                const ok = await ensureReadPermission(handle);
+                if (!ok) return false;
+
+                const file = await handle.getFile();
+                await readFileAndSend(dotNetRef, file);
+                return true;
+            } catch {
+                return false;
+            }
+        },
+        
+
+        supportsHandles: function () {
+            return typeof window.DataTransferItem !== "undefined"
+                && typeof DataTransferItem.prototype.getAsFileSystemHandle === "function";
+        },
+
+        hasLast: async function () {
+            try {
+                const handle = await idbGet(LAST_HANDLE_KEY);
+                return !!handle;
+            } catch {
+                return false;
+            }
         }
+   
     };
 })();
-
-function arrayBufferToBase64(buffer) {
-    // Buffer -> Uint8Array -> binary string -> base64
-    const bytes = new Uint8Array(buffer);
-    let binary = "";
-    const chunkSize = 0x8000; // avoids call stack issues
-
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.subarray(i, i + chunkSize);
-        binary += String.fromCharCode.apply(null, chunk);
-    }
-
-    return btoa(binary);
-}
-
-document.addEventListener("mousedown", e => {
-    if (!e.target.classList.contains("col-resizer")) return;
-
-    const th = e.target.parentElement;
-    const startX = e.pageX;
-    const startWidth = th.offsetWidth;
-
-    const onMouseMove = e => {
-        th.style.width = (startWidth + e.pageX - startX) + "px";
-    };
-
-    const onMouseUp = () => {
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-});
