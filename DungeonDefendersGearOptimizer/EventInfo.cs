@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DDUP
-{
-
+{	
 	public struct EventItemInfo
 	{
 		public string ItemName;

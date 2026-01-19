@@ -505,15 +505,17 @@ public class DDDatabase
 
 			if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))
 			{
-				int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1:0 ) +
+				bool cappedDamage = (Items[i].Stats[(int)DDStat.TowerDamage] == 800);
+				int cappedStats = ((Items[i].Stats[(int)DDStat.TowerHealth] == 800) ? 1 : 0) +
 									((Items[i].Stats[(int)DDStat.TowerRange] == 800) ? 1 : 0) +
-								((Items[i].Stats[(int)DDStat.TowerRate] == 800) ? 1 : 0) +
-								((Items[i].Stats[(int)DDStat.TowerDamage] == 800) ? 1 : 0);
+									((Items[i].Stats[(int)DDStat.TowerDamage] == 800) ? 1 : 0 )+
+								((Items[i].Stats[(int)DDStat.TowerRate] == 800) ? 1 : 0);
+								
 
 				if (cappedStats == 0) Items[i].EventItemValue = 5;
-				else if (cappedStats == 1) Items[i].EventItemValue = 10;
-				else if (cappedStats == 2) Items[i].EventItemValue = 15;
-				else if (cappedStats == 3) Items[i].EventItemValue = 250;
+				else if ((cappedStats == 1) && cappedDamage) Items[i].EventItemValue = 10;
+				else if ((cappedStats == 2) && cappedDamage)  Items[i].EventItemValue = 15;
+				else if ((cappedStats == 3) && cappedDamage)  Items[i].EventItemValue = 300;
 				else if (cappedStats == 4) Items[i].EventItemValue = 1000; // magicite likely
 			}
 			
