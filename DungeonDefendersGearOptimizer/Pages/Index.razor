@@ -63,38 +63,69 @@
     </ul>    
 </aside>
 </div>
+<div class="utility-row">
+    <span class="utility-label">⚙</span>
 
-<div class="toolbar-line">
-    <label class="toolbar-label">Rate by:</label>
-    <div class="toolbar-row">
-        @foreach (var opt in _modeOptions)
-        {
-            <input class="tool-radio"
-                   type="radio"
-                   name="setOptions"
-                   id="@($"mode-{opt.Value}")"
-                   value="@opt.Value"
-                   checked="@(_selectedMode == opt.Value)"
-                   @onchange="() => SetMode(opt.Value)" />
+    <label class="utility-toggle">
+        <input type="checkbox"
+               class="tool-filter"
+               checked="@_censor"
+               />
+        <span>Censor Ult+</span>
+    </label>
 
-            <label class="tool-btn" for="@($"mode-{opt.Value}")">
-                @opt.Label
-            </label>
-        }
-    </div>
+    <span class="utility-sep">•</span>
+
+    <label class="utility-toggle">
+        <input type="checkbox"
+               class="tool-filter"
+               checked="@_highlight"/>
+        <span>Highlight Best</span>
+    </label>
+
+    <span class="utility-spacer"></span>
+
+    <label class="utility-select">
+        <span>Itembox size</span>
+        <select @bind="_itemboxSize">
+            <option value="3x5">3×5</option>
+            <option value="4x5">4×5</option>
+            <option value="5x5">5×5</option>
+        </select>
+    </label>
+</div>
+
+<div class="info-pane rateby-pane">    
+    <div class="rateby-header">
+        Rating Mode
+    </div>    
+    <div class="toolbar">
+    @foreach (var opt in _modeOptions)
+    {
+        <input class="tool-radio"
+                type="radio"
+                name="setOptions"
+                id="@($"mode-{opt.Value}")"
+                value="@opt.Value"
+                checked="@(_selectedMode == opt.Value)"
+                @onchange="() => SetMode(opt.Value)" />
+
+        <label class="tool-btn" for="@($"mode-{opt.Value}")">
+            @opt.Label
+        </label>
+    }
+     </div>
 </div>
 <div class="filters-menu-header">
     Filters
 </div>
-
-
 <div class="filters-column">
 <FilterChips Title="Type" Theme="type"
              Options="_typeOptions"
-             Placeholder="None"
+             Placeholder="Any"
              ShowNoneAll="true"
              MenuMaxHeightPx="520"
-             @bind-Selected="_selectedTypes"
+             @bind-Selected="SelectedTypes"
              Presets="@(new[]
              {
                  new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
@@ -102,10 +133,10 @@
 
 <FilterChips Title="Set" Theme="set"
              Options="_setOptions"
-             Placeholder="None"
+             Placeholder="Any"
              ShowNoneAll="true"
              MenuMaxHeightPx="520"
-             @bind-Selected="_selectedSets"    
+             @bind-Selected="SelectedSets"    
              Presets="@(new[]
              {
                  new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
@@ -115,13 +146,44 @@
 <FilterChips Title="Other" Theme="other"
              Options="_otherOptions"
              Placeholder="None"
-             @bind-Selected="_selectedOther" />
+             @bind-Selected="SelectedOther" />
 </div>
 
 @code {
     private List<string> _selectedTypes = new();
     private List<string> _selectedSets = new();
     private List<string> _selectedOther = new();
+
+    // Bind targets (so we can react immediately when chips change)
+    private List<string> SelectedTypes
+    {
+        get => _selectedTypes;
+        set
+        {
+            _selectedTypes = value ?? new();
+            ApplyChipFilters();
+        }
+    }
+
+    private List<string> SelectedSets
+    {
+        get => _selectedSets;
+        set
+        {
+            _selectedSets = value ?? new();
+            ApplyChipFilters();
+        }
+    }
+
+    private List<string> SelectedOther
+    {
+        get => _selectedOther;
+        set
+        {
+            _selectedOther = value ?? new();
+            ApplyChipFilters();
+        }
+    }
 
     
 
@@ -169,44 +231,7 @@
     };
 }
 
-
-<div class="toolbar-line">
-    <label class="toolbar-label">Filters:</label>
-
-    <div class="filters-groups">
-        @RenderFilterGroup("Set", ArmorMaterialFilters)
-        @RenderFilterGroup("Type", TypeFilters)
-        @RenderFilterGroup("Other", OtherFilters)
-    </div>
-</div>
-
-@code {
-    private RenderFragment RenderFilterGroup(string title, IEnumerable<FilterOption> opts) => __builder =>
-    {
-        <div class="filter-group">
-            <div class="filter-group-title">@title</div>
-            <div class="toolbar-row">
-                @foreach (var opt in opts)
-                {
-                    var id = $"filter-{opt.Label.Replace(" ", "-")}";
-
-                    <input type="checkbox"
-                           id="@id"
-                           class="tool-filter"
-                           checked="@((_selectedFilter & opt.Filter) != 0)"
-                           @onchange="(e) => SetFilterFlag(opt.Filter, (bool)e.Value!)" />
-
-                    <label class="tool-btn @(((_selectedFilter & opt.Filter) != 0) ? "active" : "")"
-                           for="@id">
-                        @opt.Label
-                    </label>
-                }
-            </div>
-        </div>;
-    };
-}
-<div class="summary">@_summary</div>
-
+<div class="summary">@_summary</div> 
 <div class="stats-row">
   <div class="metric-card highlighted-card">
     <span class="metric-label">Best Filtered Armor Set</span>
@@ -238,6 +263,7 @@
 }
 else
 {
+   
     <div class="grid-wrap">
     <table class="grid">
         <colgroup>
@@ -272,8 +298,19 @@ else
         </colgroup>
   
         <thead>
-            <tr class="rating-row">
-                <th colspan="10" class="hint-text">Click names to sort, or stars to adjust the rating calculation -></th>
+            <tr class="rating-row">                
+                <th colspan="10">       
+                
+                    <span class="hint-text">
+                        <span class="hint-left">
+                            @VisibleCount / @TotalCount items visible
+                        </span>
+
+                        <span class="hint-right">
+                            Click names to sort, or stars to adjust the rating calculation →
+                        </span>
+                    </span>
+                </th>
                 <th class="importance-cell">
                     <div class="th-center">
                     <button type="button" 
@@ -421,7 +458,7 @@ else
                     <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable">
+                <th class="sortable"  data-tooltip="Location (and page) of item when sorting by Level">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
                         Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
                     </button>
@@ -453,7 +490,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHHP)">
                     <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(ItemViewRow.HHP))">
                         <img src="png/Hero Health.png" alt="HHP" />
-                        <span class="hdr-text">HHP</span>
+                        <span class="hdr-text">Hero<br />Health</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HHP))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -462,7 +499,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHDmg)">
                     <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(ItemViewRow.HDmg))">
                         <img src="png/Hero Damage.png" alt="HDmg" />
-                        <span class="hdr-text">HDmg</span>
+                        <span class="hdr-text">Hero<br />Damage</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HDmg))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -471,7 +508,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHSpd)">
                     <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(ItemViewRow.HSpd))">
                         <img src="png/Move Speed.png" alt="HSpd" />
-                        <span class="hdr-text">HSpd</span>
+                        <span class="hdr-text">Hero<br />Speed</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HSpd))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -480,7 +517,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxHRate)">
                     <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(ItemViewRow.HRate))">
                         <img src="png/Cast Rate.png" alt="HRate" />
-                        <span class="hdr-text">HRate</span>
+                        <span class="hdr-text">Hero<br />Cast Rate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HRate))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -489,7 +526,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb1)">
                     <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(ItemViewRow.Ab1))">
                         <img src="png/AB1/Monk AB1.png" alt="Ab1" />
-                        <span class="hdr-text">Ab1</span>
+                        <span class="hdr-text">Hero<br />Ability 1</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab1))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -498,7 +535,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb2)">
                     <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(ItemViewRow.Ab2))">
                         <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
-                        <span class="hdr-text">Ab2</span>
+                        <span class="hdr-text">Hero<br />Ability 2</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab2))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -507,7 +544,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxTHP)">
                     <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(ItemViewRow.THP))">
                         <img src="png/Tower Health.png" alt="THP" />
-                        <span class="hdr-text">THP</span>
+                        <span class="hdr-text">Tower<br /> Health</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.THP))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -516,7 +553,7 @@ else
                 <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTDmg)">
                     <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(ItemViewRow.TDmg))">
                         <img src="png/Tower Damage.png" alt="TDmg" />
-                        <span class="hdr-text">TDmg</span>
+                        <span class="hdr-text">Tower<br />Damage</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TDmg))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -525,7 +562,7 @@ else
                 <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTRange)">
                     <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(ItemViewRow.TRange))">
                         <img src="png/Tower Range.png" alt="TRng" />
-                        <span class="hdr-text">TRng</span>
+                        <span class="hdr-text">Tower<br />Range</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRange))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -534,7 +571,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(sumIdxTRate)">
                     <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(ItemViewRow.TRate))">
                         <img src="png/Tower Rate.png" alt="TRate" />
-                        <span class="hdr-text">TRate</span>
+                        <span class="hdr-text">Tower<br />Rate</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRate))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -543,7 +580,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
                         <img src="png/Generic Resistance.png" alt="ResG" />
-                        <span class="hdr-text">ResG</span>
+                        <span class="hdr-text">Generic Resistance</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -552,7 +589,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Poison Resist" @onclick="() => SortBy(nameof(ItemViewRow.RP))">
                         <img src="png/Poison Resistance.png" alt="ResP" />
-                        <span class="hdr-text">ResP</span>
+                        <span class="hdr-text">Poison Resistance</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RP))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -561,7 +598,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Fire Resist" @onclick="() => SortBy(nameof(ItemViewRow.RF))">
                         <img src="png/Fire Resistance.png" alt="ResF" />
-                        <span class="hdr-text">ResF</span>
+                        <span class="hdr-text">Fire Resistance</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RF))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -570,7 +607,7 @@ else
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Lightning Resist" @onclick="() => SortBy(nameof(ItemViewRow.RL))">
                         <img src="png/Lightning Resistance.png" alt="ResL" />
-                        <span class="hdr-text">ResL</span>
+                        <span class="hdr-text">Lightning Resistance</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RL))</span>
                     </button>
                     <div class="col-resizer"></div>
@@ -625,7 +662,7 @@ else
                             @r.Name
                         }
                     </td>
-                    <td class="text location">@r.Location</td>
+                    <td class="text location">@GetLocation(r)</td>
                     <td class="text @QualityClass(r.Quality)">@r.Quality</td>
                 
                     <td class="num">@r.Level</td>
@@ -669,9 +706,32 @@ else
     private DDDatabase db = new();
     private List<ItemViewRow> _rows = new();
     private record ModeOption(string Value, string Label);
-    private record FilterOption( Filters Filter, string Label);
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
+    private bool _censor = true;
+    private bool _highlight = true;
+    private string _itemboxSize = "3x5";
+
+
+    public string GetLocation( ItemViewRow viewRow)
+    {
+        // no folders for tavern or characters
+        if (( viewRow.IndexInFolder == -1) || (viewRow.Location[0] == 'T') || (viewRow.Location[0] == 'C'))
+            return viewRow.Location;
+
+        int idx = viewRow.IndexInFolder;
+        int itemsPerPage = 15;
+        if (_itemboxSize == "3x5") itemsPerPage = 15;
+        if (_itemboxSize == "4x5") itemsPerPage = 20;
+        if (_itemboxSize == "4x6") itemsPerPage = 24;
+
+        int subFolderItems = (db.SubfolderCount.ContainsKey(viewRow.Location)) ? db.SubfolderCount[viewRow.Location] : 0;
+        itemsPerPage-= subFolderItems;
+        int pageNumber = (int)(viewRow.IndexInFolder / itemsPerPage) + 1;
+        return viewRow.Location + " (" + pageNumber.ToString() + ")";
+
+    }
+
 
     public void SetPriceStatus(string stat, bool showLivePrices)
     {
@@ -689,33 +749,8 @@ else
         ["Value"] = "Estimated value based on highest value role.  \nStars show how good it is relative\n to your best piece of that type for any role.\nIf you see a wrong price, \nlet Shiro and Mage know.",       
     };
 
-    private readonly List<FilterOption> _filterOptions = new()
-    {   
-        new(Filters.Pristine,     "Pristine"),
-        new(Filters.Chain,        "Chain"),
-        new(Filters.Mail,         "Mail"),
-        new(Filters.Plate,        "Plate"),
-        new(Filters.Leather,      "Leather"),
-
-        new(Filters.Helmet,       "Helmet"),
-        new(Filters.Torso,        "Torso"),
-        new(Filters.Gauntlet,     "Gauntlet"),
-        new(Filters.Boots,        "Boots"),
-        new(Filters.Brooch,       "Brooch"),
-        new(Filters.Mask,         "Mask"),
-        new(Filters.Bracers,      "Bracers"),
-        new(Filters.Shield,       "Shield"),
-
-        new(Filters.Pets,         "Pets"),
-        new(Filters.Weapons,      "Weapons"),        
-        new(Filters.Currency,     "Currency"),
-        new(Filters.Events,       "Events"),
-
-        new(Filters.NoEvents,     "No Events"),
-        new(Filters.NoMissingResists, "No Missing Resists"),
-        new(Filters.NoEquipped,   "No Equipped"),        
-        new(Filters.Censor,       "Censor Ult++"),        
-    };
+    // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
+    // instead of a bitflag enum.
 
     private readonly List<ModeOption> _modeOptions = new()
     {
@@ -760,123 +795,103 @@ else
 
     }
 
-
     private string _selectedMode = "";
-    private Filters _selectedFilter = 0;
 
+    private bool IsCensorEnabled => _censor;
 
-    private void SetFilterFlag(Filters filter, bool enabled)
+    private static readonly HashSet<string> ArmorSetNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        Filters newFilters = _selectedFilter;
-
-        if (enabled)
-            newFilters |= filter;
-        else
-            newFilters &= ~filter;        
-
-        SetFilters(newFilters);
-    }
-    private IEnumerable<FilterOption> ArmorMaterialFilters =>
-    _filterOptions.Where(o =>
-        o.Filter is Filters.Pristine or Filters.Chain or Filters.Mail or Filters.Plate or Filters.Leather);
-
-    private IEnumerable<FilterOption> TypeFilters =>
-        _filterOptions.Where(o =>
-            o.Filter is Filters.Helmet or Filters.Torso or Filters.Gauntlet or Filters.Boots
-                   or Filters.Brooch or Filters.Mask or Filters.Bracers or Filters.Shield
-                   or Filters.Pets or Filters.Weapons or Filters.Currency or Filters.Events);
-
-    private IEnumerable<FilterOption> OtherFilters =>
-        _filterOptions.Where(o =>
-            o.Filter is Filters.NoEvents or Filters.NoMissingResists or Filters.NoEquipped or Filters.Censor);
-
+        "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"
+    };
 
     private string GetValue( int value, ItemViewRow r )
     {
         string s = value.ToString();
-        if (!r.Quality.EndsWith("++") || (!_selectedFilter.HasFlag(Filters.Censor)))
+        if (!r.Quality.EndsWith("++") || !IsCensorEnabled)
             return s;
         else
             return s.Substring(0, s.Length - 1) + "x";
     }
-
-    private void SetFilters(Filters filter)
+    
+    int VisibleCount => _rows.Count(r => !r.IsHidden);
+    int TotalCount => _rows.Count;
+    
+    private void ApplyChipFilters()
     {
-        _selectedFilter = filter;
+        if (_rows.Count == 0)
+            return;
 
-        //_rows.Clear();
+        bool onlyEvents = _selectedOther.Contains("Only Events");
+        bool excludeEvents = _selectedOther.Contains("Exclude Events");
 
-        foreach (var v in _rows )
+        bool onlyEquipped = _selectedOther.Contains("Only Equipped");
+        bool excludeEquipped = _selectedOther.Contains("Exclude Equipped");
+
+        bool excludeMissingResists = _selectedOther.Contains("Exclude Missing Resists");
+
+        foreach (var v in _rows)
         {
-            bool includeType = false;
+            // ---- Type filtering (OR within the chip group) ----
+            bool typeOk;
+            if (_selectedTypes.Count == 0)
+            {
+                typeOk = true; // no selection => include all
+            }
+            else
+            {
+                var typeLabel = v.Type switch
+                {
+                    "Pet" => "Pets",
+                    "Weapon" => "Weapons",
+                    _ => v.Type
+                };
 
-            bool includeSubType = false;
-            bool isArmor = v.IsArmor;
-            if (((v.Set == "Pristine") || (v.Set == "Any")) && filter.HasFlag(Filters.Pristine))
-                includeSubType = true; 
+                typeOk = _selectedTypes.Contains(typeLabel);
+            }
 
-            if (((v.Set == "Chain") || (v.Set == "Any")) && filter.HasFlag(Filters.Chain))
-                includeSubType = true;
+            // ---- Set filtering (OR within the chip group) ----
+            bool setOk;
+            if (_selectedSets.Count == 0)
+            {
+                setOk = true;
+            }
+            else if (v.IsArmor)
+            {
+                // Armor: treat Set="Any" as matching any *armor* set selection.
+                if (string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase))
+                {
+                    setOk = _selectedSets.Any(s => ArmorSetNames.Contains(s));
+                }
+                else
+                {
+                    setOk = _selectedSets.Contains(v.Set);
+                }
+            }
+            else
+            {
+                // Non-armor: Set is usually the weapon archetype (Squire/Monk/etc.)
+                setOk = _selectedSets.Contains(v.Set) || string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase);
+            }
 
-            if (((v.Set == "Mail") || (v.Set == "Any")) && filter.HasFlag(Filters.Mail))
-                includeSubType = true;
+            bool includeItem = typeOk && setOk;
 
-            if (((v.Set == "Plate") || (v.Set == "Any")) && filter.HasFlag(Filters.Plate))
-                includeSubType = true;
+            // ---- "Other" chip logic (AND across enabled toggles) ----
+            if (onlyEvents)
+                includeItem &= v.IsEvent;
+            if (excludeEvents)
+                includeItem &= !v.IsEvent;
 
-            if (((v.Set == "Leather") || (v.Set == "Any")) && filter.HasFlag(Filters.Leather))
-                includeSubType = true;
+            if (onlyEquipped)
+                includeItem &= v.IsEquipped;
+            if (excludeEquipped)
+                includeItem &= !v.IsEquipped;
 
-            if ((v.Type == "Helmet") && filter.HasFlag(Filters.Helmet))
-                includeType = true;
+            if (excludeMissingResists)
+                includeItem &= !v.IsMissingResists;
 
-            if ((v.Type == "Torso") && filter.HasFlag(Filters.Torso))
-                includeType = true;
-
-            if ((v.Type == "Gauntlet") && filter.HasFlag(Filters.Gauntlet))
-                includeType = true;
-
-            if ((v.Type == "Boots") && filter.HasFlag(Filters.Boots))
-                includeType = true;
-
-            if ((v.Type == "Brooch") && filter.HasFlag(Filters.Brooch))
-                includeType = true;
-
-            if ((v.Type == "Mask") && filter.HasFlag(Filters.Mask))
-                includeType = true;
-
-            if ((v.Type == "Bracers") && filter.HasFlag(Filters.Bracers))
-                includeType = true;
-
-            if ((v.Type == "Shield") && filter.HasFlag(Filters.Shield))
-                includeType = true;
-
-            if ((v.Type == "Pet") && filter.HasFlag(Filters.Pets))
-                includeType = true;
-
-            if ((v.Type == "Weapon") && filter.HasFlag(Filters.Weapons))
-                includeType = true;
-
-            if ((v.Type == "Currency") && filter.HasFlag(Filters.Currency))
-                includeType = true;
-
-            if ((v.IsEvent) && filter.HasFlag(Filters.Events))
-                includeType = true;
-
-            bool includeItem = includeType && (!isArmor || includeSubType);
-
-            // negative filters
-            if ((v.IsEvent) && filter.HasFlag(Filters.NoEvents))
-                includeItem = false;
-
-            if ((v.IsMissingResists) && filter.HasFlag(Filters.NoMissingResists))
-                includeItem = false;
-
-            if ((v.IsEquipped) && filter.HasFlag(Filters.NoEquipped))
-                includeItem = false;
-
-            v.IsHidden = !includeItem;            
+            v.IsHidden = !includeItem;
         }
+
         RecalculateRatings();
     }
 
@@ -1240,7 +1255,9 @@ else
             // tie-breakers (desc, like you were doing)
             c = b.Rating.CompareTo(a.Rating);
             if (c != 0) return c;
-            return b.Sides.CompareTo(a.Sides);
+            c = b.Sides.CompareTo(a.Sides);
+            if (c != 0) return c;
+            return b.Name.CompareTo(a.Name);
         }
 
         _rows.Sort(Compare);
@@ -1250,14 +1267,13 @@ else
     {
         q = (q ?? "").Trim();
 
-        // Adjust if your data uses "Ult90"/"Ult93" etc.
-        if (q.StartsWith("Ult++", StringComparison.OrdinalIgnoreCase)) return 7;
-        if (q.StartsWith("Ult+", StringComparison.OrdinalIgnoreCase)) return 6;
-        if (q.StartsWith("Ult93", StringComparison.OrdinalIgnoreCase)) return 5;
-        if (q.StartsWith("Ult90", StringComparison.OrdinalIgnoreCase)) return 4;
-
+        
         return q switch
         {
+            "Ult++" => 7,
+            "Ult+" => 6, 
+            "Ult93" => 5,
+            "Ult90" => 4,
             "Supreme" => 3,
             "Transcendent" => 2,
             "Mythical" => 1,
@@ -1265,10 +1281,10 @@ else
         };
     }
 
-    private static string GetRowClass(int c, bool h)
+    private string GetRowClass(int c, bool h)
     {
         if (h) return "hidden-row";
-        if (c == 1) return "highlighted-row";
+        if ((c == 1) && _highlight) return "highlighted-row";
         return "";
     }
 
@@ -1360,7 +1376,12 @@ else
                 SetPriceStatus("Prices estimated by table", true);
                 // don't care about when it gets back              
 
-                SetFilters(Filters.Chain | Filters.Mail | Filters.Pristine | Filters.Leather | Filters.Plate | Filters.Helmet | Filters.Torso | Filters.Gauntlet | Filters.Boots | Filters.NoEvents );
+                // Default view: armor pieces (4 slots), all armor sets, exclude events.
+                _selectedTypes = new() { "Helmet", "Torso", "Gauntlet", "Boots" };
+                _selectedSets = new() { "Chain", "Mail", "Pristine", "Leather", "Plate" };
+                _selectedOther = new() { "Exclude Events" };
+                ApplyChipFilters();
+
                 SetMode("Builder App");
 
                 _hideDropzoneHelp = true;              

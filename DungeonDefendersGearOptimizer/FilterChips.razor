@@ -60,7 +60,7 @@
                     {
                         @foreach (var p in Presets)
                         {
-                            <button type="button" class="fg-action" @onclick="() => ApplyPreset(p.Values)">
+                            <button type="button" class="fg-action" @onclick="() => ApplyPreset(p.Values ?? new List<string>())">
                                 @p.Label
                             </button>
                         }
