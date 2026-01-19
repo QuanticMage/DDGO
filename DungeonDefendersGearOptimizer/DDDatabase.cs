@@ -259,11 +259,12 @@ public class DDDatabase
 	public async Task LoadFromDun(byte[] byteArray)
 	{
 		IsReady = false;
-
+		Status = "Unloaded";
 		Heroes.Clear();
 		Items.Clear();
 		ItemBoxFolders.Clear();
 		ShopFolders.Clear();
+		SubfolderCount.Clear();
 
 		MemoryStream? outputMemoryStream = UnpackUE3Archive(byteArray);
 

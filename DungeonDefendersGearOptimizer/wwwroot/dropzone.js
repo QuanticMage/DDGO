@@ -1,5 +1,6 @@
 ﻿window.dropzone = (function () {
     let bound = false;
+    let currentDotNetRef = null;
 
     // ===== base64 helper =====
     function arrayBufferToBase64(buffer) {
@@ -76,26 +77,32 @@
 
     async function ensureReadPermission(handle) {
         // Newer Chrome/Edge have queryPermission/requestPermission
+        //console.log(`Query: [${new Date().toISOString()}]`)
         if (typeof handle.queryPermission === "function") {
             const q = await handle.queryPermission({ mode: "read" });
             if (q === "granted") return true;
         }
+        //console.log(`Request [${new Date().toISOString()}]`)
         if (typeof handle.requestPermission === "function") {
             const r = await handle.requestPermission({ mode: "read" });
             return r === "granted";
         }
+        //console.log(`Ensured Read Permission: [${new Date().toISOString()}]`);
         // If APIs not present, best effort
         return true;
     }
 
     async function readFileAndSend(dotNetRef, file) {
         const buf = await file.arrayBuffer();
-        const b64 = arrayBufferToBase64(buf);
-        await dotNetRef.invokeMethodAsync("OnFileDropped", file.name, b64);
+        const bytes = new Uint8Array(buf);
+        
+        await dotNetRef.invokeMethodAsync("OnFileDropped", file.name, bytes);
     }
 
+    
     return {
         init: function (_elementIdIgnored, dotNetRef) {
+            currentDotNetRef = dotNetRef;
             if (bound) return;
             bound = true;
 
@@ -107,38 +114,52 @@
             // Prevent default navigation for drops anywhere (capture phase)
             document.addEventListener("dragenter", (e) => {
                 stop(e);
-                dotNetRef.invokeMethodAsync("SetDragOver", true);
+              //  currentDotNetRef.invokeMethodAsync("SetDragOver", true);
             }, true);
 
             document.addEventListener("dragover", (e) => {
                 stop(e);
                 if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
-                dotNetRef.invokeMethodAsync("SetDragOver", true);
+                currentDotNetRef.invokeMethodAsync("SetDragOver", true);
             }, true);
 
             document.addEventListener("dragleave", (e) => {
                 if (!e.relatedTarget) {
                     stop(e);
-                    dotNetRef.invokeMethodAsync("SetDragOver", false);
+            //       currentDotNetRef.invokeMethodAsync("SetDragOver", false);
                 }
             }, true);
 
             document.addEventListener("drop", async (e) => {
-                stop(e);
-                dotNetRef.invokeMethodAsync("SetDragOver", false);
+                //console.log(`Dropped handler called: [${new Date().toISOString()}]`);
 
+                stop(e);
+                //console.log(`Finished stop: [${new Date().toISOString()}]`);
+                currentDotNetRef.invokeMethodAsync("SetDragOver", false);
+
+                // Add this: Clear the effect to tell the browser we are done with this specific operation
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = "none";
+                }
+
+                //console.log(`Trying to get dropped handle: [${new Date().toISOString()}]`);
                 // 1) Try to capture a persistent handle (Chrome/Edge)
                 const handle = await tryGetDroppedFileHandle(e);
                 if (handle) {
                     try {
+                        //console.log(`Saving Handle: [${new Date().toISOString()}]`);
                         // Save handle for "Load last file"
                         await idbSet(LAST_HANDLE_KEY, handle);
-
+                        //console.log(`Calling ensure: [${new Date().toISOString()}]`);
                         // Read now (requires permission; drop usually implies user intent)
                         const ok = await ensureReadPermission(handle);
                         if (ok) {
                             const file = await handle.getFile();
+                            //console.log(`ReadAndSend: [${new Date().toISOString()}]`);
+
                             await readFileAndSend(dotNetRef, file);
+                            //console.log(`Done: [${new Date().toISOString()}]`);
+
                             return;
                         }
                         // If permission denied, fall through to normal file
@@ -150,15 +171,20 @@
                 // 2) Fallback: standard dropped File (no path, no persistence)
                 const files = e.dataTransfer && e.dataTransfer.files;
                 if (!files || files.length === 0) return;
+                //console.log(`ReadAndSend: [${new Date().toISOString()}]`);
 
                 await readFileAndSend(dotNetRef, files[0]);
+                //console.log(`Done: [${new Date().toISOString()}]`);
+
             }, true);
 
-            console.log("Global drop enabled (anywhere on page).");
+           // console.log("Global drop enabled (anywhere on page).");
         },
 
         // Call this from a "Load last file" button in your UI (Chrome/Edge only)
         loadLast: async function (dotNetRef) {
+            currentDotNetRef = dotNetRef;
+
             try {
                 const handle = await idbGet(LAST_HANDLE_KEY);
                 if (!handle) return false;
@@ -173,7 +199,7 @@
                 return false;
             }
         },
-        
+
 
         supportsHandles: function () {
             return typeof window.DataTransferItem !== "undefined"
@@ -188,6 +214,6 @@
                 return false;
             }
         }
-   
+
     };
 })();
