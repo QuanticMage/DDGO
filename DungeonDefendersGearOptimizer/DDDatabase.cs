@@ -110,7 +110,7 @@ public class DDEquipmentInfo
 	public string Set = "";
 	
 	public int FolderID;
-	public int IndexInFolder;	
+	public int IndexInFolder = -1;
 	public bool bIsSecondary;
 	public int UserSellPrice;
 	public bool bIsArmor;
@@ -216,7 +216,9 @@ public class DDEquipmentInfo
 				ResistanceTarget: maxR,
 				FunHashString: this.FunHashString,
 				Color1: Color1.ToCString(),
-				Color2: Color2.ToCString()
+				Color2: Color2.ToCString(),
+
+				IndexInFolder: IndexInFolder
 			);
 		}
 		return cachedItemRow;
@@ -251,6 +253,7 @@ public class DDDatabase
 	public List<DDEquipmentInfo> Items = [];
 	public Dictionary<int, DDFolder> ItemBoxFolders = [];
 	public Dictionary<int, DDFolder> ShopFolders = [];
+	public Dictionary<string, int> SubfolderCount = [];
 
 	private const uint UE3_COMPRESSED_TAG = 0x9E2A83C1;
 	public async Task LoadFromDun(byte[] byteArray)
@@ -345,7 +348,7 @@ public class DDDatabase
 		{
 			var equipment = ReadEquipment(reader);
 			if (equipment == null) { Status = "Load: Failed to parse equipment for lobby"; return; }
-			equipment.Location = "Lobby";
+			equipment.Location = "Tavern";
 			Items.Add(equipment);
 			if ( i % 100 == 0)
 			{
@@ -381,6 +384,9 @@ public class DDDatabase
 
 		BuildItemLocations("ItemBox", ItemBoxFolders);
 		BuildItemLocations("Shop", ShopFolders);
+
+		CalculateSubFolderCounts("ItemBox", ItemBoxFolders);
+		CalculateSubFolderCounts("Shop", ShopFolders);
 
 		BuildStringsFromData();
 
@@ -519,9 +525,38 @@ public class DDDatabase
 			Items[i].bIsMissingResists = isArmor && ((Items[i].ResistAmt[0] == 0) || (Items[i].ResistAmt[1] == 0) || (Items[i].ResistAmt[2] == 0) || (Items[i].ResistAmt[3] == 0));
 			//Console.WriteLine(Items[i].Template+ " " + Items[i].UserEquipName + " " +  Items[i].Color1.R+ " " + Items[i].Color1.G + " " + Items[i].Color1.B+ " " + Items[i].Color1.R+ " " + Items[i].Color1.G+ " " + Items[i].Color1.B);
 		}
+		var itemsByLocation = Items
+			.GroupBy(x => x.Location)
+			.ToDictionary(
+				g => g.Key,
+				g => g.OrderByDescending(x => x.MaxLevel).ToList()
+			);
+
+		for (int i = 0; i < Items.Count; i++)
+		{
+			var currentItem = Items[i];			
+			// Look up the pre-sorted list for this specific location
+			Items[i].IndexInFolder = itemsByLocation[currentItem.Location].IndexOf(currentItem);
+		}
 	}
 
 
+
+	public void CalculateSubFolderCounts(string inventory, Dictionary<int, DDFolder> folders)
+	{
+		SubfolderCount.Clear();
+
+		foreach (var folder in folders.Values)
+		{
+			// 1. Construct the hierarchy name (e.g., "GrandParent > Parent > Child")
+			string path = GetFolderPath(folder.Index, folders, inventory);
+
+			// 2. Count children: How many folders have this folder as their ParentIndex?
+			int childrenCount = folders.Values.Count(f => f.ParentIndex == folder.Index);
+
+			SubfolderCount[path] = childrenCount;
+		}
+	}
 
 	// ------------------ LOCATIONS ----------------------
 	private void BuildItemLocations( string inventory, Dictionary<int, DDFolder> folders )

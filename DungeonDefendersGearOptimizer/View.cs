@@ -30,11 +30,6 @@
 		Currency = 1 << 15,
 		Events = 1<< 16,
 
-		// Exclusions / modifiers
-		NoEvents = 1 << 17,
-		NoMissingResists = 1 << 18,
-		NoEquipped = 1 << 19,
-		Censor = 1 << 20,
 	}
 
 	public sealed class ItemViewRow
@@ -91,7 +86,7 @@
 		public float SetBonus { get; set; }
 		public int ResistanceTarget { get; set; }
 		public int MaxStat { get; set; }
-
+		public int IndexInFolder { get; set; }
 		public string FunHashString { get; set; }
 		public ItemViewRow(
 				int Rating,
@@ -137,7 +132,8 @@
 				bool IsMissingResists,
 				bool IsEquipped,
 				bool IsArmor,
-				bool IsEligibleForBest)
+				bool IsEligibleForBest,
+				int IndexInFolder)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -185,6 +181,7 @@
 			this.FunHashString = FunHashString;
 			this.Color1 = Color1;
 			this.Color2 = Color2;
+			this.IndexInFolder = IndexInFolder;
 		}
 	}
 }
