@@ -124,8 +124,8 @@
         <div class="credits">            
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
             <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
-            <div class="credits-thanks">Price estimator by <i>Shiro</i></div>
-            <div class="credits-thanks">Special Thanks to <i>Scryllix, SteveTrevor, Shiro, Chiku, Thales, Cerium, and the DDRnG community</i></div>            
+            <div class="credits-thanks">Price estimates by <i>Shiro and Sesar</i></div>
+            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, SteveTrevor, Thales, and the DDRnG community</i></div>            
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -270,9 +270,9 @@
             _selectedOther = value ?? new();
             ApplyChipFilters();
         }
-    }
+    }    
 
-    
+
 
     private readonly List<FilterChips.Option> _typeOptions = new()
     {
@@ -755,21 +755,21 @@ else
                     <td class="num">@r.Level</td>
                     <td class="num">@r.MaxLevel</td>
 
-                    <td class="num cell-health">@GetValue(r.HHP,r)</td>
-                    <td class="num cell-damage">@GetValue(r.HDmg,r)</td>
-                    <td class="num cell-range">@GetValue(r.HSpd,r)</td>
-                    <td class="num cell-rate">@GetValue(r.HRate,r)</td>
-                    <td class="num cell-ab1">@GetValue(r.Ab1,r)</td>
-                    <td class="num cell-ab2">@GetValue(r.Ab2,r)</td>
-                    <td class="num cell-health">@GetValue(r.THP,r)</td>
-                    <td class="num cell-damage">@GetValue(r.TDmg,r)</td>
-                    <td class="num cell-range">@GetValue(r.TRange,r)</td>
-                    <td class="num cell-rate">@GetValue(r.TRate,r)</td>
+                    <td class="num cell-health @(_columnClasses[sumIdxHHP])">@GetValue(r.HHP,r)</td>
+                    <td class="num cell-damage @(_columnClasses[sumIdxHDmg])">@GetValue(r.HDmg,r)</td>
+                    <td class="num cell-range @(_columnClasses[sumIdxHSpd])">@GetValue(r.HSpd,r)</td>
+                    <td class="num cell-rate @(_columnClasses[sumIdxHRate])">@GetValue(r.HRate,r)</td>
+                    <td class="num cell-ab1 @(_columnClasses[sumIdxAb1])">@GetValue(r.Ab1,r)</td>
+                    <td class="num cell-ab2 @(_columnClasses[sumIdxAb2])">@GetValue(r.Ab2,r)</td>
+                    <td class="num cell-health @(_columnClasses[sumIdxTHP])">@GetValue(r.THP,r)</td>
+                    <td class="num cell-damage @(_columnClasses[sumIdxTDmg])">@GetValue(r.TDmg,r)</td>
+                    <td class="num cell-range @(_columnClasses[sumIdxTRange])">@GetValue(r.TRange,r)</td>
+                    <td class="num cell-rate @(_columnClasses[sumIdxTRate])">@GetValue(r.TRate,r)</td>
 
-                    <td class="resist">@r.RG</td>
-                    <td class="resist">@r.RP</td>
-                    <td class="resist">@r.RF</td>
-                    <td class="resist">@r.RL</td>
+                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RG</td>
+                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RP</td>
+                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RF</td>
+                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RL</td>
                 </tr>
             }
         </tbody>
@@ -782,7 +782,7 @@ else
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private int CurrentUIOptionsVersion = 1;
-
+    private string[] _columnClasses = new[] { "cell-stat-dimmed", "cell-stat-primary", "cell-stat-side" };
     private readonly string _dropZoneId = "dropzone";
     private DotNetObjectReference<Index>? _dotNetRef;
     private bool _isDragOver;
@@ -938,7 +938,7 @@ else
         new("Builder TRange", "Builder TRange"),
         new("Builder EV", "Builder EV"),
         new("Builder Summoner", "Builder Summoner"),
-        new("Tower Boost/Upgrader", "Tower Boost/Upgrader"),
+        new("AB1 Only (TB)", "AB1 Only (TB)"),
         new("DPS AB1", "DPS AB1"),
         new("DPS AB2", "DPS AB2"),
         new("Pure DPS", "Pure DPS"),        
@@ -1157,7 +1157,7 @@ else
                 sumIdxTRate = 2;
                 break;
 
-            case "Tower Boost/Upgrader":
+            case "AB1 Only (TB)":
                 bFactorInResists = true;
                 sumIdxHHP = 2;
                 sumIdxHDmg = 2;
