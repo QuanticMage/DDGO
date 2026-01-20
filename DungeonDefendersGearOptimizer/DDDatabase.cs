@@ -183,6 +183,11 @@ public class DDEquipmentInfo
 			{				
 				name += $" ({FormatAmount(this.StoredMana, this.MinSell)})";				
 			}
+			else if (this.Type == "Currency") 
+			{
+				if (Stats[0] > 0)
+					name += $" ({1 + (this.Stats[0]) / 16})";
+			}
 			
 			bool bIsEligibleForBest =
 				(this.Type == "Boots") ||
