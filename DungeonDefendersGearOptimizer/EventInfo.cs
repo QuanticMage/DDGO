@@ -76,7 +76,7 @@ namespace DDUP
 			new ("Captain Djinn's Hat", "Accessories > Hats", "Corrupted Juicy Totem Locks Endless Swarm", 48),
 			new ("Captain Isom", "Pets > Collectibles", "Cooked Wild Totem Deletes Juicy Warlock", 136),
 			new ("Carapace of the Queen", "Accessories > Shields", "Locked Nerfed Crystal Wins Mythic Brood", 59),
-			new ("Care Bear 300/1", "unknown", "Corrupted Cooked Core Boosts Shiny Invader", 10000), //? auction price?
+			new ("Care Bear 300/1", "Unknown", "Corrupted Cooked Core Boosts Shiny Invader", 0), //? auction price?
 			new ("Care Bear", "Pets > Collectibles", "Shiny Mid Beacon Defends Cracked Abomination", 76),
 			new ("Celebracers", "Accessories > High End Bracers", "Fire Goated Aura Summons Goated Kobold", 346),
 			new ("Celebration", "Accessories > High End Hats", "Brutal Cracked Totem Wins Shiny Kobold", 499),
@@ -186,7 +186,7 @@ namespace DDUP
 			new ("Memoriam", "Accessories > Mid End Bracers", "Heroic Endless Squire Snowballs Endless Destroyer", 89),
 			new ("Mezcal", "Pets > Streamer", "Tilted Grim Beacon Throws Wild Kobold", 168),
 			new ("Mike", "Pets > Exclusives", "Fragile Cracked Apprentice Shatters Brutal Minion", 8355),
-			new ("Mining Etheria in search of vast wealth", "unknown", "Enchanted Juicy Aura Wipes Goated Brood", 10000), //? no auction price
+			new ("Mining Etheria in search of vast wealth", "Unknown", "Enchanted Juicy Aura Wipes Goated Brood", 0), //? no auction price
 			new ("Minish Hat", "Accessories > Armor Pieces", "Endless Mid Stronghold Fortifies Goated Beast", 45),
 			new ("Misri", "Accessories > Mid End Hats", "Goated Fire Obelisk Fortifies Locked Brute", 69),
 			new ("Molon Labe", "Accessories > Exclusives", "Sweaty Sweaty Aura Breaches Luminous Raider", 138),

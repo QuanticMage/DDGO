@@ -395,7 +395,7 @@
                                 <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
                                     <div class="event-line">
                                         <div class="event-name">@item.Name</div>
-                                        <div class="event-price">@item.Price CVx</div>
+                                        <div class="event-price">@(item.Price!=0?@item.Price:"Unknown") CVx</div>
                                         <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
                                     </div>
                                 </div>
@@ -931,7 +931,7 @@ else
         var parts = category.Split('>');
         var page = (parts.Length > 0 ? parts[0] : category).Trim();
         var section = (parts.Length > 1 ? parts[1] : "").Trim();
-        if (page.Equals("unknown", StringComparison.OrdinalIgnoreCase)) page = "Unknown";
+        if (page.Equals("Unknown", StringComparison.OrdinalIgnoreCase)) page = "Unknown";
         return (string.IsNullOrWhiteSpace(page) ? "Other" : page, section);
     }
 
@@ -1191,10 +1191,12 @@ else
 
     private (string text, string icon, string tooltip) GetValueDisplay(ItemViewRow row)
     {
-        /*if (row.IsEvent)
-        return ("💎???", "");*/
+        if (row.IsEvent && (row.Value == 0))
+        {
+            return ("💎 ???", "", "");
+        }
 
-    if (row.Value > 0)
+        if (row.Value > 0)
         {
             if (row.Value > 300)
                 return ("💰Auction", "", "Estimated " + row.Value.ToString() + "cv");
