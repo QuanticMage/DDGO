@@ -4,12 +4,18 @@ NOTES:
 
 TODO:
 
-* Increase prominence of selected tower rows / highlight them
+* (DONE)Reload and New file buttons have wrong font
+* (DONE)Mana tokens 
+* (DONE)Censor also censors tanscendent cats and unicorns
+* (DONE)Remove () name from common pets
+
+
+* Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
+
 
 
 * Achievement list
 * Centered tooltips at edge of window
-
 * Add new hash with stat 0, and if maxlvl > 2000, just use 2000
 * Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
 * Note about event items and where to send 6 words - somehow let people know so they don't panic :)
