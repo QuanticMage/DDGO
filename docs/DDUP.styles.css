@@ -1587,6 +1587,7 @@ live-btn[b-yrayc6w7vb] {
     gap: 8px;
     min-width: 100px;
     justify-content: center;
+    font: inherit;
 }
 
     .dz2-btn:active[b-yrayc6w7vb] {
