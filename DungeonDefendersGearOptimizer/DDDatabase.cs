@@ -95,6 +95,7 @@ public class DDEquipmentInfo
 	public byte PrimaryColorSet, SecondaryColorSet;
 	public int ID1, ID2;
 	public int MinSell, MaxSell;
+	public Int64 ManaValue;
 	public int LocX, LocY, LocZ;
 	public byte bUpgradable, bRenameAtMax, bNoSell, bNoDrop, bAutoLock, bOnceEffect, bLocked, ManualLR;
 	public DDLinearColor Color1, Color2;
@@ -123,6 +124,36 @@ public class DDEquipmentInfo
 
 	public ItemViewRow? cachedItemRow = null;
 
+	static string FormatAmount(long xBillions, long remainder)
+	{
+		double value = xBillions * 1000000000.0 + remainder;
+		return FormatCompact(value);
+	}
+
+	static string FormatCompact(double value)
+	{
+		if (value == 0) return "0";
+		if (value < 0) return "-" + FormatCompact(-value);
+
+		string suffix;
+		double scaled;
+
+		if (value >= 1e12) { suffix = "T"; scaled = value / 1e12; }
+		else if (value >= 1e9) { suffix = "B"; scaled = value / 1e9; }
+		else if (value >= 1e6) { suffix = "M"; scaled = value / 1e6; }
+		else if (value >= 1e3) { suffix = "K"; scaled = value / 1e3; }
+		else { suffix = ""; scaled = value; }
+
+		// 4 significant digits
+		int digits = (int)Math.Floor(Math.Log10(scaled)) + 1;
+		int decimals = Math.Max(0, 4 - digits);
+
+		return scaled
+			.ToString("F" + decimals)
+			.TrimEnd('0')
+			.TrimEnd('.') + suffix;
+	}
+
 	public ItemViewRow ToItemViewRow()
 	{
 		if (cachedItemRow == null)
@@ -140,8 +171,12 @@ public class DDEquipmentInfo
 		
 	
 			var user = this.UserEquipName ?? "";
-			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent)) ? user : $"{user} ({gen})");
+			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent) || (this.Type == "Currency")) ? user : $"{user} ({gen})");			
 
+			if (( this.Type == "Currency") && (name == "Mana Token"))
+			{				
+				name += $" ({FormatAmount(this.StoredMana, this.MinSell)})";				
+			}
 			
 			bool bIsEligibleForBest =
 				(this.Type == "Boots") ||
@@ -218,7 +253,7 @@ public class DDEquipmentInfo
 				Color1: Color1.ToCString(),
 				Color2: Color2.ToCString(),
 
-				IndexInFolder: IndexInFolder
+				IndexInFolder: IndexInFolder				
 			);
 		}
 		return cachedItemRow;
@@ -705,7 +740,7 @@ public class DDDatabase
 
 		e.FolderID = reader.ReadInt32();
 		e.bIsSecondary = reader.ReadByte() > 0 ? true : false;
-
+		
 		_ = reader.ReadBytes(40); // equipment_ids
 		_ = reader.ReadBytes(40); // equipment_tiers
 		_ = ReadLinearColor(reader); // linear color
@@ -715,7 +750,7 @@ public class DDDatabase
 		_ = reader.ReadByte(); // feature byte 1
 		_ = reader.ReadByte(); // feature byte 2
 
-		_ = reader.ReadBytes(40);  // feature array
+		_  = reader.ReadBytes(40);  // feature array
 
 		return e;
 	}
