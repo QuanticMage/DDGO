@@ -531,10 +531,10 @@ public class DDDatabase
 			int c2g = (int)Items[i].Color2.G * 100;
 			int c2b = (int)Items[i].Color2.B * 100;
 			int c2a = (int)Items[i].Color1.B * 100;
-			int flags = (Items[i].bNoSell > 0 ? 1 : 0) + (Items[i].bNoDrop > 0 ? 2 : 0);
+			int flags = ((Items[i].bNoSell > 0 ? 1 : 0) + (Items[i].bNoDrop > 0 ? 2 : 0)) + (Items[i].Stats[0] << 4);
 
 			// in the future use stat0 and not maxlevel
-			string dataForHash = $"{Items[i].Description}.{Items[i].Template}.{Items[i].MaxLevel}.{c1r}{c1g}{c1b}{c1a}.{c2r}{c2g}{c2b}{c2a}.{Items[i].NameVariantIdx}{Items[i].NameQualityIdx}{Items[i].NameResistIdx}.{flags}";
+			string dataForHash = $"{Items[i].Description}.{Items[i].Template}.{(Items[i].MaxLevel < 2000 ? Items[i].MaxLevel:0)}.{c1r}{c1g}{c1b}{c1a}.{c2r}{c2g}{c2b}{c2a}.{Items[i].NameVariantIdx}{Items[i].NameQualityIdx}{Items[i].NameResistIdx}.{flags}";
 
 			uint hash = ItemHash.StringToInt30(dataForHash);
 			
