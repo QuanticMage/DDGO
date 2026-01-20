@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "DDUP",
   "resources": {
-    "hash": "sha256-4p8LGxbLPO4iTt/w7GIjuF3I6XkYAX1smvnrgaFoq10=",
+    "hash": "sha256-GTogVQHCgyG2lH009HQbUNwFaxLmDLeNw0TGTnFnN5g=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-7Sr9r0634sTFicx8ls0XdrHWZCCap615Q5ByQIrsd0Y="
     },
@@ -9,7 +9,7 @@
       "dotnet.runtime.js": "sha256-OH8zlJkheyf8H9oAbu0wu1oQm9FKy/BKjDk4Bj/va3s="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-tKzn3fE7xFpTbBgTeFYsL1V7kLim+2jSWl8r79GDLpw="
+      "dotnet.native.wasm": "sha256-BTKJDuURWSqUvhYY7O1UGqtQ6DGrCzfm12UVnT67++A="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -49,8 +49,8 @@
       "System.Text.Json.wasm": "sha256-Z/FWnxJFAOFXi9AgNCKlBCVPRlU1VpAnLbFCyLnegtI=",
       "System.Text.RegularExpressions.wasm": "sha256-yg2PCbrOmPMI8E+Z9j0h5Eu9kLuvX7fUkI5vHJxJJX4=",
       "System.Threading.wasm": "sha256-l1N5mKqZevUN7pZgyKazOGsgCY/8IzY+BCQqre7Ty9c=",
-      "System.Private.CoreLib.wasm": "sha256-4izeVknBJN+e1JfpgrZQSTXxC6CCAp8tZnK4sJu1XnA=",
-      "DDUP.wasm": "sha256-4RJzehYQfXuBUEjsv95Ff2BwM+ooVymZGZuujxWqonw="
+      "System.Private.CoreLib.wasm": "sha256-b0n8qq7kgVi5BqV8eX90EqC9akYFlqTr0zY12nM26PY=",
+      "DDUP.wasm": "sha256-vu+sSflLBPEFsxya/mv9me1T32BKIeJU0LMoLJOssvg="
     }
   },
   "cacheBootResources": true,
