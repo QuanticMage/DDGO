@@ -350,6 +350,64 @@
   </div>
 </div>
 
+@* ===== Event Collection Overlay (page overlay, not a new window) ===== *@
+@if (_showEventCollection)
+{
+    <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
+        <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
+            <div class="event-overlay-header">
+                <div class="event-overlay-titlewrap">
+                    <div class="event-overlay-title">Event Collection</div>
+                    <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
+                </div>
+                <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+            </div>
+
+            <div class="event-overlay-tools">
+                @* IMPORTANT: use onchange (not oninput) to avoid a Blazor -> .NET roundtrip on every keystroke.
+                   This makes typing feel instant, while still applying the filter after you "finish" editing
+                   (Enter or blur). *@
+                <input class="event-search"
+                       placeholder="Search categories…"
+                       @onchange="OnEventSearchChanged" />
+            </div>
+
+            <div class="event-overlay-body">
+                @foreach (var group in VisibleEventCollection
+                    .GroupBy(x => x.Category)
+                    .OrderBy(g => GetCategoryOrderKey(g.Key))
+                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+                {
+                    var cat = SplitCategory(group.Key);
+                    <div class="event-cat">
+                        <div class="event-cat-hdr">
+                            <span class="event-cat-page">@cat.Page</span>
+                            <span class="event-cat-sep">›</span>
+                            <span class="event-cat-section">@cat.Section</span>
+                        </div>
+
+                        <div class="event-list">
+                            @foreach (var item in group
+                                .OrderByDescending(x => x.Price)
+                                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                            )
+                            {
+                                <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
+                                    <div class="event-line">
+                                        <div class="event-name">@item.Name</div>
+                                        <div class="event-price">@item.Price CVx</div>
+                                        <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 @if (_rows.Count == 0)
 {  
 }
@@ -817,9 +875,182 @@ else
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
 
+    // ===== Event Collection Overlay =====
+    private bool _showEventCollection = false;
+    private string _eventSearch = "";
+
+    private sealed record EventCollectionRow(
+        string Name,
+        string Category,
+        int Price,
+        int OwnedCount);
+
+    private List<EventCollectionRow> _eventCollection = new();
+
+    private IEnumerable<EventCollectionRow> VisibleEventCollection
+    {
+        get
+        {
+            if (_eventCollection.Count == 0)
+                return Array.Empty<EventCollectionRow>();
+
+            if (string.IsNullOrWhiteSpace(_eventSearch))
+                return _eventCollection;
+
+            var s = _eventSearch.Trim();
+            return _eventCollection.Where(x => x.Category?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false);
+        }
+    }
+
+    // Apply category filter only after the user finishes editing the textbox.
+    // Using onchange avoids a Blazor -> .NET roundtrip on every keystroke (which can feel laggy on big pages).
+    private void OnEventSearchChanged(ChangeEventArgs e)
+    {
+        _eventSearch = e.Value?.ToString() ?? "";
+        StateHasChanged();
+    }
+
     public void ShowEventCollection()
     {
-        
+        RebuildEventCollection();
+        _showEventCollection = true;
+        StateHasChanged();
+    }
+
+    private void CloseEventCollection()
+    {
+        _showEventCollection = false;
+        _eventSearch = "";
+        StateHasChanged();
+    }
+
+    private static (string Page, string Section) SplitCategory(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category)) return ("Other", "");
+
+        var parts = category.Split('>');
+        var page = (parts.Length > 0 ? parts[0] : category).Trim();
+        var section = (parts.Length > 1 ? parts[1] : "").Trim();
+        if (page.Equals("unknown", StringComparison.OrdinalIgnoreCase)) page = "Unknown";
+        return (string.IsNullOrWhiteSpace(page) ? "Other" : page, section);
+    }
+
+
+    // Desired category ordering for the Event Collection overlay
+    private static readonly string[] _eventCategoryOrder = new[]
+    {
+        "Weapons > Apprentice",
+        "Weapons > Huntress",
+        "Weapons > Monk",
+        "Weapons > Squire",
+        "Weapons > Exclusive",
+
+        "Accessories > High End Hats",
+        "Accessories > High End Masks",
+        "Accessories > High End Bracers",
+        "Accessories > Mid End Hats",
+        "Accessories > Mid End Masks",
+        "Accessories > Mid End Bracers",
+        "Accessories > Hats",
+        "Accessories > Shields",
+        "Accessories > Masks",
+        "Accessories > Bracers",
+        "Accessories > Armor Pieces",
+        "Accessories > Exclusive Armor Pieces",
+        "Accessories > Exclusives",
+
+        "Pets > Guardians",
+        "Pets > Streamer",
+        "Pets > DPS",
+        "Pets > Builder",
+        "Pets > Collectibles",
+        "Pets > Exclusives",
+
+        "Unknown",
+    };
+
+    private static readonly Dictionary<string, int> _eventCategoryOrderMap = BuildEventCategoryOrderMap();
+
+    private static Dictionary<string, int> BuildEventCategoryOrderMap()
+    {
+        var d = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < _eventCategoryOrder.Length; i++)
+            d[_eventCategoryOrder[i]] = i;
+        return d;
+    }
+
+    private static string NormalizeCategoryKey(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category)) return "Unknown";
+
+        // Stored categories are usually like "Pets > DPS"; some entries use "unknown"
+        var s = category.Trim();
+        if (s.Equals("unknown", StringComparison.OrdinalIgnoreCase))
+            return "Unknown";
+
+        // normalize spacing around '>'
+        var parts = s.Split('>');
+        if (parts.Length == 1)
+            return parts[0].Trim();
+
+        var page = parts[0].Trim();
+        var section = parts.Length > 1 ? parts[1].Trim() : "";
+        if (page.Equals("unknown", StringComparison.OrdinalIgnoreCase)) page = "Unknown";
+        return string.IsNullOrWhiteSpace(section) ? page : $"{page} > {section}";
+    }
+
+    private static int GetCategoryOrderKey(string category)
+    {
+        var key = NormalizeCategoryKey(category);
+        if (_eventCategoryOrderMap.TryGetValue(key, out var i))
+            return i;
+
+        // Unlisted categories go after the curated list but still keep stable ordering.
+        return 10_000;
+    }
+
+    private void RebuildEventCollection()
+    {
+        // Total: unique EventItem names in the price guide (guide has duplicates by design)
+        var all = EventPriceGuide.HashToEventInfo.Values;
+
+        // Build (unique-name) catalog using the most expensive entry as representative
+        var catalog = all
+            .GroupBy(x => x.ItemName, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var rep = g.OrderByDescending(x => x.Price).First();
+                return (Name: rep.ItemName, Category: rep.Category, Price: rep.Price);
+            })
+            .ToList();
+
+        TotalEventCount = catalog.Count;
+
+        // Owned counts: count how many of your _rows are events, and their hash resolves to an EventItemInfo
+        var ownedByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var r in _rows)
+        {
+            if (!r.IsEvent) continue;
+
+            if (!ItemHash.TryPhraseToInt30(r.FunHashString, out uint h))
+                continue;
+
+            if (!EventPriceGuide.HashToEventInfo.TryGetValue(h, out var info))
+                continue;
+
+            ownedByName[info.ItemName] = ownedByName.TryGetValue(info.ItemName, out var c) ? (c + 1) : 1;
+        }
+
+        _eventCollection = catalog
+            .Select(x => new EventCollectionRow(
+                Name: x.Name,
+                Category: x.Category,
+                Price: x.Price,
+                OwnedCount: ownedByName.TryGetValue(x.Name, out var c) ? c : 0))
+            .ToList();
+
+        CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
     public sealed record UiState(
@@ -1665,6 +1896,9 @@ private async Task DebouncedSaveAsync(CancellationToken token)
                     (v.Value, v.BestFor) = Ratings.GetBestValue(false, v);
                 }
             }
+
+            // Event collection counts + overlay data (unique names in guide, plus your owned counts)
+            RebuildEventCollection();
 
             CalculateVanityTotals();
             SetPriceStatus("Prices estimated by table", true);
