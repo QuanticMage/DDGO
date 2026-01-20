@@ -1250,6 +1250,7 @@ live-btn {
     gap: 8px;
     min-width: 100px;
     justify-content: center;
+    font: inherit;
 }
 
     .dz2-btn:active {
