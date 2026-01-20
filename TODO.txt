@@ -11,6 +11,8 @@ TODO:
 * (DONE) Support currency stacks
 * (DONE) Update event hashes with a little more security
 
+* Tooltips
+* Weapon + Pet stats
 
 
 
