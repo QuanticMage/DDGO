@@ -393,7 +393,7 @@ table.grid td.cell-quality-ult90[b-yrayc6w7vb] {
 }
 
 table.grid td.cell-health[b-yrayc6w7vb] {
-    background-color: #f07f7f30; /* was #fb7373 */
+    background-color: #f07f7f30; /* was #fb7373 */    
 }
 
 table.grid td.cell-damage[b-yrayc6w7vb] {
@@ -1423,6 +1423,24 @@ live-btn[b-yrayc6w7vb] {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+}
+/* Must-have stats (Gold Star) */
+.cell-stat-primary[b-yrayc6w7vb] {
+    color: #000;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary stats (Silver/Empty Star or partial match) */
+.cell-stat-side[b-yrayc6w7vb] {    
+    color: #888;
+    opacity: 0.6;   
+}
+
+/* Irrelevant stats for this build */
+.cell-stat-dimmed[b-yrayc6w7vb] {
+    color: #888;
+    opacity: 0.5;    
 }
 /* /Shared/MainLayout.razor.rz.scp.css */
 body[b-h2gurlbtpz] {
