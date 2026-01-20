@@ -360,6 +360,7 @@
                     <div class="event-overlay-title">Event Collection</div>
                     <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
                 </div>
+                <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
                 <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
             </div>
 
@@ -915,6 +916,21 @@ else
         RebuildEventCollection();
         _showEventCollection = true;
         StateHasChanged();
+    }
+
+    private async void ExportEventCollection()
+    {
+            if (_eventCollection == null || _eventCollection.Count == 0)
+        return;
+
+        // Alphabetical by name
+        var lines = _eventCollection
+            .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(x => $"{x.Name}\t{x.OwnedCount}");
+
+        var text = string.Join(Environment.NewLine, lines);
+
+        await JS.InvokeVoidAsync("copyToClipboard", text);
     }
 
     private void CloseEventCollection()
