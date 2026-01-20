@@ -4,14 +4,16 @@ NOTES:
 
 TODO:
 
-* (DONE)Reload and New file buttons have wrong font
-* (DONE)Mana tokens 
-* (DONE)Censor also censors tanscendent cats and unicorns
-* (DONE)Remove () name from common pets
+* (DONE) Reload and New file buttons have wrong font
+* (DONE) Mana tokens 
+* (DONE) Censor also censors tanscendent cats and unicorns
+* (DONE) Remove () name from common pets
+* (DONE) Support currency stacks
+
 
 
 * Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
-
+* Icon + Stats for pets and weapons
 
 
 * Achievement list
