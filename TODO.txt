@@ -9,6 +9,8 @@ TODO:
 * (DONE) Censor also censors tanscendent cats and unicorns
 * (DONE) Remove () name from common pets
 * (DONE) Support currency stacks
+* (DONE) Update event hashes with a little more security
+
 
 
 
