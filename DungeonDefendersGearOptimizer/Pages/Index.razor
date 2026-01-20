@@ -377,7 +377,7 @@
                     .GroupBy(x => x.Category)
                     .OrderBy(g => GetCategoryOrderKey(g.Key))
                     .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
-                {
+                {                    
                     var cat = SplitCategory(group.Key);
                     <div class="event-cat">
                         <div class="event-cat-hdr">
@@ -897,8 +897,8 @@ else
             if (string.IsNullOrWhiteSpace(_eventSearch))
                 return _eventCollection;
 
-            var s = _eventSearch.Trim();
-            return _eventCollection.Where(x => x.Category?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false);
+            var s = _eventSearch.Trim();            
+            return _eventCollection.Where(x => ((x.Category != null) && (x.Category.Contains(s, StringComparison.OrdinalIgnoreCase))) || ((x.Name != null) && (x.Name.Contains(s, StringComparison.OrdinalIgnoreCase))));
         }
     }
 

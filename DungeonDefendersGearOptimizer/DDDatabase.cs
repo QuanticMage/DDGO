@@ -450,6 +450,8 @@ public class DDDatabase
 	// ------------------ DERIVED DATA ----------------------
 	private void BuildStringsFromData()
 	{
+		List<string> AllEventHashes = new List<string>();
+
 		for (int i = 0; i < Items.Count; i++)
 		{
 			var itemInfo = Items[i];
@@ -472,7 +474,7 @@ public class DDDatabase
 			string type = "Unknown";
 			string set = "";
 			bool isArmor = false;
-			Items[i].Description = "Unknown";
+			//Items[i].Description = "Unknown";
 			Items[i].GeneratedName = (Items[i].ForgerName != "")? Items[i].ForgerName : Items[i].Template;
 
 			Items[i].Quality = quality;
@@ -520,7 +522,8 @@ public class DDDatabase
 				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
 
 
-				Items[i].Description = entry.Description;
+				if (Items[i].Description.Trim() == "")
+					Items[i].Description = entry.Description;
 				if ((entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
 				{
 					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
@@ -569,6 +572,27 @@ public class DDDatabase
 			Items[i].Set = set;
 
 			Items[i].bIsEvent = (EventPriceGuide.HashToEventInfo.ContainsKey(hash));
+
+			string n = (Items[i].UserEquipName.Trim() == "") ? Items[i].GeneratedName : Items[i].UserEquipName;
+
+			/*
+			if (n.StartsWith("Dragon"))
+			{
+				Console.WriteLine("Dragon : " + Items[i].Description);
+			}
+			if (Items[i].FunHashString == "Grim Tactical Monk Explodes Luminous Destroyer")
+			{
+				Console.WriteLine("Dragon : " + Items[i].Description); 
+			}
+				string n = (Items[i].UserEquipName.Trim() == "") ? Items[i].GeneratedName : Items[i].UserEquipName;
+				string s = n + ", \"" + Items[i].FunHashString + "\"";
+				if (!AllEventHashes.Contains(s) && (n.Contains("Speedy Cloud Bracers")))
+				{
+					AllEventHashes.Add(s);
+					Console.WriteLine(s);
+				}
+			*/
+
 			if (Items[i].bIsEvent)
 			{
 				Items[i].EventItemValue = EventPriceGuide.HashToEventInfo[hash].Price;
@@ -587,7 +611,7 @@ public class DDDatabase
 		{
 			var currentItem = Items[i];			
 			// Look up the pre-sorted list for this specific location
-			Items[i].IndexInFolder = itemsByLocation[currentItem.Location].IndexOf(currentItem);
+			Items[i].IndexInFolder = itemsByLocation[currentItem.Location].IndexOf(currentItem);			
 		}
 	}
 
