@@ -4,20 +4,7 @@ NOTES:
 
 TODO:
 
-*** Auto-reload with data
-*** Time stamp (Data last loaded X/Y/Z) with button to reload last data file / open file chooser (where we save off file)
-*** Drag always works
-
-1. Fix double-load
-2. Persist
-3. Add in loaders + UI
-
-Jan 19, 2026 V1.0 
-* Settings and last-loaded-file persistence
-* Much better file loading and reloading
-* Firefox compatibilty (to the extent that its possible).  Best experience is with Chrome and Edge
-
-
+* Increase prominence of selected tower rows / highlight them
 
 
 * Achievement list
@@ -30,7 +17,7 @@ Jan 19, 2026 V1.0
 * Figure out weird striping on table
 * Store options and cache file
 * Options - show best, censor
-* Clean up filters
+* Clean up filters	
 * Explain ratings better
 * Column resizing
 * Use for loops for rows
@@ -125,4 +112,9 @@ TODO:
 * Weapon and pet non-stat data (move speed, size, weapon damage, etc.)
 
 
+
+Jan 19, 2026 V1.0 
+* Settings and last-loaded-file persistence
+* Much better file loading and reloading
+* Firefox compatibilty (to the extent that its possible).  Best experience is with Chrome and Edge
 
