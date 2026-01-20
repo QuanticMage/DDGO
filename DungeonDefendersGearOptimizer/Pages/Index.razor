@@ -1050,6 +1050,10 @@ else
                 OwnedCount: ownedByName.TryGetValue(x.Name, out var c) ? c : 0))
             .ToList();
 
+
+/*      var uncollectedEvents = _eventCollection
+    .Where(x => x.OwnedCount == 0)
+    .ToList();*/
         CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
