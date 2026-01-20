@@ -171,7 +171,13 @@ public class DDEquipmentInfo
 		
 	
 			var user = this.UserEquipName ?? "";
-			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent) || (this.Type == "Currency")) ? user : $"{user} ({gen})");			
+			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent) || (this.Type == "Currency")) ? user : $"{user} ({gen})");
+
+			// avoid () for common pets
+			if ((user != null) && ((gen == "GearCat") || (gen.Trim() == "") || (gen == "Griffin") || (gen == "Basic Familar") || (gen == "Aura"))) 
+			{
+				name = user;
+			}
 
 			if (( this.Type == "Currency") && (name == "Mana Token"))
 			{				
