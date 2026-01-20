@@ -125,7 +125,7 @@
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
             <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
             <div class="credits-thanks">Price estimates by <i>Shiro and Sesar</i></div>
-            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, SteveTrevor, Thales, and the DDRnG community</i></div>            
+            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, SteveTrevor, Thales, and DDRnG</i></div>            
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -338,10 +338,15 @@
 
   <div class="metric-card">
     <span class="metric-label">Vanity Account Event Total</span>
-    <div class="metric-main">
+     <div class="metric-main">
       <span class="metric-number">@EventTotalValue</span>
       <span class="metric-type">CV</span>
+
+      <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
+       @CollectedEventCount / @TotalEventCount
+      </button>
     </div>
+
   </div>
 </div>
 
@@ -809,6 +814,13 @@ else
     private DateTime? _lastLoadedAt;
     private UiState _ui = DefaultState();
 
+    private int CollectedEventCount = 0;
+    private int TotalEventCount = 0;
+
+    public void ShowEventCollection()
+    {
+        
+    }
 
     public sealed record UiState(
         int Version = 1,

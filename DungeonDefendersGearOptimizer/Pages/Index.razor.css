@@ -602,9 +602,32 @@ h1 {
     border: 1px solid #e0e0e0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     /* Optional: gives cards a consistent minimum width */
-    min-width: 150px;
+    min-width: 200px;
+    position: relative;
+    max-height: 60px;
+}
+.metric-mini-pill {
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #4b4f73;
+    border: 1px solid #e1e2ee;
+    background: #f6f7fb;
+    padding: 2px 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
+    .metric-mini-pill:hover {
+        filter: brightness(0.98);
+    }
+
+    .metric-mini-pill:focus-visible {
+        outline: 2px solid #6a6aff55;
+        outline-offset: 2px;
+    }
 .metric-label {
     font-size: 11px;
     font-weight: 700;
@@ -633,6 +656,53 @@ h1 {
     text-transform: capitalize;
 }
 
+/* CTA: small, bottom-right, low weight */
+.metric-cta {
+    margin-top: 0;
+    padding-top: 4px;
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    background: none;
+    border: 0;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6a6aff;
+    opacity: 0.9;
+}
+
+    .metric-cta:hover {
+        text-decoration: underline;
+        opacity: 1;
+    }
+
+    .metric-cta:active {
+        transform: translateY(1px);
+    }
+
+/* Make the "x/y" feel like the main affordance */
+.metric-cta-count {
+    font-weight: 800;
+}
+
+.metric-cta-label {
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.metric-cta-arrow {
+    opacity: 0.8;
+}
+
+/* Optional: keyboard focus ring */
+.metric-cta:focus-visible {
+    outline: 2px solid #6a6aff55;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
 
 .highlighted-card-type {
     font-size: 1.5rem;
