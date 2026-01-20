@@ -1229,10 +1229,14 @@ else
     private string GetValue( int value, ItemViewRow r )
     {
         string s = value.ToString();
-        if (!r.Quality.EndsWith("++") || !IsCensorEnabled)
-            return s;
+        
+        if ( ((r.Quality == "Ult++") && IsCensorEnabled) ||
+            (((r.Quality == "Ult++") || (r.Quality == "Ult+") || (r.Quality == "Ult90") || (r.Quality == "Ult93") || (r.Quality == "Supreme") || (r.Quality == "Transcendent"))
+              && ((r.Name == "Unicorn") || (r.Name == "Rainbow Unicorn") || (r.Name == "Propeller Cat"))))
+            return s.Substring(0, s.Length - 1) + "x";            
         else
-            return s.Substring(0, s.Length - 1) + "x";
+            return s;
+            
     }
 
     int VisibleCount => _rows.Count(r => !r.IsHidden);
