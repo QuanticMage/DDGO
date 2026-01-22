@@ -14,6 +14,9 @@ TODO:
 * Tooltips
 * Weapon + Pet stats
 
+* Sort by sides after primary
+* "Require Sides to be nonzero"
+* Explain things first
 
 
 * Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
