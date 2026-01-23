@@ -9,6 +9,13 @@ TODO:
 
 * ult acc?  25cv for ult, 25cv for over cap - look at auctions
 
+“Stars show how good this item is at what it does best.
+Weak stats don’t lower the rating.”
+
+* Click to exclude individual pieces from best calc
+* Best doesn't use tiebreakers (sides)
+* EV ratio 6:5
+
 
 * Tooltips
 * Weapon + Pet stats
