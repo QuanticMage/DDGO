@@ -106,12 +106,7 @@
     async function tryLoadCachedDunBytes() {
         const buf = await idbGet(LAST_DUN_BYTES_KEY);
         if (!buf) return null;
-        return new Uint8Array(buf);
-    }
-
-    async function tryLoadCachedFilename() {
-        const fn = await idbGet(LAST_FILENAME_KEY);
-        return typeof fn === "string" ? fn : null;
+        return Array.from(new Uint8Array(buf));
     }
 
     async function pickFile(dotNetRef) {
@@ -195,6 +190,12 @@
             return false;
         }
     }
+
+    async function tryLoadCachedFilename() {
+        const fn = await idbGet(LAST_FILENAME_KEY);
+        return (typeof fn === "string") ? fn : null;
+    }
+/*
     async function tryLoadCachedFilename(dotNetRef) {
         try {
             const handle = await idbGet(LAST_HANDLE_KEY);
@@ -210,7 +211,7 @@
             return false;
         }
     }
-
+    */
   
     return {
         init: function (_elementIdIgnored, dotNetRef) {
