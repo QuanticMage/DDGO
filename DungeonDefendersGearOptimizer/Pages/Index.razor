@@ -145,7 +145,6 @@
     <span class="utility-label"><font face="Arial">⚙️</font></span>
 
     <label class="utility-toggle">
-        @* Added @onchange to trigger UI refresh when toggled *@
         <input type="checkbox"
                class="tool-filter"
                checked="@_censor"
@@ -154,7 +153,6 @@
     </label>
 
     <label class="utility-toggle">
-        @* Added @onchange to trigger UI refresh when toggled *@
         <input type="checkbox"
                class="tool-filter"
                checked="@_highlight"
@@ -163,7 +161,6 @@
     </label>
     
     <label class="utility-toggle">
-        @* Added @onchange to trigger UI refresh when toggled *@
         <input type="checkbox"
                class="tool-filter"
                checked="@_livePrices"
@@ -173,7 +170,6 @@
 
     <label class="utility-select">
         <span>Itembox size</span>
-        @* Added @onchange to recalculate page numbers when size changes *@
         <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged">
             <option value="3x5">3×5</option>
             <option value="4x5">4×5</option>
@@ -241,7 +237,7 @@
     private List<string> _selectedSets = new();
     private List<string> _selectedOther = new();
 
-    // Bind targets (so we can react immediately when chips change)
+    // Bind targets 
     private List<string> SelectedTypes
     {
         get => _selectedTypes;
@@ -306,11 +302,10 @@
 
     private readonly List<FilterChips.Option> _otherOptions = new()
     {
-        // MUTEX subset: event tri-modal via two mutually-exclusive toggles + implicit default
+        
         new("Only Events",    MutexGroup: "eventMode"),
         new("Exclude Events", MutexGroup: "eventMode"),
 
-        // Normal toggles (stackable with each other and with event mode)
         new("Only Equipped", MutexGroup: "equipMode"),        
         new("Exclude Equipped", MutexGroup: "equipMode"),        
 
@@ -350,7 +345,6 @@
   </div>
 </div>
 
-@* ===== Event Collection Overlay (page overlay, not a new window) ===== *@
 @if (_showEventCollection)
 {
     <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
@@ -365,9 +359,6 @@
             </div>
 
             <div class="event-overlay-tools">
-                @* IMPORTANT: use onchange (not oninput) to avoid a Blazor -> .NET roundtrip on every keystroke.
-                   This makes typing feel instant, while still applying the filter after you "finish" editing
-                   (Enter or blur). *@
                 <input class="event-search"
                        placeholder="Search categories…"
                        @onchange="OnEventSearchChanged" />
@@ -609,7 +600,7 @@ else
                     <div class="col-resizer"></div>
                 </th>
 
-                <th class="sortable"  data-tooltip="Location (and page) of item when sorting by Level">
+                <th class="sortable"  data-tooltip="@Tips["Location"]">
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
                         Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
                     </button>
@@ -904,7 +895,6 @@ else
     }
 
     // Apply category filter only after the user finishes editing the textbox.
-    // Using onchange avoids a Blazor -> .NET roundtrip on every keystroke (which can feel laggy on big pages).
     private void OnEventSearchChanged(ChangeEventArgs e)
     {
         _eventSearch = e.Value?.ToString() ?? "";
@@ -999,12 +989,10 @@ else
     {
         if (string.IsNullOrWhiteSpace(category)) return "Unknown";
 
-        // Stored categories are usually like "Pets > DPS"; some entries use "unknown"
         var s = category.Trim();
         if (s.Equals("unknown", StringComparison.OrdinalIgnoreCase))
             return "Unknown";
 
-        // normalize spacing around '>'
         var parts = s.Split('>');
         if (parts.Length == 1)
             return parts[0].Trim();
@@ -1021,8 +1009,7 @@ else
         if (_eventCategoryOrderMap.TryGetValue(key, out var i))
             return i;
 
-        // Unlisted categories go after the curated list but still keep stable ordering.
-        return 10_000;
+        return 10000;
     }
 
     private void RebuildEventCollection()
@@ -1125,8 +1112,7 @@ else
         };
     }
 
-
-    // If you want the “newer version…” line (otherwise keep false forever)
+    // remove some day
     private bool _showOutOfDateHint = false;
 
     private string LastLoadedText =>
@@ -1184,9 +1170,10 @@ else
     // TOOLTIPS GO HERE
 
     private static readonly Dictionary<string, string> Tips = new()
-    {
-        ["Rating"] = "Rating for the given selected\n stats.  Small number is sides.",
-        ["Value"] = "Estimated value based on highest value role.  \nStars show how good it is relative\n to your best piece of that type for any role.\nIf you see a wrong price, \nlet Shiro and Mage know.",       
+    {  
+        ["Rating"] =    "Rating for the given selected\n stats.  Small number is sides.",
+        ["Value"] =     "Estimated value based on highest value role.  \nStars show how good it is relative\n to your best piece of that type for any role.\nIf you see a wrong price, \nlet Shiro and Mage know.",
+        ["Location"] =  "Location (and page) of item when sorting by Level"
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -1321,7 +1308,6 @@ else
 
             bool includeItem = typeOk && setOk;
 
-            // ---- "Other" chip logic (AND across enabled toggles) ----
             if (onlyEvents)
                 includeItem &= v.IsEvent;
             if (excludeEvents)
@@ -1364,7 +1350,7 @@ else
     private void SetMode(string mode)
     {
         _selectedMode = mode;
-
+        // TODO: this is ugly.  Make it a structure or bitflag or something
         // ignore = 0, rating = 1, sides = 2
         int[] sum = new int[3];
         bFactorInResists = false;
@@ -1806,14 +1792,15 @@ private async Task DebouncedSaveAsync(CancellationToken token)
             if (ok) return;
         }
 
-        var oldFileName = await JS.InvokeAsync<string?>("dropzone.tryLoadCachedFilename", _dotNetRef); // from IndexedDB
-        var cached = await JS.InvokeAsync<byte[]?>("dropzone.tryLoadCachedDunBytes", _dotNetRef); // from IndexedDB
+        var oldFileName = await JS.InvokeAsync<string?>("dropzone.tryLoadCachedFilename"); // from IndexedDB
+        var cachedList = await JS.InvokeAsync<int[]?>("dropzone.tryLoadCachedDunBytes");
+        var cached = cachedList?.Select(i => (byte)i).ToArray();
         if (cached is { Length: > 0 })
             await LoadDunBytesAsync(oldFileName ??"", cached);
     }
 
 
-    static UiState NormalizeV1(UiState s)
+    static UiState NormalizeV1(UiState s)   
     {
         return s with
         {
@@ -1932,11 +1919,6 @@ private async Task DebouncedSaveAsync(CancellationToken token)
 
             ApplyChipFilters();
 
-            /*// Default view: armor pieces (4 slots), all armor sets, exclude events.
-            _selectedTypes = new() { "Helmet", "Torso", "Gauntlet", "Boots" };
-            _selectedSets = new() { "Chain", "Mail", "Pristine", "Leather", "Plate" };
-            _selectedOther = new() { "Exclude Events" };
-            SetMode("Builder App");*/
 
             _showContent = true;
         }

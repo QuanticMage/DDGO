@@ -17,7 +17,7 @@
 
 @code {
     private bool _isVisible;
-    private string _text = "";
+    private MarkupString _text = default;
     private double _x, _y;
 
     private bool _subscribed;
@@ -42,11 +42,11 @@
         // Position from getBoundingClientRect() is viewport-relative,
         // so tooltip should be position: fixed in CSS.
         const double dx = 0;
-        const double dy = -10; // slight lift above the element
+        const double dy = -5; // slight lift above the element
 
         _ = InvokeAsync(() =>
         {
-            _text = text;
+            _text = new MarkupString(text);
             _x = x + dx;
             _y = y + dy;
             _isVisible = true;
@@ -59,7 +59,7 @@
         _ = InvokeAsync(() =>
         {
             _isVisible = false;
-            _text = ""; // optional, but helps avoid stale flashes
+            _text = default; // optional, but helps avoid stale flashes
             StateHasChanged();
         });
     }

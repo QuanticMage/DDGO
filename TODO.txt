@@ -4,12 +4,11 @@ NOTES:
 
 TODO:
 
-* (DONE) Reload and New file buttons have wrong font
-* (DONE) Mana tokens 
-* (DONE) Censor also censors tanscendent cats and unicorns
-* (DONE) Remove () name from common pets
-* (DONE) Support currency stacks
-* (DONE) Update event hashes with a little more security
+* Currency badge ( Coal + Frags + Zamira(?) + Mana tokens / raw mana), include CV value 
+* Maybe give price to coal + Frags + Zamira
+
+* ult acc?  25cv for ult, 25cv for over cap - look at auctions
+
 
 * Tooltips
 * Weapon + Pet stats
@@ -21,6 +20,10 @@ TODO:
 
 * Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
 * Icon + Stats for pets and weapons
+
+* Opera - remove button
+* Brave - why won't it save between sessions
+* Safari - test
 
 
 * Achievement list
@@ -133,3 +136,10 @@ Jan 19, 2026 V1.0
 * Much better file loading and reloading
 * Firefox compatibilty (to the extent that its possible).  Best experience is with Chrome and Edge
 
+v1.2
+* (DONE) Reload and New file buttons have wrong font
+* (DONE) Mana tokens 
+* (DONE) Censor also censors tanscendent cats and unicorns
+* (DONE) Remove () name from common pets
+* (DONE) Support currency stacks
+* (DONE) Update event hashes with a little more security
