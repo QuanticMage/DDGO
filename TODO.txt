@@ -6,15 +6,22 @@ TODO:
 
 * Currency badge ( Coal + Frags + Zamira(?) + Mana tokens / raw mana), include CV value 
 * Maybe give price to coal + Frags + Zamira
-
+* Make price column wider
 * ult acc?  25cv for ult, 25cv for over cap - look at auctions
 
 “Stars show how good this item is at what it does best.
 Weak stats don’t lower the rating.”
 
+Hover over color for value
+
+
+* 3 res
+* Totals and selection
+
 * Click to exclude individual pieces from best calc
 * Best doesn't use tiebreakers (sides)
 * EV ratio 6:5
+
 
 
 * Tooltips
