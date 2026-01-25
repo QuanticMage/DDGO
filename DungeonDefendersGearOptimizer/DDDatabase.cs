@@ -75,6 +75,11 @@ public struct DDLinearColor
 		b = Clamp01(b);
 		a = Clamp01(a); // A is clamped, not normalized
 
+
+		r = (float)Math.Pow(r, 1 / 2.2);
+		g = (float)Math.Pow(g, 1 / 2.2);
+		b = (float)Math.Pow(b, 1 / 2.2);
+
 		// --- Convert to 0–255 ---
 		uint Ri = (uint)(r * 255.0f + 0.5f);
 		uint Gi = (uint)(g * 255.0f + 0.5f);
@@ -581,37 +586,37 @@ public class DDDatabase
 				if ((Items[i].Color1.A == 1) && (Items[i].Color1.R == 0) && (Items[i].Color1.G == 0) && (Items[i].Color1.B == 0))
 				{
 					// use color set
-					int colorSet = Items[i].PrimaryColorSet;
-					if ((entry.PrimaryColorSets != null) && (entry.PrimaryColorSets.Count > 0))
-					{
-						if ((colorSet < 0) || (colorSet >= entry.PrimaryColorSets.Count)) colorSet = 0;
-
-						IconColor1 = entry.PrimaryColorSets[colorSet];
-						IconColor1.Scale(entry.IconColorMulPrimary);
-						IconColor1.Add(entry.IconColorAddPrimary);
-					}
-				}
-				else // override
-				{
-					IconColor1.Add(entry.IconColorAddPrimary);
-				}
-
-				if ((Items[i].Color2.A == 1) && (Items[i].Color2.R == 0) && (Items[i].Color2.G == 0) && (Items[i].Color2.B == 0))
-				{
-					// use color set
 					int colorSet = Items[i].SecondaryColorSet;
 					if ((entry.SecondaryColorSets != null) && (entry.SecondaryColorSets.Count > 0))
 					{
 						if ((colorSet < 0) || (colorSet >= entry.SecondaryColorSets.Count)) colorSet = 0;
 
-						IconColor2 = entry.SecondaryColorSets[colorSet];
-						IconColor2.Scale(entry.IconColorMulSecondary);
-						IconColor2.Add(entry.IconColorAddSecondary);
+						IconColor1 = entry.SecondaryColorSets[colorSet];
+						IconColor1.Scale(entry.IconColorMulSecondary);
+						IconColor1.Add(entry.IconColorAddSecondary);
 					}
 				}
 				else // override
 				{
-					IconColor2.Add(entry.IconColorAddSecondary);
+					IconColor1.Add(entry.IconColorAddSecondary);
+				}
+
+				if ((Items[i].Color2.A == 1) && (Items[i].Color2.R == 0) && (Items[i].Color2.G == 0) && (Items[i].Color2.B == 0))
+				{
+					// use color set
+					int colorSet = Items[i].PrimaryColorSet;
+					if ((entry.PrimaryColorSets != null) && (entry.PrimaryColorSets.Count > 0))
+					{
+						if ((colorSet < 0) || (colorSet >= entry.PrimaryColorSets.Count)) colorSet = 0;
+
+						IconColor2 = entry.PrimaryColorSets[colorSet];
+						IconColor2.Scale(entry.IconColorMulPrimary);
+						IconColor2.Add(entry.IconColorAddPrimary);
+					}
+				}
+				else // override
+				{
+					IconColor2.Add(entry.IconColorAddPrimary);
 				}			
 			}
 			Items[i].IconColor1 = IconColor1;
