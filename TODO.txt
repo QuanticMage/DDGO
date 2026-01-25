@@ -13,7 +13,29 @@ TODO:
 Weak stats don’t lower the rating.”
 
 Hover over color for value
+Filter based on quality of armor
 
+Something I think that is worth mentioning is the possibility of a hero wanting negative stats
+In this case a Jester
+
+
+So to be clear-- you would like it to show the rating of the set it would be best for, not the currently selected one (price already behaves like this)
+Five — 1:51 PM
+yea i would want it to have a sort toggle that shows its best rating in combination with its pirce and "Best for"
+just to give an idea of how good it is without needing to click around
+Mage — 1:52 PM
+that makes sense.  The biggest reason I didnt' have something like that is that the ratings aren't on the same scale between pieces;  TRange sets have ratings much lower than Builder App for instance.
+I can make another category which is just "Show Best Rating" maybe (on the row with Builder App, Gunwitch, etc)
+Five — 1:52 PM
+well you could sort by estimated value and then just have rating on the side
+
+* Glass + Defenders set => Events
+
+* Plate should come after Pristine on the filter list\
+* Gauntlet should come before Torso
+
+also is it possible for like weapons and pet dps to maybe somehow get added? It would be really cool to see how much x dps weapon or pet is worth and to know what you have
+I dont wanna sound super demanding or anything. This tool is very useful and I'm glad it now exists.
 
 * 3 res
 * Totals and selection

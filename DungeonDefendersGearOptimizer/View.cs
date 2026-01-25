@@ -88,6 +88,14 @@ namespace DDUP
 		public int ResistanceTarget { get; set; }
 		public int MaxStat { get; set; }
 		public int IndexInFolder { get; set; }
+
+		public int IconX { get; set; }
+		public int IconY { get; set; }
+		public int IconX1 { get; set; }
+		public int IconY1 { get; set; }
+		public int IconX2 { get; set; }
+		public int IconY2 { get; set; }
+
 		public string FunHashString { get; set; }
 		public ItemViewRow(
 				int Rating,
@@ -134,7 +142,9 @@ namespace DDUP
 				bool IsEquipped,
 				bool IsArmor,
 				bool IsEligibleForBest,
-				int IndexInFolder)
+				int IndexInFolder,
+
+				int IconX, int IconY, int IconX1, int IconY1, int IconX2, int IconY2)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -183,6 +193,12 @@ namespace DDUP
 			this.Color1 = Color1;
 			this.Color2 = Color2;
 			this.IndexInFolder = IndexInFolder;
+			this.IconX1 = IconX1;
+			this.IconY1 = IconY1;
+			this.IconX2 = IconX2;
+			this.IconY2 = IconY2;
+			this.IconX = IconX;
+			this.IconY = IconY;
 		}
 	}
 }
