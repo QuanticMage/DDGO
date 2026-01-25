@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dungeon Defenders Gear Optimizer</title>
@@ -10,15 +11,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Belanosima:wght@400&display=swap" rel="stylesheet">
-
 </head>
 
-<body width="100%" >
+<body width="100%">
 
     <div id="app">Loading...</div>
 
     <script src="dropzone.js"></script>
     <script src="colresize.js"></script>
+    <script src="atlasIconsCached.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 
     <script>
@@ -118,19 +119,19 @@
             }, true);
         };
 
-		window.appState = {
-			get: (key) => localStorage.getItem(key),
-			set: (key, value) => localStorage.setItem(key, value),
-			remove: (key) => localStorage.removeItem(key)
+        window.appState = {
+            get: (key) => localStorage.getItem(key),
+            set: (key, value) => localStorage.setItem(key, value),
+            remove: (key) => localStorage.removeItem(key)
         };
 
-		window.copyToClipboard = async (text) => {
-			if (navigator.clipboard?.writeText) {
-				await navigator.clipboard.writeText(text);
-				return true;
-			}
-			return false;
-		};
+        window.copyToClipboard = async (text) => {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+            return false;
+        };
     </script>
 
 
