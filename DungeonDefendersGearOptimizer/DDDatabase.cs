@@ -596,7 +596,7 @@ public class DDDatabase
 					IconColor1.Add(entry.IconColorAddPrimary);
 				}
 
-				if ((Items[i].Color1.A == 1) && (Items[i].Color1.R == 0) && (Items[i].Color1.G == 0) && (Items[i].Color1.B == 0))
+				if ((Items[i].Color2.A == 1) && (Items[i].Color2.R == 0) && (Items[i].Color2.G == 0) && (Items[i].Color2.B == 0))
 				{
 					// use color set
 					int colorSet = Items[i].SecondaryColorSet;

@@ -44,6 +44,13 @@ I dont wanna sound super demanding or anything. This tool is very useful and I'm
 * Best doesn't use tiebreakers (sides)
 * EV ratio 6:5
 
+Kraken cannon colors
+Santa hat colrors swapped
+Frozen rifle extra overlay / wrong overlay
+weird textures
+Gamma/ linear scaling?
+Why were colors swapped?  does that mess with add/mul math?
+Figure it out through the pipeline
 
 
 * Tooltips
