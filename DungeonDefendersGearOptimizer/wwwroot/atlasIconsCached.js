@@ -11,6 +11,7 @@
     ctx.imageSmoothingEnabled = false;
 
     function init(atlasUrl) {
+        clearCache();
         atlas = new Image();
         atlas.decoding = "async";
         atlas.src = atlasUrl;
