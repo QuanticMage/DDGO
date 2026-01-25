@@ -1,4 +1,5 @@
 ﻿using DDUP;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
@@ -30,6 +31,27 @@ public enum DDStat : int
 public struct DDLinearColor
 {
 	public float R, G, B, A;
+
+	public DDLinearColor( float r, float g, float b, float a )
+	{
+		R = r; G = g; B = b; A = a;
+	}
+
+	public void Scale( float amt )
+	{
+		R *= amt;
+		G *= amt;
+		B *= amt;
+		A *= amt;
+	}
+	public void Add(DDLinearColor o)
+	{
+		R += o.R;
+		G += o.G;
+		B += o.B;
+		A += o.A;
+	}
+
 	public string ToCString()
 	{
 		float r = R;
@@ -99,6 +121,7 @@ public class DDEquipmentInfo
 	public int LocX, LocY, LocZ;
 	public byte bUpgradable, bRenameAtMax, bNoSell, bNoDrop, bAutoLock, bOnceEffect, bLocked, ManualLR;
 	public DDLinearColor Color1, Color2;
+	public DDLinearColor IconColor1, IconColor2;
 	public string GeneratedName = "";
 	public string UserEquipName = "";
 	public string ForgerName = "";
@@ -118,6 +141,13 @@ public class DDEquipmentInfo
 	public bool bIsEvent;
 	public bool bIsEquipped;
 	public bool bIsMissingResists;
+
+	public int IconX;
+	public int IconY;
+	public int IconX1;
+	public int IconY1;
+	public int IconX2;
+	public int IconY2;
 
 	public int EventItemValue = 0;
 	public string FunHashString = "";
@@ -164,12 +194,12 @@ public class DDEquipmentInfo
 			static int Resist(DDEquipmentInfo x, int i)
 				=> (x.ResistAmt is { Length: > 0 } && i >= 0 && i < x.ResistAmt.Length) ? x.ResistAmt[i] : 0;
 
+
 			// Name rule:
 			// - If UserEquipName empty => GeneratedName
 			// - Else => "UserEquipName (GeneratedName)"
 			var gen = Regex.Replace(this.GeneratedName, "<[^>]*>", "").Trim();
 		
-	
 			var user = this.UserEquipName ?? "";
 			var name = string.IsNullOrWhiteSpace(user) ? gen : ((this.bIsArmor || (gen==user) || (bIsEvent) || (this.Type == "Currency")) ? user : $"{user} ({gen})");
 
@@ -261,10 +291,16 @@ public class DDEquipmentInfo
 				MaxStat: maxStatLevel,
 				ResistanceTarget: maxR,
 				FunHashString: this.FunHashString,
-				Color1: Color1.ToCString(),
-				Color2: Color2.ToCString(),
+				Color1: IconColor1.ToCString(),
+				Color2: IconColor2.ToCString(),
 
-				IndexInFolder: IndexInFolder				
+				IndexInFolder: IndexInFolder,
+				IconX: IconX,
+				IconY: IconY,
+				IconX1: IconX1,
+				IconY1: IconY1, 
+				IconX2: IconX2,
+				IconY2: IconY2
 			);
 		}
 		return cachedItemRow;
@@ -480,9 +516,13 @@ public class DDDatabase
 			Items[i].Quality = quality;
 			Items[i].Idx = i;
 
+			DDLinearColor IconColor1 = Items[i].Color1;
+			DDLinearColor IconColor2 = Items[i].Color2;
+
 			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
 			{
 				ItemEntry entry = ItemTemplateInfo.Map[itemInfo.Template];
+		
 				if (entry.EquipmentType == EquipmentType.Weapon) { type = "Weapon"; }
 				else if (entry.EquipmentType == EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
 				else if (entry.EquipmentType == EquipmentType.Torso) { type = "Torso"; isArmor = true; }
@@ -528,8 +568,54 @@ public class DDDatabase
 				{
 					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
 					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
-				}				
+				}
+
+				Items[i].IconX = entry.IconX;
+				Items[i].IconY = entry.IconY;
+				Items[i].IconX1 = entry.IconX1;
+				Items[i].IconY1 = entry.IconY1;
+				Items[i].IconX2 = entry.IconX2;
+				Items[i].IconY2 = entry.IconY2;
+
+				
+				if ((Items[i].Color1.A == 1) && (Items[i].Color1.R == 0) && (Items[i].Color1.G == 0) && (Items[i].Color1.B == 0))
+				{
+					// use color set
+					int colorSet = Items[i].PrimaryColorSet;
+					if ((entry.PrimaryColorSets != null) && (entry.PrimaryColorSets.Count > 0))
+					{
+						if ((colorSet < 0) || (colorSet >= entry.PrimaryColorSets.Count)) colorSet = 0;
+
+						IconColor1 = entry.PrimaryColorSets[colorSet];
+						IconColor1.Scale(entry.IconColorMulPrimary);
+						IconColor1.Add(entry.IconColorAddPrimary);
+					}
+				}
+				else // override
+				{
+					IconColor1.Add(entry.IconColorAddPrimary);
+				}
+
+				if ((Items[i].Color1.A == 1) && (Items[i].Color1.R == 0) && (Items[i].Color1.G == 0) && (Items[i].Color1.B == 0))
+				{
+					// use color set
+					int colorSet = Items[i].SecondaryColorSet;
+					if ((entry.SecondaryColorSets != null) && (entry.SecondaryColorSets.Count > 0))
+					{
+						if ((colorSet < 0) || (colorSet >= entry.SecondaryColorSets.Count)) colorSet = 0;
+
+						IconColor2 = entry.SecondaryColorSets[colorSet];
+						IconColor2.Scale(entry.IconColorMulSecondary);
+						IconColor2.Add(entry.IconColorAddSecondary);
+					}
+				}
+				else // override
+				{
+					IconColor2.Add(entry.IconColorAddSecondary);
+				}			
 			}
+			Items[i].IconColor1 = IconColor1;
+			Items[i].IconColor2 = IconColor2;
 
 			int c1r = (int)Items[i].Color1.R * 100;
 			int c1g = (int)Items[i].Color1.G * 100;
@@ -547,9 +633,10 @@ public class DDDatabase
 			uint hash = ItemHash.StringToInt30(dataForHash);
 			
 			Items[i].FunHashString = ItemHash.Int30ToPhrase(hash);
-
-			string gen = Items[i].GeneratedName.Trim();
 			
+
+			string gen = Items[i].GeneratedName.Trim();		
+
 			// exclude magicite
 
 			if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))

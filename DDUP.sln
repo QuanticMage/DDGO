@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDUP", "DungeonDefendersGea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ItemAttributeMiner", "ItemAttributeMiner\ItemAttributeMiner.csproj", "{55235635-2C66-4B62-8107-03B4F1D9C8E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonDefendersOfflinePreprocessor", "DungeonDefendersOfflinePreprocessor\DungeonDefendersOfflinePreprocessor.csproj", "{89F89A9B-C5EC-4C7D-93A5-8DA13789ABBB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55235635-2C66-4B62-8107-03B4F1D9C8E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89F89A9B-C5EC-4C7D-93A5-8DA13789ABBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89F89A9B-C5EC-4C7D-93A5-8DA13789ABBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89F89A9B-C5EC-4C7D-93A5-8DA13789ABBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89F89A9B-C5EC-4C7D-93A5-8DA13789ABBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

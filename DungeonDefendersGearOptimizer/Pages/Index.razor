@@ -786,23 +786,39 @@ else
                     <td class="text bestfor">@r.BestFor</td>
                     <td class="text">@r.Type</td>
                     <td class="text">@r.Set</td>
-                     <td class="text cell-name" h-tooltip="@GetFunHash(r)">
-                        @if (r.Color1 != "#000000" || r.Color2 != "#000000")
-                        {
-                            <span class="name-row">
-                                 <span class="name-name">
-                                    @r.Name
-                                </span>
+                    <td class="text cell-name" h-tooltip="@GetFunHash(r)">
+                        <span class="name-row">
+                                <img class="atlas-icon"
+                                    alt=""
+                                    width="32" height="32"
+                                    data-size="32"
 
+                                    data-l1x="@r.IconX" data-l1y="@r.IconY"
+                                    data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+                                    data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+                                <span class="name-name">
+                                @r.Name 
+                            </span>
+                            @{
+                                bool IsBlack(string? c)
+                                {
+                                    if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
+                                    var s = c.Trim().ToLowerInvariant();
+                                    return s == "#000" || s == "#000000" ||
+                                           s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
+                                           s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+                                }
+
+                                var show = !IsBlack(r.Color1) || !IsBlack(r.Color2);
+                            }
+
+                            @if (show)
+                            {
                                 <span class="name-colors">
                                     <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
-                                </span>                       
-                            </span>
-                        }
-                        else
-                        {
-                            @r.Name
-                        }
+                                </span>
+                            }                      
+                        </span>                      
                     </td>
                     <td class="text location">@GetLocation(r)</td>
                     <td class="text @QualityClass(r.Quality)">@r.Quality</td>
@@ -840,9 +856,11 @@ else
     private string[] _columnClasses = new[] { "cell-stat-dimmed", "cell-stat-primary", "cell-stat-side" };
     private readonly string _dropZoneId = "dropzone";
     private DotNetObjectReference<Index>? _dotNetRef;
+    private bool _needsAtlasRender;
     private bool _isDragOver;
     private bool _isLoading;
     private bool _hideDropzoneHelp;
+    private bool _atlasReady;
     private string _summary = "";
     private string _status = "";
     private string _status2 = "";
@@ -910,8 +928,8 @@ else
 
     private async void ExportEventCollection()
     {
-            if (_eventCollection == null || _eventCollection.Count == 0)
-        return;
+        if (_eventCollection == null || _eventCollection.Count == 0)
+            return;
 
         // Alphabetical by name
         var lines = _eventCollection
@@ -1057,7 +1075,7 @@ else
 /*      var uncollectedEvents = _eventCollection
     .Where(x => x.OwnedCount == 0)
     .ToList();*/
-        CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
+    CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
     public sealed record UiState(
@@ -1093,7 +1111,7 @@ else
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
         _selectedSets  = _ui.SelectedSetsSafe.ToList();
         _selectedOther = _ui.SelectedOtherSafe.ToList();
-        
+
         SetMode(_selectedMode);
         ApplyChipFilters();
     }
@@ -1236,14 +1254,14 @@ else
     private string GetValue( int value, ItemViewRow r )
     {
         string s = value.ToString();
-        
+
         if ( ((r.Quality == "Ult++") && IsCensorEnabled) ||
             (((r.Quality == "Ult++") || (r.Quality == "Ult+") || (r.Quality == "Ult90") || (r.Quality == "Ult93") || (r.Quality == "Supreme") || (r.Quality == "Transcendent"))
               && ((r.Name == "Unicorn") || (r.Name == "Rainbow Unicorn") || (r.Name == "Propeller Cat"))))
             return s.Substring(0, s.Length - 1) + "x";            
         else
             return s;
-            
+
     }
 
     int VisibleCount => _rows.Count(r => !r.IsHidden);
@@ -1745,33 +1763,33 @@ else
     CancellationTokenSource? _saveCts;
 
     void QueueSaveUiState()
-{
-    _saveCts?.Cancel();
-    _saveCts = new CancellationTokenSource();
-    var token = _saveCts.Token;
-
-    _ = DebouncedSaveAsync(token);
-}
-
-private async Task DebouncedSaveAsync(CancellationToken token)
-{
-    try
     {
-        await Task.Delay(500, token);
+        _saveCts?.Cancel();
+        _saveCts = new CancellationTokenSource();
+        var token = _saveCts.Token;
 
-        // Make sure _ui reflects the latest UI fields
-        SyncFieldsToUi();
-
-        var json = JsonSerializer.Serialize(_ui);
-        await InvokeAsync(() => JS.InvokeVoidAsync("appState.set", UiStateKey, json));
+        _ = DebouncedSaveAsync(token);
     }
-    catch (OperationCanceledException) { }
-    catch (Exception ex)
+
+    private async Task DebouncedSaveAsync(CancellationToken token)
     {
-        // Don’t swallow silently while debugging:
-        Console.WriteLine("Save UI state failed: " + ex);
+        try
+        {
+            await Task.Delay(500, token);
+
+            // Make sure _ui reflects the latest UI fields
+            SyncFieldsToUi();
+
+            var json = JsonSerializer.Serialize(_ui);
+            await InvokeAsync(() => JS.InvokeVoidAsync("appState.set", UiStateKey, json));
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            // Don’t swallow silently while debugging:
+            Console.WriteLine("Save UI state failed: " + ex);
+        }
     }
-}
     protected override async Task OnInitializedAsync()
     {
         _dotNetRef = DotNetObjectReference.Create(this);
@@ -1842,15 +1860,24 @@ private async Task DebouncedSaveAsync(CancellationToken token)
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _dotNetRef = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);                     
 
-        if (!firstRender) return;
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);
+            await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);
+            var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
+            _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
+            StateHasChanged();
+            await JS.InvokeVoidAsync("atlasIcons.init", "/png/HeroEquipment_Atlas.png"); // set your atlas path
+            _atlasReady = true;
+            StateHasChanged();
+        }
 
-        await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);     
-        var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
-        _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
-        StateHasChanged();
-
+        if (_needsAtlasRender && _showContent && _atlasReady )
+        {
+            _needsAtlasRender = false;
+            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+        }   
 
     }
 
@@ -1921,6 +1948,8 @@ private async Task DebouncedSaveAsync(CancellationToken token)
 
 
             _showContent = true;
+            _needsAtlasRender = true;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
