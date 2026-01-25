@@ -458,7 +458,8 @@ namespace DungeonDefendersOfflinePreprocessor
 				{
 					if (exp?.Object == null) continue;
 					var obj = exp.Object;
-					if (obj.Class?.Name != "HeroEquipment") continue;
+					if (!obj.GetReferencePath().StartsWith("HeroEquipment"))
+						continue;
 
 					IconReference ir = new(); // keep track 					
 					string backupTexturePath = "";
@@ -638,6 +639,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				// Ensure the object has loaded its buffer
 				currentObj.Load();
+				if (currentObj.ExportTable == null) break;
 				
 				var hit = ReadRawColorSetProperty(currentObj.Package, currentObj.ExportTable, propertyName);
 				if (hit != null) return hit;
@@ -741,6 +743,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			if (obj == null) return "";
 
 			string objPath = obj.GetReferencePath();
+			
 			var objTemplateMatch = Regex.Match(objPath, @"'([^']*)'");
 			var randomNameMatch = new Regex(@"""([^""]*)""");
 			var equipmentTypeMatch = new Regex(@"=(.*)");
@@ -938,7 +941,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach ( var obj in item.Objects )
 				{
-					if (obj?.Class?.Name == "HeroEquipment")
+					if (obj.GetReferencePath().StartsWith("HeroEquipment"))
 					{
 						lines.Add("\t\t\t" + GetObjectCSLine(obj));					
 					}
