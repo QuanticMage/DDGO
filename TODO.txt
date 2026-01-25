@@ -36,7 +36,7 @@ well you could sort by estimated value and then just have rating on the side
 
 also is it possible for like weapons and pet dps to maybe somehow get added? It would be really cool to see how much x dps weapon or pet is worth and to know what you have
 I dont wanna sound super demanding or anything. This tool is very useful and I'm glad it now exists.
-
+* combine res together in single column 
 * 3 res
 * Totals and selection
 

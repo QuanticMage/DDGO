@@ -363,19 +363,25 @@ table.grid td.cell-quality-mythical[b-yrayc6w7vb] {
     color: #1f6b3a;
 }
 
-table.grid td.cell-quality-transcendent[b-yrayc6w7vb] {
-    background-color: #efe3fa;
-    color: #5a2a82;
-}
+    table.grid td.cell-quality-transcendent[b-yrayc6w7vb] {
+        background-color: #efe3fa;
+        color: #5a2a82;
+        font-size: 0.8em;
+    }
 
 table.grid td.cell-quality-supreme[b-yrayc6w7vb] {
     background-color: #fff1d2;
     color: #7a4a00;
+    font-size: 0.8em;
 }
 
 table.grid td.cell-quality-ult90[b-yrayc6w7vb] {
     background-color: #e4efff;
     color: #003c8f;
+}
+
+td.cell-type[b-yrayc6w7vb] {
+    font-size: 0.8em;
 }
 
 table.grid td.cell-health[b-yrayc6w7vb] {

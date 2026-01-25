@@ -412,10 +412,10 @@ else
             <col style="width:80px" />   @* Rating *@
             <col style="width:70px" />   @* Value *@
             <col style="width:65px" />   @* BestFor *@
-            <col style="width:65px" />   @* Type *@
-            <col style="width:65px" />   @* Position *@
+            <col style="width:70px" />   @* Type *@
+            <col style="width:70px" />   @* Position *@
 
-            <col style="width:10%" />    @* Name (2*) *@
+            <col style="width:15%" />    @* Name (2*) *@
             <col style="width:10%" />    @* Location (2*) *@
             <col style="width:80px" />   @* Quality *@
             
@@ -784,8 +784,8 @@ else
                         </span>
                     </td>
                     <td class="text bestfor">@r.BestFor</td>
-                    <td class="text">@r.Type</td>
-                    <td class="text">@r.Set</td>
+                    <td class="text cell-type">@r.Type</td>
+                    <td class="text cell-type">@r.Set</td>
                     <td class="text cell-name" h-tooltip="@GetFunHash(r)">
                         <span class="name-row">
                                 <img class="atlas-icon"
