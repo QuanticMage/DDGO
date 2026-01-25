@@ -108,6 +108,7 @@
         if (!buf) return null;
         return Array.from(new Uint8Array(buf));
     }
+   
 
     async function pickFile(dotNetRef) {
         currentDotNetRef = dotNetRef;

@@ -425,6 +425,7 @@ table.grid td.cell-name[b-yrayc6w7vb] {
     background-color: #b4b4b430;
     font-weight: 500;
     position: relative;
+
 }
 
 table.grid td.cell-quality-ult93[b-yrayc6w7vb] {
@@ -1287,9 +1288,8 @@ h1[b-yrayc6w7vb] {
 }
 
 .name-row[b-yrayc6w7vb] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: inline-flex;
+    align-items: center;    
     gap: 4px;
 }
 
@@ -1814,6 +1814,15 @@ live-btn[b-yrayc6w7vb] {
     padding: 0 8px;
     text-align: center;
     justify-self: right;
+}
+
+.atlas-icon[b-yrayc6w7vb] {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-block;
+    image-rendering: pixelated;
 }
 /* /Shared/MainLayout.razor.rz.scp.css */
 body[b-h2gurlbtpz] {
