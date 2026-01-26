@@ -675,7 +675,13 @@ public class DDDatabase
 				else if ((cappedStats == 3) && cappedDamage)  Items[i].EventItemValue = 300;
 				else if (cappedStats == 4) Items[i].EventItemValue = 1000; // magicite likely
 			}
-			
+
+			if (((Items[i].UserEquipName == "Coal") || (Items[i].UserEquipName == "Heart Fragment")) && (Items[i].EventItemValue == 0))
+			{
+				int stackSize = 1 + Items[i].Stats[0] / 16;
+				Items[i].EventItemValue = stackSize / 8;  // 8 coal/frags = 1cv
+			}
+
 			Items[i].Type = type;
 			Items[i].Set = set;
 
