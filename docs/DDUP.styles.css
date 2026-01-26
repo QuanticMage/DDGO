@@ -335,6 +335,10 @@ State-first chips + neutral controls
 	background: transparent;
 }
 /* /Pages/Index.razor.rz.scp.css */
+select[b-yrayc6w7vb] {
+    font-family: 'Belanosima', system-ui;
+    font-size: 16px;
+}
 
 .hdr-small[b-yrayc6w7vb] {
     font-size: 15px;
@@ -792,6 +796,53 @@ th.importance-cell[b-yrayc6w7vb] {
     color: #777;
     white-space: nowrap;
 }
+/* Search row should look like another FilterChips group */
+.filter-search-row[b-yrayc6w7vb] {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    /* match .fg shell */
+    padding: 4px 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(245,245,255,0.86));
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+    /* remove the “mystery indent” */
+    padding-left: 6px; /* or 4px, but avoid “alignment by vibes” */
+    margin-top: 2px;
+    max-width: 640px;
+    width: fit-content;
+}
+
+/* Make the "Search" pill behave like .fg-btn */
+.filter-search-label[b-yrayc6w7vb] {
+    min-height: 30px;
+    padding: 1px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800; /* your filter button is 800 */
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    user-select: none;
+    /* neutral version of .fg-btn */
+    border: 1px solid rgba(80,90,160,0.35);
+    background: linear-gradient( to bottom, rgba(120,120,255,0.22), rgba(120,120,255,0.14) );
+    color: rgba(0,0,0,0.80);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Let the input sit like the chip lane */
+.filter-search-control[b-yrayc6w7vb] {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 260px; /* keeps it from looking stubby */
+    max-width: 620px; /* prevents “runway input” */
+}
+
+
 
 .filters-groups[b-yrayc6w7vb] {
     display: flex;
@@ -1830,6 +1881,57 @@ live-btn[b-yrayc6w7vb] {
     display: inline-block;
     image-rendering: pixelated;
 }
+
+.summary-to-table-search[b-yrayc6w7vb] {
+    margin: 12px 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+/* /SearchBar.razor.rz.scp.css */
+/* Strip the card-ish wrapper */
+.searchwrapper[b-qkquqy8fsd] {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	margin: 0; /* important: let the filter row handle spacing */
+	padding: 0;
+	background: none;
+	border: 0;
+	box-shadow: none;
+}
+
+.searchbar[b-qkquqy8fsd] {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+}
+
+.searchbar_icon[b-qkquqy8fsd] {
+	position: absolute;
+	left: 12px;
+	font-size: 14px;
+	opacity: 0.75;
+}
+
+.searchbar_input[b-qkquqy8fsd] {
+	width: 100%;
+	height: 30px;
+	box-sizing: border-box;
+	padding: 2px 12px 2px 32px;
+	border-radius: 999px;
+	border: 1px solid rgba(0,0,0,0.16);
+	background: rgba(255,255,255,0.70);
+	font-size: 14px;
+	font-family: inherit;
+	color: inherit;
+}
+
+	.searchbar_input:focus[b-qkquqy8fsd] {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(0,0,0,0.10), 0 0 0 6px rgba(120,120,255,0.22);
+	}
 /* /Shared/MainLayout.razor.rz.scp.css */
 body[b-h2gurlbtpz] {
 	margin: 0;
