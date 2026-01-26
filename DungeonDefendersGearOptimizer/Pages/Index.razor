@@ -877,8 +877,8 @@ else
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
 
-    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl"};
-   
+    private string[] ValidTags = { "location", "value", "quality", "rating", "sides", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl"};
+
     static string[] Tokenize(string input)
     {
         var matches = Regex.Matches(input, "\"([^\"]*)\"|(\\S+)");
@@ -905,7 +905,7 @@ else
             if (parts.Length == 1)
             {
                 foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase);
-                break;
+                continue;
             }
             else if (parts.Length > 1)
             {
