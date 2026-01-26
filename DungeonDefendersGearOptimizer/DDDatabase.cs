@@ -1,6 +1,7 @@
 ﻿using DDUP;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
@@ -633,15 +634,33 @@ public class DDDatabase
 			int flags = ((Items[i].bNoSell > 0 ? 1 : 0) + (Items[i].bNoDrop > 0 ? 2 : 0)) + (Items[i].Stats[0] << 4);
 
 			// in the future use stat0 and not maxlevel
-			string dataForHash = $"{Items[i].Description}.{Items[i].Template}.{(Items[i].MaxLevel < 2000 ? Items[i].MaxLevel:0)}.{c1r}{c1g}{c1b}{c1a}.{c2r}{c2g}{c2b}{c2a}.{Items[i].NameVariantIdx}{Items[i].NameQualityIdx}{Items[i].NameResistIdx}.{flags}";
+			//string dataForHash = $"{Items[i].Description}.{Items[i].Template}.{(Items[i].MaxLevel < 2000 ? Items[i].MaxLevel:0)}.{c1r}{c1g}{c1b}{c1a}.{c2r}{c2g}{c2b}{c2a}.{Items[i].NameVariantIdx}{Items[i].NameQualityIdx}{Items[i].NameResistIdx}.{flags}";
+
+			// fix invariant problem!
+			var inv = CultureInfo.InvariantCulture;
+			var sb = new StringBuilder(256);
+
+			sb.Append(Items[i].Description).Append('.')
+			  .Append(Items[i].Template).Append('.')
+			  .Append((Items[i].MaxLevel < 2000 ? Items[i].MaxLevel : 0).ToString(inv)).Append('.')
+			  .Append(c1r.ToString(inv)).Append(c1g.ToString(inv)).Append(c1b.ToString(inv)).Append(c1a.ToString(inv)).Append('.')
+			  .Append(c2r.ToString(inv)).Append(c2g.ToString(inv)).Append(c2b.ToString(inv)).Append(c2a.ToString(inv)).Append('.')
+			  .Append(Items[i].NameVariantIdx.ToString(inv))
+			  .Append(Items[i].NameQualityIdx.ToString(inv))
+			  .Append(Items[i].NameResistIdx.ToString(inv)).Append('.')
+			  .Append(flags.ToString(inv));
+
+			string dataForHash = sb.ToString();
 
 			uint hash = ItemHash.StringToInt30(dataForHash);
 			
-			Items[i].FunHashString = ItemHash.Int30ToPhrase(hash);
-			
+			Items[i].FunHashString = ItemHash.Int30ToPhrase(hash);		
 
 			string gen = Items[i].GeneratedName.Trim();		
-
+			if (Items[i].UserEquipName == "Gaia's Last Gift")
+			{
+				int xxxx = 0;
+			}
 			// exclude magicite
 
 			if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))
