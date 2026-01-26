@@ -4,83 +4,87 @@ NOTES:
 
 TODO:
 
-* Currency badge ( Coal + Frags + Zamira(?) + Mana tokens / raw mana), include CV value 
-* Maybe give price to coal + Frags + Zamira
-* Make price column wider
-* ult acc?  25cv for ult, 25cv for over cap - look at auctions
+DONE (Search)
 
-“Stars show how good this item is at what it does best.
-Weak stats don’t lower the rating.”
+* Track down missing and bad icons
 
-Hover over color for value
-Filter based on quality of armor
+Lamp -> extra masks
 
-Something I think that is worth mentioning is the possibility of a hero wanting negative stats
-In this case a Jester
-
-
-So to be clear-- you would like it to show the rating of the set it would be best for, not the currently selected one (price already behaves like this)
-Five — 1:51 PM
-yea i would want it to have a sort toggle that shows its best rating in combination with its pirce and "Best for"
-just to give an idea of how good it is without needing to click around
-Mage — 1:52 PM
-that makes sense.  The biggest reason I didnt' have something like that is that the ratings aren't on the same scale between pieces;  TRange sets have ratings much lower than Builder App for instance.
-I can make another category which is just "Show Best Rating" maybe (on the row with Builder App, Gunwitch, etc)
-Five — 1:52 PM
-well you could sort by estimated value and then just have rating on the side
-
-* Glass + Defenders set => Events
-
-* Plate should come after Pristine on the filter list\
-* Gauntlet should come before Torso
-
-also is it possible for like weapons and pet dps to maybe somehow get added? It would be really cool to see how much x dps weapon or pet is worth and to know what you have
-I dont wanna sound super demanding or anything. This tool is very useful and I'm glad it now exists.
-* combine res together in single column 
-* 3 res
-* Totals and selection
-
-* Click to exclude individual pieces from best calc
-* Best doesn't use tiebreakers (sides)
-* EV ratio 6:5
-
--- Lamp, constellation dagger- single color things need to respect that flag
-Kraken cannon colors
-Santa hat colrors swapped
+BLASTICUS
+STRATOS
+PROTOTYPE ARMBLADE
+DRAGON-CRESTED GLAIVE
+ROBO Chicken
+Goblin Overlord's Charge
+Crystal Tracker
+Candelabra
+Northern STaff
+Wild Waspy
+Wasp
+Ardor (bad)
+Jester Guardian
+Mana Token
+Dad's sword / spear
+Vortex Hammer
+Honor Sword
+Ball Blaster
+Glacier's Demise
+Minish Hat
+Pegasus boots
+Goron Tunic
+rockShatter
+Sword of Valor
+Toy Sword
 Frozen rifle extra overlay / wrong overlay
-weird textures
-(DONE)Gamma/ linear scaling?
-(DONE)Why were colors swapped?  does that mess with add/mul math?
-(DONE)Figure it out through the pipeline
-Maybe later icons getting overriden by earlier ones?
+
+weird textures - maybe icons getting overwritten?
+search, inline text, etc
+Night mode
+Best -> Average
 
 
-* Tooltips
+
+* Figure out color on Santa Hat- why so dim?
+* (DONE) Move Plate after Pristine
+* (DONE) Move Gaunlet before Torso
+* (DONE) Fix item box 5x3, 4x3, 6x4
+* (DONE) Combine Res in single column w/ hover over for details
+
+* Move Glass + Defenders set => Events
+* Set which is "Best Rating", sorted by Value
+* More Tooltips
+
+* Filter based on quality
+* Remap colors to 3 digits instead of 10
+* Currency badge ( Coal + Frags + Zamira(?) + Mana tokens / raw mana), include CV value 
+
+* Paper-doll, select character, select items to put on charater, show overall stats
+** Solves => Click to exclude individual pieces from best calc
+
+* Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
+
+* Pricing for ult acc (25cv for ult, 25cv for over cap? - look at auctions)
+* Support searching for negative stats (Jester range)
+* DPS for weapons / more weapon stats.  Same with pets
+* Support tower app / EV ratio 6:5
+
 * Weapon + Pet stats
 
 * Sort by sides after primary
 * "Require Sides to be nonzero"
 * Explain things first
-
+* 3-piece resistances 
+//"To use a 3-resistance piece in your armor setup, you need another piece of the same type with enough upgrades. Aim for around 350 to 380 upgrades across both pieces.
+//For example, if your helmet lacks fire resistance, pair it with boots that cover all four resistances. Ensure the combined resistances on both pieces sum to 82% with the set bonus. Upgrade the 3-resistance piece to 35% and the other piece to 23% on its three resistances, with the missing one reaching 58%. "
 
 * Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
-* Icon + Stats for pets and weapons
 
 * Opera - remove button
 * Brave - why won't it save between sessions
 * Safari - test
 
-
 * Achievement list
-* Centered tooltips at edge of window
-* Add new hash with stat 0, and if maxlvl > 2000, just use 2000
-* Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
-* Note about event items and where to send 6 words - somehow let people know so they don't panic :)
-* Event collector list
 * Figure out weird striping on table
-* Store options and cache file
-* Options - show best, censor
-* Clean up filters	
 * Explain ratings better
 * Column resizing
 * Use for loops for rows
@@ -100,20 +104,31 @@ https://www.youtube.com/watch?v=cuIFJyKtr4c
 * Filters: +Filters that adds to the row, click to remove
 * Rating: maybe same for +primary/secondary/etc?
 
+* Export to csv
 
 * More tooltips / documentation
 * Weapon stats / ranks
-* Pages of items
-* Drag new file
-* Export to csv
 * (partial) Hover tooltips
-* convert icons based on sort
+* convert icons based on sort (?)
 
 * look into PWA (progressive web app)
 
-* 3-piece resistances 
-//"To use a 3-resistance piece in your armor setup, you need another piece of the same type with enough upgrades. Aim for around 350 to 380 upgrades across both pieces.
-//For example, if your helmet lacks fire resistance, pair it with boots that cover all four resistances. Ensure the combined resistances on both pieces sum to 82% with the set bonus. Upgrade the 3-resistance piece to 35% and the other piece to 23% on its three resistances, with the missing one reaching 58%. "
+* (DONE) Pages of items
+* (DONE) Drag new file
+* (DONE) Centered tooltips at edge of window
+* (DONE) Add new hash with stat 0, and if maxlvl > 2000, just use 2000
+* (DONE) Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
+* (DONE) Note about event items and where to send 6 words - somehow let people know so they don't panic :)
+* (DONE) Event collector list
+* (DONE) Store options and cache file
+* (DONE) Options - show best, censor
+* (DONE) Clean up filters	
+
+* (DONE) Make price column wider
+* (DONE)Gamma/ linear scaling?
+* (DONE)Why were colors swapped?  does that mess with add/mul math?
+* (DONE)Figure it out through the pipeline
+ 
 
 * (DONE) Show Colors
 * (DONE) Make Event items work and still give H codes

@@ -53,9 +53,11 @@
                     "ShowGlobalTooltip",
                     text,
                     rect.left + rect.width / 2,
-                    rect.top
+                    rect.top,
+					window.innerWidth
                 );
             };
+
 
             const hide = () => {
                 lastTooltipText = null;

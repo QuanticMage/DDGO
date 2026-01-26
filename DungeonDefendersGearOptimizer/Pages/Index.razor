@@ -2,11 +2,12 @@
 @implements IDisposable
 @using Microsoft.JSInterop
 @using System.Text.Json
+@using System.Text.RegularExpressions
 
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defenders Gear Optimizer</h1>        
-        <div class="build"><i>Jan 24 2026 - Version 1.3</i></div>    
+        <div class="build"><i>Jan 25 2026 - Version 1.4</i></div>    
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ===== EMPTY STATE ===== *@
@@ -54,7 +55,7 @@
 
                     <div class="dz2-help-body @( _hideDropzoneHelp ? "hidden" : "" )">
                         <ul>
-                            <li>Run Dungeon Defenders, log into TrendyNet, then click Export to Open</li>
+                            <li>Run Dungeon Defenders, log into Ranked, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
                             <li>Then open the Binaries\Win32 or Win64 folder (whichever you run), and drag <b>DunDefHeroes.dun</b> here.</li>
                             <li>This runs locally. Only aggregate armor ratings are sent to Shiro’s API for live prices, and only if you enable live prices.</li>
@@ -170,10 +171,10 @@
 
     <label class="utility-select">
         <span>Itembox size</span>
-        <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged">
-            <option value="3x5">3×5</option>
-            <option value="4x5">4×5</option>
-            <option value="4x6">4×6</option>
+        <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
+            <option value="5x3">5x3</option>
+            <option value="4x3">4x3</option>
+            <option value="6x4">6x4</option>
         </select>
     </label>
 </div>
@@ -203,34 +204,54 @@
     Filters
 </div>
 <div class="filters-column">
-<FilterChips Title="Type" Theme="type"
-             Options="_typeOptions"
-             Placeholder="Any"
-             ShowNoneAll="true"
-             MenuMaxHeightPx="520"
-             @bind-Selected="SelectedTypes"
-             Presets="@(new[]
-             {
-                 new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
-             })"  />       
+    <FilterChips Title="Type" Theme="type"
+                 Options="_typeOptions"
+                 Placeholder="Any"
+                 ShowNoneAll="true"
+                 MenuMaxHeightPx="520"
+                 @bind-Selected="SelectedTypes"
+                 Presets="@(new[]
+                 {
+                     new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
+                 })"  />       
 
-<FilterChips Title="Set" Theme="set"
-             Options="_setOptions"
-             Placeholder="Any"
-             ShowNoneAll="true"
-             MenuMaxHeightPx="520"
-             @bind-Selected="SelectedSets"    
-             Presets="@(new[]
-             {
-                 new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
-                new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
-             })"  />       
+    <FilterChips Title="Set" Theme="set"
+                 Options="_setOptions"
+                 Placeholder="Any"
+                 ShowNoneAll="true"
+                 MenuMaxHeightPx="520"
+                 @bind-Selected="SelectedSets"    
+                 Presets="@(new[]
+                 {
+                     new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
+                     new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
+                 })"  />       
 
-<FilterChips Title="Other" Theme="other"
-             Options="_otherOptions"
-             Placeholder="None"
-             @bind-Selected="SelectedOther" />
+    <FilterChips Title="Other" Theme="other"
+                    Options="_otherOptions"
+                    Placeholder="None"
+                    @bind-Selected="SelectedOther" />
+        <div class="filter-search-row">
+            <div class="filter-search-label">
+                Search
+            </div>
+
+            <div class="filter-search-control" 
+                data-tooltip=
+                    "Filter items based on text:
+    <i>Handguards</i> => Name must contains 'Handguards'
+    <i>Ab1:500</i> => Ab1 must meet or exceed 500
+    <i>Location:ItemBox</i> => Location must include 'ItemBox'
+    
+    THP:, TDmg:, TRate:, TRange:, HHP:, HDmg:, HRate:, HSpeed:, Ab1:, Ab2:, ResG:, ResP:, ResF:, ResL:    
+    Location:, Quality:, Rating:, Sides: Lvl:, MaxLvl:, ResSum:, Value:">
+            
+                <SearchBar @bind-Value="_searchText"
+                            OnDebounced="ApplySearch"/>
+            </div>
+        </div>
 </div>
+
 
 @code {
     private List<string> _selectedTypes = new();
@@ -274,8 +295,8 @@
     {
 
         new("Helmet"),
-        new("Torso"),
         new("Gauntlet"),
+        new("Torso"),
         new("Boots"),
         new("Brooch"),
         new("Mask"),
@@ -289,9 +310,9 @@
     private readonly List<FilterChips.Option> _setOptions = new()
     {
         new("Pristine"),
+        new("Plate"),
         new("Chain"),
         new("Mail"),
-        new("Plate"),
         new("Leather"),      
         new("Zamira"),      
         new("Squire"),
@@ -399,7 +420,6 @@
         </div>
     </div>
 }
-
 @if (_rows.Count == 0)
 {  
 }
@@ -433,10 +453,7 @@ else
             <col style="width:60px" />   @* TRange *@
             <col style="width:60px" />   @* TRate *@
 
-            <col style="width:50px" />   @* RG *@
-            <col style="width:50px" />   @* RP *@
-            <col style="width:50px" />   @* RF *@
-            <col style="width:50px" />   @* RL *@
+            <col style="width:60px" />   @* RG *@
         </colgroup>
   
         <thead>
@@ -553,9 +570,6 @@ else
                     </button>
                     </div>
                 </th>
-                <th></th>
-                <th></th>
-                <th></th>
 
             </tr>
             <tr class="header-row" >
@@ -721,39 +735,12 @@ else
 
                 <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
                     <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
-                        <img src="png/Generic Resistance.png" alt="ResG" />
-                        <span class="hdr-text">Generic Resistance</span>
+                        <img src="png/all_resistances.png" alt="Res" />
+                        <span class="hdr-text">Average Resistance</span>
                         <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
                     </button>
                     <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
-                    <button type="button" class="th-btn th-icon" title="Poison Resist" @onclick="() => SortBy(nameof(ItemViewRow.RP))">
-                        <img src="png/Poison Resistance.png" alt="ResP" />
-                        <span class="hdr-text">Poison Resistance</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RP))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
-                    <button type="button" class="th-btn th-icon" title="Fire Resist" @onclick="() => SortBy(nameof(ItemViewRow.RF))">
-                        <img src="png/Fire Resistance.png" alt="ResF" />
-                        <span class="hdr-text">Fire Resistance</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RF))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
-                    <button type="button" class="th-btn th-icon" title="Lightning Resist" @onclick="() => SortBy(nameof(ItemViewRow.RL))">
-                        <img src="png/Lightning Resistance.png" alt="ResL" />
-                        <span class="hdr-text">Lightning Resistance</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RL))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                </th>            
             </tr>
         </thead>
 
@@ -837,10 +824,15 @@ else
                     <td class="num cell-range @(_columnClasses[sumIdxTRange])">@GetValue(r.TRange,r)</td>
                     <td class="num cell-rate @(_columnClasses[sumIdxTRate])">@GetValue(r.TRate,r)</td>
 
-                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RG</td>
-                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RP</td>
-                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RF</td>
-                    <td class="resist @(_columnClasses[bFactorInResists?1:0])">@r.RL</td>
+                    <td class="resist @(_columnClasses[bFactorInResists?1:0])" 
+                        data-tooltip=@(
+                          $"<div class='resist-container'>" +
+                            $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.RG}</span>" +
+                            $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.RP}</span>" +
+                            $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.RF}</span>" +
+                            $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.RL}</span>" +
+                            $"</div><br>{ShowUpgradesToMaxResist(r)}")>                  
+                        @((r.RG + r.RP + r.RF + r.RL)/4)</td>                    
                 </tr>
             }
         </tbody>
@@ -874,16 +866,165 @@ else
     private bool _censor = true;
     private bool _highlight = true;
     private bool _livePrices = false;
-    private string _itemboxSize = "3x5";
+    private string _itemboxSize = "5x3";
     private bool _showContent = false;
     private bool _canLoadLast = false;
     private ElementReference _tableRef;
     private string? _loadedFileName;
     private DateTime? _lastLoadedAt;
     private UiState _ui = DefaultState();
-
+    private string _searchText = "";
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
+
+    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl"};
+   
+    static string[] Tokenize(string input)
+    {
+        var matches = Regex.Matches(input, "\"([^\"]*)\"|(\\S+)");
+        var tokens = new List<string>();
+
+        foreach (Match m in matches)
+        {
+            if (m.Groups[1].Success)
+                tokens.Add(m.Groups[1].Value); // quoted token, no quotes
+            else
+                tokens.Add(m.Groups[2].Value); // normal token
+        }
+
+        return tokens.ToArray();
+    }
+
+    private void ApplySearch()
+    {
+        foreach (var r in _rows) r.IsHiddenDueToSearch = false;
+        string[] tokens = Tokenize(_searchText);
+        foreach( string t in tokens )
+        {
+            string[] parts = t.Split(":");
+            if (parts.Length == 1)
+            {
+                foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase);
+                break;
+            }
+            else if (parts.Length > 1)
+            {
+                // normalize tags
+                string tag = parts[0].ToLowerInvariant();
+                tag.Replace("damage", "dmg");
+                tag.Replace("tower", "t");
+                tag.Replace("hero", "h");
+                tag.Replace("ability", "ab");
+                tag.Replace("health", "hp");
+                tag.Replace("level", "lvl");
+                tag.Replace("resistance", "res");                
+                tag.Replace("resist", "res");
+                tag.Replace("speed", "spd");
+
+                string valueString = parts[1].Trim().ToLowerInvariant();
+                int valueNum = 0;
+                Int32.TryParse( valueString, out valueNum );
+
+                string actualTag = "";
+                for (int i = 0; i < ValidTags.Length; i++)
+                {
+                    if (ValidTags[i].Contains(tag))
+                    {
+                        actualTag = ValidTags[i];
+                        break;
+                    }
+                }
+
+                if (actualTag == "") continue;
+                switch (tag)
+                {
+                    case "thp":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.THP < valueNum);
+                        break;
+                    case "tdmg": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TDmg < valueNum);
+                        break;
+                    case "tRate": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TRate < valueNum);   
+                        break;
+                    case "trange": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TRange < valueNum);
+                        break;
+                    case "hhp": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HHP < valueNum);
+                        break;
+                    case "hdmg": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HDmg < valueNum);
+                        break;
+                    case "hrate": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HRate < valueNum);
+                        break;
+                    case "hspeed": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HSpd < valueNum);
+                        break;
+                    case "ab1": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Ab1 < valueNum);
+                        break;
+                    case "ab2": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Ab2 < valueNum);
+                        break;
+                    case "resg": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RG < valueNum);
+                        break;
+                    case "resp": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RP < valueNum);
+                        break;
+                    case "resf": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RF < valueNum);
+                        break;
+                    case "resl": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RL < valueNum);
+                        break;
+                    case "location":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Location.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);
+                        break;
+                    case "quality": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Quality.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);
+                        break;
+                    case "rating":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Rating < valueNum);
+                        break;
+                    case "sides":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Sides < valueNum);
+                        break;
+                    case "lvl":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Level < valueNum);
+                        break;
+                    case "maxlvl": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.MaxLevel < valueNum);
+                        break;
+                    case "value":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Value < valueNum);
+                        break;
+                    case "set": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Set.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
+                        break;
+                    case "type": 
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Type.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
+                        break;
+                    case "best":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.BestFor.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
+                        break;
+                    case "ressum":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RG + r.RF + r.RL + r.RP < valueNum);
+                        break;
+                    case "resavg":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= ((r.RG + r.RF + r.RL + r.RP)/4 < valueNum);
+                        break;
+                }
+            }
+
+        }        
+        
+
+        // this will also update our search
+        ApplyChipFilters();              
+    }
 
     // ===== Event Collection Overlay =====
     private bool _showEventCollection = false;
@@ -891,9 +1032,10 @@ else
 
     private sealed record EventCollectionRow(
         string Name,
-        string Category,
+       string Category,
         int Price,
         int OwnedCount);
+
 
     private List<EventCollectionRow> _eventCollection = new();
 
@@ -947,6 +1089,26 @@ else
         _eventSearch = "";
         StateHasChanged();
     }
+
+
+    private string ShowUpgradesToMaxResist( ItemViewRow r )
+    {
+        int upgradesRequiredForResists = Ratings.GetUpgradesRequired(r.ResistanceTarget, r.RG, r.RP, r.RF, r.RL);
+        int overcappedUpgradesLeft = (r.MaxLevel - r.Level) / 10;
+        int overcappedUpgradesNeeded =
+            (r.ResistanceTarget - ((r.RG < 23) ? 23 : r.RG)) +
+            (r.ResistanceTarget - ((r.RP < 23) ? 23 : r.RP)) +
+            (r.ResistanceTarget - ((r.RF < 23) ? 23 : r.RF)) +
+            (r.ResistanceTarget - ((r.RL < 23) ? 23 : r.RL));
+
+        if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || ( upgradesRequiredForResists > (r.MaxLevel - r.Level)))        
+            return "Can't cap with remaining levels";
+        else if (upgradesRequiredForResists == 0)
+            return "";        
+        return $"{upgradesRequiredForResists} levels required for cap";
+    }
+
+
 
     private static (string Page, string Section) SplitCategory(string category)
     {
@@ -1081,7 +1243,7 @@ else
     public sealed record UiState(
         int Version = 1,
         string RatingMode = "Builder App",
-        string Layout = "3x5",
+        string Layout = "5x3",
         bool ShowLivePrices = false,
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
@@ -1095,7 +1257,7 @@ else
     static UiState DefaultState() => new(
         Version: 1,
         RatingMode: "Builder App",
-        Layout: "3x5",
+        Layout: "5x3",
         ShowLivePrices: false,
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
@@ -1151,7 +1313,7 @@ else
 
     private void OnItemboxSizeChanged(ChangeEventArgs e)
     {
-        _itemboxSize = e.Value?.ToString() ?? "3x5";
+        _itemboxSize = e.Value?.ToString() ?? "5x3";
         QueueSaveUiState();
         StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
     }
@@ -1164,9 +1326,9 @@ else
 
         int idx = viewRow.IndexInFolder;
         int itemsPerPage = 15;
-        if (_itemboxSize == "3x5") itemsPerPage = 15;
-        if (_itemboxSize == "4x5") itemsPerPage = 20;
-        if (_itemboxSize == "4x6") itemsPerPage = 24;
+        if (_itemboxSize == "5x3") itemsPerPage = 15;
+        if (_itemboxSize == "4x3") itemsPerPage = 12;
+        if (_itemboxSize == "6x4") itemsPerPage = 24;
 
         int subFolderItems = (db.SubfolderCount.ContainsKey(viewRow.Location)) ? db.SubfolderCount[viewRow.Location] : 0;
 
@@ -1211,7 +1373,8 @@ else
         new("DPS AB2", "DPS AB2"),
         new("Pure DPS", "Pure DPS"),        
         new("Gunwitch", "Gunwitch"),        
-        new("Guardian Summoner", "Guardian Summoner")
+        new("Guardian Summoner", "Guardian Summoner"),
+        new("Best Rating", "Best Rating")
     };
 
     private (string text, string icon, string tooltip) GetValueDisplay(ItemViewRow row)
@@ -1338,6 +1501,9 @@ else
 
             if (excludeMissingResists)
                 includeItem &= !v.IsMissingResists;
+
+            if (v.IsHiddenDueToSearch)
+                includeItem = false;
 
             v.IsHidden = !includeItem;
         }
@@ -1691,11 +1857,8 @@ else
                 nameof(ItemViewRow.TRange)   => Cmp(a.TRange, b.TRange),
                 nameof(ItemViewRow.TRate)    => Cmp(a.TRate, b.TRate),
 
-                nameof(ItemViewRow.RG)       => Cmp(a.RG, b.RG),
-                nameof(ItemViewRow.RP)       => Cmp(a.RP, b.RP),
-                nameof(ItemViewRow.RF)       => Cmp(a.RF, b.RF),
-                nameof(ItemViewRow.RL)       => Cmp(a.RL, b.RL),
-
+                nameof(ItemViewRow.RG)       => Cmp(a.RG+a.RP+a.RF+a.RL, b.RG+b.RP+b.RF+b.RL),
+                
                 nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
                 nameof(ItemViewRow.Location) => loc,
 
@@ -1829,7 +1992,7 @@ else
                 ? "Builder App"
                 : s.RatingMode,
             Layout = string.IsNullOrWhiteSpace(s.Layout)
-                ? "3x5"
+                ? "5x3"
                 : s.Layout
         };
     }

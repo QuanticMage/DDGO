@@ -97,6 +97,9 @@ namespace DDUP
 		public int IconY2 { get; set; }
 
 		public string FunHashString { get; set; }
+
+		public bool IsHiddenDueToSearch { get; set; }
+
 		public ItemViewRow(
 				int Rating,
 				int Sides,
@@ -199,6 +202,7 @@ namespace DDUP
 			this.IconY2 = IconY2;
 			this.IconX = IconX;
 			this.IconY = IconY;
+			this.IsHiddenDueToSearch = false;
 		}
 	}
 }

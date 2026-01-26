@@ -2,7 +2,7 @@
 
 public interface ITooltipService : IAsyncDisposable
 {
-	event Action<string, double, double> OnShow;
+	event Action<string, double, double, double> OnShow;
 	event Action OnHide;
 	Task InitializeAsync();
 }
@@ -15,7 +15,7 @@ public sealed class TooltipService : ITooltipService
 	private DotNetObjectReference<TooltipService>? _dotNetRef;
 	private bool _initialized;
 
-	public event Action<string, double, double>? OnShow;
+	public event Action<string, double, double, double>? OnShow;
 	public event Action? OnHide;
 
 	public TooltipService(IJSRuntime js) => _js = js;
@@ -30,8 +30,8 @@ public sealed class TooltipService : ITooltipService
 	}
 
 	[JSInvokable("ShowGlobalTooltip")]
-	public void ShowGlobalTooltip(string text, double x, double y)
-		=> OnShow?.Invoke(text, x, y);
+	public void ShowGlobalTooltip(string text, double x, double y, double windowWidth)
+		=> OnShow?.Invoke(text, x, y, windowWidth);
 
 	[JSInvokable("HideGlobalTooltip")]
 	public void HideGlobalTooltip()
