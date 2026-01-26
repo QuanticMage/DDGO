@@ -42,7 +42,7 @@ search, inline text, etc
 Night mode
 Best -> Average
 
-
+* finish implementing best rating category
 
 * Fix hashing bug with color or leave it?
 
