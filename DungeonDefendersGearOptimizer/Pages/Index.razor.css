@@ -551,10 +551,10 @@ th.importance-cell {
     border: 1px solid rgba(0,0,0,0.12);
 }
 
-    .info-pane h3 {
-        margin: 0 0 8px 0;
-        font-size: 16px;
-    }
+.info-pane h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+}
 
 .link-list {
     font-size: 13px; /* smaller */
@@ -1083,7 +1083,12 @@ live-btn {
     max-width: 900px;
     padding: 6px 6px; /* tighter than default */
     box-sizing: border-box;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f3f3f3, #e5e5e5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 6px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.12);
 }
+
 
 .rateby-header {
     font-size: 12px;
@@ -1585,4 +1590,26 @@ live-btn {
 .help-icon:focus-visible {
     outline: 2px solid #6b9cff;
     outline-offset: 2px;
+}
+
+
+.middle-pane {
+    display: grid;
+    grid-template-columns: 1fr 835px;
+    gap: 12px;
+    align-items: start; /* critical */
+}
+
+.middle-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.middle-right {
+    width: 835px;
+    justify-self: end;
+    position: sticky;
+    top: 12px;
+    align-self: start;
 }

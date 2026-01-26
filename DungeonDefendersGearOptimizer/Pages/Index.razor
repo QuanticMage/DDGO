@@ -10,15 +10,10 @@
         <div class="build"><i>Jan 25 2026 - Version 1.4</i></div>    
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
-            @* ===== EMPTY STATE ===== *@
+            @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
             @if (!_showContent)
             {
-                <!-- <div class="dz2-eyebrow">Get started</div>-->
                 <div class="dz2-card">
-                   <!--<div class="dz2-title">
-                        <span class="dz2-ico" aria-hidden="true">📄</span>
-                        <span>Load your .dun file</span>
-                    </div>-->
 
                     <div class="dz2-sub">
                         Select your data file to get started.
@@ -73,18 +68,11 @@
                     </div>
                 </div>
             }
-            else
+            else  @* ============== LOADED FILE TILE ============== *@          
             {
-                @* ===== LOADED STATE ===== *@
                 <div class="dz2-card-loaded">
-                    <!--<div class="dz2-filelabel">Loaded file</div>-->
-                        <div class="dz2-filename">@_loadedFileName</div>                                                
-                    
-
-                    <!--<div class="status">
-                        Loaded on @LastLoadedText
-                    </div>-->
-                         @* ===== STATUS LINE (keeps your existing loading/error/status behavior) ===== *@
+                    <div class="dz2-filename">@_loadedFileName</div>                                                                    
+                    @* status *@
                     @if (_isLoading)
                     {
                         <div class="status">Loading… @_status</div>
@@ -96,14 +84,8 @@
                     else if (!string.IsNullOrEmpty(_status))
                     {
                         <div class="status">@_status</div>
-                        <!--<div class="status">@_status2</div>-->
-                    }
-                    @* Optional: only show if you want it *@
-                    @if (_showOutOfDateHint)
-                    {
-                        <div class="dz2-hint">A newer version may exist on disk.</div>
-                    }
-
+                        @_status2
+                    }                                          
                     <div class="dz2-actions">
                         @if (_canLoadLast)
                         {
@@ -121,11 +103,13 @@
             }       
         </div>
     </div>
+
+     @* ============== CREDITS AND LINK PANE ============== *@     
     <aside class="info-pane">
         <div class="credits">            
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
             <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>            
-            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, SteveTrevor, Thales, and DDRnG</i></div>            
+            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, Sesar, SteveTrevor, Tbolt, and Thales</i></div>            
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -136,706 +120,717 @@
         <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>           
         <li><a href="https://docs.google.com/spreadsheets/d/1XzYuWB4I9RoNe8x-DD2M1koWs72tW8sTgyQ_n-d7l-E/edit?pli=1&gid=2059687993#gid=2059687993" rel="noopener">Event price sheet</a></li>
     </ul>    
-</aside>
+    </aside>
 </div>
 
 @if (@_showContent)
 {
-<div class="utility-row">
-    <span class="utility-label"><font face="Arial">⚙️</font></span>
+<div class="middle-pane">    
+    <div class="middle-left">    
+    <div class="utility-row">
+        <span class="utility-label"><font face="Arial">⚙️</font></span>
 
-    <label class="utility-toggle">
-        <input type="checkbox"
-               class="tool-filter"
-               checked="@_censor"
-               @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-        <span>Censor Ult++</span>
-    </label>
-
-    <label class="utility-toggle">
-        <input type="checkbox"
-               class="tool-filter"
-               checked="@_highlight"
-               @onchange="@((e) => { _highlight = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-        <span>Highlight Best</span>
-    </label>
-    
-    <label class="utility-toggle">
-        <input type="checkbox"
-               class="tool-filter"
-               checked="@_livePrices"
-               @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
-        <span>Get Live Prices</span>
-    </label>
-
-    <label class="utility-select">
-        <span>Itembox size</span>
-        <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
-            <option value="5x3">5x3</option>
-            <option value="4x3">4x3</option>
-            <option value="6x4">6x4</option>
-        </select>
-    </label>
-</div>
-<br/>
-<div class="info-pane rateby-pane">    
-    <div class="rateby-header">
-        Rating Mode
-    </div>    
-    <div class="toolbar">
-    @foreach (var opt in _modeOptions)
-    {
-        <input class="tool-radio"
-                type="radio"
-                name="setOptions"
-                id="@($"mode-{opt.Value}")"
-                value="@opt.Value"
-                checked="@(_selectedMode == opt.Value)"
-                @onchange="() => SetMode(opt.Value)" />
-
-        <label class="tool-btn" for="@($"mode-{opt.Value}")">
-            @opt.Label
+        <label class="utility-toggle">
+            <input type="checkbox"
+                   class="tool-filter"
+                   checked="@_censor"
+                   @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Censor Ult++</span>
         </label>
-    }
-     </div>
-</div>
-<div class="filters-menu-header">
-    Filters
-</div>
-<div class="filters-column">
-    <FilterChips Title="Type" Theme="type"
-                 Options="_typeOptions"
-                 Placeholder="Any"
-                 ShowNoneAll="true"
-                 MenuMaxHeightPx="520"
-                 @bind-Selected="SelectedTypes"
-                 Presets="@(new[]
-                 {
-                     new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
-                 })"  />       
 
-    <FilterChips Title="Set" Theme="set"
-                 Options="_setOptions"
-                 Placeholder="Any"
-                 ShowNoneAll="true"
-                 MenuMaxHeightPx="520"
-                 @bind-Selected="SelectedSets"    
-                 Presets="@(new[]
-                 {
-                     new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
-                     new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
-                 })"  />       
+        <label class="utility-toggle">
+            <input type="checkbox"
+                   class="tool-filter"
+                   checked="@_highlight"
+                   @onchange="@((e) => { _highlight = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Highlight Best</span>
+        </label>
+    
+        <label class="utility-toggle">
+            <input type="checkbox"
+                   class="tool-filter"
+                   checked="@_livePrices"
+                   @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
+            <span>Get Live Prices</span>
+        </label>
 
-    <FilterChips Title="Other" Theme="other"
-                    Options="_otherOptions"
-                    Placeholder="None"
-                    @bind-Selected="SelectedOther" />
-        <div class="filter-search-row">
-            <div class="filter-search-label">
-                Custom
-            </div>
-
-            <div class="filter-search-control">
-            
-                <SearchBar @bind-Value="_searchText"
-                            OnDebounced="ApplySearch"/>
-                <button type="button"
-                        class="help-icon"
-                        aria-label="Search help"
-                        data-tooltip="@SearchHelp">
-                ?
-                </button>
-            </div>
-        </div>
-</div>
-
-
-@code {
-    private List<string> _selectedTypes = new();
-    private List<string> _selectedSets = new();
-    private List<string> _selectedOther = new();
-
-    // Bind targets 
-    private List<string> SelectedTypes
-    {
-        get => _selectedTypes;
-        set
-        {
-            _selectedTypes = value ?? new();
-            ApplyChipFilters();
-        }
-    }
-
-    private List<string> SelectedSets
-    {
-        get => _selectedSets;
-        set
-        {
-            _selectedSets = value ?? new();
-            ApplyChipFilters();
-        }
-    }
-
-    private List<string> SelectedOther
-    {
-        get => _selectedOther;
-        set
-        {
-            _selectedOther = value ?? new();
-            ApplyChipFilters();
-        }
-    }    
-
-
-
-    private readonly List<FilterChips.Option> _typeOptions = new()
-    {
-
-        new("Helmet"),
-        new("Gauntlet"),
-        new("Torso"),
-        new("Boots"),
-        new("Brooch"),
-        new("Mask"),
-        new("Bracers"),
-        new("Shield"),        
-        new("Pets"),
-        new("Weapons"),      
-        new("Currency"),             
-    };
-
-    private readonly List<FilterChips.Option> _setOptions = new()
-    {
-        new("Pristine"),
-        new("Plate"),
-        new("Chain"),
-        new("Mail"),
-        new("Leather"),      
-        new("Zamira"),      
-        new("Squire"),
-        new("Apprentice"),
-        new("Monk"),
-        new("Huntress"),        
-    };
-
-    private readonly List<FilterChips.Option> _otherOptions = new()
-    {
-        
-        new("Only Events",    MutexGroup: "eventMode"),
-        new("Exclude Events", MutexGroup: "eventMode"),
-
-        new("Only Equipped", MutexGroup: "equipMode"),        
-        new("Exclude Equipped", MutexGroup: "equipMode"),        
-
-        new("Exclude Missing Resists"),          
-    };
-}
-
-<div class="summary">@_summary</div> 
-<div class="stats-row">
-  <div class="metric-card highlighted-card">
-    <span class="metric-label">Best Filtered Armor Set</span>
-    <div class="metric-main">
-      <span class="metric-number">@BestArmorRating</span>
-      <span class="metric-type  highlighted-card-type">@BestArmorType</span>
+        <label class="utility-select">
+            <span>Itembox size</span>
+            <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
+                <option value="5x3">5x3</option>
+                <option value="4x3">4x3</option>
+                <option value="6x4">6x4</option>
+            </select>
+        </label>
     </div>
-  </div>
+    <br/>
+    <div class="rateby-pane">    
+        <div class="rateby-header">
+            Rating Mode
+        </div>    
+        <div class="toolbar">
+        @foreach (var opt in _modeOptions)
+        {
+            <input class="tool-radio"
+                    type="radio"
+                    name="setOptions"
+                    id="@($"mode-{opt.Value}")"
+                    value="@opt.Value"
+                    checked="@(_selectedMode == opt.Value)"
+                    @onchange="() => SetMode(opt.Value)" />
 
-  <div class="metric-card">
-    <span class="metric-label">Vanity Account Armor Total</span>    
-    <div class="metric-main">
-      <span class="metric-number">@ArmorTotalValue</span>
-      <span class="metric-type">CV</span>
+            <label class="tool-btn" for="@($"mode-{opt.Value}")">
+                @opt.Label
+            </label>
+        }
+         </div>
     </div>
-  </div>
-
-  <div class="metric-card">
-    <span class="metric-label">Vanity Account Event Total</span>
-     <div class="metric-main">
-      <span class="metric-number">@EventTotalValue</span>
-      <span class="metric-type">CV</span>
-
-      <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
-       @CollectedEventCount / @TotalEventCount
-      </button>
+    <div class="filters-menu-header">
+        Filters
     </div>
+    <div class="filters-column">
+        <FilterChips Title="Type" Theme="type"
+                     Options="_typeOptions"
+                     Placeholder="Any"
+                     ShowNoneAll="true"
+                     MenuMaxHeightPx="520"
+                     @bind-Selected="SelectedTypes"
+                     Presets="@(new[]
+                     {
+                         new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
+                     })"  />       
 
-  </div>
-</div>
+        <FilterChips Title="Set" Theme="set"
+                     Options="_setOptions"
+                     Placeholder="Any"
+                     ShowNoneAll="true"
+                     MenuMaxHeightPx="520"
+                     @bind-Selected="SelectedSets"    
+                     Presets="@(new[]
+                     {
+                         new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
+                         new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
+                     })"  />       
 
-@if (_showEventCollection)
-{
-    <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
-        <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
-            <div class="event-overlay-header">
-                <div class="event-overlay-titlewrap">
-                    <div class="event-overlay-title">Event Collection</div>
-                    <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
+        <FilterChips Title="Other" Theme="other"
+                        Options="_otherOptions"
+                        Placeholder="None"
+                        @bind-Selected="SelectedOther" />
+            <div class="filter-search-row">
+                <div class="filter-search-label">
+                    Custom
                 </div>
-                <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
-                <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+
+                <div class="filter-search-control">
+            
+                    <SearchBar @bind-Value="_searchText"
+                                OnDebounced="ApplySearch"/>
+                    <button type="button"
+                            class="help-icon"
+                            aria-label="Search help"
+                            data-tooltip="@SearchHelp">
+                    ?
+                    </button>
+                </div>
             </div>
+    </div>
 
-            <div class="event-overlay-tools">
-                <input class="event-search"
-                       placeholder="Search categories…"
-                       @onchange="OnEventSearchChanged" />
-            </div>
 
-            <div class="event-overlay-body">
-                @foreach (var group in VisibleEventCollection
-                    .GroupBy(x => x.Category)
-                    .OrderBy(g => GetCategoryOrderKey(g.Key))
-                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
-                {                    
-                    var cat = SplitCategory(group.Key);
-                    <div class="event-cat">
-                        <div class="event-cat-hdr">
-                            <span class="event-cat-page">@cat.Page</span>
-                            <span class="event-cat-sep">›</span>
-                            <span class="event-cat-section">@cat.Section</span>
-                        </div>
+    @code {
+        private List<string> _selectedTypes = new();
+        private List<string> _selectedSets = new();
+        private List<string> _selectedOther = new();
 
-                        <div class="event-list">
-                            @foreach (var item in group
-                                .OrderByDescending(x => x.Price)
-                                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                            )
-                            {
-                                <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
-                                    <div class="event-line">
-                                        <div class="event-name">@item.Name</div>
-                                        <div class="event-price">@(item.Price!=0?@item.Price:"Unknown") CVx</div>
-                                        <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
+        // Bind targets 
+        private List<string> SelectedTypes
+        {
+            get => _selectedTypes;
+            set
+            {
+                _selectedTypes = value ?? new();
+                ApplyChipFilters();
+            }
+        }
+
+        private List<string> SelectedSets
+        {
+            get => _selectedSets;
+            set
+            {
+                _selectedSets = value ?? new();
+                ApplyChipFilters();
+            }
+        }
+
+        private List<string> SelectedOther
+        {
+            get => _selectedOther;
+            set
+            {
+                _selectedOther = value ?? new();
+                ApplyChipFilters();
+            }
+        }    
+
+
+
+        private readonly List<FilterChips.Option> _typeOptions = new()
+        {
+
+            new("Helmet"),
+            new("Gauntlet"),
+            new("Torso"),
+            new("Boots"),
+            new("Brooch"),
+            new("Mask"),
+            new("Bracers"),
+            new("Shield"),        
+            new("Pets"),
+            new("Weapons"),      
+            new("Currency"),             
+        };
+
+        private readonly List<FilterChips.Option> _setOptions = new()
+        {
+            new("Pristine"),
+            new("Plate"),
+            new("Chain"),
+            new("Mail"),
+            new("Leather"),      
+            new("Zamira"),      
+            new("Squire"),
+            new("Apprentice"),
+            new("Monk"),
+            new("Huntress"),        
+        };
+
+        private readonly List<FilterChips.Option> _otherOptions = new()
+        {
+        
+            new("Only Events",    MutexGroup: "eventMode"),
+            new("Exclude Events", MutexGroup: "eventMode"),
+
+            new("Only Equipped", MutexGroup: "equipMode"),        
+            new("Exclude Equipped", MutexGroup: "equipMode"),        
+
+            new("Exclude Missing Resists"),          
+        };
+    }
+
+    <div class="summary">@_summary</div> 
+    <div class="stats-row">
+      <div class="metric-card highlighted-card">
+        <span class="metric-label">Best Filtered Armor Set</span>
+        <div class="metric-main">
+          <span class="metric-number">@BestArmorRating</span>
+          <span class="metric-type  highlighted-card-type">@BestArmorType</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-label">Vanity Account Armor Total</span>    
+        <div class="metric-main">
+          <span class="metric-number">@ArmorTotalValue</span>
+          <span class="metric-type">CV</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-label">Vanity Account Event Total</span>
+         <div class="metric-main">
+          <span class="metric-number">@EventTotalValue</span>
+          <span class="metric-type">CV</span>
+
+          <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
+           @CollectedEventCount / @TotalEventCount
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    @if (_showEventCollection)
+    {
+        <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
+            <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
+                <div class="event-overlay-header">
+                    <div class="event-overlay-titlewrap">
+                        <div class="event-overlay-title">Event Collection</div>
+                        <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
                     </div>
-                }
+                    <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
+                    <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+                </div>
+
+                <div class="event-overlay-tools">
+                    <input class="event-search"
+                           placeholder="Search categories…"
+                           @onchange="OnEventSearchChanged" />
+                </div>
+
+                <div class="event-overlay-body">
+                    @foreach (var group in VisibleEventCollection
+                        .GroupBy(x => x.Category)
+                        .OrderBy(g => GetCategoryOrderKey(g.Key))
+                        .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+                    {                    
+                        var cat = SplitCategory(group.Key);
+                        <div class="event-cat">
+                            <div class="event-cat-hdr">
+                                <span class="event-cat-page">@cat.Page</span>
+                                <span class="event-cat-sep">›</span>
+                                <span class="event-cat-section">@cat.Section</span>
+                            </div>
+
+                            <div class="event-list">
+                                @foreach (var item in group
+                                    .OrderByDescending(x => x.Price)
+                                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                                )
+                                {
+                                    <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
+                                        <div class="event-line">
+                                            <div class="event-name">@item.Name</div>
+                                            <div class="event-price">@(item.Price!=0?@item.Price:"Unknown") CVx</div>
+                                            <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-    </div>
-}
-@if (_rows.Count == 0)
-{  
-}
-else
-{
+    }
+    </div> @* middle-left  *@
+    <aside class="middle-right">
+       <CharacterPanel/>
+    </aside>
+
+    </div> @* Middle pane *@
+    <div class="bottom-pane">    
+
+    @if (_rows.Count == 0)
+    {  
+    }
+    else
+    {
    
-    <div class="grid-wrap">
-    <table class="grid" @ref="_tableRef">
-        <colgroup>
-            <col style="width:80px" />   @* Rating *@
-            <col style="width:75px" />   @* Value *@
-            <col style="width:65px" />   @* BestFor *@
-            <col style="width:70px" />   @* Type *@
-            <col style="width:70px" />   @* Position *@
+        <div class="grid-wrap">
+        <table class="grid" @ref="_tableRef">
+            <colgroup>
+                <col style="width:80px" />   @* Rating *@
+                <col style="width:75px" />   @* Value *@
+                <col style="width:65px" />   @* BestFor *@
+                <col style="width:70px" />   @* Type *@
+                <col style="width:70px" />   @* Position *@
 
-            <col style="width:15%" />    @* Name (2*) *@
-            <col style="width:10%" />    @* Location (2*) *@
-            <col style="width:80px" />   @* Quality *@
+                <col style="width:15%" />    @* Name (2*) *@
+                <col style="width:10%" />    @* Location (2*) *@
+                <col style="width:80px" />   @* Quality *@
             
-            <col style="width:55px" />   @* Lvl *@
-            <col style="width:55px" />   @* MaxLvl *@
+                <col style="width:55px" />   @* Lvl *@
+                <col style="width:55px" />   @* MaxLvl *@
 
-            <col style="width:60px" />   @* HHP *@
-            <col style="width:60px" />   @* HDmg *@
-            <col style="width:60px" />   @* HSpd *@
-            <col style="width:60px" />   @* HRate *@
-            <col style="width:60px" />   @* Ab1 *@
-            <col style="width:60px" />   @* Ab2 *@
-            <col style="width:60px" />   @* THP *@
-            <col style="width:60px" />   @* TDmg *@
-            <col style="width:60px" />   @* TRange *@
-            <col style="width:60px" />   @* TRate *@
+                <col style="width:60px" />   @* HHP *@
+                <col style="width:60px" />   @* HDmg *@
+                <col style="width:60px" />   @* HSpd *@
+                <col style="width:60px" />   @* HRate *@
+                <col style="width:60px" />   @* Ab1 *@
+                <col style="width:60px" />   @* Ab2 *@
+                <col style="width:60px" />   @* THP *@
+                <col style="width:60px" />   @* TDmg *@
+                <col style="width:60px" />   @* TRange *@
+                <col style="width:60px" />   @* TRate *@
 
-            <col style="width:60px" />   @* RG *@
-        </colgroup>
+                <col style="width:60px" />   @* RG *@
+            </colgroup>
   
-        <thead>
-            <tr class="rating-row">                
-                <th colspan="10">       
+            <thead>
+                <tr class="rating-row">                
+                    <th colspan="10">       
                 
-                    <span class="hint-text">
-                        <span class="hint-left">
-                            @VisibleCount / @TotalCount items visible
-                        </span>
+                        <span class="hint-text">
+                            <span class="hint-left">
+                                @VisibleCount / @TotalCount items visible
+                            </span>
 
-                        <span class="hint-right">
-                            Click names to sort, or stars to adjust the rating calculation →
+                            <span class="hint-right">
+                                Click names to sort, or stars to adjust the rating calculation →
+                            </span>
                         </span>
-                    </span>
-                </th>
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HHP))">
-                        <img src="@GetImportanceImage(nameof(ItemViewRow.HHP))" />
-                    </button>
-                    </div>
-                </th>
+                    </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.HHP))">
+                            <img src="@GetImportanceImage(nameof(ItemViewRow.HHP))" />
+                        </button>
+                        </div>
+                    </th>
+
+                        <th class="importance-cell">
+                        <div class="th-center">
+                       <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.HDmg))">
+                                <img src="@GetImportanceImage(nameof(ItemViewRow.HDmg))" />
+                        </button>
+                        </div>
+                    </th>
+                         <th class="importance-cell">
+                        <div class="th-center">
+                   <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.HSpd))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.HSpd))" />
+                        </button>
+                         </div>
+                    </th>
 
                     <th class="importance-cell">
-                    <div class="th-center">
-                   <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HDmg))">
-                            <img src="@GetImportanceImage(nameof(ItemViewRow.HDmg))" />
-                    </button>
-                    </div>
-                </th>
-                     <th class="importance-cell">
-                    <div class="th-center">
-               <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HSpd))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.HSpd))" />
-                    </button>
-                     </div>
-                </th>
+                        <div class="th-center">
+                            <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.HRate))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
+                            </button>
+                        </div>                    
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
+                    <th class="importance-cell">
+                        <div class="th-center">
                         <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.HRate))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab1))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab1))" />
                         </button>
-                    </div>                    
-                </th>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab1))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab1))" />
-                    </button>
-                    </div>
-                </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab2))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab2))" />
+                        </button>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.Ab2))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.Ab2))" />
-                    </button>
-                    </div>
-                </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.THP))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.THP))" />
+                        </button>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.THP))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.THP))" />
-                    </button>
-                    </div>
-                </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.TDmg))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.TDmg))" />
+                        </button>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TDmg))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TDmg))" />
-                    </button>
-                    </div>
-                </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.TRange))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.TRange))" />
+                        </button>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TRange))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TRange))" />
-                    </button>
-                    </div>
-                </th>
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button" 
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.TRate))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.TRate))" />
+                        </button>
+                        </div>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button" 
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.TRate))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.TRate))" />
-                    </button>
-                    </div>
+                    </th>
 
-                </th>
+                    <!-- Resists (all toggle the same flag, but still distinct columns) -->
 
-                <!-- Resists (all toggle the same flag, but still distinct columns) -->
+                    <th class="importance-cell">
+                        <div class="th-center">
+                        <button type="button"
+                                @onclick="() => ChangeImportance(nameof(ItemViewRow.RG))">
+                                <img  src="@GetImportanceImage(nameof(ItemViewRow.RG))" />
+                        </button>
+                        </div>
+                    </th>
 
-                <th class="importance-cell">
-                    <div class="th-center">
-                    <button type="button"
-                            @onclick="() => ChangeImportance(nameof(ItemViewRow.RG))">
-                            <img  src="@GetImportanceImage(nameof(ItemViewRow.RG))" />
-                    </button>
-                    </div>
-                </th>
+                </tr>
+                <tr class="header-row" >
+                    <th class="sortable" data-tooltip=@Tips["Rating"]>
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
+                            Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-            </tr>
-            <tr class="header-row" >
-                <th class="sortable" data-tooltip=@Tips["Rating"]>
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
-                        Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable" data-tooltip=@Tips["Value"]>
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
-                         Est. Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                    <th class="sortable" data-tooltip=@Tips["Value"]>
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
+                             Est. Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
                 
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.BestFor))">
-                         Best For<span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.BestFor))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.BestFor))">
+                             Best For<span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.BestFor))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Type))">
-                        Type <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Type))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Type))">
+                            Type <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Type))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Set))">
-                        Set <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Set))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
-                        Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Set))">
+                            Set <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Set))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
+                            Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-                <th class="sortable"  data-tooltip="@Tips["Location"]">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
-                        Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
+                    <th class="sortable"  data-tooltip="@Tips["Location"]">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
+                            Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
-                        Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
-                        Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable">
-                    <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
-                        MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHHP)">
-                    <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(ItemViewRow.HHP))">
-                        <img src="png/Hero Health.png" alt="HHP" />
-                        <span class="hdr-text">Hero<br />Health</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HHP))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHDmg)">
-                    <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(ItemViewRow.HDmg))">
-                        <img src="png/Hero Damage.png" alt="HDmg" />
-                        <span class="hdr-text">Hero<br />Damage</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HDmg))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHSpd)">
-                    <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(ItemViewRow.HSpd))">
-                        <img src="png/Move Speed.png" alt="HSpd" />
-                        <span class="hdr-text">Hero<br />Speed</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HSpd))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxHRate)">
-                    <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(ItemViewRow.HRate))">
-                        <img src="png/Cast Rate.png" alt="HRate" />
-                        <span class="hdr-text">Hero<br />Cast Rate</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HRate))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb1)">
-                    <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(ItemViewRow.Ab1))">
-                        <img src="png/AB1/Monk AB1.png" alt="Ab1" />
-                        <span class="hdr-text">Hero<br />Ability 1</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab1))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb2)">
-                    <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(ItemViewRow.Ab2))">
-                        <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
-                        <span class="hdr-text">Hero<br />Ability 2</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab2))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxTHP)">
-                    <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(ItemViewRow.THP))">
-                        <img src="png/Tower Health.png" alt="THP" />
-                        <span class="hdr-text">Tower<br /> Health</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.THP))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTDmg)">
-                    <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(ItemViewRow.TDmg))">
-                        <img src="png/Tower Damage.png" alt="TDmg" />
-                        <span class="hdr-text">Tower<br />Damage</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TDmg))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTRange)">
-                    <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(ItemViewRow.TRange))">
-                        <img src="png/Tower Range.png" alt="TRng" />
-                        <span class="hdr-text">Tower<br />Range</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRange))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(sumIdxTRate)">
-                    <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(ItemViewRow.TRate))">
-                        <img src="png/Tower Rate.png" alt="TRate" />
-                        <span class="hdr-text">Tower<br />Rate</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRate))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>
-
-                <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
-                    <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
-                        <img src="png/all_resistances.png" alt="Res" />
-                        <span class="hdr-text">Average Resistance</span>
-                        <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
-                    </button>
-                    <div class="col-resizer"></div>
-                </th>            
-            </tr>
-        </thead>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
+                            Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
 
-        <tbody>
-            @foreach (var r in _rows)
-            {
-                <tr @key="r.Idx" class="@GetRowClass(r.BestAvailable, r.IsHidden)">
-                    <td class="cell-rating">
-                        <span class="rating-primary">@r.Rating</span>
-                        <span class="rating-sides">@r.Sides</span>
-                    </td>
-                    <td>
-                        @{
-                            var (text, icon, tooltip) = GetValueDisplay(r);
-                            bool hasText = !string.IsNullOrWhiteSpace(text);
-                            bool hasIcon = !string.IsNullOrWhiteSpace(icon);
-                        }
-                        <span class="value-icon @(hasText? "" : "value-icon-only")" data-tooltip="@tooltip">
-                            @if (hasIcon)
-                            {
-                                <img class="icon" src="@icon"/>
-                            }
-                            @if (hasText)
-                            {
-                                <span class="label">@text</span>
-                            }
-                        </span>
-                    </td>
-                    <td class="text bestfor">@r.BestFor</td>
-                    <td class="text cell-type">@r.Type</td>
-                    <td class="text cell-type">@r.Set</td>
-                    <td class="text cell-name" h-tooltip="@GetFunHash(r)">
-                        <span class="name-row">
-                                <img class="atlas-icon"
-                                    alt=""
-                                    width="32" height="32"
-                                    data-size="32"
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
+                            Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
 
-                                    data-l1x="@r.IconX" data-l1y="@r.IconY"
-                                    data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-                                    data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
-                                <span class="name-name">
-                                @r.Name 
-                            </span>
+                    <th class="sortable">
+                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
+                            MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxHHP)">
+                        <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(ItemViewRow.HHP))">
+                            <img src="png/Hero Health.png" alt="HHP" />
+                            <span class="hdr-text">Hero<br />Health</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HHP))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxHDmg)">
+                        <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(ItemViewRow.HDmg))">
+                            <img src="png/Hero Damage.png" alt="HDmg" />
+                            <span class="hdr-text">Hero<br />Damage</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HDmg))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxHSpd)">
+                        <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(ItemViewRow.HSpd))">
+                            <img src="png/Move Speed.png" alt="HSpd" />
+                            <span class="hdr-text">Hero<br />Speed</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HSpd))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxHRate)">
+                        <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(ItemViewRow.HRate))">
+                            <img src="png/Cast Rate.png" alt="HRate" />
+                            <span class="hdr-text">Hero<br />Cast Rate</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.HRate))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb1)">
+                        <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(ItemViewRow.Ab1))">
+                            <img src="png/AB1/Monk AB1.png" alt="Ab1" />
+                            <span class="hdr-text">Hero<br />Ability 1</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab1))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxAb2)">
+                        <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(ItemViewRow.Ab2))">
+                            <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
+                            <span class="hdr-text">Hero<br />Ability 2</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Ab2))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxTHP)">
+                        <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(ItemViewRow.THP))">
+                            <img src="png/Tower Health.png" alt="THP" />
+                            <span class="hdr-text">Tower<br /> Health</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.THP))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTDmg)">
+                        <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(ItemViewRow.TDmg))">
+                            <img src="png/Tower Damage.png" alt="TDmg" />
+                            <span class="hdr-text">Tower<br />Damage</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TDmg))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header  @HeaderShadingStyle(sumIdxTRange)">
+                        <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(ItemViewRow.TRange))">
+                            <img src="png/Tower Range.png" alt="TRng" />
+                            <span class="hdr-text">Tower<br />Range</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRange))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(sumIdxTRate)">
+                        <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(ItemViewRow.TRate))">
+                            <img src="png/Tower Rate.png" alt="TRate" />
+                            <span class="hdr-text">Tower<br />Rate</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.TRate))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>
+
+                    <th class="sortable icon-header @HeaderShadingStyle(bFactorInResists?1:0)">
+                        <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(ItemViewRow.RG))">
+                            <img src="png/all_resistances.png" alt="Res" />
+                            <span class="hdr-text">Average Resistance</span>
+                            <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.RG))</span>
+                        </button>
+                        <div class="col-resizer"></div>
+                    </th>            
+                </tr>
+            </thead>
+
+
+            <tbody>
+                @foreach (var r in _rows)
+                {
+                    <tr @key="r.Idx" class="@GetRowClass(r.BestAvailable, r.IsHidden)">
+                        <td class="cell-rating">
+                            <span class="rating-primary">@r.Rating</span>
+                            <span class="rating-sides">@r.Sides</span>
+                        </td>
+                        <td>
                             @{
-                                bool IsBlack(string? c)
+                                var (text, icon, tooltip) = GetValueDisplay(r);
+                                bool hasText = !string.IsNullOrWhiteSpace(text);
+                                bool hasIcon = !string.IsNullOrWhiteSpace(icon);
+                            }
+                            <span class="value-icon @(hasText? "" : "value-icon-only")" data-tooltip="@tooltip">
+                                @if (hasIcon)
                                 {
-                                    if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
-                                    var s = c.Trim().ToLowerInvariant();
-                                    return s == "#000" || s == "#000000" ||
-                                           s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
-                                           s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+                                    <img class="icon" src="@icon"/>
+                                }
+                                @if (hasText)
+                                {
+                                    <span class="label">@text</span>
+                                }
+                            </span>
+                        </td>
+                        <td class="text bestfor">@r.BestFor</td>
+                        <td class="text cell-type">@r.Type</td>
+                        <td class="text cell-type">@r.Set</td>
+                        <td class="text cell-name" h-tooltip="@GetFunHash(r)">
+                            <span class="name-row">
+                                    <img class="atlas-icon"
+                                        alt=""
+                                        width="32" height="32"
+                                        data-size="32"
+
+                                        data-l1x="@r.IconX" data-l1y="@r.IconY"
+                                        data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+                                        data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+                                    <span class="name-name">
+                                    @r.Name 
+                                </span>
+                                @{
+                                    bool IsBlack(string? c)
+                                    {
+                                        if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
+                                        var s = c.Trim().ToLowerInvariant();
+                                        return s == "#000" || s == "#000000" ||
+                                               s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
+                                               s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+                                    }
+
+                                    var show = !IsBlack(r.Color1) || !IsBlack(r.Color2);
                                 }
 
-                                var show = !IsBlack(r.Color1) || !IsBlack(r.Color2);
-                            }
-
-                            @if (show)
-                            {
-                                <span class="name-colors">
-                                    <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
-                                </span>
-                            }                      
-                        </span>                      
-                    </td>
-                    <td class="text location">@GetLocation(r)</td>
-                    <td class="text @QualityClass(r.Quality)">@r.Quality</td>
+                                @if (show)
+                                {
+                                    <span class="name-colors">
+                                        <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
+                                    </span>
+                                }                      
+                            </span>                      
+                        </td>
+                        <td class="text location">@GetLocation(r)</td>
+                        <td class="text @QualityClass(r.Quality)">@r.Quality</td>
                 
-                    <td class="num">@r.Level</td>
-                    <td class="num">@r.MaxLevel</td>
+                        <td class="num">@r.Level</td>
+                        <td class="num">@r.MaxLevel</td>
 
-                    <td class="num cell-health @(_columnClasses[sumIdxHHP])">@GetValue(r.HHP,r)</td>
-                    <td class="num cell-damage @(_columnClasses[sumIdxHDmg])">@GetValue(r.HDmg,r)</td>
-                    <td class="num cell-range @(_columnClasses[sumIdxHSpd])">@GetValue(r.HSpd,r)</td>
-                    <td class="num cell-rate @(_columnClasses[sumIdxHRate])">@GetValue(r.HRate,r)</td>
-                    <td class="num cell-ab1 @(_columnClasses[sumIdxAb1])">@GetValue(r.Ab1,r)</td>
-                    <td class="num cell-ab2 @(_columnClasses[sumIdxAb2])">@GetValue(r.Ab2,r)</td>
-                    <td class="num cell-health @(_columnClasses[sumIdxTHP])">@GetValue(r.THP,r)</td>
-                    <td class="num cell-damage @(_columnClasses[sumIdxTDmg])">@GetValue(r.TDmg,r)</td>
-                    <td class="num cell-range @(_columnClasses[sumIdxTRange])">@GetValue(r.TRange,r)</td>
-                    <td class="num cell-rate @(_columnClasses[sumIdxTRate])">@GetValue(r.TRate,r)</td>
+                        <td class="num cell-health @(_columnClasses[sumIdxHHP])">@GetValue(r.HHP,r)</td>
+                        <td class="num cell-damage @(_columnClasses[sumIdxHDmg])">@GetValue(r.HDmg,r)</td>
+                        <td class="num cell-range @(_columnClasses[sumIdxHSpd])">@GetValue(r.HSpd,r)</td>
+                        <td class="num cell-rate @(_columnClasses[sumIdxHRate])">@GetValue(r.HRate,r)</td>
+                        <td class="num cell-ab1 @(_columnClasses[sumIdxAb1])">@GetValue(r.Ab1,r)</td>
+                        <td class="num cell-ab2 @(_columnClasses[sumIdxAb2])">@GetValue(r.Ab2,r)</td>
+                        <td class="num cell-health @(_columnClasses[sumIdxTHP])">@GetValue(r.THP,r)</td>
+                        <td class="num cell-damage @(_columnClasses[sumIdxTDmg])">@GetValue(r.TDmg,r)</td>
+                        <td class="num cell-range @(_columnClasses[sumIdxTRange])">@GetValue(r.TRange,r)</td>
+                        <td class="num cell-rate @(_columnClasses[sumIdxTRate])">@GetValue(r.TRate,r)</td>
 
-                    <td class="resist @(_columnClasses[bFactorInResists?1:0])" 
-                        data-tooltip=@(
-                          $"<div class='resist-container'>" +
-                            $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.RG}</span>" +
-                            $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.RP}</span>" +
-                            $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.RF}</span>" +
-                            $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.RL}</span>" +
-                            $"</div><br>{ShowUpgradesToMaxResist(r)}")>                  
-                        @((r.RG + r.RP + r.RF + r.RL)/4)</td>                    
-                </tr>
-            }
-        </tbody>
-    </table>
+                        <td class="resist @(_columnClasses[bFactorInResists?1:0])" 
+                            data-tooltip=@(
+                              $"<div class='resist-container'>" +
+                                $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.RG}</span>" +
+                                $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.RP}</span>" +
+                                $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.RF}</span>" +
+                                $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.RL}</span>" +
+                                $"</div><br>{ShowUpgradesToMaxResist(r)}")>                  
+                            @((r.RG + r.RP + r.RF + r.RL)/4)</td>                    
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>        
+    }        
     </div>
-    }
 }
 
 @code {
@@ -1396,7 +1391,7 @@ else
         new("Pure DPS", "Pure DPS"),        
         new("Gunwitch", "Gunwitch"),        
         new("Guardian Summoner", "Guardian Summoner"),
-        new("Best Rating", "Best Rating")
+        //new("Best Rating", "Best Rating")
     };
 
     private (string text, string icon, string tooltip) GetValueDisplay(ItemViewRow row)
