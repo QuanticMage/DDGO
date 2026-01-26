@@ -458,6 +458,12 @@ namespace DungeonDefendersOfflinePreprocessor
 				{
 					if (exp?.Object == null) continue;
 					var obj = exp.Object;
+
+					if (obj.GetReferencePath().Contains("DunDef_CDT_RuthlessEquipment.Challenge.CrossbowStyle5_Ruthless"))
+					{
+						int x = 0;
+					}
+
 					if (!obj.GetReferencePath().StartsWith("HeroEquipment"))
 						continue;
 
@@ -466,7 +472,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					try
 					{						
 						obj.Load();
-						var iconProperty = obj.Properties.FirstOrDefault(x => x.Name == "EquipmentIconMat");
+						var iconProperty = GetProperty(obj, "EquipmentIconMat");
 						if (iconProperty == null) continue;
 
 						var matInst = FindObjectByPath(item, iconProperty.Value);
@@ -487,18 +493,7 @@ namespace DungeonDefendersOfflinePreprocessor
 									break;
 								}
 							}
-							else
-							{
-								var parentProperty = matInst.Properties.FirstOrDefault(x => x.Name == "Parent");
-								var parentInst = FindObjectByPath(item, parentProperty.Value);
-								if (parentInst == null)
-									break;
-								parentInst.Load();
-								matInst = parentInst;
-							}
-
-							textureArrayProperty = GetProperty(matInst, "TextureParameterValues");
-						}
+						}													
 
 						// Logic for handling the Backup Texture found via Regex
 						if (!string.IsNullOrEmpty(backupTexturePath))
@@ -873,14 +868,14 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				string dblColor = iconColorAddPrimary.Value.Replace("(", "{").Replace(")", "}");
 				string fltColor = Regex.Replace(dblColor, @"(?<![A-Za-z0-9_])(\d+\.\d+)(?![A-Za-z0-9_])", "$1f");
-				csString += $", IconColorAddPrimary = new DDLinearColor() {fltColor}";
+				csString += $", IconColorAddPrimary = new DDLinearColor() {fltColor:F2}";
 			}
 
 			if (iconColorAddSecondary != null)
 			{
 				string dblColor = iconColorAddSecondary.Value.Replace("(", "{").Replace(")", "}");
 				string fltColor = Regex.Replace(dblColor, @"(?<![A-Za-z0-9_])(\d+\.\d+)(?![A-Za-z0-9_])", "$1f");
-				csString += $", IconColorAddSecondary = new DDLinearColor() {fltColor}";
+				csString += $", IconColorAddSecondary = new DDLinearColor() {fltColor:F2}";
 			}
 
 
@@ -902,7 +897,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += ", PrimaryColorSets = new List<DDLinearColor> { ";
 				for (int i = 0; i < primaryColorSet.Count; i++)
 				{
-					csString += $" new DDLinearColor({primaryColorSet[i].R}f, {primaryColorSet[i].G}f, {primaryColorSet[i].B}f, {primaryColorSet[i].A}f)";
+					csString += $" new DDLinearColor({primaryColorSet[i].R:F2}f, {primaryColorSet[i].G:F2}f, {primaryColorSet[i].B:F2}f, {primaryColorSet[i].A:F2}f)";
 					if (i != primaryColorSet.Count - 1)
 						csString += ", ";
 				}
@@ -914,14 +909,16 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += ", SecondaryColorSets = new List<DDLinearColor> { ";
 				for (int i = 0; i < secondaryColorSet.Count; i++)
 				{
-					csString += $"new DDLinearColor({secondaryColorSet[i].R}f, {secondaryColorSet[i].G}f, {secondaryColorSet[i].B}f, {secondaryColorSet[i].A}f)";
+					csString += $"new DDLinearColor({secondaryColorSet[i].R:F2}f, {secondaryColorSet[i].G:F2}f, {secondaryColorSet[i].B:F2}f, {secondaryColorSet[i].A:F2}f)";
 					if (i != secondaryColorSet.Count - 1)
 						csString += ", ";
 				}
 				csString += "}";
 			}
-
-			csString += " },";
+			if (IconRefs.ContainsKey(objPath))
+				csString += " }, // " + IconRefs[objPath].IconBase + " " + IconRefs[objPath].IconMask1 + " " + IconRefs[objPath].IconMask2;
+			else
+				csString += " }, // Cant Find Icon Ref";
 			return csString;
 
 		}

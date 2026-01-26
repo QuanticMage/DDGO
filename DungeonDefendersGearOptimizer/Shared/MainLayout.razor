@@ -19,7 +19,7 @@
     private bool _isVisible;
     private MarkupString _text = default;
     private double _x, _y;
-
+    private double _windowWidth;
     private bool _subscribed;
 
     protected override void OnInitialized()
@@ -37,19 +37,22 @@
             await TooltipService.InitializeAsync();
     }
 
-    private void ShowTooltip(string text, double x, double y)
+    private void ShowTooltip(string text, double x, double y, double windowWidth)
     {
         // Position from getBoundingClientRect() is viewport-relative,
         // so tooltip should be position: fixed in CSS.
         const double dx = 0;
         const double dy = -5; // slight lift above the element
+        _windowWidth = windowWidth;
 
         _ = InvokeAsync(() =>
         {
             _text = new MarkupString(text);
             _x = x + dx;
             _y = y + dy;
-            _isVisible = true;
+            _isVisible = true;            
+            if (_x < 100) _x = 100;
+            if (_x > _windowWidth - 300) _x = _windowWidth - 300;            
             StateHasChanged();
         });
     }
