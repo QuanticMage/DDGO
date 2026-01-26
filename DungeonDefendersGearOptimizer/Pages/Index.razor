@@ -1009,7 +1009,7 @@ else
                 }
                 string op = parts[1];
                 if (actualTag == "") continue;
-                switch (tag)
+                switch (actualTag)
                 {
                     case "thp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.THP.CompareTo(valueNum)); break;
                     case "tdmg": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.TDmg.CompareTo(valueNum)); break;

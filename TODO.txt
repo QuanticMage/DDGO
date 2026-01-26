@@ -6,6 +6,13 @@ TODO:
 
 DONE (Search)
 
+* Value icon update?
+* Price column wider?
+* Dark mode
+* Close modal on mouse down not mouse up
+* Currency badge
+
+
 * Track down missing and bad icons
 
 Lamp -> extra masks
