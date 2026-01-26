@@ -124,8 +124,7 @@
     <aside class="info-pane">
         <div class="credits">            
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
-            <div class="credits-thanks">Item database parser by <i>Tbolt</i></div>
-            <div class="credits-thanks">Price estimates by <i>Shiro and Sesar</i></div>
+            <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>            
             <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Scryllix, Shiro, SteveTrevor, Thales, and DDRnG</i></div>            
         </div>
 
@@ -233,7 +232,7 @@
                     @bind-Selected="SelectedOther" />
         <div class="filter-search-row">
             <div class="filter-search-label">
-                Search
+                Custom
             </div>
 
             <div class="filter-search-control">
@@ -428,7 +427,7 @@ else
     <table class="grid" @ref="_tableRef">
         <colgroup>
             <col style="width:80px" />   @* Rating *@
-            <col style="width:70px" />   @* Value *@
+            <col style="width:75px" />   @* Value *@
             <col style="width:65px" />   @* BestFor *@
             <col style="width:70px" />   @* Type *@
             <col style="width:70px" />   @* Position *@
@@ -580,7 +579,7 @@ else
 
                 <th class="sortable" data-tooltip=@Tips["Value"]>
                     <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
-                         Estimated Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
+                         Est. Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
                     </button>
                     <div class="col-resizer"></div>
                 </th>

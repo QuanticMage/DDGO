@@ -1080,8 +1080,8 @@ live-btn {
     display: flex; /* key line */
     flex-direction: column;
     width: 100%;
-    max-width: 600px;
-    padding: 6px 10px; /* tighter than default */
+    max-width: 900px;
+    padding: 6px 6px; /* tighter than default */
     box-sizing: border-box;
 }
 
@@ -1103,15 +1103,13 @@ live-btn {
 
 .rateby-pane .toolbar {
     width: 100%;
-    max-width: 600px;
+    max-width: 900px;
     display: flex;
     flex-wrap: wrap;
     padding: 2px 2px; /* was 4px */
     gap: 4px; /* keep spacing between buttons */
     align-items: center;
     width: 100%;    
-    gap: 4px;
-    padding: 6px;    
 }
 
 
