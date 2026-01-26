@@ -236,18 +236,16 @@
                 Search
             </div>
 
-            <div class="filter-search-control" 
-                data-tooltip=
-                    "Filter items based on text:
-    <i>Handguards</i> => Name must contains 'Handguards'
-    <i>Ab1:500</i> => Ab1 must meet or exceed 500
-    <i>Location:ItemBox</i> => Location must include 'ItemBox'
-    
-    THP:, TDmg:, TRate:, TRange:, HHP:, HDmg:, HRate:, HSpeed:, Ab1:, Ab2:, ResG:, ResP:, ResF:, ResL:    
-    Location:, Quality:, Rating:, Sides: Lvl:, MaxLvl:, ResSum:, Value:">
+            <div class="filter-search-control">
             
                 <SearchBar @bind-Value="_searchText"
                             OnDebounced="ApplySearch"/>
+                <button type="button"
+                        class="help-icon"
+                        aria-label="Search help"
+                        data-tooltip="@SearchHelp">
+                ?
+                </button>
             </div>
         </div>
 </div>
@@ -877,7 +875,23 @@ else
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
 
-    private string[] ValidTags = { "location", "value", "quality", "rating", "sides", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl"};
+    private string SearchHelp =
+            @"Search syntax
+    • Name filter
+        Dragon → Name must contain ""Dragon""
+
+    • Comparisons
+        Ab1:500  → Ab1 ≥ 500
+
+    • Field filters
+        Location:ItemBox  → Location contains ""ItemBox""
+
+    Fields
+    <i>THP, TDmg, TRate, TRange, HHP, HDmg, HRate, HSpeed,
+    Ab1, Ab2, ResG, ResP, ResF, ResL, Location, Quality, 
+    Rating, Sides, Lvl, MaxLvl, ResSum, ResAvg, Value, Name</i>";
+
+    private string[] ValidTags = { "location", "value", "quality", "rating", "sides", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
 
     static string[] Tokenize(string input)
     {
@@ -1015,6 +1029,9 @@ else
                         break;
                     case "resavg":
                         foreach (var r in _rows) r.IsHiddenDueToSearch |= ((r.RG + r.RF + r.RL + r.RP)/4 < valueNum);
+                        break;
+                    case "name":
+                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase);
                         break;
                 }
             }

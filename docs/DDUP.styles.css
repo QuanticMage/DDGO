@@ -1888,6 +1888,36 @@ live-btn[b-yrayc6w7vb] {
     flex-direction: column;
     gap: 6px;
 }
+
+.help-icon[b-yrayc6w7vb] {
+    width: 30px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #c9c9c9;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    color: #555;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 6px;
+}
+
+    .help-icon:hover[b-yrayc6w7vb] {
+        background: #f4f4f4;
+        border-color: #aaa;
+        color: #222;
+    }
+
+    .help-icon:focus-visible[b-yrayc6w7vb] {
+        outline: 2px solid #6b9cff;
+        outline-offset: 2px;
+    }
 /* /SearchBar.razor.rz.scp.css */
 /* Strip the card-ish wrapper */
 .searchwrapper[b-qkquqy8fsd] {
