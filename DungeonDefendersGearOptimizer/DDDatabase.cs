@@ -657,10 +657,7 @@ public class DDDatabase
 			Items[i].FunHashString = ItemHash.Int30ToPhrase(hash);		
 
 			string gen = Items[i].GeneratedName.Trim();		
-			if (Items[i].UserEquipName == "Gaia's Last Gift")
-			{
-				int xxxx = 0;
-			}
+	
 			// exclude magicite
 
 			if ((( gen == "Crystal Heart") || (gen == "Diamond"))&& (Items[i].EventItemValue == 0))

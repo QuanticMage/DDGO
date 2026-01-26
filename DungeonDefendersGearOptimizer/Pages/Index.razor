@@ -494,14 +494,14 @@ else
                      </div>
                 </th>
 
-                    <th class="importance-cell">
+                <th class="importance-cell">
                     <div class="th-center">
                         <button type="button" 
                             @onclick="() => ChangeImportance(nameof(ItemViewRow.HRate))">
                             <img  src="@GetImportanceImage(nameof(ItemViewRow.HRate))" />
-                    </button>
-                    </div>
-                </th class="importance-cell">
+                        </button>
+                    </div>                    
+                </th>
 
                 <th class="importance-cell">
                     <div class="th-center">
@@ -877,13 +877,11 @@ else
 
     private string SearchHelp =
             @"Search syntax
-    • Name filter
+    • Simple Usage (Direct search)
         Dragon → Name must contain ""Dragon""
 
-    • Comparisons
-        Ab1:500  → Ab1 ≥ 500
-
-    • Field filters
+    • Advanced Usage (Fields) 
+        Ab1>=500 → Ab1 is larger or equal to 500 (must not have spaces)
         Location:ItemBox  → Location contains ""ItemBox""
 
     Fields
@@ -891,7 +889,7 @@ else
     Ab1, Ab2, ResG, ResP, ResF, ResL, Location, Quality, 
     Rating, Sides, Lvl, MaxLvl, ResSum, ResAvg, Value, Name</i>";
 
-    private string[] ValidTags = { "location", "value", "quality", "rating", "sides", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
+    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
 
     static string[] Tokenize(string input)
     {
@@ -909,19 +907,81 @@ else
         return tokens.ToArray();
     }
 
+    private void ApplyMask( ItemViewRow r, bool negate, string op, string defaultop, int compareValue )
+    {
+        // compare value -1 means value < constant
+        // compare value 1 means value > constant
+        // compare value 0 means value = constant (or contains if that's the query)
+
+        if (op == ":") op = defaultop;        
+
+        switch (op)
+        {
+            case ">=":            
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue < 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue >= 0);
+                break;
+            case "<=":
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue > 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue <= 0);
+                break;
+            case ">":
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue <= 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue > 0);
+                break;
+            case "<":
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue >= 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue < 0);                    
+                break;
+            case "=":
+            case "==":
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue != 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue == 0);                                    
+                break;
+            case "!=":
+                if (!negate)
+                    r.IsHiddenDueToSearch |= (compareValue == 0);
+                else
+                    r.IsHiddenDueToSearch |= (compareValue != 0);                                    
+                break;
+            default:
+                break;
+        }        
+
+    }
+
     private void ApplySearch()
     {
         foreach (var r in _rows) r.IsHiddenDueToSearch = false;
         string[] tokens = Tokenize(_searchText);
         foreach( string t in tokens )
         {
-            string[] parts = t.Split(":");
-            if (parts.Length == 1)
+            string[] parts = Regex.Split(t, @"(<=|>=|<|>|:|=|!=|==)");
+
+            if (parts.Length == 0) continue;
+            bool negateTag = false;
+            if ((parts[0] != null) && (parts[0] != "") && (parts[0][0] == '-'))
             {
-                foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase);
+                negateTag = true;
+                parts[0] = parts[0].Substring(1);
+            }
+
+            if (parts.Length == 1)
+            {                
+                foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase)?0:1));
                 continue;
             }
-            else if (parts.Length > 1)
+            else if (parts.Length > 2) // operator
             {
                 // normalize tags
                 string tag = parts[0].ToLowerInvariant();
@@ -935,7 +995,7 @@ else
                 tag.Replace("resist", "res");
                 tag.Replace("speed", "spd");
 
-                string valueString = parts[1].Trim().ToLowerInvariant();
+                string valueString = parts[2].Trim().ToLowerInvariant();
                 int valueNum = 0;
                 Int32.TryParse( valueString, out valueNum );
 
@@ -948,91 +1008,37 @@ else
                         break;
                     }
                 }
-
+                string op = parts[1];
                 if (actualTag == "") continue;
                 switch (tag)
                 {
-                    case "thp":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.THP < valueNum);
-                        break;
-                    case "tdmg": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TDmg < valueNum);
-                        break;
-                    case "tRate": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TRate < valueNum);   
-                        break;
-                    case "trange": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.TRange < valueNum);
-                        break;
-                    case "hhp": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HHP < valueNum);
-                        break;
-                    case "hdmg": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HDmg < valueNum);
-                        break;
-                    case "hrate": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HRate < valueNum);
-                        break;
-                    case "hspeed": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.HSpd < valueNum);
-                        break;
-                    case "ab1": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Ab1 < valueNum);
-                        break;
-                    case "ab2": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Ab2 < valueNum);
-                        break;
-                    case "resg": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RG < valueNum);
-                        break;
-                    case "resp": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RP < valueNum);
-                        break;
-                    case "resf": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RF < valueNum);
-                        break;
-                    case "resl": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RL < valueNum);
-                        break;
-                    case "location":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Location.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);
-                        break;
-                    case "quality": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Quality.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);
-                        break;
-                    case "rating":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Rating < valueNum);
-                        break;
-                    case "sides":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Sides < valueNum);
-                        break;
-                    case "lvl":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Level < valueNum);
-                        break;
-                    case "maxlvl": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.MaxLevel < valueNum);
-                        break;
-                    case "value":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.Value < valueNum);
-                        break;
-                    case "set": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Set.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
-                        break;
-                    case "type": 
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Type.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
-                        break;
-                    case "best":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.BestFor.Contains(valueString, StringComparison.InvariantCultureIgnoreCase);                    
-                        break;
-                    case "ressum":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= (r.RG + r.RF + r.RL + r.RP < valueNum);
-                        break;
-                    case "resavg":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= ((r.RG + r.RF + r.RL + r.RP)/4 < valueNum);
-                        break;
-                    case "name":
-                        foreach (var r in _rows) r.IsHiddenDueToSearch |= !r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase);
-                        break;
+                    case "thp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.THP.CompareTo(valueNum)); break;
+                    case "tdmg": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.TDmg.CompareTo(valueNum)); break;
+                    case "tRate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.TRate.CompareTo(valueNum)); break;                        
+                    case "trange": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.TRange.CompareTo(valueNum)); break;                        
+                    case "hhp": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HHP.CompareTo(valueNum)); break;                        
+                    case "hdmg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HDmg.CompareTo(valueNum)); break;                        
+                    case "hrate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HRate.CompareTo(valueNum)); break;
+                    case "hspeed": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HSpd.CompareTo(valueNum)); break;
+                    case "ab1": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Ab1.CompareTo(valueNum)); break;                        
+                    case "ab2": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Ab2.CompareTo(valueNum)); break;
+                    case "resg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RG.CompareTo(valueNum)); break;
+                    case "resp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.RP.CompareTo(valueNum)); break;
+                    case "resf": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RF.CompareTo(valueNum)); break;
+                    case "resl": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RL.CompareTo(valueNum)); break;
+                    case "location": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Location.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;
+                    case "quality": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Quality.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1));; break;                        
+                    case "rating": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Rating.CompareTo(valueNum)); break;
+                    case "sides": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Sides.CompareTo(valueNum)); break;
+                    case "lvl": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Level.CompareTo(valueNum)); break;
+                    case "maxlvl": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.MaxLevel.CompareTo(valueNum)); break;
+                    case "value": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Value.CompareTo(valueNum)); break;
+                    case "set": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Set.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
+                    case "type": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Type.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
+                    case "best": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.BestFor.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
+                    case "ressum":foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", (r.RG + r.RF + r.RL + r.RP).CompareTo(valueNum)); break;
+                    case "resavg":foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", ((r.RG + r.RF + r.RL + r.RP)/4).CompareTo(valueNum)); break;                        
+                    case "name":foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Name.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                                                
                 }
             }
 
