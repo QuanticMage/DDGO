@@ -135,11 +135,6 @@ th.icon-header {
         margin: 0 auto;
     }
 
-.toolbar {
-    display: inline-flex;
-    gap: 4px;
-    padding: 6px;
-}
 
 .toolbar-row {
     display: inline-flex;
@@ -473,7 +468,7 @@ th.importance-cell {
     /* remove the “mystery indent” */
     padding-left: 6px; /* or 4px, but avoid “alignment by vibes” */
     margin-top: 2px;
-    max-width: 640px;
+    max-width: 640px;   
     width: fit-content;
 }
 
@@ -1082,9 +1077,12 @@ live-btn {
 }
 
 .rateby-pane {
-    display: inline-block; /* key line */
-    max-width: 100%;
+    display: flex; /* key line */
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
     padding: 6px 10px; /* tighter than default */
+    box-sizing: border-box;
 }
 
 .rateby-header {
@@ -1104,9 +1102,18 @@ live-btn {
 }
 
 .rateby-pane .toolbar {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
     padding: 2px 2px; /* was 4px */
     gap: 4px; /* keep spacing between buttons */
+    align-items: center;
+    width: 100%;    
+    gap: 4px;
+    padding: 6px;    
 }
+
 
 .tool-btn {
     color: #444;
@@ -1191,7 +1198,7 @@ live-btn {
         }
 
 .toolbar > * {
-    min-width: 0;
+    min-width: 0;    
 }
 
 
@@ -1571,13 +1578,13 @@ live-btn {
     margin-left: 6px;
 }
 
-    .help-icon:hover {
-        background: #f4f4f4;
-        border-color: #aaa;
-        color: #222;
-    }
+.help-icon:hover {
+    background: #f4f4f4;
+    border-color: #aaa;
+    color: #222;
+}
 
-    .help-icon:focus-visible {
-        outline: 2px solid #6b9cff;
-        outline-offset: 2px;
-    }
+.help-icon:focus-visible {
+    outline: 2px solid #6b9cff;
+    outline-offset: 2px;
+}

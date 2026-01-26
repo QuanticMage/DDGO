@@ -41,6 +41,7 @@ weird textures - maybe icons getting overwritten?
 search, inline text, etc
 Night mode
 Best -> Average
+> < advanced or at least '-'
 
 * finish implementing best rating category
 
@@ -73,8 +74,8 @@ Best -> Average
 
 * Weapon + Pet stats
 
-* Sort by sides after primary
-* "Require Sides to be nonzero"
+* (DONE) Sort by sides after primary
+* (DONE) "Require Sides to be nonzero"
 * Explain things first
 * 3-piece resistances 
 //"To use a 3-resistance piece in your armor setup, you need another piece of the same type with enough upgrades. Aim for around 350 to 380 upgrades across both pieces.
