@@ -1,0 +1,112 @@
+﻿.character-panel {
+    display:block;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    position: relative;
+    height: 550px;
+    width: 100%;
+
+}
+
+.character-panel-header{
+
+    padding: 0px 10px;
+}
+
+.hero-stat-bg
+{
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    height: 540px;
+}
+
+.hero-equip-bg {
+    position: absolute;
+    left: 470px;
+    top: 5px;
+    width: 360px;
+    height: 540px;
+}
+
+.stat {
+    position: absolute;
+    transform: translate(-50%, -50%)
+}
+
+
+.stat:hover {
+    background: rgba(0,0,0,0.055);
+}
+
+.stat-val {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%); 
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1; 
+
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(0,0,0,0.2);
+    color: rgba(0,0,0,0.85);
+    pointer-events: none;
+    z-index: 2;
+}
+.icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.small-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+
+.equip {
+    position: absolute;
+    transform: translate(-50%, -50%)
+}
+
+
+.equip:hover {
+    background: rgba(0,0,0,0.055);
+}
+
+.equip-val {
+    position: absolute;
+    left: 50%;
+    bottom: -30px;
+    transform: translate(-50%, 50%);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1; 
+
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(0,0,0,1.0);    
+    color: rgba(240,240,240,1.0);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.small
+{
+    bottom: -20px;
+}

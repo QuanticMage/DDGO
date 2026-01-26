@@ -11,6 +11,7 @@ DONE (Search)
 * Dark mode
 * Close modal on mouse down not mouse up
 * Currency badge
+* Total events at top row of event list?
 
 
 * Track down missing and bad icons
@@ -123,6 +124,18 @@ https://www.youtube.com/watch?v=cuIFJyKtr4c
 * convert icons based on sort (?)
 
 * look into PWA (progressive web app)
+
+1-166 : used in various game/map persistent settings
+171-178 : used in returnia NM and Ruthless for Baby Old One
+179-180 : used in return to CD Nm and Ruthless for Baby Old One
+181-182 : armorless great old one
+200 : Used to facilitate swapping taverns
+201: Moonbase tavern gravity
+210 : Love Machine Wave 40
+211: Tinkerers Workshop secret
+212: Tinkerer's Workshop Secret DU increase
+500 : Used to only look at the best time for saves once (nm -> ruthless conversion)
+2019-2020 : Ruthless TBR
 
 * (DONE) Pages of items
 * (DONE) Drag new file
