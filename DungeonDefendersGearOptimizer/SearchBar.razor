@@ -33,7 +33,7 @@
         try
         {
             // 2. Wait for the user to stop typing (300ms is the "sweet spot")
-            await Task.Delay(300, _cts.Token);
+            await Task.Delay(500, _cts.Token);
 
             // 3. Notify the parent only once typing has paused
             await ValueChanged.InvokeAsync(Value);

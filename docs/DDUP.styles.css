@@ -472,11 +472,6 @@ th.icon-header[b-yrayc6w7vb] {
         margin: 0 auto;
     }
 
-.toolbar[b-yrayc6w7vb] {
-    display: inline-flex;
-    gap: 4px;
-    padding: 6px;
-}
 
 .toolbar-row[b-yrayc6w7vb] {
     display: inline-flex;
@@ -810,7 +805,7 @@ th.importance-cell[b-yrayc6w7vb] {
     /* remove the “mystery indent” */
     padding-left: 6px; /* or 4px, but avoid “alignment by vibes” */
     margin-top: 2px;
-    max-width: 640px;
+    max-width: 640px;   
     width: fit-content;
 }
 
@@ -1419,9 +1414,12 @@ live-btn[b-yrayc6w7vb] {
 }
 
 .rateby-pane[b-yrayc6w7vb] {
-    display: inline-block; /* key line */
-    max-width: 100%;
-    padding: 6px 10px; /* tighter than default */
+    display: flex; /* key line */
+    flex-direction: column;
+    width: 100%;
+    max-width: 900px;
+    padding: 6px 6px; /* tighter than default */
+    box-sizing: border-box;
 }
 
 .rateby-header[b-yrayc6w7vb] {
@@ -1441,9 +1439,16 @@ live-btn[b-yrayc6w7vb] {
 }
 
 .rateby-pane .toolbar[b-yrayc6w7vb] {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-wrap: wrap;
     padding: 2px 2px; /* was 4px */
     gap: 4px; /* keep spacing between buttons */
+    align-items: center;
+    width: 100%;    
 }
+
 
 .tool-btn[b-yrayc6w7vb] {
     color: #444;
@@ -1528,7 +1533,7 @@ live-btn[b-yrayc6w7vb] {
         }
 
 .toolbar > *[b-yrayc6w7vb] {
-    min-width: 0;
+    min-width: 0;    
 }
 
 
@@ -1908,16 +1913,16 @@ live-btn[b-yrayc6w7vb] {
     margin-left: 6px;
 }
 
-    .help-icon:hover[b-yrayc6w7vb] {
-        background: #f4f4f4;
-        border-color: #aaa;
-        color: #222;
-    }
+.help-icon:hover[b-yrayc6w7vb] {
+    background: #f4f4f4;
+    border-color: #aaa;
+    color: #222;
+}
 
-    .help-icon:focus-visible[b-yrayc6w7vb] {
-        outline: 2px solid #6b9cff;
-        outline-offset: 2px;
-    }
+.help-icon:focus-visible[b-yrayc6w7vb] {
+    outline: 2px solid #6b9cff;
+    outline-offset: 2px;
+}
 /* /SearchBar.razor.rz.scp.css */
 /* Strip the card-ish wrapper */
 .searchwrapper[b-qkquqy8fsd] {
