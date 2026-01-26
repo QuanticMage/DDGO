@@ -44,6 +44,9 @@ Best -> Average
 
 
 
+* Fix hashing bug with color or leave it?
+
+
 * Figure out color on Santa Hat- why so dim?
 * (DONE) Move Plate after Pristine
 * (DONE) Move Gaunlet before Torso
