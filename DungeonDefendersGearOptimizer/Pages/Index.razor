@@ -739,7 +739,7 @@
             <tbody>
                 @foreach (var r in _rows)
                 {
-                    <tr @key="r.Idx" class="@GetRowClass(r.BestAvailable, r.IsHidden)">
+                    <tr @key="r.Idx" class="data-row @GetRowClass(r.IsSelected, r.IsHidden)" @onclick="()=>OnRowClicked(r)">
                         <td class="cell-rating">
                             <span class="rating-primary">@r.Rating</span>
                             <span class="rating-sides">@r.Sides</span>
@@ -869,6 +869,14 @@
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
 
+    // ======= selection ==========
+
+    void OnRowClicked( ItemViewRow row )
+    {
+        row.IsSelected = !row.IsSelected;
+    }
+
+    // ======= search filter ==========
     private string SearchHelp =
             @"Search syntax
     • Simple Usage (Direct search)
@@ -1705,7 +1713,7 @@
 
             _rows[i].Rating = rating;
             _rows[i].Sides = sides;
-            _rows[i].BestAvailable = 0;
+            _rows[i].IsSelected = false;
         }
 
         // find best armor set
@@ -1756,7 +1764,7 @@
                 }                                
             }
 
-            _rows[i].BestAvailable = (highlight ? 1 : 0);
+            _rows[i].IsSelected = highlight;
         }
 
         BestArmorRating = bestScore;
@@ -1919,10 +1927,10 @@
         };
     }
 
-    private string GetRowClass(int c, bool h)
+    private string GetRowClass(bool selected, bool h)
     {
         if (h) return "hidden-row";
-        if ((c == 1) && _highlight) return "highlighted-row";
+        if (selected) return "selected";
         return "";
     }
 

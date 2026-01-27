@@ -282,8 +282,7 @@ public class DDEquipmentInfo
 				RP: Resist(this, 1),
 				RF: Resist(this, 2),
 				RL: Resist(this, 3),
-				Idx: this.Idx,
-				BestAvailable: Idx % 2,
+				Idx: this.Idx,				
 				Value: EventItemValue,
 				BestFor: "",
 

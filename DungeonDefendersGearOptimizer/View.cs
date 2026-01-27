@@ -80,7 +80,7 @@ namespace DDUP
 		public string Color2 { get; set; }
 
 		public bool IsEligibleForBest { get; set; }
-		public int BestAvailable { get; set; }
+		public bool IsSelected { get; set; }
 		public int Value { get; set; }
 		public string BestFor { get; set; }
 
@@ -128,7 +128,6 @@ namespace DDUP
 				int RF,
 				int RL,
 				int Idx,
-				int BestAvailable,
 				int Value,
 				string BestFor,
 				string FunHashString,
@@ -179,8 +178,7 @@ namespace DDUP
 			this.RL = RL;
 
 			this.Idx = Idx;
-			this.BestAvailable = BestAvailable;
-
+			
 			this.IsEvent = IsEvent;
 			this.IsMissingResists = IsMissingResists;
 			this.IsEquipped = IsEquipped;
