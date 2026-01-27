@@ -1,0 +1,152 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using System.Linq
+
+<div class="rs-root" tabindex="0" @onkeydown="OnRootKeyDown">
+    <button type="button"
+            class="rs-btn @(_open ? "open" : "")"
+            @onclick="ToggleOpen">
+        <span class="rs-btnlabel">
+            @* This correctly displays the selected label or the placeholder  *@
+            @(_valueLabel ?? Placeholder)
+        </span>
+        <span class="rs-caret">▾</span>
+    </button>
+
+    @if (_open)
+    {
+        <div class="rs-backdrop" @onclick="Close"></div>
+        <div class="rs-menu"
+             tabindex="0"
+             @ref="_menuRef"
+             @onkeydown="OnMenuKeyDown"
+             @onclick:stopPropagation="true">
+
+            <div class="rs-grid" role="listbox">
+                @for (int i = 0; i < Options.Count; i++)
+                {
+                    var index = i; // Local capture for the loop
+                    var opt = Options[i];
+                    var isOn = opt.Value == Value;
+
+                    <button type="button"
+                            role="option"
+                            aria-selected="@isOn"
+                            tabindex="-1"
+                            class="rs-item @(isOn ? "on" : "") @(_keyboardNav && _activeIndex == i ? "active" : "")"
+                            @onmouseover="() => _activeIndex = index"
+                            @onclick="() => Pick(index)">
+                        <span class="rs-radio">@((isOn) ? "◉" : "○")</span>
+                        <span class="rs-label">@GetLabel(opt)</span>
+                    </button>
+                }
+            </div>
+
+            @if (AllowClear)
+            {
+                <div class="rs-footer">
+                    <button type="button" class="rs-clear" @onclick="Clear">None</button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    public record Option(string Value, string? Label = null);
+
+    [Parameter] public IReadOnlyList<Option> Options { get; set; } = Array.Empty<Option>();
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Select";
+    [Parameter] public bool AllowClear { get; set; } = false;
+    [Parameter] public bool CloseOnPick { get; set; } = true;
+
+    private bool _open;
+    private int _activeIndex = -1;
+    private bool _keyboardNav;
+    private ElementReference _menuRef;
+    private string GetLabel(Option o) => o.Label ?? o.Value;
+    private string? _valueLabel =>
+          Options.FirstOrDefault(o => o.Value == Value)?.Label ??
+          Options.FirstOrDefault(o => o.Value == Value)?.Value;
+
+    private async Task Pick(int index)
+    {
+        if (index < 0 || index >= Options.Count) return;
+
+        // This triggers the parent to update the 'Value' property
+        await ValueChanged.InvokeAsync(Options[index].Value);
+
+        if (CloseOnPick) Close(); 
+    }
+
+    private void ToggleOpen()
+    {
+        _open = !_open;
+        if (_open)
+        {
+            _keyboardNav = false;
+            // Find current index manually to avoid unnecessary List conversion
+            _activeIndex = -1;
+            for (int i = 0; i < Options.Count; i++)
+            {
+                if (Options[i].Value == Value)
+                {
+                    _activeIndex = i;
+                    break;
+                }
+            }
+            if (_activeIndex == -1) _activeIndex = 0;
+        }
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _keyboardNav = false;
+        _activeIndex = -1;
+    }
+
+    
+    private async Task Clear()
+    {
+        await ValueChanged.InvokeAsync(null);
+        Close();
+    }
+
+    private void OnRootKeyDown(KeyboardEventArgs e)
+    {
+        if (!_open && (e.Key == "Enter" || e.Key == " "))
+            ToggleOpen();
+    }
+
+    private async Task OnMenuKeyDown(KeyboardEventArgs e)
+    {
+        const int cols = 2;
+        _keyboardNav = true;
+
+        switch (e.Key)
+        {
+            case "Escape":
+                Close();
+                break;
+            case "ArrowRight":
+                _activeIndex = Math.Min(_activeIndex + 1, Options.Count - 1);
+                break;
+            case "ArrowLeft":
+                _activeIndex = Math.Max(_activeIndex - 1, 0);
+                break;
+            case "ArrowDown":
+                _activeIndex = Math.Min(_activeIndex + cols, Options.Count - 1);
+                break;
+            case "ArrowUp":
+                _activeIndex = Math.Max(_activeIndex - cols, 0);
+                break;
+            case "Enter":
+            case " ":
+                if (_activeIndex >= 0)
+                    await Pick(_activeIndex);
+                break;
+        }
+    }
+}

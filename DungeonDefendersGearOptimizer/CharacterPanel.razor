@@ -35,6 +35,32 @@
     <div class="equip" style="left:640px; top:440px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Leather Boots</span></div>
     <div class="equip" style="left:766px; top:420px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Other Thing</span></div>
     <div class="equip" style="left:540px; top:360px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Best Friend</span></div>
+    
+    
+    <div style="position: absolute; left:100px; top:100px;">
+        <RadioSelect Placeholder="Sort"
+                     Options="SortOptions"
+                     Value="Sort"
+                     ValueChanged="OnSortChanged" />
+    </div>
+    @code {
+        private string? Sort = "Recent";
+
+        private IReadOnlyList<RadioSelect.Option> SortOptions = new[]
+        {
+        new RadioSelect.Option("Recent", "Most recent"),
+        new RadioSelect.Option("Popular", "Most popular"),
+        new RadioSelect.Option("PriceAsc", "Price ↑"),
+        new RadioSelect.Option("PriceDesc", "Price ↓"),
+        new RadioSelect.Option("Rating", "Rating"),
+        };
+
+        private Task OnSortChanged(string? v)
+        {
+            Sort = v;
+            return Task.CompletedTask;
+        }
+    }
     <!--
     <div class="character-panel-split">
         <div class="character-panel-left">                        
@@ -88,8 +114,9 @@
     </div>-->
 </div>
 @code {
-    // TODO:  Fix selection
-    // Hook up selection : equipping
+    // Character selection
+    // keep track of equippables
+    // select => fills in collectible => icons
     // Clicking on equipment unequips
     // Hover for item stats, item compare
     // class icons
