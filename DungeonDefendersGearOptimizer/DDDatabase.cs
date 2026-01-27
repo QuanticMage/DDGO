@@ -538,11 +538,11 @@ public class DDDatabase
 				else if (entry.EquipmentType == EquipmentType.Mask) { type = "Mask"; }
 				else if (entry.EquipmentType == EquipmentType.Shield) { type = "Shield"; }
 				else if (entry.EquipmentType == EquipmentType.Familiar) { type = "Pet"; }
-				else if (entry.EquipmentType == EquipmentType.Currency) { type = "Currency"; }
+				else if (entry.EquipmentType == EquipmentType.Currency) { type = "Currency"; }				
 
-				if ((Items[i].Level == 1)  && (Items[i].MaxLevel == 1) &&
+				if ((Items[i].Level == 1) && (Items[i].MaxLevel == 1) &&
 					(Items[i].Stats[1] == 0) && (Items[i].Stats[2] == 0) &&
-					(Items[i].Stats[3] == 0) &&	(Items[i].Stats[4] == 0) &&
+					(Items[i].Stats[3] == 0) && (Items[i].Stats[4] == 0) &&
 					(Items[i].Stats[5] == 0) && (Items[i].Stats[6] == 0) &&
 					(Items[i].Stats[7] == 0) && (Items[i].Stats[8] == 0) &&
 					(Items[i].Stats[9] == 0) && (Items[i].Stats[10] == 0))
@@ -717,7 +717,7 @@ public class DDDatabase
 			.GroupBy(x => x.Location)
 			.ToDictionary(
 				g => g.Key,
-				g => g.OrderByDescending(x => x.MaxLevel).ToList()
+				g => g.OrderByDescending(x => x.MaxLevel).ThenBy(x => x.Idx).ToList()
 			);
 
 		for (int i = 0; i < Items.Count; i++)

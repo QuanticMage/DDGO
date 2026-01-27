@@ -86,37 +86,88 @@
 
 .small {
 }
+.equip {
+    position: absolute; /* keeps your left/top behavior */
+    width: max-content; /* optional: keeps wrapper tight */
+    height: max-content;
+}
 
-.equip .stat-val
-{
+/* All layers stack in the same box */
+.equip .frame,
+.equip .overlay {
+    display: block;
+    position: relative; /* establishes baseline size */
+    z-index: 1;
+}
+
+/* Put overlay on top of frame */
+.equip .overlay {
+    position: absolute;
+    inset: 0; /* fill the frame box */
+    z-index: 2;
+    pointer-events: none; /* overlay won't steal clicks */
+}
+
+/* Text above both images */
+.equip .stat-val,
+.equip .equip-val {
+    position: absolute;
+    z-index: 3;
+}
+
+/* Example text placement (adjust to taste) */
+.equip .stat-val {
+    top: 6px;
+    right: 8px;
     bottom: 30px;
     color: #ffffff;
     font-size: 12px;
 }
-.equip-val {
-    position: absolute;
+
+.equip .equip-val {
     left: 50%;
     bottom: 0px;
     transform: translate(-50%, 50%);
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     font-weight: 400;
-    line-height: 1; 
-
+    line-height: 1;
     padding: 2px 6px;
     border-radius: 6px;
-    background: rgba(0,0,0,1.0);    
+    background: rgba(0,0,0,1.0);
     color: rgba(240,240,240,1.0);
     pointer-events: none;
-    z-index: 1;
+}
+
+/* Size variants (optional, but cleaner than "small-icon"/"icon") */
+.equip--small .frame {
+    width: 48px;
+    height: 48px;
+}
+
+.equip--big .frame {
+    width: 72px;
+    height: 72px;
 }
 
 
-.equip .stat-val small {
-    font-size: 12px;
-    bottom: 20px;
-    color: #ffffff;
+.equip .overlay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* true centering */
+}
+
+    /* Make overlay match the frame sizes automatically */
+.equip--small .overlay {
+    width: 48px;
+    height: 48px;
+}
+
+.equip--big .overlay {
+    
+    width: 88px;
+    height: 88px;
 }

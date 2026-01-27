@@ -310,6 +310,7 @@ th {
     max-height: 70vh; /* pick what you want */
     overflow: auto; /* this makes the body scroll */
     border: 3px solid black;
+    position:relative;
 }
 
 .rating-row th {
@@ -406,18 +407,10 @@ table.grid tr.selected td::after {
     background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
     pointer-events: none;
     z-index: 0;
-    opacity: 0.4; /* hover default */
+    opacity: 1.0; /* hover default */
 }
 
 table.grid tr:hover td::after {
-    opacity: 0.4;
-}
-
-table.grid tr.selected td::after {
-    opacity: 1;
-}
-
-table.grid tr.selected:hover td::after {
     opacity: 1.25;
     filter: saturate(1.15) brightness(1.5);
 }
@@ -1589,14 +1582,6 @@ live-btn {
     justify-self: right;
 }
 
-.atlas-icon {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    display: inline-block;
-    image-rendering: pixelated;
-}
 
 .summary-to-table-search {
     margin: 12px 0 14px;

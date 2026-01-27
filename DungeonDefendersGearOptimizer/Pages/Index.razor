@@ -405,7 +405,7 @@
     }
     </div> @* middle-left  *@
     <aside class="middle-right">
-       <CharacterPanel/>
+       <CharacterPanel @ref="_characterPanel"/>
     </aside>
 
     </div> @* Middle pane *@
@@ -415,9 +415,16 @@
     {  
     }
     else
-    {
-   
-        <div class="grid-wrap">
+    {   
+    <div class="grid-wrap">
+       <div class="overlay-layer" aria-hidden="true">
+        @*@foreach (var h in _highlights)
+        {
+            <div class="row-highlight"
+                style="transform: translateY(@($"{h.Y}px")); height: @($"{h.H}px"); opacity: 1;">
+            </div>
+        }*@
+        </div>
         <table class="grid" @ref="_tableRef">
             <colgroup>
                 <col style="width:80px" />   @* Rating *@
@@ -739,7 +746,7 @@
             <tbody>
                 @foreach (var r in _rows)
                 {
-                    <tr @key="r.Idx" class="data-row @GetRowClass(r.IsSelected, r.IsHidden)" @onclick="()=>OnRowClicked(r)">
+                    <tr @key="r.Idx" class="data-row @GetRowClass(r.CurrentEquippedSlot, r.IsHidden)" @onclick="()=>OnRowClicked(r)">
                         <td class="cell-rating">
                             <span class="rating-primary">@r.Rating</span>
                             <span class="rating-sides">@r.Sides</span>
@@ -769,8 +776,7 @@
                                     <img class="atlas-icon"
                                         alt=""
                                         width="32" height="32"
-                                        data-size="32"
-
+                                        data-size="64"
                                         data-l1x="@r.IconX" data-l1y="@r.IconY"
                                         data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
                                         data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
@@ -868,12 +874,66 @@
     private string _searchText = "";
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
+    private CharacterPanel? _characterPanel;    
 
     // ======= selection ==========
 
-    void OnRowClicked( ItemViewRow row )
+
+    // this should be updated for new characters
+    private string GetTypeOfExtraSlot()
     {
-        row.IsSelected = !row.IsSelected;
+        return "Shield";
+    }
+
+    private void ClearAllSelections()
+    {
+        List<ItemViewRow> equippedItems = _characterPanel?.EquippedItems.Values.ToList();
+
+        foreach( var v in equippedItems )
+            DeselectRow(v);       
+    }
+
+    private void DeselectRow( ItemViewRow row )
+    {
+        if (row.CurrentEquippedSlot == "") return;
+
+        _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
+        row.CurrentEquippedSlot = "";        
+    }
+
+    private void SelectRow( ItemViewRow row )
+    {
+        if (row.CurrentEquippedSlot != "") return;
+        if (_characterPanel == null) return;
+
+        string extra = GetTypeOfExtraSlot();
+        string itemType = row.Type;
+
+        if ((itemType == "Unknown") || (itemType == "") || (itemType == "Currency")) return;
+        if ((itemType == "Shield") && (extra != "Shield")) return;
+
+        // TODO: replace primary not extra row when selecting
+        if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra ))
+            itemType = "Extra";
+
+        if (_characterPanel.EquippedItems.ContainsKey(itemType))
+            DeselectRow(_characterPanel.EquippedItems[itemType]);
+
+        _characterPanel?.ChangeEquipment(itemType, row);        
+        row.CurrentEquippedSlot = itemType;
+    }
+
+    private bool IsSelected( ItemViewRow row)
+    {
+        return (row.CurrentEquippedSlot != "");
+    }
+
+    private void OnRowClicked( ItemViewRow row )
+    {
+        if (IsSelected(row))
+            DeselectRow(row);
+        else
+            SelectRow(row);        
     }
 
     // ======= search filter ==========
@@ -885,6 +945,7 @@
     • Advanced Usage (Fields) 
         Ab1>=500 → Ab1 is larger or equal to 500 (must not have spaces)
         Location:ItemBox  → Location contains ""ItemBox""
+        -Best:Hermit → Exclude items that are best for hermit (dash negates)
 
     Fields
     <i>THP, TDmg, TRate, TRange, HHP, HDmg, HRate, HSpeed,
@@ -1016,12 +1077,12 @@
                 {
                     case "thp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.THP.CompareTo(valueNum)); break;
                     case "tdmg": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.TDmg.CompareTo(valueNum)); break;
-                    case "tRate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.TRate.CompareTo(valueNum)); break;                        
+                    case "trate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.TRate.CompareTo(valueNum)); break;                        
                     case "trange": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.TRange.CompareTo(valueNum)); break;                        
                     case "hhp": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HHP.CompareTo(valueNum)); break;                        
                     case "hdmg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HDmg.CompareTo(valueNum)); break;                        
                     case "hrate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HRate.CompareTo(valueNum)); break;
-                    case "hspeed": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HSpd.CompareTo(valueNum)); break;
+                    case "hsd": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.HSpd.CompareTo(valueNum)); break;
                     case "ab1": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Ab1.CompareTo(valueNum)); break;                        
                     case "ab2": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Ab2.CompareTo(valueNum)); break;
                     case "resg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RG.CompareTo(valueNum)); break;
@@ -1045,7 +1106,7 @@
             }
 
         }        
-        
+
 
         // this will also update our search
         ApplyChipFilters();              
@@ -1712,8 +1773,7 @@
             }
 
             _rows[i].Rating = rating;
-            _rows[i].Sides = sides;
-            _rows[i].IsSelected = false;
+            _rows[i].Sides = sides;            
         }
 
         // find best armor set
@@ -1764,7 +1824,11 @@
                 }                                
             }
 
-            _rows[i].IsSelected = highlight;
+            if (highlight)
+                SelectRow(_rows[i]);
+            else
+                DeselectRow(_rows[i]);
+
         }
 
         BestArmorRating = bestScore;
@@ -1927,10 +1991,10 @@
         };
     }
 
-    private string GetRowClass(bool selected, bool h)
+    private string GetRowClass(string currentSelectedSlot, bool h)
     {
         if (h) return "hidden-row";
-        if (selected) return "selected";
+        if (currentSelectedSlot != "") return "selected";
         return "";
     }
 
