@@ -345,48 +345,91 @@ table.grid {
     width: 100%;
 }
 
-    table.grid td,
-    table.grid th {
-        overflow: hidden; /* THIS is what clips */
-    }
+table.grid td,
+table.grid th {
+    overflow: hidden; /* THIS is what clips */
+}
 
-        table.grid th.table-header-primary {
-            outline: 2px solid #00000080;
-            outline-offset: -2px;
-            background-color: #000000;
-            color: #ffffff;
-            background-clip: padding-box;
-        }
+table.grid th.table-header-primary {
+    outline: 2px solid #00000080;
+    outline-offset: -2px;
+    background-color: #000000;
+    color: #ffffff;
+    background-clip: padding-box;
+}
 
-        table.grid th.table-header-secondary {
-            outline: 2px solid #00000080;
-            outline-offset: -2px;
-            background-color: #808080;
-            background-clip: padding-box;
-        }
+table.grid th.table-header-secondary {
+    outline: 2px solid #00000080;
+    outline-offset: -2px;
+    background-color: #808080;
+    background-clip: padding-box;
+}
 
-        table.grid th.table-header-none {
-            background-clip: padding-box;
-        }
+table.grid th.table-header-none {
+    background-clip: padding-box;
+}
 
-    table.grid tr.highlighted-row td {
-        position: relative; /* anchor */
-    }
+table.grid tr.highlighted-row td {
+    position: relative; /* anchor */
+}
 
-        table.grid tr.highlighted-row td::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
-            rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
-            pointer-events: none;
-            z-index: 1;
-        }
-    /* keep text/icons above the overlay */
-    table.grid tr.row-overlay td > * {
-        position: relative;
-        z-index: 2;
-    }
+table.grid tr.highlighted-row td::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
+    rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
+    pointer-events: none;
+    z-index: 1;
+}
+
+table.grid tr {
+    position: relative;
+}
+/* remove the row pseudo-element overlays */
+table.grid tr.selected::after,
+table.grid tr:hover::after {
+    content: none;
+}
+
+/* ensure td is the positioning context */
+table.grid td {
+    position: relative;
+}
+
+/* overlay lives inside each cell */
+table.grid tr:hover td::after,
+table.grid tr.selected td::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4; /* hover default */
+}
+
+table.grid tr:hover td::after {
+    opacity: 0.4;
+}
+
+table.grid tr.selected td::after {
+    opacity: 1;
+}
+
+table.grid tr.selected:hover td::after {
+    opacity: 1.25;
+    filter: saturate(1.15) brightness(1.5);
+}
+
+table.grid td > * {
+    position: relative;
+    z-index: 1;
+}
+
+table.grid tr:hover td {
+    cursor: pointer;
+}
 
 
 .summary {
@@ -1613,3 +1656,4 @@ live-btn {
     top: 12px;
     align-self: start;
 }
+
