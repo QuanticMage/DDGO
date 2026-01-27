@@ -13,6 +13,16 @@ DONE (Search)
 * Currency badge
 * Total events at top row of event list?
 
+--Any row can be equipped, even if hidden
+--Selection list is just equip list type->equipment with extra bonus where shield can be a weapon for a few characters
+* Custom is a dropdown list of recent custom searches
+* include this in optimization / don't (by folder)
+
+(DONE? - need verify) Look at tiebreaking with index
+(DONE) HSpeed, TRate don't do anything?
+
+
+
 
 * Track down missing and bad icons
 
