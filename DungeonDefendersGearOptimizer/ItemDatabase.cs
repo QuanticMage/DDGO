@@ -17,11 +17,13 @@
 		Boots = 3,
 		Gloves = 4,
 		Familiar = 5,
-		Brooch = 7, // Brooch
-		Bracers = 8, // Bracers
-		Shield = 9, // Shield
+		Brooch = 7, 
+		Bracers = 8, 
+		Shield = 9, 
 		Mask = 10,
 		Currency = 11, 
+		
+		None = 12,
 	}
 
 	public enum EquipmentSet

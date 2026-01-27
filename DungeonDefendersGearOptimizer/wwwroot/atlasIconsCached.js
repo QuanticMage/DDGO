@@ -98,24 +98,28 @@
     async function renderKeyToObjectUrl(size, l1, l2, l3) {
         const dpr = window.devicePixelRatio || 1;
         const px = Math.max(1, Math.round(size * dpr));
-        const scale = px / size;
-        ctx.setTransform(scale, 0, 0, scale, 0, 0); 
 
+        // Resize first (resets state)
         c.width = px;
         c.height = px;
 
-        // Draw in CSS pixels but scale output to DPR
+        // Reset state explicitly
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+
         ctx.clearRect(0, 0, size, size);
 
         if (l1) drawBase(l1, size);
         if (l2) drawTintedOverlay(l2, size);
         if (l3) drawTintedOverlay(l3, size);
 
-        const blob = await new Promise(res => c.toBlob(res, "image/png"));
+        const blob = await new Promise((res, rej) =>
+            c.toBlob(b => (b ? res(b) : rej(new Error("toBlob returned null"))), "image/png")
+        );
+
         return URL.createObjectURL(blob);
     }
-
     async function renderAllCached() {
         if (!atlas) throw new Error("atlasIcons not initialized");
 

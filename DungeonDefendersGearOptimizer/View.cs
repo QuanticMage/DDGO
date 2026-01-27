@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using DDUP;
+using Microsoft.AspNetCore.Components;
 
 namespace DDUP
 {
@@ -29,9 +30,9 @@ namespace DDUP
 		Pets = 1 << 13,
 		Weapons = 1 << 14,
 		Currency = 1 << 15,
-		Events = 1<< 16,
-
+		Events = 1 << 16,
 	}
+
 
 	public sealed class ItemViewRow
 	{
@@ -80,7 +81,6 @@ namespace DDUP
 		public string Color2 { get; set; }
 
 		public bool IsEligibleForBest { get; set; }
-		public bool IsSelected { get; set; }
 		public int Value { get; set; }
 		public string BestFor { get; set; }
 
@@ -99,6 +99,7 @@ namespace DDUP
 		public string FunHashString { get; set; }
 
 		public bool IsHiddenDueToSearch { get; set; }
+		public string CurrentEquippedSlot { get; set; }		
 
 		public ItemViewRow(
 				int Rating,
@@ -106,7 +107,7 @@ namespace DDUP
 				string Name,
 				string Location,
 				string Quality,
-				string Type,
+				string Type,				
 				string Set,
 				int Level,
 				int MaxLevel,
@@ -201,6 +202,7 @@ namespace DDUP
 			this.IconX = IconX;
 			this.IconY = IconY;
 			this.IsHiddenDueToSearch = false;
+			this.CurrentEquippedSlot = "";
 		}
 	}
 }

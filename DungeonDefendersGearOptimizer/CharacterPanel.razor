@@ -1,4 +1,5 @@
-﻿<div class="character-panel">
+﻿
+<div class="character-panel">
     <header class="character-panel-header">
         <h3>Character</h3>
     </header>
@@ -25,24 +26,24 @@
     <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' /><span class='stat-val'>90%</span></div>
 
 
-    <div class="equip" style="left:755px; top:185px;"><img class="small-icon" src='png/equipFrame.png' /><span class='stat-val'>2400</span><span class='equip-val small'>Bracers</span></div>
-    <div class="equip" style="left:555px; top:100px;"><img class="small-icon" src='png/equipFrame.png' /><span class='stat-val'>2400</span><span class='equip-val small'>Brooch</span></div>
-    <div class="equip" style="left:755px; top:100px;"><img class="small-icon" src='png/equipFrame.png' /><span class='stat-val'>2400</span><span class='equip-val small'>Mask</span></div>
-    <div class="equip" style="left:666px; top:125px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Leather Helm</span></div>
-    <div class="equip" style="left:666px; top:275px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Leather Chestguard</span></div>
-    <div class="equip" style="left:766px; top:300px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Leather Gloves</span></div>
-    <div class="equip" style="left:566px; top:225px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Migthy Sword</span></div>
-    <div class="equip" style="left:640px; top:440px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Leather Boots</span></div>
-    <div class="equip" style="left:766px; top:420px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Other Thing</span></div>
-    <div class="equip" style="left:540px; top:360px;"><img class="icon" src='png/equipFrame.png' /><span class='stat-val'>1000</span><span class='equip-val'>Best Friend</span></div>
-    
-    
+    <div class="equip equip--small" style="left:755px; top:185px;">@(GetEquipmentVisuals("Bracers"))</div>
+    <div class="equip equip--small" style="left:555px; top:100px;">@(GetEquipmentVisuals("Brooch"))</div>
+    <div class="equip equip--small" style="left:755px; top:100px;">@(GetEquipmentVisuals("Mask"))</div>
+    <div class="equip equip--big" style="left:666px; top:125px;">@(GetEquipmentVisuals("Helmet"))</div>
+    <div class="equip equip--big" style="left:666px; top:275px;">@(GetEquipmentVisuals("Torso"))</div>
+    <div class="equip equip--big" style="left:766px; top:300px;">@(GetEquipmentVisuals("Gauntlet"))</div>
+    <div class="equip equip--big" style="left:566px; top:225px;">@(GetEquipmentVisuals("Weapon"))</div>
+    <div class="equip equip--big" style="left:640px; top:440px;">@(GetEquipmentVisuals("Boots"))</div>
+    <div class="equip equip--big" style="left:766px; top:420px;">@(GetEquipmentVisuals("Extra"))</div>
+    <div class="equip equip--big" style="left:540px; top:360px;">@(GetEquipmentVisuals("Pet"))</div>
+
     <div style="position: absolute; left:100px; top:100px;">
         <RadioSelect Placeholder="Sort"
                      Options="SortOptions"
                      Value="Sort"
                      ValueChanged="OnSortChanged" />
     </div>
+    @inject IJSRuntime JS
     @code {
         private string? Sort = "Recent";
 
@@ -55,10 +56,71 @@
         new RadioSelect.Option("Rating", "Rating"),
         };
 
+
         private Task OnSortChanged(string? v)
         {
             Sort = v;
             return Task.CompletedTask;
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+        }
+        // the main index.razor pokes and changes this - encapsulate at some point
+        public Dictionary<string, ItemViewRow> EquippedItems = new(); 
+
+        private static RenderFragment EmptyFragment => builder => { };
+
+        public RenderFragment GetEquipmentVisuals(string slot) 
+        {            
+            if (EquippedItems.ContainsKey(slot))
+            {                
+                return GetEquipmentRenderVisual(EquippedItems[slot]);
+            }
+
+            return EmptyFragment;
+        }
+
+        private RenderFragment GetEquipmentRenderVisual(ItemViewRow r ) =>
+            @<div>
+            <img class="frame" src="png/equipFrame.png" alt="" />
+            <img class="atlas-icon overlay"
+                 alt=""                 
+                 data-size="64"
+                 data-l1x="@r.IconX" data-l1y="@r.IconY"
+                 data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2"/>            
+            <span class="stat-val">@r.Rating</span>
+            <span class="equip-val">@r.Name</span>
+            </div>
+        ;
+
+
+        //<img class='overlay" @GetEquipmentProps("Torso") alt="">
+        public async Task ChangeEquipment(string slot, ItemViewRow? r)
+        {
+            if (r == null)
+                EquippedItems.Remove(slot);
+            else
+                EquippedItems[slot] = r;
+            StateHasChanged();
+            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");            
+
+            <!--     <img class="atlas-icon"
+                 alt=""
+                 width="32" height="32"
+                 data-size="32"
+                 data-l1x="@r.IconX" data-l1y="@r.IconY"
+                 data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+
+                      <img class="frame" src="png/equipFrame.png" alt="">
+
+                           <img class="overlay" @GetEquipmentProps("Torso") alt="">
+             <span class="stat-val">1000</span>
+             <span class="equip-val">Leather Chestguard</span>-->
+
         }
     }
     <!--

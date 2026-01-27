@@ -163,8 +163,21 @@ table.grid tbody tr:nth-child(even) {
     margin-right: 4px; /* This creates the <gap> after the number before the next icon */
 }
 
-    /* Remove the gap from the very last number */
-    .resist-val:last-child {
-        margin-right: 0;
-    }
-    
+/* Remove the gap from the very last number */
+.resist-val:last-child {
+    margin-right: 0;
+}
+
+
+.atlas-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-block;
+    image-rendering: pixelated;
+}
+
+
+
+
