@@ -1,0 +1,140 @@
+﻿
+.rs-root {
+	position: relative;
+	display: inline-block;
+	font: inherit;
+	
+	--accent1: rgba(120,120,255,1);
+	--accent2: rgba(160,170,255,1);
+	--accentSoft: rgba(120,120,255,1);
+	--accentSoft2: rgba(120,120,255,1);
+	--menuBg1: rgba(230,235,255,1);
+	--menuBg2: rgba(215,220,245,1);
+	--menuBorder: rgba(80,90,160,0.35);
+}
+
+.rs-btn {
+	font: inherit;
+	min-height: 30px;
+	border: 1px solid var(--menuBorder);
+	background: linear-gradient( to bottom, var(--accentSoft2), var(--accentSoft) );
+	color: rgba(0,0,0,0.80);
+	border-radius: 999px;
+	padding: 5px 12px;
+	font-weight: 800;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 3px rgba(0,0,0,0.08);
+	transition: background 90ms ease, box-shadow 90ms ease, transform 90ms ease;
+
+}
+
+	.rs-btn:hover {
+		background: linear-gradient( to bottom, var(--accentSoft2), rgba(255,255,255,0.85) );
+		box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 3px 8px rgba(0,0,0,0.12);
+	}
+
+	.rs-btn:active {
+		transform: translateY(1px);
+		box-shadow: inset 0 2px 6px rgba(0,0,0,0.14);
+	}
+
+	.rs-btn.open,
+	.rs-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(0,0,0,0.10), 0 0 0 6px var(--accentSoft2);
+	}
+
+
+.rs-btnlabel {
+	white-space: nowrap;
+}
+
+.rs-caret {
+	opacity: 0.7;
+}
+
+.rs-backdrop {
+	position: fixed;
+	inset: 0;
+	background: transparent;
+	z-index: 999;
+}
+
+.rs-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	min-width: 280px;
+	max-height: var(--menuMaxHeight, 360px);
+	overflow: auto;
+	padding: 10px;
+	border-radius: 16px;
+	background: linear-gradient( to bottom, var(--menuBg1), var(--menuBg2) );
+	border: 1px solid var(--menuBorder);
+	box-shadow: 0 28px 60px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.65);
+	z-index: 1000;
+}
+.rs-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.rs-item {
+	font: inherit;
+	width: 100%;
+	border: none;
+	background: rgba(255,255,255,0.55);
+	cursor: pointer;
+	padding: 9px 12px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 750;
+	font-size: 13px;
+	color: rgba(0,0,0,0.80);
+	text-align: left;
+	transition: background 90ms ease, transform 90ms ease, box-shadow 90ms ease;
+}
+.rs-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(30,40,80,0.10);
+	z-index: 999;
+}
+.rs-item:hover {
+	background: rgba(255,255,255,0.72);
+	transform: translateX(2px);
+}
+
+.rs-item.on {
+	background: linear-gradient( to right, var(--accentSoft2), var(--accentSoft) );
+	box-shadow: inset 3px 0 0 var(--accent1);
+}
+
+.rs-item.active {
+	box-shadow: inset 0 0 0 2px rgba(0,0,0,0.10), inset 3px 0 0 var(--accent1);
+	background: rgba(255,255,255,0.78);
+}
+
+.rs-radio {
+	width: 18px;
+	text-align: center;
+}
+
+.rs-footer {
+	margin-top: 6px;
+	text-align: right;
+}
+
+.rs-clear {
+	background: none;
+	border: none;
+	cursor: pointer;
+	opacity: .7;
+}
