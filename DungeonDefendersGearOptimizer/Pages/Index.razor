@@ -320,10 +320,10 @@
     <div class="summary">@_summary</div> 
     <div class="stats-row">
       <div class="metric-card highlighted-card">
-        <span class="metric-label">Best Filtered Armor Set</span>
+        <span class="metric-label">Equipped Armor Rating</span>
         <div class="metric-main">
-          <span class="metric-number">@BestArmorRating</span>
-          <span class="metric-type  highlighted-card-type">@BestArmorType</span>
+          <span class="metric-number">@EquippedArmorRating</span>
+          <span class="metric-type  highlighted-card-type">@EquippedArmorSet</span>
         </div>
       </div>
 
@@ -405,7 +405,11 @@
     }
     </div> @* middle-left  *@
     <aside class="middle-right">
-       <CharacterPanel @ref="_characterPanel"/>
+       <CharacterPanel @ref="_characterPanel"
+            
+            OnEquipFromFile="HandleEquipFromFile"
+            OnEquipBest="HandleEquipBest"
+            OnClickEquipment="HandleEquipmentClick"/>
     </aside>
 
     </div> @* Middle pane *@
@@ -875,6 +879,8 @@
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
     private CharacterPanel? _characterPanel;    
+    private bool _showEventCollection = false;
+    private string _eventSearch = "";
 
     // ======= selection ==========
 
@@ -899,6 +905,7 @@
 
         _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
         row.CurrentEquippedSlot = "";        
+        UpdateEquipmentRatingAndType();
     }
 
     private void SelectRow( ItemViewRow row )
@@ -912,7 +919,6 @@
         if ((itemType == "Unknown") || (itemType == "") || (itemType == "Currency")) return;
         if ((itemType == "Shield") && (extra != "Shield")) return;
 
-        // TODO: replace primary not extra row when selecting
         if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra ))
             itemType = "Extra";
 
@@ -921,6 +927,7 @@
 
         _characterPanel?.ChangeEquipment(itemType, row);        
         row.CurrentEquippedSlot = itemType;
+        UpdateEquipmentRatingAndType();
     }
 
     private bool IsSelected( ItemViewRow row)
@@ -1112,9 +1119,40 @@
         ApplyChipFilters();              
     }
 
+    // Equipping! 
+
+
+    private Task HandleEquipmentClick( ItemViewRow row )
+    {
+        // deselect this row
+        DeselectRow(row);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleEquipFromFile()
+    {       
+        if ((_characterPanel == null) || (_characterPanel.SelectedHeroInfo == null))
+            return Task.CompletedTask;
+        ClearAllSelections();
+
+        foreach( var v in _characterPanel.SelectedHeroInfo.Equipment)
+        {
+            if (v.cachedItemRow != null)
+                SelectRow(v.cachedItemRow);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleEquipBest()
+    {
+        FindAndEquipBestPieces();
+        return Task.CompletedTask;
+    }
+
+
     // ===== Event Collection Overlay =====
-    private bool _showEventCollection = false;
-    private string _eventSearch = "";
+
 
     private sealed record EventCollectionRow(
         string Name,
@@ -1751,29 +1789,19 @@
             BestPieces[key] = rating;
     }
 
-    public int BestArmorRating = 0;
-    public string BestArmorType = "";
+    public int EquippedArmorRating = 0;
+    public int EquippedArmorSides = 0;
+    public string EquippedArmorSet = "";
 
-    private void RecalculateRatings()
+    private void FindAndEquipBestPieces()
     {
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
 
         for (int i = 0; i < _rows.Count; i++)
-        {            
-            var r = _rows[i];
-            float mult = r.SetBonus;
-            int maxR = r.ResistanceTarget;
-            int maxStatLevel = r.MaxStat;
-            (int rating, int sides) = Ratings.EvalRating(r, sumIdxHHP, sumIdxHDmg, sumIdxHSpd, sumIdxHRate, sumIdxAb1, sumIdxAb2, sumIdxTHP, sumIdxTDmg, sumIdxTRange, sumIdxTRate, bFactorInResists);
-
-
+        {
+            var r = _rows[i];       
             if (!r.IsHidden && r.IsEligibleForBest)
-            {
-                TestForBestPiece(r.Type, r.Set, rating, BestPieces);                
-            }
-
-            _rows[i].Rating = rating;
-            _rows[i].Sides = sides;            
+                TestForBestPiece(r.Type, r.Set, r.Rating, BestPieces);                            
         }
 
         // find best armor set
@@ -1830,14 +1858,61 @@
                 DeselectRow(_rows[i]);
 
         }
+        UpdateEquipmentRatingAndType();
+    }
 
-        BestArmorRating = bestScore;
-        BestArmorType = bestSet;
+    private void UpdateEquipmentRatingAndType()
+    {
+        if (_characterPanel == null) return;
+
+        string foundSet = "None";
+        int totalRating = 0;
+        int totalSides = 0;
+
+        foreach( var v in _characterPanel.EquippedItems)
+        {
+            ItemViewRow row = v.Value;
+            if (row == null) continue;
+
+            if ((foundSet == "None") && row.IsArmor)
+                foundSet = row.Set;
+
+            if ((foundSet != "None") && row.IsArmor && row.Set != foundSet )
+                foundSet = "Mixed";
+
+            totalRating += row.Rating;
+            totalSides += row.Sides;
+        }
+
+        EquippedArmorRating = totalRating;
+        EquippedArmorSides = totalSides;
+        EquippedArmorSet = foundSet;
+    }
+
+    private void RecalculateRatings()
+    {
+
+        for (int i = 0; i < _rows.Count; i++)
+        {            
+            var r = _rows[i];
+            float mult = r.SetBonus;
+            int maxR = r.ResistanceTarget;
+            int maxStatLevel = r.MaxStat;
+            (int rating, int sides) = Ratings.EvalRating(r, sumIdxHHP, sumIdxHDmg, sumIdxHSpd, sumIdxHRate, sumIdxAb1, sumIdxAb2, sumIdxTHP, sumIdxTDmg, sumIdxTRange, sumIdxTRate, bFactorInResists);
+
+
+
+            _rows[i].Rating = rating;
+            _rows[i].Sides = sides;            
+        }
+
+
         //_summary = $"Best Armor Set: {bestSet} ({bestScore})";
         //-------------------------
         _sortDesc = true;
         _sortColumn = "";
         SortBy("Rating");
+        UpdateEquipmentRatingAndType();
     }
 
 
@@ -1947,7 +2022,7 @@
                 nameof(ItemViewRow.TRate)    => Cmp(a.TRate, b.TRate),
 
                 nameof(ItemViewRow.RG)       => Cmp(a.RG+a.RP+a.RF+a.RL, b.RG+b.RP+b.RF+b.RL),
-                
+
                 nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
                 nameof(ItemViewRow.Location) => loc,
 
@@ -2176,8 +2251,7 @@
                 // don't override set event values
                 if ( itemViewRow.Value == 0)
                     itemViewRow.Value = value;
-            }
-
+            }            
             // now go through and get relative value
             foreach( var v in _rows )
             {
@@ -2202,6 +2276,8 @@
             _showContent = true;
             _needsAtlasRender = true;
             await InvokeAsync(StateHasChanged);
+            _characterPanel?.Reload(db.Heroes);            
+
         }
     }
 

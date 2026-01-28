@@ -3,22 +3,23 @@
 	position: relative;
 	display: inline-block;
 	font: inherit;
-	
-	--accent1: rgba(120,120,255,1);
-	--accent2: rgba(160,170,255,1);
-	--accentSoft: rgba(120,120,255,1);
-	--accentSoft2: rgba(120,120,255,1);
-	--menuBg1: rgba(230,235,255,1);
-	--menuBg2: rgba(215,220,245,1);
-	--menuBorder: rgba(80,90,160,0.35);
+	--accent1: rgba(132, 120, 255, 1);
+	--accent2: rgba(175, 168, 255, 1);
+	--menuBg1: rgba(250, 246, 235, 0.98);
+	--menuBg2: rgba(236, 228, 210, 0.98);
+	--menuBorder: rgba(70, 55, 35, 0.28);
+	--tileBg: rgba(255, 255, 255, 0.55);
+	--tileBgHover: rgba(255, 255, 255, 0.70);
+	--tileBgActive: rgba(255, 255, 255, 0.78);
+	--ink: rgba(20, 15, 10, 0.86);
+	--shadow: 0 26px 55px rgba(0,0,0,0.30);
+	--accentSoft: rgba(195,190,255,1);
+	--accentSoft2: rgba(235,232,255,1);
 }
 
 .rs-btn {
 	font: inherit;
 	min-height: 30px;
-	border: 1px solid var(--menuBorder);
-	background: linear-gradient( to bottom, var(--accentSoft2), var(--accentSoft) );
-	color: rgba(0,0,0,0.80);
 	border-radius: 999px;
 	padding: 5px 12px;
 	font-weight: 800;
@@ -29,7 +30,9 @@
 	white-space: nowrap;
 	box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 3px rgba(0,0,0,0.08);
 	transition: background 90ms ease, box-shadow 90ms ease, transform 90ms ease;
-
+	background: linear-gradient(to bottom, rgba(195,190,255,1), rgba(135,125,255,1));
+	border: 1px solid rgba(45, 35, 90, 0.25);
+	color: var(--ink);
 }
 
 	.rs-btn:hover {
@@ -60,71 +63,84 @@
 .rs-backdrop {
 	position: fixed;
 	inset: 0;
-	background: transparent;
+	background: rgba(0,0,0,0);	
 	z-index: 999;
 }
 
 .rs-menu {
 	position: absolute;
-	top: calc(100% + 8px);
+	top: calc(100% + 6px);
 	left: 0;
-	min-width: 280px;
+	/* Wider dropdown for roomier tiles */
 	max-height: var(--menuMaxHeight, 360px);
 	overflow: auto;
 	padding: 10px;
-	border-radius: 16px;
-	background: linear-gradient( to bottom, var(--menuBg1), var(--menuBg2) );
-	border: 1px solid var(--menuBorder);
-	box-shadow: 0 28px 60px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.65);
 	z-index: 1000;
-}
-.rs-grid {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 6px;
+	width: clamp(420px, 52vw, 560px);
+	border-radius: 18px;
+	padding: 10px;
+	background: linear-gradient(to bottom, var(--menuBg1), var(--menuBg2));
+	border: 1px solid var(--menuBorder);
+	box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.75);
+	transform: translateX(2px);
+	transform-origin: top left;
 }
 
 .rs-item {
 	font: inherit;
 	width: 100%;
 	border: none;
-	background: rgba(255,255,255,0.55);
 	cursor: pointer;
-	padding: 9px 12px;
-	border-radius: 10px;
+	/* Roomier tiles; keep padding modest so icons can "bleed" into the edges */
+	padding: 8px 12px;
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	font-weight: 750;
-	font-size: 13px;
-	color: rgba(0,0,0,0.80);
+	font-size: 12px;
+	min-height: 44px;
 	text-align: left;
 	transition: background 90ms ease, transform 90ms ease, box-shadow 90ms ease;
-}
-.rs-backdrop {
-	position: fixed;
-	inset: 0;
-	background: rgba(30,40,80,0.10);
-	z-index: 999;
-}
-.rs-item:hover {
-	background: rgba(255,255,255,0.72);
-	transform: translateX(2px);
+	background: var(--tileBg);
+	color: var(--ink);
+	border-radius: 12px;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.60);
 }
 
-.rs-item.on {
-	background: linear-gradient( to right, var(--accentSoft2), var(--accentSoft) );
-	box-shadow: inset 3px 0 0 var(--accent1);
+
+.rs-item:hover {
+	background: var(--tileBgHover);
+	transform: translateX(1px);
 }
+	.rs-item.on {
+		background: linear-gradient(to bottom, rgba(195,190,255,1), rgba(135,125,255,1));
+		box-shadow: inset 0 0 0 2px rgba(132,120,255,0.30), inset 4px 0 0 rgba(132,120,255,0.85), inset 0 1px 0 rgba(255,255,255,0.85);
+	}
 
 .rs-item.active {
-	box-shadow: inset 0 0 0 2px rgba(0,0,0,0.10), inset 3px 0 0 var(--accent1);
-	background: rgba(255,255,255,0.78);
+	background: var(--tileBgActive);
+	box-shadow: inset 0 0 0 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.70);
 }
 
 .rs-radio {
 	width: 18px;
-	text-align: center;
+	height: 18px;
+	display: grid;
+	place-items: center;
+	flex: 0 0 18px;
+}
+.rs-radio::before {
+	content: "";
+	width: 14px;
+	height: 14px;
+	border-radius: 999px;
+	border: 2px solid rgba(60,45,30,0.30);
+	background: rgba(255,255,255,0.55);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+}
+.rs-item.on .rs-radio::before {
+	border-color: rgba(132,120,255,0.75);
+	background: radial-gradient(circle at 50% 50%, rgba(132,120,255,0.95) 0 45%, rgba(255,255,255,0.60) 46% 100%);
 }
 
 .rs-footer {
@@ -138,3 +154,28 @@
 	cursor: pointer;
 	opacity: .7;
 }
+
+.rs-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--rsCols, 4), minmax(0, 1fr));
+	gap: 6px;
+}
+
+.rs-icon {
+	/* Bigger icons, allowed to intrude a bit into the tile padding */
+	width: 30px;
+	height: 30px;
+	flex: 0 0 30px;
+	object-fit: contain;
+	opacity: 0.95;
+	margin-left: -4px;
+}
+
+.rs-label {
+	white-space: normal;
+	overflow: visible;
+	text-overflow: unset;
+	line-height: 1.2;
+	word-break: break-word;
+}
+

@@ -326,7 +326,7 @@ public class DDHeroInfo
 	public int GUID1, GUID2, GUID3, GUID4;
 	public DDLinearColor C1, C2, C3;
 	public byte bDidRespec, bGaveExpBonus, bAllowRename;
-
+	public List<DDEquipmentInfo> Equipment = new();
 	public string Template = "";
 	public int EquipmentCount;
 };
@@ -382,6 +382,7 @@ public class DDDatabase
 				equipment.bIsEquipped = true;
 				if (equipment == null) { Status = "Load: Failed to parse equipment"; return; }				
 				Items.Add(equipment);
+				hero.Equipment.Add(equipment);
 			}
 			Heroes.Add(hero);
 		}

@@ -1,25 +1,27 @@
 ﻿@using System.Text.RegularExpressions
+@using DDUP
+@using System.Linq
 <div class="character-panel">
     <header class="character-panel-header">
         <h3>Character</h3>
     </header>
 
-    <img class="hero-stat-bg" src="png/heroItemBG.png"  />
-    <img class="hero-equip-bg" src="png/inventoryBG.png"  />
+    <img class="hero-stat-bg" src="png/heroItemBG.png" />
+    <img class="hero-equip-bg" src="png/inventoryBG.png" />
 
     <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' /><span class='stat-val'>+9999</span></div>
     <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' /><span class='stat-val'>+9999</span></div>
     <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png'  /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' /><span class='stat-val'>+9999</span></div>
 
     <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' /><span class='stat-val'>+9999</span></div>
     <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' /><span class='stat-val'>+9999</span></div>
-  
-    <div class="stat" style="left:148px; top:355px;"><img class="icon"src='png/Tower Health.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:236px; top:355px;"><img class="icon"src='png/Tower Damage.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:324px; top:355px;"><img class="icon"src='png/Tower Range.png' /><span class='stat-val'>+9999</span></div>
+
+    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' /><span class='stat-val'>+9999</span></div>
     <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' /><span class='stat-val'>+9999</span></div>
-    
+
     <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' /><span class='stat-val'>90%</span></div>
     <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>90%</span></div>
     <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Fire Resistance.png' /><span class='stat-val'>90%</span></div>
@@ -37,43 +39,168 @@
     <div class="equip equip--big" style="left:766px; top:420px;">@(GetEquipmentVisuals("Extra"))</div>
     <div class="equip equip--big" style="left:540px; top:360px;">@(GetEquipmentVisuals("Pet"))</div>
 
-    <div style="position: absolute; left:100px; top:100px;">
-        <RadioSelect Placeholder="Sort"
-                     Options="SortOptions"
-                     Value="Sort"
-                     ValueChanged="OnSortChanged" />
+    <img class="selected-hero-icon"
+         src="@SelectedHeroIconUrl"
+         alt="Selected hero" />
+    <div class="hero-actions">
+        <button type="button" class="btn" @onclick ="SelectFromDunClicked">Equip from File</button>
+        <button type="button" class="btn" @onclick ="SelectBestClicked">Equip Best</button>
     </div>
+    <div style="position: absolute; left:150px; top:50px; ">
+        
+        <RadioSelect Items="@HeroChoices"
+                     Value="@SelectedHero"
+                     ValueChanged="OnHeroChanged"
+                     Columns="4"
+                     Placeholder="Select Hero"
+                     IconByClass="@HeroIcons"
+                     DefaultIconUrl="png/empty.png" />
+    </div>
+
+
+
+
     @inject IJSRuntime JS
     @code {
-        private string? Sort = "Recent";
 
-        private IReadOnlyList<RadioSelect.Option> SortOptions = new[]
+        private string? SelectedHero;
+        public DDHeroInfo? SelectedHeroInfo { get; set; }
+
+        // Raw strings shown in the RadioSelect. Format matters:
+        //   "Name (ClassName)" where ClassName is used to pick icons.
+        private List<string> HeroChoices { get; set; } = new();
+        [Parameter] public EventCallback<string?> OnEquipFromFile { get; set; }
+        [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
+        [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
+
+        private const string DefaultHeroName = "Test Jester";
+        private const string DefaultHeroClass = "Jester";
+        private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();
+
+        // key: class name inside parentheses, eg "Apprentice"
+        // value: icon url/path, eg "png/Apprentice_TinyIcon.png"
+        private Dictionary<string, string> HeroIcons { get; set; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+        private string SelectedHeroIconUrl
         {
-        new RadioSelect.Option("Recent", "Most recent"),
-        new RadioSelect.Option("Popular", "Most popular"),
-        new RadioSelect.Option("PriceAsc", "Price ↑"),
-        new RadioSelect.Option("PriceDesc", "Price ↓"),
-        new RadioSelect.Option("Rating", "Rating"),
-        };
+            get
+            {
+                if (string.IsNullOrWhiteSpace(SelectedHero))
+                    return "png/empty.png";
+
+                // Expected format: "Name (ClassName)"
+                var start = SelectedHero.LastIndexOf('(');
+                var end = SelectedHero.LastIndexOf(')');
+
+                if (start < 0 || end <= start)
+                    return "png/empty.png";
+
+                var className = SelectedHero.Substring(start + 1, end - start - 1);
+
+                return HeroIcons.TryGetValue(className, out var icon)
+                ? icon
+                : "png/empty.png";
+            }
+        }
 
 
-        private Task OnSortChanged(string? v)
+        public void Reload(List<DDHeroInfo> heroes)
         {
-            Sort = v;
+            heroes ??= new();
+            HeroInfoByIndex.Clear();
+            var choices = new List<string>(heroes.Count + 15);
+            var icons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // Existing heroes
+            foreach (var hero in heroes)
+            {
+                if (hero is null) continue;
+
+                HeroTemplateData? tpl = null;
+                if (!string.IsNullOrWhiteSpace(hero.Template))
+                    HeroTemplateData.Map.TryGetValue(hero.Template, out tpl);
+
+                HeroInfoByIndex[choices.Count] = hero;
+                var className = tpl?.ClassName ?? "Unknown";
+                choices.Add($"{hero.Name} ({className})");
+
+                if (tpl is not null && !string.IsNullOrWhiteSpace(tpl.ClassIcon))
+                    icons[className] = tpl.ClassIcon;
+            }
+
+            // New hero entries, ordered by template Index.
+            foreach (var tpl in HeroTemplateData.Map.Values.OrderBy(t => t.Index).Take(15))
+            {
+                var className = string.IsNullOrWhiteSpace(tpl.ClassName) ? "Unknown" : tpl.ClassName;
+                choices.Add($"Test {className} ({className})");
+
+                if (!string.IsNullOrWhiteSpace(tpl.ClassIcon))
+                    icons[className] = tpl.ClassIcon;
+            }
+
+            HeroChoices = choices;
+            HeroIcons = icons;
+
+            // Default selection
+            if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
+            {
+                SelectedHero = HeroChoices
+                .FirstOrDefault(c => c.StartsWith(DefaultHeroName + " ", StringComparison.OrdinalIgnoreCase))
+
+                ?? HeroChoices.FirstOrDefault();
+            }
+
+            // If the current selection no longer exists, clear it.
+            if (SelectedHero is not null && !HeroChoices.Contains(SelectedHero))
+                SelectedHero = null;
+
+            StateHasChanged();
+        }
+        private Task OnHeroChanged((string?, int ) args)
+        {
+            string name = args.Item1 ??"";
+            int index = args.Item2;
+            SelectedHero = name;
+            if ((index >= 0) && (index < HeroInfoByIndex.Count))
+                SelectedHeroInfo = HeroInfoByIndex[index];
+            else
+                SelectedHeroInfo = null;
+
+            // Let the UI update immediately (label, etc.) before doing extra work.
+            _ = InvokeAsync(async () =>
+            {
+                if (OnEquipFromFile.HasDelegate)
+                    await OnEquipFromFile.InvokeAsync();
+            });
+
             return Task.CompletedTask;
         }
 
+
+        private async Task SelectFromDunClicked()
+        {
+            if (OnEquipFromFile.HasDelegate)
+                await OnEquipFromFile.InvokeAsync(SelectedHero);
+        }
+
+        private async Task SelectBestClicked()
+        {
+            if (OnEquipBest.HasDelegate)
+                await OnEquipBest.InvokeAsync(SelectedHero);
+        }
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
         }
+
         // the main index.razor pokes and changes this - encapsulate at some point
-        public Dictionary<string, ItemViewRow> EquippedItems = new(); 
+        public Dictionary<string, ItemViewRow> EquippedItems = new();
 
         private static RenderFragment EmptyFragment => builder => { };
 
-        public RenderFragment GetEquipmentVisuals(string slot) 
-        {            
+        public RenderFragment GetEquipmentVisuals(string slot)
+        {
             if (EquippedItems.ContainsKey(slot))
             {
                 ItemViewRow row = EquippedItems[slot];
@@ -86,20 +213,26 @@
         }
 
         private RenderFragment GetEquipmentRenderVisual(ItemViewRow r, string tierTag, string name) =>
-            @<div>
-            <img class="frame" src="png/equipFrame.png" alt="" />
-            <img class="atlas-icon overlay"
-                 alt=""                 
-                 data-size="64"
-                 data-l1x="@r.IconX" data-l1y="@r.IconY"
-                 data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2"/>
-            <div class="tag @tierTag">
-                 <div class="tag-rating">@r.Rating</div>
-                 <div class="tag-name">@name</div>
-            </div>  
-            </div>
+        @<div @onclick="() => ClickEquipment(r)">
+        <img class="frame" src="png/equipFrame.png" alt=""/>
+        <img class="atlas-icon overlay"             
+             alt=""
+             data-size="64"
+             data-l1x="@r.IconX" data-l1y="@r.IconY"
+             data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+             data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+        <div class="tag @tierTag">    
+            <div class="tag-rating">@r.Rating</div>
+            <div class="tag-name">@name</div>
+        </div>
+        </div>
         ;
+
+        public async Task ClickEquipment(ItemViewRow row )
+        {
+            if (OnClickEquipment.HasDelegate)
+                await OnClickEquipment.InvokeAsync(row);
+        }
 
 
         //<img class='overlay" @GetEquipmentProps("Torso") alt="">
@@ -110,85 +243,10 @@
             else
                 EquippedItems[slot] = r;
             StateHasChanged();
-            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");            
-
-            <!--     <img class="atlas-icon"
-                 alt=""
-                 width="32" height="32"
-                 data-size="32"
-                 data-l1x="@r.IconX" data-l1y="@r.IconY"
-                 data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
-
-                      <img class="frame" src="png/equipFrame.png" alt="">
-
-                           <img class="overlay" @GetEquipmentProps("Torso") alt="">
-             <span class="stat-val">1000</span>
-             <span class="equip-val">Leather Chestguard</span>-->
-
+            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
         }
     }
-    <!--
-    <div class="character-panel-split">
-        <div class="character-panel-left">                        
-             <section class="stat-section">
-                <div class="character-stat-header">
-                    HERO
-                </div>
-                <div class="icon-row">
-                    <div class="stat"><img class="icon" src='png/Hero Health.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Hero Damage.png'/><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Move Speed.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Cast Rate.png' /><span class='stat-val'>100</span></div>
-                </div>
-            </section>
-            <section class="stat-section">
-                <div class="character-stat-header">
-                    ABILITIES
-                </div>
-                <div class="icon-row two-items">
-                    <div class="stat"><img class="icon" src='png/AB1/Monk AB1.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' /><span class='stat-val'>100</span></div>
-                </div>
-
-                <div class="character-stat-header">
-                    SUMMONS
-                </div>
-            </section>
-            <section class="stat-section">            
-                <div class="icon-row">
-                    <div class="stat"><img class="icon" src='png/Tower Health.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Tower Damage.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Tower Range.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Tower Rate.png' /><span class='stat-val'>100</span></div>
-                </div>
-            </section>
-            <section class="stat-section">            
-                <div class="character-stat-header">
-                    RESISTANCE
-                </div>
-                <div class="icon-row">
-                    <div class="stat"><img class="icon" src='png/Generic Resistance.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Fire Resistance.png' /><span class='stat-val'>100</span></div>
-                    <div class="stat"><img class="icon" src='png/Lightning Resistance.png' /><span class='stat-val'>100</span></div>
-                </div>
-            </section>
-        </div>
-        <div class="character-panel-right">
-            <p class="muted">Select an item to see details.</p>                                               
-        </div>
-    </div>-->
+   
 </div>
 @code {
-//     Things left before I push a new version:
-// * "Equip Best" manual choice
-// * Total of stats, factor in set bonus / warn if no set bonus
-// * Pick character or class to paperdoll + icon
-// * Make selection of item rows more efficient by moving selection to an overlay and not on the<tr> element
-
-// Later to do:
-// * Hover for item stats
-// * Use class icons instead of default ones
-
 }

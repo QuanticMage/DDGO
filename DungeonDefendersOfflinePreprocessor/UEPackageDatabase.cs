@@ -459,11 +459,6 @@ namespace DungeonDefendersOfflinePreprocessor
 					if (exp?.Object == null) continue;
 					var obj = exp.Object;
 
-					if (obj.GetReferencePath().Contains("DunDef_CDT_RuthlessEquipment.Challenge.CrossbowStyle5_Ruthless"))
-					{
-						int x = 0;
-					}
-
 					if (!obj.GetReferencePath().StartsWith("HeroEquipment"))
 						continue;
 

@@ -13,6 +13,23 @@ DONE (Search)
 * Currency badge
 * Total events at top row of event list?
 
+
+* Make it so extra equipment must match type and is filled with equip/bestequip
+    // add button - Select Equipped
+    // add button - Select Best
+
+
+    // add option - Show Fully Upgraded
+    // add option - Show 
+    
+    // * Total of stats, factor in set bonus / warn if no set bonus
+    // * Make selection of item rows more efficient by moving selection to an overlay and not on the<tr> element
+
+    // Later to do:
+    // * Hover for item stats
+    // * Use class icons instead of default ones
+
+
 --Any row can be equipped, even if hidden
 --Selection list is just equip list type->equipment with extra bonus where shield can be a weapon for a few characters
 * Custom is a dropdown list of recent custom searches
@@ -21,7 +38,10 @@ DONE (Search)
 (DONE? - need verify) Look at tiebreaking with index
 (DONE) HSpeed, TRate don't do anything?
 
+* Exclude from best - location / items
 
+Maybe it's as simple as right click on row and select "Exclude this from best" or "Exclude this lcoation from best"
+And then I'll draw a line through the rating or something.
 
 
 * Track down missing and bad icons

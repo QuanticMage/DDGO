@@ -33,7 +33,6 @@ namespace DDUP
 		Events = 1 << 16,
 	}
 
-
 	public sealed class ItemViewRow
 	{
 		public int Rating { get; set; }

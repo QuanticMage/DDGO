@@ -1,14 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
-@using System.Linq
+@using System.Text.RegularExpressions
+@using DDUP
 
 <div class="rs-root" tabindex="0" @onkeydown="OnRootKeyDown">
     <button type="button"
             class="rs-btn @(_open ? "open" : "")"
             @onclick="ToggleOpen">
-        <span class="rs-btnlabel">
-            @* This correctly displays the selected label or the placeholder  *@
-            @(_valueLabel ?? Placeholder)
-        </span>
+        <span class="rs-btnlabel">@(_valueLabel ?? Placeholder)</span>
         <span class="rs-caret">▾</span>
     </button>
 
@@ -21,12 +19,12 @@
              @onkeydown="OnMenuKeyDown"
              @onclick:stopPropagation="true">
 
-            <div class="rs-grid" role="listbox">
-                @for (int i = 0; i < Options.Count; i++)
+            <div class="rs-grid" role="listbox" style="@GridStyle">
+                @for (int i = 0; i < _options.Count; i++)
                 {
-                    var index = i; // Local capture for the loop
-                    var opt = Options[i];
-                    var isOn = opt.Value == Value;
+                    var index = i;
+                    var opt = _options[i];
+                    var isOn = opt.Raw == Value;
 
                     <button type="button"
                             role="option"
@@ -35,8 +33,13 @@
                             class="rs-item @(isOn ? "on" : "") @(_keyboardNav && _activeIndex == i ? "active" : "")"
                             @onmouseover="() => _activeIndex = index"
                             @onclick="() => Pick(index)">
-                        <span class="rs-radio">@((isOn) ? "◉" : "○")</span>
-                        <span class="rs-label">@GetLabel(opt)</span>
+
+                        <img class="rs-icon"
+                             src="@GetIconUrl(opt)"
+                             alt=""
+                             aria-hidden="true" />
+
+                        <span class="rs-label">@opt.Name</span>
                     </button>
                 }
             </div>
@@ -52,32 +55,108 @@
 </div>
 
 @code {
-    public record Option(string Value, string? Label = null);
+    private sealed record ParsedOption(string Raw, string Name, string? ClassName);
 
-    [Parameter] public IReadOnlyList<Option> Options { get; set; } = Array.Empty<Option>();
+    [Parameter] public List<string> Items { get; set; } = new();
+
+    // Value is the *raw* string from Items (eg "Goblin (Enemy)")
     [Parameter] public string? Value { get; set; }
-    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<(string?, int)> ValueChanged { get; set; }
+
     [Parameter] public string Placeholder { get; set; } = "Select";
     [Parameter] public bool AllowClear { get; set; } = false;
     [Parameter] public bool CloseOnPick { get; set; } = true;
+
+    // Icon selection:
+    // key: class in parentheses, eg "Enemy"
+    // value: icon url/path, eg "img/icons/enemy.png"
+    [Parameter]
+    public IReadOnlyDictionary<string, string> IconByClass { get; set; }
+        = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    [Parameter] public string DefaultIconUrl { get; set; } = "";
+
+    // Make columns configurable, but default to 4 like you asked.
+    [Parameter] public int Columns { get; set; } = 4;
 
     private bool _open;
     private int _activeIndex = -1;
     private bool _keyboardNav;
     private ElementReference _menuRef;
-    private string GetLabel(Option o) => o.Label ?? o.Value;
+    private Dictionary<string, string> _resolvedIconByClass = new();
+
+    private List<ParsedOption> _options = new();
+
+    protected override void OnParametersSet()
+    {
+        _options = Items.Select(Parse).ToList();
+
+        // Resolve class icons from HeroTemplateData.Map (ClassName -> ClassIcon),
+        // then overlay any explicitly-provided IconByClass values (callers win).
+        _resolvedIconByClass = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tpl in HeroTemplateData.Map.Values)
+        {
+            if (!string.IsNullOrWhiteSpace(tpl.ClassName) && !string.IsNullOrWhiteSpace(tpl.ClassIcon))
+                _resolvedIconByClass[tpl.ClassName.Trim()] = tpl.ClassIcon.Trim();
+        }
+
+        // Overlay caller-provided mappings (if any)
+        if (IconByClass is not null)
+        {
+            foreach (var kv in IconByClass)
+            {
+                if (!string.IsNullOrWhiteSpace(kv.Key) && !string.IsNullOrWhiteSpace(kv.Value))
+                    _resolvedIconByClass[kv.Key.Trim()] = kv.Value.Trim();
+            }
+        }
+
+        // Defensive: if current Value no longer exists in the list, clear it so the label stays sane.
+        if (Value is not null && !_options.Any(o => o.Raw == Value))
+            Value = null;
+    }
+
+    private string GridStyle => $"--rsCols:{Math.Max(1, Columns)};";
+
     private string? _valueLabel =>
-          Options.FirstOrDefault(o => o.Value == Value)?.Label ??
-          Options.FirstOrDefault(o => o.Value == Value)?.Value;
+        _options.FirstOrDefault(o => o.Raw == Value)?.Name;
+
+    private static readonly Regex _nameClassRx =
+        new(@"^\s*(?<name>.*?)\s*(?:\(\s*(?<class>[^)]+)\s*\))?\s*$",
+            RegexOptions.Compiled);
+
+    private static ParsedOption Parse(string raw)
+    {
+        raw ??= "";
+        var m = _nameClassRx.Match(raw);
+        var name = m.Success ? m.Groups["name"].Value : raw;
+        var cls = (m.Success && m.Groups["class"].Success) ? m.Groups["class"].Value : null;
+
+        name = string.IsNullOrWhiteSpace(name) ? raw : name.Trim();
+        cls = string.IsNullOrWhiteSpace(cls) ? null : cls.Trim();
+
+        return new ParsedOption(raw, name, cls);
+    }
+
+    private string GetIconUrl(ParsedOption opt)
+    {
+        if (opt.ClassName is not null &&
+            _resolvedIconByClass.TryGetValue(opt.ClassName, out var url) &&
+            !string.IsNullOrWhiteSpace(url))
+            return url;
+
+        return string.IsNullOrWhiteSpace(DefaultIconUrl)
+            ? ""
+            : DefaultIconUrl;
+    }
 
     private async Task Pick(int index)
     {
-        if (index < 0 || index >= Options.Count) return;
+        if (index < 0 || index >= _options.Count) return;
 
-        // This triggers the parent to update the 'Value' property
-        await ValueChanged.InvokeAsync(Options[index].Value);
+        await ValueChanged.InvokeAsync((_options[index].Raw, index));
 
-        if (CloseOnPick) Close(); 
+        if (CloseOnPick) Close();
     }
 
     private void ToggleOpen()
@@ -86,17 +165,9 @@
         if (_open)
         {
             _keyboardNav = false;
-            // Find current index manually to avoid unnecessary List conversion
-            _activeIndex = -1;
-            for (int i = 0; i < Options.Count; i++)
-            {
-                if (Options[i].Value == Value)
-                {
-                    _activeIndex = i;
-                    break;
-                }
-            }
-            if (_activeIndex == -1) _activeIndex = 0;
+
+            _activeIndex = _options.FindIndex(o => o.Raw == Value);
+            if (_activeIndex < 0) _activeIndex = 0;
         }
     }
 
@@ -107,10 +178,9 @@
         _activeIndex = -1;
     }
 
-    
     private async Task Clear()
     {
-        await ValueChanged.InvokeAsync(null);
+        await ValueChanged.InvokeAsync(("",-1));
         Close();
     }
 
@@ -122,8 +192,8 @@
 
     private async Task OnMenuKeyDown(KeyboardEventArgs e)
     {
-        const int cols = 2;
         _keyboardNav = true;
+        var cols = Math.Max(1, Columns);
 
         switch (e.Key)
         {
@@ -131,13 +201,13 @@
                 Close();
                 break;
             case "ArrowRight":
-                _activeIndex = Math.Min(_activeIndex + 1, Options.Count - 1);
+                _activeIndex = Math.Min(_activeIndex + 1, _options.Count - 1);
                 break;
             case "ArrowLeft":
                 _activeIndex = Math.Max(_activeIndex - 1, 0);
                 break;
             case "ArrowDown":
-                _activeIndex = Math.Min(_activeIndex + cols, Options.Count - 1);
+                _activeIndex = Math.Min(_activeIndex + cols, _options.Count - 1);
                 break;
             case "ArrowUp":
                 _activeIndex = Math.Max(_activeIndex - cols, 0);
