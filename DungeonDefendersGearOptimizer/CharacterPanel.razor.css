@@ -71,103 +71,124 @@
     height: 48px;
     object-fit: contain;
 }
-
-
+/* --- EQUIPMENT SLOT WRAPPER --- */
 .equip {
-    position: absolute;
-    transform: translate(-50%, -50%)
-}
+    position: absolute;                
+    transform: translate(-50%, -50%);
+    width: var(--equip-size, 72px);
+    height: var(--equip-size, 72px);
 
+    border-radius: 6px;
+}
 
 .equip:hover {
     background: rgba(0,0,0,0.055);
 }
 
-
-.small {
-}
-.equip {
-    position: absolute; /* keeps your left/top behavior */
-    width: max-content; /* optional: keeps wrapper tight */
-    height: max-content;
-}
-
-/* All layers stack in the same box */
-.equip .frame,
-.equip .overlay {
-    display: block;
-    position: relative; /* establishes baseline size */
-    z-index: 1;
-}
-
-/* Put overlay on top of frame */
-.equip .overlay {
+.equip .frame {
     position: absolute;
-    inset: 0; /* fill the frame box */
-    z-index: 2;
-    pointer-events: none; /* overlay won't steal clicks */
-}
-
-/* Text above both images */
-.equip .stat-val,
-.equip .equip-val {
-    position: absolute;
-    z-index: 3;
-}
-
-/* Example text placement (adjust to taste) */
-.equip .stat-val {
-    top: 6px;
-    right: 8px;
-    bottom: 30px;
-    color: #ffffff;
-    font-size: 12px;
-}
-
-.equip .equip-val {
-    left: 50%;
-    bottom: 0px;
-    transform: translate(-50%, 50%);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: rgba(0,0,0,1.0);
-    color: rgba(240,240,240,1.0);
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;                        
     pointer-events: none;
 }
 
-/* Size variants (optional, but cleaner than "small-icon"/"icon") */
-.equip--small .frame {
-    width: 48px;
-    height: 48px;
-}
-
-.equip--big .frame {
-    width: 72px;
-    height: 72px;
-}
-
-
 .equip .overlay {
     position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    filter: brightness(1.3) contrast(1.1) saturate(1.4);
+}
+
+.equip .tag {
+    z-index: 5;                      
+}
+
+.equip--small { --equip-size: 48px; }
+.equip--big   { --equip-size: 72px; }
+
+.tag {
+    position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%); /* true centering */
+    bottom: 0px;
+    transform: translate(-50%, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 14px 6px;
+    min-width: 60px;
+    max-width: 60px;
+    background: rgba(0,0,0,0.78);
+    border-width: 2px;
+    border-style: solid;
+    border-color: #fff8;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 10px;
+    text-align: center;
+    pointer-events: none;
 }
 
-    /* Make overlay match the frame sizes automatically */
-.equip--small .overlay {
-    width: 48px;
-    height: 48px;
+.tag-rating {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 0.9;
+    color: #f4ffff;   
 }
 
-.equip--big .overlay {
-    
-    width: 88px;
-    height: 88px;
+.tag-name {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.0;
+    color: #c0ffffc5;
+    letter-spacing: 0.02em;
 }
+
+.tag-rating::after {
+    content: "";
+    display: block;
+    width: 70%;
+    height: 1px;
+    margin: 3px auto 2px;
+    background: linear-gradient( to right, transparent, var(--tier-color), transparent );
+    opacity: 0.3;
+}
+.tier-mythical {
+    border-color: var(--color-mythical);
+    box-shadow: 0 0 2px var(--color-mythical), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-transcendent {
+    border-color: var(--color-transcendent);
+    box-shadow: 0 0 2px var(--color-transcendent), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-supreme {
+    border-color: var(--color-supreme);
+    box-shadow: 0 0 2px var(--color-supreme), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-ult90 {
+    border-color: var(--color-ultimate);
+    box-shadow: 0 0 2px var(--color-ultimate), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-ult93 {
+    border-color: var(--color-ultimate93);
+    box-shadow: 0 0 2px var(--color-ultimate93), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-ultplus {
+    border-color: var(--color-ultimate-plus);
+    box-shadow: 0 0 2px var(--color-ultimate-plus), 0 0 12px rgba(0,0,0,0.6);
+}
+
+.tier-ultplusplus {
+    border-color: var(--color-ultimate-plus-plus);
+    box-shadow: 0 0 2px var(--color-ultimate-plus-plus), 0 0 12px rgba(0,0,0,0.6);
+}
+

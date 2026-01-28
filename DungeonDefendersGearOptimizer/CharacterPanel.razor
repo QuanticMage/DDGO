@@ -1,4 +1,4 @@
-﻿
+﻿@using System.Text.RegularExpressions
 <div class="character-panel">
     <header class="character-panel-header">
         <h3>Character</h3>
@@ -29,7 +29,7 @@
     <div class="equip equip--small" style="left:755px; top:185px;">@(GetEquipmentVisuals("Bracers"))</div>
     <div class="equip equip--small" style="left:555px; top:100px;">@(GetEquipmentVisuals("Brooch"))</div>
     <div class="equip equip--small" style="left:755px; top:100px;">@(GetEquipmentVisuals("Mask"))</div>
-    <div class="equip equip--big" style="left:666px; top:125px;">@(GetEquipmentVisuals("Helmet"))</div>
+    <div class="equip equip--big" style="left:656px; top:125px;">@(GetEquipmentVisuals("Helmet"))</div>
     <div class="equip equip--big" style="left:666px; top:275px;">@(GetEquipmentVisuals("Torso"))</div>
     <div class="equip equip--big" style="left:766px; top:300px;">@(GetEquipmentVisuals("Gauntlet"))</div>
     <div class="equip equip--big" style="left:566px; top:225px;">@(GetEquipmentVisuals("Weapon"))</div>
@@ -75,14 +75,17 @@
         public RenderFragment GetEquipmentVisuals(string slot) 
         {            
             if (EquippedItems.ContainsKey(slot))
-            {                
-                return GetEquipmentRenderVisual(EquippedItems[slot]);
+            {
+                ItemViewRow row = EquippedItems[slot];
+                string tierTag = "tier-" + row.Quality.Replace("+", "plus").ToLowerInvariant();
+                string name = Regex.Replace(row.Name, @"\s*\([^()]*\)", "");
+                return GetEquipmentRenderVisual(row, tierTag, name);
             }
 
             return EmptyFragment;
         }
 
-        private RenderFragment GetEquipmentRenderVisual(ItemViewRow r ) =>
+        private RenderFragment GetEquipmentRenderVisual(ItemViewRow r, string tierTag, string name) =>
             @<div>
             <img class="frame" src="png/equipFrame.png" alt="" />
             <img class="atlas-icon overlay"
@@ -90,9 +93,11 @@
                  data-size="64"
                  data-l1x="@r.IconX" data-l1y="@r.IconY"
                  data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2"/>            
-            <span class="stat-val">@r.Rating</span>
-            <span class="equip-val">@r.Name</span>
+                 data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2"/>
+            <div class="tag @tierTag">
+                 <div class="tag-rating">@r.Rating</div>
+                 <div class="tag-name">@name</div>
+            </div>  
             </div>
         ;
 
@@ -176,14 +181,14 @@
     </div>-->
 </div>
 @code {
-    // Character selection
-    // keep track of equippables
-    // select => fills in collectible => icons
-    // Clicking on equipment unequips
-    // Hover for item stats, item compare
-    // class icons
-    // swap out class stat icons (everywhere).  Monk is default
-    // best equipment => select 
+//     Things left before I push a new version:
+// * "Equip Best" manual choice
+// * Total of stats, factor in set bonus / warn if no set bonus
+// * Pick character or class to paperdoll + icon
+// * Make selection of item rows more efficient by moving selection to an overlay and not on the<tr> element
 
+// Later to do:
+// * Hover for item stats
+// * Use class icons instead of default ones
 
 }
