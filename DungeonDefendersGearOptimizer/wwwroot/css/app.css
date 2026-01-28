@@ -1,3 +1,13 @@
+:root {
+    --color-mythical: #0cc2f3; 
+    --color-transcendent: #f30cf3; 
+    --color-supreme: #f3f30c; 
+    --color-ultimate: #2c2cf3; 
+    --color-ultimate93: #2c2cf3;
+    --color-ultimate-plus: #f3610c;
+    --color-ultimate-plus-plus: #d90c0c; 
+}
+
 body {
     font-family: 'Belanosima', system-ui;
     margin: 0;
