@@ -134,7 +134,7 @@
 					"png/Tower Rate.png",
 					"png/Tower Range.png",
 				},
-				ClassIcon = "png/Sorceress_TinyIcon.png",
+				ClassIcon = "png/Sorceress_tinyIcon.png",
 				ExtraType = "None",
 				WeaponType = "Apprentice"
 			},
@@ -177,7 +177,7 @@
 					"png/Tower Rate.png",
 					"png/Tower Range.png",
 				},
-				ClassIcon = "png/hunter_TinyIcon.png",
+				ClassIcon = "png/hunter_Tinyicon.png",
 				ExtraType = "None",
 				WeaponType = "Huntress"
 			},
@@ -222,7 +222,7 @@
 					"png/Tower Rate.png",
 					"png/Tower Range.png",
 				},
-				ClassIcon = "png/Jester_tinyIcon.png",
+				ClassIcon = "png/Jester_TinyIcon.png",
 				ExtraType = "Weapon",
 				WeaponType = "Monk|Huntress|Squire|Apprentice"
 			},
@@ -245,7 +245,7 @@
 					"png/Tower Rate.png",
 					"png/Tower Range.png",
 				},
-				ClassIcon = "png/Summoner_tinyIcon.png",
+				ClassIcon = "png/Summoner_TinyIcon.png",
 				ExtraType = "Pet",
 				WeaponType = "None"
 			},
@@ -290,7 +290,7 @@
 					"png/Tower Rate Barbarian.png",
 					"png/Tower Range Barbarian.png",
 				},
-				ClassIcon = "png/barbarian_TinyIcon.png",
+				ClassIcon = "png/barbarian_tinyIcon.png",
 				ExtraType = "Weapon",
 				WeaponType = "Squire"
 			},
@@ -357,7 +357,7 @@
 					"png/Tower Rate.png",
 					"png/Tower Range.png",
 				},
-				ClassIcon = "png/Warden_TinyIcon.png",
+				ClassIcon = "png/warden_Tinyicon.png",
 				ExtraType = "None",
 				WeaponType = "Monk"
 			},
