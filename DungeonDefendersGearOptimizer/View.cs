@@ -98,7 +98,10 @@ namespace DDUP
 		public string FunHashString { get; set; }
 
 		public bool IsHiddenDueToSearch { get; set; }
-		public string CurrentEquippedSlot { get; set; }		
+		public string CurrentEquippedSlot { get; set; }
+
+		public int CachedY { get; set; }
+		public int CachedHeight { get; set; }
 
 		public ItemViewRow(
 				int Rating,

@@ -422,12 +422,15 @@
     {   
     <div class="grid-wrap">
        <div class="overlay-layer" aria-hidden="true">
-        @*@foreach (var h in _highlights)
+        @if (_characterPanel is not null)
         {
-            <div class="row-highlight"
-                style="transform: translateY(@($"{h.Y}px")); height: @($"{h.H}px"); opacity: 1;">
-            </div>
-        }*@
+           @foreach (var e in _characterPanel.EquippedItems)
+           {
+                <div class="row-highlight" @key="e.Value.Idx"
+                    style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
+                </div>         
+           }
+        }
         </div>
         <table class="grid" @ref="_tableRef">
             <colgroup>
@@ -750,7 +753,7 @@
             <tbody>
                 @foreach (var r in _rows)
                 {
-                    <tr @key="r.Idx" class="data-row @GetRowClass(r.CurrentEquippedSlot, r.IsHidden)" @onclick="()=>OnRowClicked(r)">
+                    <tr @key="r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="()=>OnRowClicked(r)">
                         <td class="cell-rating">
                             <span class="rating-primary">@r.Rating</span>
                             <span class="rating-sides">@r.Sides</span>
@@ -806,7 +809,7 @@
                                         <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
                                     </span>
                                 }                      
-                            </span>                      
+                            </span> 
                         </td>
                         <td class="text location">@GetLocation(r)</td>
                         <td class="text @QualityClass(r.Quality)">@r.Quality</td>
@@ -893,9 +896,12 @@
 
     private void ClearAllSelections()
     {
-        List<ItemViewRow> equippedItems = _characterPanel?.EquippedItems.Values.ToList();
 
-        foreach( var v in equippedItems )
+        List<ItemViewRow>? equippedItems = _characterPanel?.EquippedItems.Values.ToList();
+        if (equippedItems is null)
+            return;
+
+        foreach ( var v in equippedItems )
             DeselectRow(v);       
     }
 
@@ -1415,9 +1421,6 @@
             SelectedOther = _selectedOther.ToList()
         };
     }
-
-    // remove some day
-    private bool _showOutOfDateHint = false;
 
     private string LastLoadedText =>
         _lastLoadedAt is null ? "just now" : Humanize(_lastLoadedAt.Value);
@@ -2066,10 +2069,12 @@
         };
     }
 
-    private string GetRowClass(string currentSelectedSlot, bool h)
+    //r.CurrentEquippedSlot, 
+    //string currentSelectedSlot, 
+    private string GetRowClass(bool h)
     {
         if (h) return "hidden-row";
-        if (currentSelectedSlot != "") return "selected";
+        //if (currentSelectedSlot != "") return "selected";
         return "";
     }
 
@@ -2197,6 +2202,7 @@
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
             _atlasReady = true;
+            
             StateHasChanged();
         }
 
@@ -2226,8 +2232,7 @@
     public async Task LoadDunBytesAsync(string fileName, byte[] bytes)
     {
         _loadedFileName = fileName;
-        _lastLoadedAt = DateTime.Now;
-        _showOutOfDateHint = false; // set true later if you detect staleness
+        _lastLoadedAt = DateTime.Now;        
         _error = null;
         _isLoading = true;
         _status = $"Reading {fileName}…";
