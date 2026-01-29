@@ -48,19 +48,3 @@
         }
     });
 };
-
-export function measureRows() {
-    const rows = document.querySelectorAll("tr[data-rowidx]");
-    const result = [];
-
-    rows.forEach(r => {
-        const rect = r.getBoundingClientRect();
-        result.push({
-            idx: r.dataset.rowidx,
-            y: rect.top,
-            height: rect.height
-        });
-    });
-
-    return result;
-}

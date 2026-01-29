@@ -1,0 +1,193 @@
+:root {
+    --color-mythical: #0cc2f3; 
+    --color-transcendent: #f30cf3; 
+    --color-supreme: #f3f30c; 
+    --color-ultimate: #2c2cf3; 
+    --color-ultimate93: #2c2cf3;
+    --color-ultimate-plus: #f3610c;
+    --color-ultimate-plus-plus: #d90c0c; 
+}
+
+body {
+    font-family: 'Belanosima', system-ui;
+    margin: 0;
+    padding: 10px;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.content {
+    box-sizing: border-box;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0px;
+}
+
+.dropzone {
+    max-width: 536px;
+    position: relative;    
+    border: 2px dashed #888;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 12px 0 10px 0;
+    user-select: none;
+    background: #fafafa;
+    z-index: 0;
+}
+
+    .dropzone.over {
+        border-color: #444;
+        background: #f0f0f0;
+    }
+
+.dropzone-text {
+    font-size: 18px;
+}
+
+.dropzone-subtext {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+
+
+.dropzone-subtext.hidden {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+    .status.error {
+        color: #b00020;
+        opacity: 1.0;
+    }
+
+button.action {
+    margin: 8px 0 14px 0;
+    padding: 8px 12px;
+}
+
+.hint {
+    opacity: 0.7;
+}
+
+table.grid {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table.grid th, table.grid td {
+    border: 1px solid #bbb;
+    padding: 6px 8px;
+}
+
+table.grid thead th {
+    background: #eee;
+    text-align: left;
+}
+
+table.grid tbody tr:nth-child(even) {
+    background: #f7f7f7;
+}
+.tooltip-box {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    user-select: none;
+    background: rgba(255, 255, 255, 0.98);
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translate(-25%, -100%);
+    margin-top: -12px;
+    white-space: pre-wrap;
+    will-change: transform, opacity;
+    animation: tooltip-fade 0.15s ease-out;
+}
+
+@keyframes tooltip-fade {
+    from {
+        opacity: 0;
+        transform: translate(-25%, -95%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-25%, -100%);
+    }
+}
+
+.swatch-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.swatch-name {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 2px solid #00000080;
+    box-sizing: border-box;
+}
+
+
+/* The main wrapper */
+.resist-container {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between every element */
+    padding: 4px;
+}
+
+/* The icons */
+.resist-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* The numbers */
+.resist-val {
+    font-size: 20px !important; /* Bump this as high as you need */
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-right: 4px; /* This creates the <gap> after the number before the next icon */
+}
+
+/* Remove the gap from the very last number */
+.resist-val:last-child {
+    margin-right: 0;
+}
+
+
+.atlas-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    display: inline-block;
+    image-rendering: pixelated;
+}
+
+
+
+

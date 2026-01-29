@@ -1,5 +1,5 @@
 ﻿@page "/"
-@implements IDisposable
+@implements IAsyncDisposable
 @using Microsoft.JSInterop
 @using System.Text.Json
 @using System.Text.RegularExpressions
@@ -420,13 +420,13 @@
     }
     else
     {   
-    <div class="grid-wrap">
+    <div class="grid-wrap" @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
        <div class="overlay-layer" aria-hidden="true">
         @if (_characterPanel is not null)
         {
            @foreach (var e in _characterPanel.EquippedItems)
            {
-                <div class="row-highlight" @key="e.Value.Idx"
+                <div class="row-highlight" @key=@($"{e.Key}")
                     style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
                 </div>         
            }
@@ -753,7 +753,7 @@
             <tbody>
                 @foreach (var r in _rows)
                 {
-                    <tr @key="r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="()=>OnRowClicked(r)">
+                    <tr @key="@r.Idx" data-key="@r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="()=>OnRowClicked(r)">
                         <td class="cell-rating">
                             <span class="rating-primary">@r.Rating</span>
                             <span class="rating-sides">@r.Sides</span>
@@ -884,9 +884,46 @@
     private CharacterPanel? _characterPanel;    
     private bool _showEventCollection = false;
     private string _eventSearch = "";
+    private double _overlayHeightPx = 0;
+    private ElementReference _scrollRef;
+    private bool _overlayObserversStarted;
 
-    // ======= selection ==========
+    // ======= selection ==========    
+    public sealed class OverlayMeasure
+    {
+        public double overlayHeight { get; set; }
+        public List<RowMeasure> rows { get; set; } = new();
+    }
+    public sealed class RowMeasure
+    {
+        public string? key { get; set; }
+        public double y { get; set; }
+        public double h { get; set; }
+    }
 
+    [JSInvokable]
+    public void OnGridLayoutChanged(OverlayMeasure m)
+    {
+        _overlayHeightPx = m.overlayHeight;
+
+        // Map measurements back into your model
+        // Example: dictionary by row.Id or whatever your key is
+        var map = m.rows
+            .Where(r => r.key is not null)
+            .ToDictionary(r => r.key!, r => (r.y, r.h));
+
+        foreach (var row in _rows)
+        {
+            var key = row.Idx.ToString();
+            if (map.TryGetValue(key, out var v))
+            {
+                row.CachedY = v.y;
+                row.CachedHeight = v.h;
+            }
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
 
     // this should be updated for new characters
     private string GetTypeOfExtraSlot()
@@ -2195,15 +2232,20 @@
 
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);
-            await JS.InvokeVoidAsync("enableColumnResizing", _tableRef);
+            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);            
             var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
             _atlasReady = true;
-            
+
             StateHasChanged();
+        }
+
+        if (_showContent && !_overlayObserversStarted)
+        {
+            _overlayObserversStarted = true;
+            await JS.InvokeVoidAsync("gridOverlayObservers.start", _scrollRef, _tableRef, _dotNetRef);
         }
 
         if (_needsAtlasRender && _showContent && _atlasReady )
@@ -2214,8 +2256,9 @@
 
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        try { await JS.InvokeVoidAsync("gridOverlayObservers.stop", _scrollRef); } catch { }
         _dotNetRef?.Dispose();
     }
 

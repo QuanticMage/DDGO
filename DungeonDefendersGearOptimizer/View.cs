@@ -100,8 +100,8 @@ namespace DDUP
 		public bool IsHiddenDueToSearch { get; set; }
 		public string CurrentEquippedSlot { get; set; }
 
-		public int CachedY { get; set; }
-		public int CachedHeight { get; set; }
+		public double CachedY { get; set; }
+		public double CachedHeight { get; set; }
 
 		public ItemViewRow(
 				int Rating,

@@ -306,24 +306,6 @@ th {
     z-index: 5;
 }
 
-.grid-wrap {
-    max-height: 70vh; /* pick what you want */
-    overflow: auto; /* this makes the body scroll */
-    border: 3px solid black;
-    position:relative;
-}
-
-
-.row-highlight {
-    position: absolute;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-    will-change: transform, height;
-    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, /* rich gold */
-    z-index:1;
-}
-
 .rating-row th {
     position: sticky;
     top: 0;
@@ -410,21 +392,20 @@ table.grid td {
     position: relative;
 }
 
-/* overlay lives inside each cell */
-table.grid tr:hover td::after,
-table.grid tr.selected td::after {
+table.grid tr:hover td::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
     pointer-events: none;
     z-index: 0;
-    opacity: 1.0; /* hover default */
+    /* Softer gold, less wash */
+    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.18) 0%, rgba(255, 215, 0, 0.10) 40%, rgba(255, 215, 0, 0.00) 100% );
+    opacity: 1;
 }
 
 table.grid tr:hover td::after {
-    opacity: 1.25;
-    filter: saturate(1.15) brightness(1.5);
+    /* tiny pop instead of flashlight */
+    opacity: 1.05;
 }
 
 table.grid td > * {
@@ -1658,3 +1639,29 @@ live-btn {
     align-self: start;
 }
 
+
+.grid-wrap {
+    max-height: 60vh;
+    overflow: auto;
+    border: 3px solid black;
+    position: relative;
+}
+
+
+.row-highlight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    will-change: transform, height;
+    background: linear-gradient( to bottom, rgba(255, 215, 0, 0.55) 0%, rgba(255, 200, 0, 0.25) 45%, rgba(255, 180, 0, 0.0) 100% );
+    z-index:1;
+}
+
+.overlay-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    height: var(--overlay-height, 100%);
+}

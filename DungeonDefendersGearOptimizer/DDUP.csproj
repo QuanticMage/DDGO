@@ -13,5 +13,9 @@
 	<Compile Remove="**\bin\**;**\obj\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\gridObservers.js" />
+  </ItemGroup>
+
 
 </Project>
