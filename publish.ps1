@@ -11,6 +11,11 @@ if (Test-Path $Target) { Remove-Item $Target -Recurse -Force }
 New-Item -ItemType Directory -Path $Target | Out-Null
 Copy-Item "$Source\*" $Target -Recurse -Force
 
+# Ensure .nojekyll exists in the target directory (GitHub Pages)
+$nojekyll = Join-Path $Target ".nojekyll"
+New-Item -ItemType File -Path $nojekyll -Force | Out-Null
+
+
 $index = Join-Path $Target "index.html"
 if (!(Test-Path $index)) { throw "index.html not found at $index" }
 
