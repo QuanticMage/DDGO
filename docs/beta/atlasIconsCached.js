@@ -10,16 +10,19 @@
     const ctx = c.getContext("2d", { alpha: true });
     ctx.imageSmoothingEnabled = false;
 
-    function init(atlasUrl) {
+    async function init(atlasUrl) {
         clearCache();
         atlas = new Image();
-        atlas.decoding = "async";
         atlas.src = atlasUrl;
 
-        return new Promise((resolve, reject) => {
-            atlas.onload = () => resolve(true);
-            atlas.onerror = reject;
-        });
+        try {
+            // This ensures the pixels are actually ready before the script continues
+            await atlas.decode();
+            return true;
+        } catch (err) {
+            console.error("Atlas decode failed:", err);
+            throw err;
+        }
     }
 
     function get(el, name) {
