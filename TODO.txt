@@ -1,183 +1,71 @@
 ﻿
-NOTES:
-* Folders can be 16 characters, Names can be 36
 
 TODO:
 
-DONE (Search)
+PRI
+* Extra equipment slot needs to be tested / work.  
+* Equip/best equip for stats weapons
+* Update for new class / beta
+* Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
+* Clear equipment button?
 
-* Value icon update?
-* Price column wider?
+UI
+* Highlight Best -> remove
+* More tooltips
 * Dark mode
-* Close modal on mouse down not mouse up
 * Currency badge
-* Total events at top row of event list?
+* Better hover behavior for items => stats
+* Right click menu to "Exclude from search" (Extra filter tile w/ hover?) for location and individual items
+* Save text filter state, selected character, etc?
+* Use class icons for stats instead of default ones
+* Custom filter is a dropdown list of recent custom searches
 
-* Firefox
-* Debounce hover
-* Better mythic/trans/supreme gear set bonus support
+UI FEATURES:
+* Weapons show damage / extra stats.  Maybe try a DPS calc.  Move speed.  Size.
+* Pets: show damage / extra stats.  Maybe try a DPS calc.  Show extra effects on pets.  Move speed.  Size.
+* Currency badge  - coal + frags + zamiras + mana tokens / raw mana - include known cv value?
+* Mana value mode
+* Pricing for ult accessories (25cv for ult, 50cv over cap?)
+* Better event pricing data?
+* Export to .csv
+* 3 piece resistances (sort of works now, but not really)
+* Show achievement list and missing achievements for different badges
 
-Hover over equipment => show stats for that piece
-Fix some refresh issues when switching characters / modes
-Right click menu to "Exclude from search"
-Make buttons not look so stupid
-Make search not update until enter
-Make multiple of the same term do 'or' not 'and'
-
-There's always more to do! 
-
-Weapons + Pets: show damage / extra stats.  Maybe try a DPS calc.  Show extra effects on pets.  Move speed.  Size.
-UI: button colors, hover delay/animation.  Dark mode support.  Average Rating on gear.  Brightness on some items like santa hat.  Weird striping on table. Tooltips.  Clean up paperdoll.
-Currency: Badge + mana price mode for early game people.  Pricing for ult accessories
-Bugs: Make sure extra slot works for all classes, Track down bad icon issue.  Brave browser not saving state.  Save text filter state.
-Right click context menu to exclude items/locations from best calculation
-Move Glass + Defenders sets to event items
-Make database reusable for people in other tools.  Export items to .csv.
-
-and of course, update for beta and the new class. 
-It's probably a little over-engineered for what it was meant to do at this point though.
+EXPLAIN ADVANCED SEARCH
+* Quality filter
+* Negating searches
+* Searching negative stats
 
 
-* Make it so extra equipment must match type and is filled with equip/bestequip
+POLISH:
+* Buttons look better
+* Align equipment so it's not so chaotic
+* Santa hat brightness
+* Weird striping on table
+* Warn if no set bonus
 
-    // add option - Show Fully Upgraded
-    // add option - Show 
-    
-    // * Total of stats, factor in set bonus / warn if no set bonus
-    // * Make selection of item rows more efficient by moving selection to an overlay and not on the<tr> element
+EVENTS
+* Close event modal on mouse down not mouse up
+* Total events at top row of event list
+* Move glass + defenders sets to event items, but not in list?
 
-    // Later to do:
-    // * Hover for item stats
-    // * Use class icons instead of default ones
-
-
---Any row can be equipped, even if hidden
---Selection list is just equip list type->equipment with extra bonus where shield can be a weapon for a few characters
-* Custom is a dropdown list of recent custom searches
-* include this in optimization / don't (by folder)
-
-(DONE) - equipment 
-(DONE) - need verify) Look at tiebreaking with index
-(DONE) HSpeed, TRate don't do anything?
-
-* Exclude from best - location / items
-
-Maybe it's as simple as right click on row and select "Exclude this from best" or "Exclude this lcoation from best"
-And then I'll draw a line through the rating or something.
-
-Feature request: Be able to compare pets based on their damage. AND in addition, it would be great to compare 'special' pet abilities; 'what is the best mana giving pet (i.e. Genie), or Healing Pet (i.e. Cupid), or guardian pet by type (i.e. compare all Huntres Guardian pets), etc. But I need the first one most; the ability to see which pets do the most damage (i.e. Blahaj vs. Mummy, etc).
-damage calculation is really hard - the pets have hidden traits and multipliers that are opaque.  I want to try a model for pets/weapons in the future, but I need to figure out the best way to do that.
-
-* Track down missing and bad icons
-
-Lamp -> extra masks
-
-BLASTICUS
-STRATOS
-PROTOTYPE ARMBLADE
-DRAGON-CRESTED GLAIVE
-ROBO Chicken
-Goblin Overlord's Charge
-Crystal Tracker
-Candelabra
-Northern STaff
-Wild Waspy
-Wasp
-Ardor (bad)
-Jester Guardian
-Mana Token
-Dad's sword / spear
-Vortex Hammer
-Honor Sword
-Ball Blaster
-Glacier's Demise
-Minish Hat
-Pegasus boots
-Goron Tunic
-rockShatter
-Sword of Valor
-Toy Sword
-Frozen rifle extra overlay / wrong overlay
-
-weird textures - maybe icons getting overwritten?
-search, inline text, etc
-Night mode
-Best -> Average
-> < advanced or at least '-'
-
-* finish implementing best rating category
-
+BUGS
+* Fix some refresh issues when switching characters / modes (need to stress test this)
+* Fix bad icons
 * Fix hashing bug with color or leave it?
 
-
-* Figure out color on Santa Hat- why so dim?
-* (DONE) Move Plate after Pristine
-* (DONE) Move Gaunlet before Torso
-* (DONE) Fix item box 5x3, 4x3, 6x4
-* (DONE) Combine Res in single column w/ hover over for details
-
-* Move Glass + Defenders set => Events
-* Set which is "Best Rating", sorted by Value
-* More Tooltips
-
-* Filter based on quality
-* Remap colors to 3 digits instead of 10
-* Currency badge ( Coal + Frags + Zamira(?) + Mana tokens / raw mana), include CV value 
-
-* Paper-doll, select character, select items to put on charater, show overall stats
-** Solves => Click to exclude individual pieces from best calc
-
-* Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
-
-* Pricing for ult acc (25cv for ult, 25cv for over cap? - look at auctions)
-* Support searching for negative stats (Jester range)
-* DPS for weapons / more weapon stats.  Same with pets
-* Support tower app / EV ratio 6:5
-
-* Weapon + Pet stats
-
-* (DONE) Sort by sides after primary
-* (DONE) "Require Sides to be nonzero"
-* Explain things first
-* 3-piece resistances 
-//"To use a 3-resistance piece in your armor setup, you need another piece of the same type with enough upgrades. Aim for around 350 to 380 upgrades across both pieces.
-//For example, if your helmet lacks fire resistance, pair it with boots that cover all four resistances. Ensure the combined resistances on both pieces sum to 82% with the set bonus. Upgrade the 3-resistance piece to 35% and the other piece to 23% on its three resistances, with the missing one reaching 58%. "
-
-* Option -> Show Mana for value.  Shows parsed format, different color for 'user price' and 'minsell'.
-
+COMPAT
 * Opera - remove button
 * Brave - why won't it save between sessions
 * Safari - test
 
-* Achievement list
-* Figure out weird striping on table
-* Explain ratings better
-* Column resizing
-* Use for loops for rows
-* Clean up .css
-* Display move speed and size (items/pets/accessories)
-* https://fonts.google.com/specimen/Fredoka
-* https://fonts.google.com/specimen/Belanosima
+CLEANUP
+* Use loops for rows
+* Clean up .css (probably good for night mode)
 
-https://www.youtube.com/watch?v=cuIFJyKtr4c
-
-* Parse event item list and hashes from external file that someone else can maintain
-* Choose what columns to show?  (stats, resists, total resists, etc)
-
-* look into Event Armory map
-* best ui elements - uiverse.com
-* Table: Add details button that gives a popup of info
-* Filters: +Filters that adds to the row, click to remove
-* Rating: maybe same for +primary/secondary/etc?
-
-* Export to csv
-
-* More tooltips / documentation
-* Weapon stats / ranks
-* (partial) Hover tooltips
-* convert icons based on sort (?)
-
-* look into PWA (progressive web app)
+ 
+NOTES:
+* Folders can be 16 characters, Names can be 36
 
 1-166 : used in various game/map persistent settings
 171-178 : used in returnia NM and Ruthless for Baby Old One
@@ -190,94 +78,3 @@ https://www.youtube.com/watch?v=cuIFJyKtr4c
 212: Tinkerer's Workshop Secret DU increase
 500 : Used to only look at the best time for saves once (nm -> ruthless conversion)
 2019-2020 : Ruthless TBR
-
-* (DONE) Pages of items
-* (DONE) Drag new file
-* (DONE) Centered tooltips at edge of window
-* (DONE) Add new hash with stat 0, and if maxlvl > 2000, just use 2000
-* (DONE) Special case Black Shades, Victoria, and Malory (look in blackshades dun file)
-* (DONE) Note about event items and where to send 6 words - somehow let people know so they don't panic :)
-* (DONE) Event collector list
-* (DONE) Store options and cache file
-* (DONE) Options - show best, censor
-* (DONE) Clean up filters	
-
-* (DONE) Make price column wider
-* (DONE)Gamma/ linear scaling?
-* (DONE)Why were colors swapped?  does that mess with add/mul math?
-* (DONE)Figure it out through the pipeline
- 
-
-* (DONE) Show Colors
-* (DONE) Make Event items work and still give H codes
-* (DONE) Figure out remaining event anomalies
-* (DONE) double check list
-* (DONE) look at differences between items that are different
-* (DONE) Use set for gear star rating
-
-* (DONE) Fix bug with filter resetting columns
-* (DONE) Overall account estimate
-* (DONE) Added tooltip support - will be ongoing
-
-
-* (DONE) The best recommended pieces though thing should ignore armor that can't be brought to max resits
-* (DONE) Sorting by max'd out resists
-* (DONE) Better event item tracking + valuing
-
-* (DONE) Things without full resists should not get evaluated for dps classes
-* (DONE) Things that aren't armor shouldn't get armor prices (lol)
-* (DONE)CV diamonds/etc
-
-* (DONE)CV Value estimator
-* (DONE)Ult++ Censoring
-* (DONE)Add in positions
-* (DONE)Usefulness rating
-
-* (DONE)No Missing Resists => No missing resists\
-* (DONE)make highlight for best pieces easier to see
-* (DONE)make stats perfect
-
-* (DONE)Add in box next to drag location with credits + Links
-* (DONE) Version number
-
-* (DONE)Add in options row above Rate by row  (Censor Items, Icon layout size, Include Bonuses when sorting by stat)
-* (DONE)Add in options for 'best' rating (Hide <4 armor, hide equipment)
-
-* (DONE)Replace with better icons
-* (DONE)THP side for monk, rename Trap/Aura
-* (DONE)Separate out Total Builder / Total Hero instead of mixed
-* (DONE)Always sort by rating 2ndarily
-* (DONE)Add in primary / secondary toggles- clear rate by (Custom) when doing this, or just set which one is valid
-
-* (DONE) Only apply x1.4 to armor
-* (DONE)Figure out why cv diamonds show up as "Turtle on Treadmill" - maybe need rename
-* (DONE)"Temp Name"
-* (DONE)Figure out why off by 1 sometimes
-
-1.10
-* UI Redesign / Cleanup to prepare for the future
-* Items now show what page they are located on (when sorted by level)
-* Added in all event pieces with sheet prices 
-* Fixed a ceiling bug with ratings (off-by-1) due to how upgrades were predicted to be allocated
-
-TODO:
-* Store options and cache most recent .dun file
-* Finish tooltips
-* Event collection tracker
-* Add popup for details not shown in table
-* Weapon and pet non-stat data (move speed, size, weapon damage, etc.)
-
-
-
-Jan 19, 2026 V1.0 
-* Settings and last-loaded-file persistence
-* Much better file loading and reloading
-* Firefox compatibilty (to the extent that its possible).  Best experience is with Chrome and Edge
-
-v1.2
-* (DONE) Reload and New file buttons have wrong font
-* (DONE) Mana tokens 
-* (DONE) Censor also censors tanscendent cats and unicorns
-* (DONE) Remove () name from common pets
-* (DONE) Support currency stacks
-* (DONE) Update event hashes with a little more security

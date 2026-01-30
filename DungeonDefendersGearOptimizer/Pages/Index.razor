@@ -147,14 +147,6 @@
                    @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
             <span>Censor Ult++</span>
         </label>
-
-        <label class="utility-toggle">
-            <input type="checkbox"
-                   class="tool-filter"
-                   checked="@_highlight"
-                   @onchange="@((e) => { _highlight = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Highlight Best</span>
-        </label>
     
         <label class="utility-toggle">
             <input type="checkbox"
@@ -864,8 +856,7 @@
     private record ModeOption(string Value, string Label);
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
-    private bool _censor = true;
-    private bool _highlight = true;
+    private bool _censor = true;    
     private bool _livePrices = false;
     private string _itemboxSize = "5x3";
     private bool _showContent = false;
