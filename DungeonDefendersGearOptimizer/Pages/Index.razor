@@ -2289,6 +2289,7 @@
             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
+            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");
             _atlasReady = true;
 
             StateHasChanged();

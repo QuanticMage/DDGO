@@ -159,5 +159,46 @@
         cache.clear();
     }
 
-    return { init, renderAllCached, clearCache };
+    let pending = false;
+    let mo = null;
+
+    function scheduleRender() {
+        if (pending) return;
+        pending = true;
+
+        // Two RAFs helps in Firefox when DOM is still “settling”
+        requestAnimationFrame(() => {
+            requestAnimationFrame(async () => {
+                pending = false;
+                try { await renderAllCached(); } catch (e) { console.error(e); }
+            });
+        });
+    }
+
+    function startAutoRender(root = document.body) {
+        stopAutoRender();
+        scheduleRender(); // render whatever is there now
+
+        mo = new MutationObserver(() => scheduleRender());
+        mo.observe(root, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: [
+                "class",
+                "src",
+                "data-size",
+                "data-l1x", "data-l1y",
+                "data-l2x", "data-l2y", "data-l2t",
+                "data-l3x", "data-l3y", "data-l3t"
+            ]
+        });
+    }
+
+    function stopAutoRender() {
+        if (mo) { mo.disconnect(); mo = null; }
+    }
+
+
+    return { init, renderAllCached, clearCache, startAutoRender, stopAutoRender  };
 })();
