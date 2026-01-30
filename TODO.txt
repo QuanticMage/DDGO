@@ -15,9 +15,6 @@ DONE (Search)
 
 
 * Make it so extra equipment must match type and is filled with equip/bestequip
-    // add button - Select Equipped
-    // add button - Select Best
-
 
     // add option - Show Fully Upgraded
     // add option - Show 
@@ -35,7 +32,8 @@ DONE (Search)
 * Custom is a dropdown list of recent custom searches
 * include this in optimization / don't (by folder)
 
-(DONE? - need verify) Look at tiebreaking with index
+(DONE) - equipment 
+(DONE) - need verify) Look at tiebreaking with index
 (DONE) HSpeed, TRate don't do anything?
 
 * Exclude from best - location / items
@@ -43,6 +41,8 @@ DONE (Search)
 Maybe it's as simple as right click on row and select "Exclude this from best" or "Exclude this lcoation from best"
 And then I'll draw a line through the rating or something.
 
+Feature request: Be able to compare pets based on their damage. AND in addition, it would be great to compare 'special' pet abilities; 'what is the best mana giving pet (i.e. Genie), or Healing Pet (i.e. Cupid), or guardian pet by type (i.e. compare all Huntres Guardian pets), etc. But I need the first one most; the ability to see which pets do the most damage (i.e. Blahaj vs. Mummy, etc).
+damage calculation is really hard - the pets have hidden traits and multipliers that are opaque.  I want to try a model for pets/weapons in the future, but I need to figure out the best way to do that.
 
 * Track down missing and bad icons
 

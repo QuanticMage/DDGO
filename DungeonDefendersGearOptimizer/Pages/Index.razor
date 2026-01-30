@@ -7,7 +7,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defenders Gear Optimizer</h1>        
-        <div class="build"><i>Jan 25 2026 - Version 1.4</i></div>    
+        <div class="build"><i>Jan 29 2026 - Version 1.5</i></div>    
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -131,7 +131,8 @@
             
             OnEquipFromFile="HandleEquipFromFile"
             OnEquipBest="HandleEquipBest"
-            OnClickEquipment="HandleEquipmentClick"/>
+            OnClickEquipment="HandleEquipmentClick"
+            OnChangedRatingMode="HandleChangedRatingMode"/>
     </div>
 
     <div class="middle-right">    
@@ -172,27 +173,7 @@
         </label>
     </div>
     <br/>
-    <div class="rateby-pane">    
-        <div class="rateby-header">
-            Rating Mode
-        </div>    
-        <div class="toolbar">
-        @foreach (var opt in _modeOptions)
-        {
-            <input class="tool-radio"
-                    type="radio"
-                    name="setOptions"
-                    id="@($"mode-{opt.Value}")"
-                    value="@opt.Value"
-                    checked="@(_selectedMode == opt.Value)"
-                    @onchange="() => SetMode(opt.Value)" />
-
-            <label class="tool-btn" for="@($"mode-{opt.Value}")">
-                @opt.Label
-            </label>
-        }
-         </div>
-    </div>
+    
     <div class="filters-menu-header">
         Filters
     </div>
@@ -318,8 +299,7 @@
             new("Only Events",    MutexGroup: "eventMode"),
             new("Exclude Events", MutexGroup: "eventMode"),
 
-            new("Only Equipped", MutexGroup: "equipMode"),        
-            new("Exclude Equipped", MutexGroup: "equipMode"),        
+            new("Exclude Equipped"),        
 
             new("Exclude Missing Resists"),          
         };
@@ -848,7 +828,7 @@
 }
 
 @code {
-    [Inject] private IJSRuntime JS { get; set; } = default!;
+        [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private int CurrentUIOptionsVersion = 1;
     private readonly string _dropZoneId = "dropzone";
@@ -1171,6 +1151,12 @@
 
     // Equipping! 
 
+
+    private Task HandleChangedRatingMode()
+    {
+        SetMode(_characterPanel?.GetRatingMode());
+        return Task.CompletedTask;
+    }
 
     private Task HandleEquipmentClick( ItemViewRow row )
     {
@@ -1609,7 +1595,6 @@
         bool onlyEvents = _selectedOther.Contains("Only Events");
         bool excludeEvents = _selectedOther.Contains("Exclude Events");
 
-        bool onlyEquipped = _selectedOther.Contains("Only Equipped");
         bool excludeEquipped = _selectedOther.Contains("Exclude Equipped");
 
         bool excludeMissingResists = _selectedOther.Contains("Exclude Missing Resists");
@@ -1665,9 +1650,7 @@
             if (excludeEvents)
                 includeItem &= !v.IsEvent;
 
-            if (onlyEquipped)
-                includeItem &= v.IsEquipped;
-            if (excludeEquipped)
+            if (excludeEquipped && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name))
                 includeItem &= !v.IsEquipped;
 
             if (excludeMissingResists)
@@ -1708,9 +1691,12 @@
 
     private void SetMode(string mode)
     {
+        if ((mode == null) || (mode == ""))
+            return;
+
         foreach (var v in Ratings.RatingModes)
         {
-            if (v.Name == mode)
+            if (mode.StartsWith(v.Name))
             {
                 _selectedMode = mode;
                 _RatingStatsPriority.Clear();

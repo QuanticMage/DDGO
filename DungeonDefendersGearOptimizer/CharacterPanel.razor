@@ -73,6 +73,7 @@
     @inject IJSRuntime JS
     @code {
 
+        public string GetRatingMode() { return SelectedRatingMode ?? ""; }
         private string? SelectedRatingMode;
         private string? SelectedHero;
         public DDHeroInfo? SelectedHeroInfo { get; set; }
@@ -178,12 +179,21 @@
 
         private void SetRatingModeFromEquipment()
         {
-            if (SelectedHeroInfo == null) return;
+            if (SelectedHeroInfo == null)
+                return;
 
-            foreach (var v in SelectedHeroInfo.Equipment )
-            {
-                //
-            }
+            string bestMode = SelectedHeroInfo.Equipment
+                .Where(v => v.cachedItemRow != null &&
+                !string.IsNullOrWhiteSpace(v.cachedItemRow.BestFor))
+                .GroupBy(v => v.cachedItemRow.BestFor)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .FirstOrDefault() ?? "";
+
+
+            SelectedRatingMode = $"{bestMode} ({bestMode})";
+            // since we dson't use the index on this one, just pass it through
+            OnRatingModeChanged((SelectedRatingMode, 0));
         }
 
 
