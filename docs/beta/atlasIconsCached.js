@@ -153,25 +153,26 @@
         }
     }
 
+
     // Optional: if you ever need to clear cache to free memory
     function clearCache() {
         for (const url of cache.values()) URL.revokeObjectURL(url);
         cache.clear();
     }
-
     let pending = false;
     let rendering = false;
     let rerun = false;
     let mo = null;
 
+    // Simple Firefox detection (fine for this use-case)
+    const IS_FIREFOX = typeof InstallTrigger !== "undefined";
+
     function scheduleRender() {
-        // If a render is running, just request one more pass after it finishes.
         if (rendering) { rerun = true; return; }
         if (pending) return;
         pending = true;
 
-        // One RAF is usually enough; Chrome can delay double RAF a lot under pressure.
-        requestAnimationFrame(async () => {
+        const run = async () => {
             pending = false;
             rendering = true;
             try {
@@ -185,7 +186,15 @@
                     scheduleRender();
                 }
             }
-        });
+        };
+
+        if (IS_FIREFOX) {
+            // Firefox: wait an extra frame for Blazor/DOM to settle
+            requestAnimationFrame(() => requestAnimationFrame(run));
+        } else {
+            // Chrome: one frame is faster + less “mysterious delay”
+            requestAnimationFrame(run);
+        }
     }
 
     function startAutoRender(root = document.body) {
@@ -198,7 +207,7 @@
             childList: true,
             attributes: true,
             attributeFilter: [
-                "class",                
+                "class",
                 "data-size",
                 "data-l1x", "data-l1y",
                 "data-l2x", "data-l2y", "data-l2t",
