@@ -15,7 +15,7 @@ DONE (Search)
 
 * Firefox
 * Debounce hover
-
+* Better mythic/trans/supreme gear set bonus support
 
 Hover over equipment => show stats for that piece
 Fix some refresh issues when switching characters / modes
@@ -24,7 +24,18 @@ Make buttons not look so stupid
 Make search not update until enter
 Make multiple of the same term do 'or' not 'and'
 
+There's always more to do! 
 
+Weapons + Pets: show damage / extra stats.  Maybe try a DPS calc.  Show extra effects on pets.  Move speed.  Size.
+UI: button colors, hover delay/animation.  Dark mode support.  Average Rating on gear.  Brightness on some items like santa hat.  Weird striping on table. Tooltips.  Clean up paperdoll.
+Currency: Badge + mana price mode for early game people.  Pricing for ult accessories
+Bugs: Make sure extra slot works for all classes, Track down bad icon issue.  Brave browser not saving state.  Save text filter state.
+Right click context menu to exclude items/locations from best calculation
+Move Glass + Defenders sets to event items
+Make database reusable for people in other tools.  Export items to .csv.
+
+and of course, update for beta and the new class. 
+It's probably a little over-engineered for what it was meant to do at this point though.
 
 
 * Make it so extra equipment must match type and is filled with equip/bestequip
