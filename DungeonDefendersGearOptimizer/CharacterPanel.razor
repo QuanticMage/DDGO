@@ -9,24 +9,24 @@
     <img class="hero-stat-bg" src="png/heroItemBG.png" />
     <img class="hero-equip-bg" src="png/inventoryBG.png" />
 
-    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroHealth)</span></div>
+    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroDamage)</span></div>
+    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroSpeed)</span></div>
+    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroCastRate)</span></div>
 
-    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroAbility1)</span></div>
+    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroAbility2)</span></div>
 
-    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' /><span class='stat-val'>+9999</span></div>
-    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' /><span class='stat-val'>+9999</span></div>
+    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerHealth)</span></div>
+    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerDamage)</span></div>
+    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerRange)</span></div>
+    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerRate)</span></div>
 
-    <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' /><span class='stat-val'>90%</span></div>
-    <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>90%</span></div>
-    <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Fire Resistance.png' /><span class='stat-val'>90%</span></div>
-    <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' /><span class='stat-val'>90%</span></div>
-
+    <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' /><span class='stat-val'>@GetShownResist(0)</span></div>
+    <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Fire Resistance.png' /><span class='stat-val'>@GetShownResist(2)</span></div>
+    <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' /><span class='stat-val'>@GetShownResist(3)</span></div>
+    <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>@GetShownResist(1)</span></div>
+   
 
     <div class="equip equip--small" style="left:755px; top:185px;">@(GetEquipmentVisuals("Bracers"))</div>
     <div class="equip equip--small" style="left:555px; top:100px;">@(GetEquipmentVisuals("Brooch"))</div>
@@ -86,15 +86,92 @@
         [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
 
+        public int[] ShownStat = new int[11];
+        public int[] ShownResist = new int[4];
+        public bool ShowUpgraded = false;
+
         private const string DefaultHeroName = "Test Jester";
         private const string DefaultHeroClass = "Jester";
         private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();
+        public Dictionary<string, ItemViewRow> EquippedItems = new();
+
+        private static RenderFragment EmptyFragment => builder => { };
 
         // key: class name inside parentheses, eg "Apprentice"
         // value: icon url/path, eg "png/Apprentice_TinyIcon.png"
         private Dictionary<string, string> HeroIcons { get; set; }
         = new(StringComparer.OrdinalIgnoreCase);
 
+        private string GetShownStat( DDStat stat )
+        {
+            return ShownStat[(int)stat].ToString();
+        }
+
+        private string GetShownResist( int r)
+        {
+            return ShownResist[r].ToString() + "%";
+
+        }
+
+        public void UpdateCharacterTotalStats()
+        {
+            int armorPieces = 0;
+            string armorSet = "";
+            foreach (var v in EquippedItems)
+            {
+                if (v.Value.IsArmor && ((v.Value.Set == armorSet) || (armorSet == "")))
+                {
+                    armorPieces++;
+                    armorSet = v.Value.Set;
+                }
+            }
+            bool bArmorBonusSet = (armorPieces == 4);
+
+            for (int i = 1; i < 11; i++)
+            {
+                ShownStat[i] = (SelectedHeroInfo != null) ? SelectedHeroInfo.Stats[i] : 0;
+            }
+
+            for (int i = 0; i < 4; i++)
+                ShownResist[i] = 0;
+
+            foreach (var v in EquippedItems)
+            {
+                Console.WriteLine("Equip Piece: " + v.Value.Name);
+                for (int i = 1; i < 11; i++)                
+                {
+                    int baseStat = (ShowUpgraded ? v.Value.UpgradedStats[i] : v.Value.Stats[i]);
+                    float multiplier = (v.Value.IsArmor && bArmorBonusSet) ? v.Value.SetBonus : 1.0f;
+                    if (baseStat < 0) multiplier = 1.0f;
+                    Console.WriteLine($"Stat {i}: {(int)Math.Ceiling(multiplier * baseStat)}");
+                    ShownStat[i] += (int)Math.Ceiling(multiplier * baseStat);
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    int baseResist = (ShowUpgraded ? v.Value.UpgradedResists[i] : v.Value.Resists[i]);
+                    float multiplier = (v.Value.IsArmor && bArmorBonusSet) ? v.Value.SetBonus : 1.0f;
+                    if (baseResist < 0) multiplier = 1.0f;
+                    Console.WriteLine($"Resist {i}: {(int)Math.Ceiling(multiplier * baseResist)}");
+                    // always show resists for nightmare
+                    ShownResist[i] += (int)Math.Ceiling(multiplier * baseResist);
+
+                }
+            }
+
+            for (int i = 1; i < 11; i++)
+                ShownStat[i] = Math.Max(0, ShownStat[i]);
+
+            for (int i = 0; i < 4; i++ )
+            {
+                if ( ShownResist[i] < 0.0f)
+                    ShownResist[i] = Math.Min(90, (int)Math.Ceiling(ShownResist[i] * 0.55));
+                else
+                    ShownResist[i] = Math.Min(90, (int)Math.Floor(ShownResist[i] * 0.55));
+            }
+
+            StateHasChanged();
+        }
+          
         private string SelectedHeroIconUrl
         {
             get
@@ -185,11 +262,13 @@
             string bestMode = SelectedHeroInfo.Equipment
                 .Where(v => v.cachedItemRow != null &&
                 !string.IsNullOrWhiteSpace(v.cachedItemRow.BestFor))
-                .GroupBy(v => v.cachedItemRow.BestFor)
+                .GroupBy(v => v?.cachedItemRow?.BestFor)
                 .OrderByDescending(g => g.Count())
                 .Select(g => g.Key)
                 .FirstOrDefault() ?? "";
 
+            if (SelectedHeroInfo.Equipment.Count == 0)
+                bestMode = "Builder App";
 
             SelectedRatingMode = $"{bestMode} ({bestMode})";
             // since we dson't use the index on this one, just pass it through
@@ -250,10 +329,7 @@
         }
 
         // the main index.razor pokes and changes this - encapsulate at some point
-        public Dictionary<string, ItemViewRow> EquippedItems = new();
-
-        private static RenderFragment EmptyFragment => builder => { };
-
+        
         public RenderFragment GetEquipmentVisuals(string slot)
         {
             if (EquippedItems.ContainsKey(slot))
@@ -297,8 +373,8 @@
                 EquippedItems.Remove(slot);
             else
                 EquippedItems[slot] = r;
-            StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+            UpdateCharacterTotalStats();           
         }
     }
    

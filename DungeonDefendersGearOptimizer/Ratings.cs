@@ -309,7 +309,7 @@ namespace DDUP
 			{
 				if (Ratings.RatingModes[i].CanBeBestFor )
 				{
-					(ratings[i], _) = EvalRating(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);					
+					(ratings[i], _) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);
 				}
 			}
 			
@@ -443,86 +443,72 @@ namespace DDUP
 			return maxY;
 		}
 
+		
 
-		public static (int, int) EvalRating(ItemViewRow vr, List<DDStat> RatingStatsPriority, List<DDStat> SidesStatsPriority, bool bRequireResists)
+
+		public static (int, int) EvalRatingAndUpgrades(ItemViewRow vr, List<DDStat> RatingStatsPriority, List<DDStat> SidesStatsPriority, bool bRequireResists)
 		{
 			int rating = 0;
 			int sides = 0;
-			float fracLeftOver = 0;
-			int maxGrowthLevels = 0;
-
-			for (int i = 1; i < 11; i++) // loop through stats
-			{
-				int ratingMode = (RatingStatsPriority.Contains((DDStat)i) ? 1 : 0);
-				if (SidesStatsPriority.Contains((DDStat)i))
-					ratingMode = 2;
-
-				maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ratingMode, vr.Stats[i], vr.MaxStat, vr.SetBonus);
-			}
 			
+			// first we figure out resistances			
 			int levelsLeft = vr.MaxLevel - vr.Level;
-			int resG = vr.RG;
-			int resP = vr.RP;
-			int resF = vr.RF;
-			int resL = vr.RL;
+			bool bMaxedResists = !vr.IsArmor;
+			
+			for (int i = 0; i < 4; i++)
+				vr.UpgradedResists[i] = vr.Resists[i];
 
-			int upgradesRequiredForResists = GetUpgradesRequired(vr.ResistanceTarget, resG, resP, resF, resL);
-			int overcappedUpgrades = levelsLeft / 10;
-			int overcappedUpgradesNeeded =
-				(vr.ResistanceTarget - ((resG < 23) ? 23 : resG)) +
-				(vr.ResistanceTarget - ((resP < 23) ? 23 : resP)) +
-				(vr.ResistanceTarget - ((resF < 23) ? 23 : resF)) +
-				(vr.ResistanceTarget - ((resL < 23) ? 23 : resL));
-
-			int remainingOvercappedUpgrades = Math.Min(overcappedUpgrades, overcappedUpgradesNeeded);
-			int remainingUpgrades = upgradesRequiredForResists - overcappedUpgradesNeeded + remainingOvercappedUpgrades;
-
-			int allowedMisplaced = (vr.Quality == "Supreme") ? -2 : 0;
-			bool cantHitResistCap = (levelsLeft - remainingUpgrades < allowedMisplaced);
-
-			int levelsForStatsLeft = Math.Max(0, levelsLeft - remainingUpgrades);
-
-			if (!bRequireResists || (vr.ResistanceTarget == 0)) levelsForStatsLeft = levelsLeft;
-
-
-			// apply fractional rounding to leveling up, if there's anything to level up
-			// this isn't perfect; it doesn't know what order you might upgrade an item with two primary stats
-			// but at least it's mostly accurate
-			// This keeps cap at 840 for Ult90s, and 0 for things with no range stat (for instance), while not messing with fully upgraded items
-			rating += (int)Math.Ceiling((Math.Max(0, Math.Min(levelsForStatsLeft, maxGrowthLevels) - fracLeftOver)) * vr.SetBonus);
-
-			if (bRequireResists && cantHitResistCap)
+			if (bRequireResists && vr.IsArmor)
 			{
-				rating = 0;
+				int upgradesRequiredForResists = GetUpgradesRequired(vr.ResistanceTarget, vr.Resists[0], vr.Resists[1], vr.Resists[2], vr.Resists[3]);
+				int overcappedUpgradesLeft = vr.MaxLevel / 10 - vr.Level / 10;
+				int overcappedUpgradesNeeded =
+					Math.Max(0, (vr.ResistanceTarget - ((vr.Resists[0] < 23) ? 23 : vr.Resists[0]))) +
+					Math.Max(0, (vr.ResistanceTarget - ((vr.Resists[1] < 23) ? 23 : vr.Resists[1]))) +
+					Math.Max(0, (vr.ResistanceTarget - ((vr.Resists[2] < 23) ? 23 : vr.Resists[2]))) +
+					Math.Max(0, (vr.ResistanceTarget - ((vr.Resists[3] < 23) ? 23 : vr.Resists[3])));
+
+				if ((overcappedUpgradesLeft >= overcappedUpgradesNeeded) && (levelsLeft >= upgradesRequiredForResists))
+				{
+					levelsLeft -= upgradesRequiredForResists;
+					vr.UpgradedResists[0] = Math.Max(vr.UpgradedResists[0], vr.ResistanceTarget);
+					vr.UpgradedResists[1] = Math.Max(vr.UpgradedResists[1], vr.ResistanceTarget);
+					vr.UpgradedResists[2] = Math.Max(vr.UpgradedResists[2], vr.ResistanceTarget);
+					vr.UpgradedResists[3] = Math.Max(vr.UpgradedResists[3], vr.ResistanceTarget);
+					
+					bMaxedResists = true;
+				}				
 			}
+
+			for (int i = 1; i < 11; i++)
+				vr.UpgradedStats[i] = vr.Stats[i];
+			
+			foreach ( var v in RatingStatsPriority )
+			{
+				int levelToMax = vr.MaxStat - vr.Stats[(int)v];
+				int levelsToInvest = Math.Max(0, Math.Min(levelToMax, levelsLeft));
+				vr.UpgradedStats[(int)v] += levelsToInvest;
+				levelsLeft -= levelsToInvest;
+				rating += (int)Math.Ceiling((double)vr.UpgradedStats[(int)v] * vr.SetBonus);
+			}
+
+			foreach (var v in SidesStatsPriority)
+			{
+				int levelToMax = vr.MaxStat - vr.Stats[(int)v];
+				int levelsToInvest = Math.Max(0, Math.Min(levelToMax, levelsLeft));
+				vr.UpgradedStats[(int)v] += levelsToInvest;
+				levelsLeft -= levelsToInvest;
+				sides += (int)Math.Ceiling((double)vr.UpgradedStats[(int)v] * vr.SetBonus);
+			}
+
+			if (bRequireResists && !bMaxedResists && (vr.Resists[0] + vr.Resists[1] + vr.Resists[2] + vr.Resists[3] < vr.ResistanceTarget * 4))
+			{
+				sides += rating;
+				rating = 0;				
+			}
+					
 			// actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.
-
 			return (rating, sides);
-		}
-
-		private static int AddRating(ref int rating, ref int sides, ref float fracLeftOver, int idx, int value, int maxStat, float mult)
-		{
-			// find the ceiling when we get the set bonus
-			int bonus = (int)Math.Ceiling(value * mult);
-
-			int ratingAdd = 0;
-			int sidesAdd = 0;
-
-			if (idx == 1) ratingAdd = (value > 0) ? bonus : value;
-			else if (idx == 2) sidesAdd = (value > 0) ? bonus : value;
-
-			rating += ratingAdd;
-			sides += sidesAdd;
-
-			int levelsLeft = (maxStat - value);
-			if (levelsLeft < 0) levelsLeft = 0;
-			if (idx != 1) levelsLeft = 0;
-
-			// save off the fraction that is left over to the next int just in case we're doing an upgrade at all here
-			if (levelsLeft > 0)
-				fracLeftOver = Math.Max(fracLeftOver, bonus - (value * mult));
-
-			return levelsLeft;
 		}
 
 		static int[] ResistRequirements =

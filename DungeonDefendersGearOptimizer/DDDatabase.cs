@@ -29,8 +29,18 @@ public enum DDStat : int
 	TowerHealth = 7,
 	TowerRate = 8,
 	TowerDamage = 9,
-	TowerRange = 10,		
+	TowerRange = 10,
 }
+
+public enum DDRes : int 
+{
+	Generic = 0,
+	Posion = 1,
+	Fire = 2,
+	Lightning = 3
+}
+
+
 
 public struct DDLinearColor
 {
@@ -324,7 +334,7 @@ public class DDHeroInfo
 	public int HeroLevel;
 	public int HeroExperience;
 	public int ManaPower;
-	public int[] Stats = new int[10];
+	public int[] Stats = new int[11];
 	public int CostumeIndex;
 	public int GUID1, GUID2, GUID3, GUID4;
 	public DDLinearColor C1, C2, C3;
@@ -778,7 +788,7 @@ public class DDDatabase
 		DDHeroInfo h = new DDHeroInfo();
 		h.IsInitialized = reader.ReadByte() > 0 ? true : false;
 
-		for (int i = 0; i < 10; i++) h.Stats[i] = reader.ReadInt32();
+		for (int i = 1; i < 11; i++) h.Stats[i] = reader.ReadInt32();
 
 		// 41 bytes until here 
 		h.HeroLevel = reader.ReadInt32();        // 0x9f1

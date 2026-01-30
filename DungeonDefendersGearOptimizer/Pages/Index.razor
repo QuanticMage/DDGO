@@ -171,6 +171,15 @@
                 <option value="6x4">6x4</option>
             </select>
         </label>
+
+        <label class="utility-toggle">
+            <input type="checkbox"
+                class="tool-filter"
+                checked="@_showUpgradedStats"
+                @onchange="@((e) => { _showUpgradedStats= e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Show Upgrades and Set Bonus</span>
+        </label>
+
     </div>
     <br/>
     
@@ -798,27 +807,28 @@
                         <td class="num">@r.Level</td>
                         <td class="num">@r.MaxLevel</td>
 
-                        <td class="num cell-health @CellShadingStyle(DDStat.HeroHealth)">@GetValue(r.Stats[(int)DDStat.HeroHealth], r)</td>
-                        <td class="num cell-damage @CellShadingStyle(DDStat.HeroDamage)">@GetValue(r.Stats[(int)DDStat.HeroDamage], r)</td>
-                        <td class="num cell-range @CellShadingStyle(DDStat.HeroSpeed)">@GetValue(r.Stats[(int)DDStat.HeroSpeed], r)</td>
-                        <td class="num cell-rate @CellShadingStyle(DDStat.HeroCastRate)">@GetValue(r.Stats[(int)DDStat.HeroCastRate], r)</td>
-                        <td class="num cell-ab1 @CellShadingStyle(DDStat.HeroAbility1)">@GetValue(r.Stats[(int)DDStat.HeroAbility1], r)</td>
-                        <td class="num cell-ab2 @CellShadingStyle(DDStat.HeroAbility2)">@GetValue(r.Stats[(int)DDStat.HeroAbility2], r)</td>
-                        <td class="num cell-health @CellShadingStyle(DDStat.TowerHealth)">@GetValue(r.Stats[(int)DDStat.TowerHealth], r)</td>
-                        <td class="num cell-damage @CellShadingStyle(DDStat.TowerDamage)">@GetValue(r.Stats[(int)DDStat.TowerDamage], r)</td>
-                        <td class="num cell-range @CellShadingStyle(DDStat.TowerRange)">@GetValue(r.Stats[(int)DDStat.TowerRange], r)</td>
-                        <td class="num cell-rate @CellShadingStyle(DDStat.TowerRate)">@GetValue(r.Stats[(int)DDStat.TowerRate], r)</td>
+                        <td class="num cell-health @CellShadingStyle(DDStat.HeroHealth)">@GetValue(DDStat.HeroHealth, r)</td>
+                        <td class="num cell-damage @CellShadingStyle(DDStat.HeroDamage)">@GetValue(DDStat.HeroDamage, r)</td>
+                        <td class="num cell-range @CellShadingStyle(DDStat.HeroSpeed)">@GetValue(DDStat.HeroSpeed, r)</td>
+                        <td class="num cell-rate @CellShadingStyle(DDStat.HeroCastRate)">@GetValue(DDStat.HeroCastRate, r)</td>
+                        <td class="num cell-ab1 @CellShadingStyle(DDStat.HeroAbility1)">@GetValue(DDStat.HeroAbility1, r)</td>
+                        <td class="num cell-ab2 @CellShadingStyle(DDStat.HeroAbility2)">@GetValue(DDStat.HeroAbility2, r)</td>
+                        <td class="num cell-health @CellShadingStyle(DDStat.TowerHealth)">@GetValue(DDStat.TowerHealth, r)</td>
+                        <td class="num cell-damage @CellShadingStyle(DDStat.TowerDamage)">@GetValue(DDStat.TowerDamage, r)</td>
+                        <td class="num cell-range @CellShadingStyle(DDStat.TowerRange)">@GetValue(DDStat.TowerRange, r)</td>
+                        <td class="num cell-rate @CellShadingStyle(DDStat.TowerRate)">@GetValue(DDStat.TowerRate, r)</td>
 
                         <td class="resist @CellShadingStyle(DDStat.HeroResistance)" 
                             data-tooltip=@(
                               $"<div class='resist-container'>" +
-                                $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.RG}</span>" +
-                                $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.RP}</span>" +
-                                $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.RF}</span>" +
-                                $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.RL}</span>" +
-                                $"</div><br>{ShowUpgradesToMaxResist(r)}")>                  
-                            @((r.RG + r.RP + r.RF + r.RL)/4)</td>                    
-                    </tr>
+                                $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.Resists[0]}</span>" +
+                                $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.Resists[1]}</span>" +
+                                $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.Resists[2]}</span>" +
+                                $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.Resists[3]}</span>" +
+                                $"</div><br>{ShowUpgradesToMaxResist(r)}")>
+                            @(GetResistValue(r))
+                    </td>
+                </tr>
                 }
             </tbody>
         </table>
@@ -828,7 +838,7 @@
 }
 
 @code {
-        [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private int CurrentUIOptionsVersion = 1;
     private readonly string _dropZoneId = "dropzone";
@@ -863,6 +873,7 @@
     private int TotalEventCount = 0;
     private CharacterPanel? _characterPanel;    
     private bool _showEventCollection = false;
+    private bool _showUpgradedStats = false;
     private string _eventSearch = "";
     private double _overlayHeightPx = 0;
     private ElementReference _scrollRef;
@@ -935,7 +946,7 @@
 
         _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
         row.CurrentEquippedSlot = "";        
-        UpdateEquipmentRatingAndType();
+        UpdateEquipmentRatingAndType();        
     }
 
     private void SelectRow( ItemViewRow row )
@@ -989,7 +1000,7 @@
     Ab1, Ab2, ResG, ResP, ResF, ResL, Location, Quality, 
     Rating, Sides, Lvl, MaxLvl, ResSum, ResAvg, Value, Name</i>";
 
-    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "tRate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
+    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "trate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
 
     static string[] Tokenize(string input)
     {
@@ -1119,13 +1130,13 @@
                     case "hhp": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroHealth].CompareTo(valueNum)); break;                        
                     case "hdmg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroDamage].CompareTo(valueNum)); break;                        
                     case "hrate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroCastRate].CompareTo(valueNum)); break;
-                    case "hsd": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroSpeed].CompareTo(valueNum)); break;
+                    case "hspd": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroSpeed].CompareTo(valueNum)); break;
                     case "ab1": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroAbility1].CompareTo(valueNum)); break;                        
                     case "ab2": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroAbility2].CompareTo(valueNum)); break;
-                    case "resg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RG.CompareTo(valueNum)); break;
-                    case "resp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.RP.CompareTo(valueNum)); break;
-                    case "resf": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RF.CompareTo(valueNum)); break;
-                    case "resl": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.RL.CompareTo(valueNum)); break;
+                    case "resg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Resists[0].CompareTo(valueNum)); break;
+                    case "resp": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[1].CompareTo(valueNum)); break;
+                    case "resf": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[2].CompareTo(valueNum)); break;
+                    case "resl": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[3].CompareTo(valueNum)); break;
                     case "location": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Location.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;
                     case "quality": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Quality.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1));; break;                        
                     case "rating": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Rating.CompareTo(valueNum)); break;
@@ -1136,8 +1147,8 @@
                     case "set": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Set.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
                     case "type": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Type.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
                     case "best": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.BestFor.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
-                    case "ressum":foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", (r.RG + r.RF + r.RL + r.RP).CompareTo(valueNum)); break;
-                    case "resavg":foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", ((r.RG + r.RF + r.RL + r.RP)/4).CompareTo(valueNum)); break;                        
+                    case "ressum": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]).CompareTo(valueNum)); break;
+                    case "resavg": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", ((r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4).CompareTo(valueNum)); break;
                     case "name":foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Name.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                                                
                 }
             }
@@ -1154,7 +1165,11 @@
 
     private Task HandleChangedRatingMode()
     {
-        SetMode(_characterPanel?.GetRatingMode());
+        string? mode = _characterPanel?.GetRatingMode();
+        if ((mode == null) || (mode == ""))
+            return Task.CompletedTask;
+
+        SetMode(mode);
         return Task.CompletedTask;
     }
 
@@ -1167,9 +1182,15 @@
 
     private Task HandleEquipFromFile()
     {       
-        if ((_characterPanel == null) || (_characterPanel.SelectedHeroInfo == null))
+        if (_characterPanel == null) 
             return Task.CompletedTask;
+
+
         ClearAllSelections();
+        if (_characterPanel.SelectedHeroInfo == null)
+        {
+            return Task.CompletedTask;
+        }
 
         foreach( var v in _characterPanel.SelectedHeroInfo.Equipment)
         {
@@ -1253,13 +1274,13 @@
 
     private string ShowUpgradesToMaxResist( ItemViewRow r )
     {
-        int upgradesRequiredForResists = Ratings.GetUpgradesRequired(r.ResistanceTarget, r.RG, r.RP, r.RF, r.RL);
+        int upgradesRequiredForResists = Ratings.GetUpgradesRequired(r.ResistanceTarget, r.Resists[0], r.Resists[1], r.Resists[2], r.Resists[3]);
         int overcappedUpgradesLeft = (r.MaxLevel - r.Level) / 10;
         int overcappedUpgradesNeeded =
-            (r.ResistanceTarget - ((r.RG < 23) ? 23 : r.RG)) +
-            (r.ResistanceTarget - ((r.RP < 23) ? 23 : r.RP)) +
-            (r.ResistanceTarget - ((r.RF < 23) ? 23 : r.RF)) +
-            (r.ResistanceTarget - ((r.RL < 23) ? 23 : r.RL));
+            (r.ResistanceTarget - ((r.Resists[0] < 23) ? 23 : r.Resists[0])) +
+            (r.ResistanceTarget - ((r.Resists[1] < 23) ? 23 : r.Resists[1])) +
+            (r.ResistanceTarget - ((r.Resists[2] < 23) ? 23 : r.Resists[2])) +
+            (r.ResistanceTarget - ((r.Resists[3] < 23) ? 23 : r.Resists[3]));
 
         if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || ( upgradesRequiredForResists > (r.MaxLevel - r.Level)))        
             return "Can't cap with remaining levels";
@@ -1405,6 +1426,7 @@
         string RatingMode = "Builder App",
         string Layout = "5x3",
         bool ShowLivePrices = false,
+        bool ShowUpgradedStats = false,
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
         List<string>? SelectedOther = null)
@@ -1419,6 +1441,7 @@
         RatingMode: "Builder App",
         Layout: "5x3",
         ShowLivePrices: false,
+        ShowUpgradedStats: false,
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
@@ -1433,7 +1456,8 @@
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
         _selectedSets  = _ui.SelectedSetsSafe.ToList();
         _selectedOther = _ui.SelectedOtherSafe.ToList();
-
+        _showUpgradedStats = _ui.ShowUpgradedStats;
+        
         SetMode(_selectedMode);
         ApplyChipFilters();
     }
@@ -1448,12 +1472,15 @@
             ShowLivePrices = _livePrices,
             SelectedTypes = _selectedTypes.ToList(),
             SelectedSets = _selectedSets.ToList(),
-            SelectedOther = _selectedOther.ToList()
+            SelectedOther = _selectedOther.ToList(),
+            ShowUpgradedStats = _showUpgradedStats,
         };
+
+        if (_characterPanel != null) _characterPanel.ShowUpgraded = _showUpgradedStats;
     }
 
     private string LastLoadedText =>
-        _lastLoadedAt is null ? "just now" : Humanize(_lastLoadedAt.Value);
+    _lastLoadedAt is null ? "just now" : Humanize(_lastLoadedAt.Value);
 
     private static string Humanize(DateTime dt)
     {
@@ -1571,8 +1598,19 @@
         "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"
     };
 
-    private string GetValue( int value, ItemViewRow r )
+    private string GetResistValue( ItemViewRow r )
     {
+        int value = _showUpgradedStats ?
+            (r.UpgradedResists[0] + r.UpgradedResists[1] + r.UpgradedResists[2] + r.UpgradedResists[3]) / 4 :
+            (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4;
+        return value.ToString();
+    }
+
+    private string GetValue( DDStat stat, ItemViewRow r )
+    {
+
+        int value = _showUpgradedStats ? (int)Math.Ceiling( r.SetBonus * r.UpgradedStats[(int)stat] ): r.Stats[(int)stat];
+       
         string s = value.ToString();
 
         if ( ((r.Quality == "Ult++") && IsCensorEnabled) ||
@@ -1832,6 +1870,8 @@
         EquippedArmorRating = totalRating;
         EquippedArmorSides = totalSides;
         EquippedArmorSet = foundSet;
+        if (_characterPanel != null)
+            _characterPanel.UpdateCharacterTotalStats();
     }
 
     private void RecalculateRatings()
@@ -1843,7 +1883,7 @@
             float mult = r.SetBonus;
             int maxR = r.ResistanceTarget;
             int maxStatLevel = r.MaxStat;
-            (int rating, int sides) = Ratings.EvalRating(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
+            (int rating, int sides) = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
 
             _rows[i].Rating = rating;
             _rows[i].Sides = sides;            
@@ -1950,7 +1990,7 @@
                nameof(DDStat.TowerRange) => Cmp(a.Stats[(int)DDStat.TowerRange], b.Stats[(int)DDStat.TowerRange]),
                nameof(DDStat.TowerRate) => Cmp(a.Stats[(int)DDStat.TowerRate], b.Stats[(int)DDStat.TowerRate]),
 
-                nameof(ItemViewRow.RG)       => Cmp(a.RG+a.RP+a.RF+a.RL, b.RG+b.RP+b.RF+b.RL),
+                nameof(DDStat.HeroResistance) => Cmp(a.Resists[0]+a.Resists[1]+a.Resists[2]+a.Resists[3], b.Resists[0]+b.Resists[1]+b.Resists[2]+b.Resists[3]),
 
                 nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
                 nameof(ItemViewRow.Location) => loc,
@@ -2213,8 +2253,9 @@
             _showContent = true;
             _needsAtlasRender = true;
             await InvokeAsync(StateHasChanged);
+            if (_characterPanel != null)
+                _characterPanel.ShowUpgraded = _showUpgradedStats;
             _characterPanel?.Reload(db.Heroes);            
-
         }
     }
 

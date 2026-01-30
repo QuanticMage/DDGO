@@ -49,11 +49,9 @@ namespace DDUP
 		public int MaxLevel { get; set; }
 
 		public int[] Stats = new int[11];
-		
-		public int RG { get; set; }
-		public int RP { get; set; }
-		public int RF { get; set; }
-		public int RL { get; set; }
+		public int[] UpgradedStats = new int[11];
+		public int[] Resists = new int[4];
+		public int[] UpgradedResists = new int[4];
 
 		// IMPORTANT: keep this stable/unique for @key
 		public int Idx { get; set; }
@@ -166,10 +164,10 @@ namespace DDUP
 			this.Stats[(int)DDStat.TowerRate] = TRate;
 			this.Stats[(int)DDStat.TowerRange] = TRange;
 
-			this.RG = RG;
-			this.RP = RP;
-			this.RF = RF;
-			this.RL = RL;
+			this.Resists[0] = RG;
+			this.Resists[1] = RP;
+			this.Resists[2] = RF;
+			this.Resists[3] = RL;
 
 			this.Idx = Idx;
 			
