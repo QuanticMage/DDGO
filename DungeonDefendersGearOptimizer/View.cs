@@ -33,6 +33,7 @@ namespace DDUP
 		Events = 1 << 16,
 	}
 
+
 	public sealed class ItemViewRow
 	{
 		public int Rating { get; set; }
@@ -47,18 +48,8 @@ namespace DDUP
 		public int Level { get; set; }
 		public int MaxLevel { get; set; }
 
-		public int HHP { get; set; }
-		public int HDmg { get; set; }
-		public int HSpd { get; set; }
-		public int HRate { get; set; }
-		public int Ab1 { get; set; }
-		public int Ab2 { get; set; }
-
-		public int THP { get; set; }
-		public int TDmg { get; set; }
-		public int TRange { get; set; }
-		public int TRate { get; set; }
-
+		public int[] Stats = new int[11];
+		
 		public int RG { get; set; }
 		public int RP { get; set; }
 		public int RF { get; set; }
@@ -163,17 +154,17 @@ namespace DDUP
 			this.Level = Level;
 			this.MaxLevel = MaxLevel;
 
-			this.HHP = HHP;
-			this.HDmg = HDmg;
-			this.HSpd = HSpd;
-			this.HRate = HRate;
-			this.Ab1 = Ab1;
-			this.Ab2 = Ab2;
 
-			this.THP = THP;
-			this.TDmg = TDmg;
-			this.TRange = TRange;
-			this.TRate = TRate;
+			this.Stats[(int)DDStat.HeroHealth] = HHP;
+			this.Stats[(int)DDStat.HeroDamage] = HDmg;
+			this.Stats[(int)DDStat.HeroSpeed] = HSpd;
+			this.Stats[(int)DDStat.HeroCastRate] = HRate;
+			this.Stats[(int)DDStat.HeroAbility1] = Ab1;
+			this.Stats[(int)DDStat.HeroAbility2] = Ab2;
+			this.Stats[(int)DDStat.TowerHealth] = THP;
+			this.Stats[(int)DDStat.TowerDamage] = TDmg;
+			this.Stats[(int)DDStat.TowerRate] = TRate;
+			this.Stats[(int)DDStat.TowerRange] = TRange;
 
 			this.RG = RG;
 			this.RP = RP;
@@ -208,4 +199,5 @@ namespace DDUP
 		}
 	}
 }
+
 

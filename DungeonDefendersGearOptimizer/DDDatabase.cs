@@ -12,11 +12,14 @@ using System.Xml.Linq;
 
 public enum DDStat : int
 {
+	//--
+	HeroResistance = 0,
+
 	// --- Hero Stats ---
 	HeroHealth = 1,
 	HeroSpeed = 2,
 	HeroDamage = 3,
-	HeroCastingRate = 4,
+	HeroCastRate = 4,
 
 	// --- Hero Abilities ---
 	HeroAbility1 = 5,
@@ -26,7 +29,7 @@ public enum DDStat : int
 	TowerHealth = 7,
 	TowerRate = 8,
 	TowerDamage = 9,
-	TowerRange = 10,
+	TowerRange = 10,		
 }
 
 public struct DDLinearColor
@@ -269,7 +272,7 @@ public class DDEquipmentInfo
 				HHP: Stat(this, DDStat.HeroHealth),
 				HDmg: Stat(this, DDStat.HeroDamage),
 				HSpd: Stat(this, DDStat.HeroSpeed),
-				HRate: Stat(this, DDStat.HeroCastingRate),
+				HRate: Stat(this, DDStat.HeroCastRate),
 				Ab1: Stat(this, DDStat.HeroAbility1),
 				Ab2: Stat(this, DDStat.HeroAbility2),
 

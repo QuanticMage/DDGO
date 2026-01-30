@@ -46,7 +46,7 @@
         <button type="button" class="btn" @onclick ="SelectFromDunClicked">Equip from File</button>
         <button type="button" class="btn" @onclick ="SelectBestClicked">Equip Best</button>
     </div>
-    <div style="position: absolute; left:150px; top:50px; ">
+    <div style="position: absolute; left:150px; top:65px; ">
         
         <RadioSelect Items="@HeroChoices"
                      Value="@SelectedHero"
@@ -57,12 +57,23 @@
                      DefaultIconUrl="png/empty.png" />
     </div>
 
+    <div style="position: absolute; left:310px; top:65px; ">
 
+        <RadioSelect Items="@(Ratings.RatingModes.Select(row => $"{row.Name} ({row.Name})").ToList())"
+                     Value="@SelectedRatingMode"
+                     ValueChanged="OnRatingModeChanged"
+                     Columns="3"
+                     Placeholder="Rating Mode"
+                     IconByClass="@(Ratings.RatingModes.ToDictionary(row => row.Name, row => row.Icon))"
+                     DefaultIconUrl="png/empty.png" 
+                     MenuWidth = "clamp(360px, 50vw, 400px)"/>
+    </div>
 
 
     @inject IJSRuntime JS
     @code {
 
+        private string? SelectedRatingMode;
         private string? SelectedHero;
         public DDHeroInfo? SelectedHeroInfo { get; set; }
 
@@ -72,6 +83,7 @@
         [Parameter] public EventCallback<string?> OnEquipFromFile { get; set; }
         [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
+        [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
 
         private const string DefaultHeroName = "Test Jester";
         private const string DefaultHeroClass = "Jester";
@@ -145,18 +157,48 @@
             // Default selection
             if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
             {
-                SelectedHero = HeroChoices
-                .FirstOrDefault(c => c.StartsWith(DefaultHeroName + " ", StringComparison.OrdinalIgnoreCase))
+                SelectedHero = HeroChoices.FirstOrDefault();
+                SelectedHeroInfo = HeroInfoByIndex[0];
+                _ = InvokeAsync(async () =>
+                {
+                    if (OnEquipFromFile.HasDelegate)
+                        await OnEquipFromFile.InvokeAsync();
+                    SetRatingModeFromEquipment();
+                });
 
-                ?? HeroChoices.FirstOrDefault();
             }
 
             // If the current selection no longer exists, clear it.
             if (SelectedHero is not null && !HeroChoices.Contains(SelectedHero))
-                SelectedHero = null;
+                SelectedHero = null;           
 
-            StateHasChanged();
+            StateHasChanged();       
+
         }
+
+        private void SetRatingModeFromEquipment()
+        {
+            if (SelectedHeroInfo == null) return;
+
+            foreach (var v in SelectedHeroInfo.Equipment )
+            {
+                //
+            }
+        }
+
+
+        private Task OnRatingModeChanged((string?, int) args)
+        {
+            SelectedRatingMode = args.Item1;
+            _ = InvokeAsync(async () =>
+            {
+                if (OnChangedRatingMode.HasDelegate)
+                    await OnChangedRatingMode.InvokeAsync();
+            });
+
+            return Task.CompletedTask;
+        }
+
         private Task OnHeroChanged((string?, int ) args)
         {
             string name = args.Item1 ??"";
@@ -172,6 +214,7 @@
             {
                 if (OnEquipFromFile.HasDelegate)
                     await OnEquipFromFile.InvokeAsync();
+                SetRatingModeFromEquipment();
             });
 
             return Task.CompletedTask;
@@ -189,6 +232,8 @@
             if (OnEquipBest.HasDelegate)
                 await OnEquipBest.InvokeAsync(SelectedHero);
         }
+
+        
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");

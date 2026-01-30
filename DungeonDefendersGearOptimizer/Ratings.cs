@@ -6,6 +6,7 @@ using static System.Net.WebRequestMethods;
 
 namespace DDUP
 {
+	using System.Data.Common;
 	using System.Text.Json;
 
 	public sealed class PriceEntry
@@ -14,54 +15,223 @@ namespace DDUP
 	}
 	public class Ratings
 	{
-		const int NRoles = 10;
-		static string[] Roles = { "Builder App", "Dps AB2", "Dps AB1", "Builder Summoner", "Builder Hermit", "Gunwitch", "Builder TRange", "Builder EV", "Tower Boost AB1", "Guardian Summoner" };
-		static string[] APIRoles = { "app", "dps ab2", "dps ab1", "summoner", "hermit", "gunwitch", "trange", "builder ev", "tb", "" };
+		public struct RatingModeInfo
+		{			
+			public string Name;
+			public string Icon;
+			public string UpgradePriority;
+			public List<DDStat> RatingStatsPriority;
+			public List<DDStat> SidesStatsPriority;
+			public bool RequireResists;
+			public string APIRoles;			
+			public bool CanBeBestFor;
+		};
+
+
+		public static readonly List<RatingModeInfo> RatingModes = new()
+		{
+			new RatingModeInfo
+			{
+				Name = "Builder Stats",
+				Icon = "png/Tower Damage.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange, DDStat.TowerHealth },
+				SidesStatsPriority = new List<DDStat>() { },
+				RequireResists = false,
+				APIRoles = "",
+				CanBeBestFor = false
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Hero Stats",
+				Icon = "png/Hero Damage.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroHealth, DDStat.HeroCastRate, DDStat.HeroSpeed },
+				SidesStatsPriority = new List<DDStat>() { },
+				RequireResists = true,
+				APIRoles = "",
+				CanBeBestFor = false
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Builder App",
+				Icon = "png/Apprentice_TinyIcon.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
+				RequireResists = false,
+				APIRoles = "app",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Builder Hermit",
+				Icon = "png/Hermit_Icon_Tiny.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRange, DDStat.TowerHealth },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate },
+				RequireResists = false,
+				APIRoles = "hermit",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Builder TRange",
+				Icon = "png/Tower Range.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerDamage, DDStat.TowerRate },
+				RequireResists = false,
+				APIRoles = "trange",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Builder EV",
+				Icon = "png/Tower Damage.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange },
+				RequireResists = false,
+				APIRoles = "builder ev",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Builder Summoner",
+				Icon = "png/Tower Health.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
+				RequireResists = false,
+				APIRoles = "summoner",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "AB1 Only",
+				Icon = "png/AB1/Monk AB1.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroAbility1 },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroDamage, DDStat.HeroCastRate },
+				RequireResists = true,
+				APIRoles = "tb",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "DPS AB1",
+				Icon = "png/AB1/Countess AB1.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility1 },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
+				RequireResists = true,
+				APIRoles = "dps ab1",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "DPS AB2",
+				Icon = "png/AB2/Hero Boost Monk AB2.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility2 },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
+				RequireResists = true,
+				APIRoles = "dps ab2",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Pure DPS",
+				Icon = "png/Hero Damage.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility1, DDStat.HeroAbility2, DDStat.HeroCastRate },
+				RequireResists = true,
+				APIRoles = "",
+				CanBeBestFor = false
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Gunwitch",
+				Icon = "png/Gunwitch_TinyIcon.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate, DDStat.HeroHealth },
+				RequireResists = true,
+				APIRoles = "gunwitch",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Needle Gunwitch",
+				Icon = "png/Tower Range Gunwitch.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage, DDStat.TowerRate, DDStat.HeroHealth },
+				RequireResists = true,
+				APIRoles = "",
+				CanBeBestFor = false
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Guardian Summoner",
+				Icon = "png/Summoner_TinyIcon.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility2 },
+				SidesStatsPriority = new List<DDStat>() { },
+				RequireResists = true,
+				APIRoles = "",
+				CanBeBestFor = true
+			}
+		};
+
+
+
 		static Dictionary<int, ItemViewRow> JsonQueries = [];
 		static List<string> ValuableItemList = new();
 		static int JsonQueryIndex = 0;
-		
 
-		static int[][] CV_Values =
-		{
-		/*  new [] { 2000, 25, 2050, 35, 2100, 50, 2150, 80, 2200, 150, 2250, 220, 2300, 500, 2350, 1000, 2400, 2000 }, // app builder
-			new [] { 1400, 20, 1450, 35, 1500, 50, 1550, 75, 1580, 150, 1600, 250, 1650, 500, 1700, 1000, 1750, 2000, 1800, 10000 }, // dps ab2
-			new [] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1667, 300, 1770, 1500 }, // dps ab1
-			new [] { 1000, 10, 1050, 12, 1100, 15, 1150, 25, 1200, 30, 1250, 100, 1300, 500 }, // summoner
-			new [] { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // hermit
-			new [] { 1400, 20, 1500, 40, 1550, 60, 1600, 250, 1700, 500 }, // gunwitch
-			new [] { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 300 }, //trange
-			new [] { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 300 }, // builder ev
-			new [] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1667, 300, 1770, 1500 }, // tb
-			new [] { 1400, 0, 1500, 0}, // worth nothing for now */
-
-			 // prices from Sesar
-			new [] { 2000, 25, 2050, 35, 2100, 50, 2150, 80, 2200, 150, 2250, 220, 2300, 500, 2350, 1000, 2400, 4000, 2450, 8000, 2500, 20000 }, // app builder
-			new [] { 1400, 20, 1450, 35, 1500, 50, 1550, 75, 1580, 150, 1600, 250, 1650, 500, 1700, 1000, 1750, 2000, 1800, 8000, 1850, 15000 }, // dps ab2
-			new [] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1650, 300, 1700, 500, 1750, 1000, 1800, 2500  }, // dps ab1
-			new [] { 1000, 10, 1050, 12, 1100, 15, 1150, 25, 1200, 30, 1250, 100, 1300, 500, 1350, 1500 }, // summoner
-			new [] { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // hermit
-			new [] { 1400, 20, 1500, 40, 1550, 60, 1600, 250, 1700, 600, 1750, 1200, 1800, 2000 }, // gunwitch
-			new [] { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 800, 1350, 1500 }, //trange
-			new [] { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 500, 1350, 1500 }, // builder ev
-			new [] { 1000, 20, 1050, 40, 1100, 100, 1150, 250, 1200, 1500, 1250, 3000 }, // ab1 only
-			new [] { 1400, 0, 1500, 0}, // worth nothing for now
+		static Dictionary<string, int[]> CV_Values = new() {
+			["Builder App"]= new int[] { 2000, 25, 2050, 35, 2100, 50, 2150, 80, 2200, 150, 2250, 220, 2300, 500, 2350, 1000, 2400, 4000, 2450, 8000, 2500, 20000 }, // app builder
+			["DPS AB2"]= new int[] { 1400, 20, 1450, 35, 1500, 50, 1550, 75, 1580, 150, 1600, 250, 1650, 500, 1700, 1000, 1750, 2000, 1800, 8000, 1850, 15000 }, // dps ab2
+			["DPS AB1"]= new int[] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1650, 300, 1700, 500, 1750, 1000, 1800, 2500  }, // dps ab1
+			["Builder Summoner"]= new int[]	 { 1000, 10, 1050, 12, 1100, 15, 1150, 25, 1200, 30, 1250, 100, 1300, 500, 1350, 1500 }, // summoner
+			["Builder Hermit"]= new int[]	 { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // hermit
+			["Gunwitch"]= new int[]	 { 1400, 20, 1500, 40, 1550, 60, 1600, 250, 1700, 600, 1750, 1200, 1800, 2000 }, // gunwitch
+			["Builder TRange"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 800, 1350, 1500 }, //trange
+			["Builder EV"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 500, 1350, 1500 }, // builder ev
+			["AB1 Only"]= new int[]	 { 1000, 20, 1050, 40, 1100, 100, 1150, 250, 1200, 1500, 1250, 3000 }, // ab1 only		
 		};
 
+
 		// how best to evaluate... ? 
-		static Dictionary<string, float>[] BestRatings = new Dictionary<string, float>[NRoles];
+		static Dictionary<string, float>[] BestRatings = new Dictionary<string, float>[RatingModes.Count];
 		public static void ClearBestRatings()
 		{
 			ValuableItemList.Clear();
 			JsonQueryIndex = 0;
 			JsonQueries.Clear();
 
-			for (int i = 0; i < NRoles; i++) { BestRatings[i] = new Dictionary<string, float>();}
+			for (int i = 0; i < RatingModes.Count; i++) { BestRatings[i] = new Dictionary<string, float>(); }
 		}
 
 		private static readonly HttpClient _http = new HttpClient();
 
-		public static async Task AsyncShiroPriceAPICall( DDUP.Pages.Index index)
+		public static async Task AsyncShiroPriceAPICall(DDUP.Pages.Index index)
 		{
 			// skip this for now
 
@@ -99,10 +269,10 @@ namespace DDUP
 				{
 					for (int i = 0; i < prices.Count; i++)
 					{
-						Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value +"=>" + prices[i]);
+						Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value + "=>" + prices[i]);
 						// update price estimates
-						JsonQueries[i].Value = prices[i];						
-					}					
+						JsonQueries[i].Value = prices[i];
+					}
 				}
 				else
 				{
@@ -127,63 +297,74 @@ namespace DDUP
 
 			index.CalculateVanityTotals();
 			index.SetPriceStatus("Armor prices live using Shiro's API", false);
-			
+
 		}
 
 		// always measure CV first to also get the BestRatings populated
 		public static (int, string) GetBestValue(bool measureCV, ItemViewRow vr)
-		{		
-			int[] ratings = new int[NRoles];
+		{
+			int[] ratings = new int[RatingModes.Count];
 			
-			(ratings[0], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, false); // app builder
-			(ratings[1], _) = EvalRating(vr, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, true); // dps ab2
-			(ratings[2], _) = EvalRating(vr, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, true); // dps ab1
-			(ratings[3], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, false); // summoner
-			(ratings[4], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, false); // hermit
-			(ratings[5], _) = EvalRating(vr, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, true); // gunwitch
-			(ratings[6], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, false); // trange
-			(ratings[7], _) = EvalRating(vr, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, false); // builder ev
-			(ratings[8], _) = EvalRating(vr, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, true); // tb			
-			(ratings[9], _) = EvalRating(vr, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, true); // guardian summoner	
+			for (int i = 0; i < Ratings.RatingModes.Count; i++ )
+			{
+				if (Ratings.RatingModes[i].CanBeBestFor )
+				{
+					(ratings[i], _) = EvalRating(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);					
+				}
+			}
 			
 			string category = vr.Type;
 			if (vr.IsArmor && !vr.IsEvent)
 			{
 				category = vr.Type + "_" + vr.Set;
 			}
-			
+
 			if (measureCV)
 			{
 				int bestValue = 0;
 				int bestIndex = 0;
-				int bestIndexNot9 = 0;
-				int bestValueNot9 = 0;
-				for (int i = 0; i < NRoles; i++)
+				int bestIndexPriced = 0;
+				int bestValuePriced = 0;
+				for (int i = 0; i < RatingModes.Count; i++)
 				{
-					int value = (int)(EvaluateExponential(ratings[i], CV_Values[i]));
-					if (value > bestValue)
+					if (!RatingModes[i].CanBeBestFor)
+						continue;
+					bool isPriced = (RatingModes[i].APIRoles != "");
+
+					int value = 0;
+					if (isPriced)
 					{
-						bestValue = value;
-						bestIndex = i;
-					}
-					// no price check for summoner hp/ab2 on api
-					if ((value > bestValueNot9) && (i != 9))
-					{
-						bestValueNot9 = value;
-						bestIndexNot9 = i;
+						if (CV_Values.ContainsKey(RatingModes[i].Name))
+						{
+							value = (int)(EvaluateExponential(ratings[i], CV_Values[RatingModes[i].Name]));
+							if (value > bestValue)
+							{
+								bestValue = value;
+								bestIndex = i;
+							}
+
+							if ((value > bestValuePriced) && isPriced)
+							{
+								bestValuePriced = value;
+								bestIndexPriced = i;
+							}
+						}
+						else
+						{
+							Console.WriteLine("**ERROR**: Rating mode inconsistency");
+						}
 					}
 					
-
 					// best overall ratings per category
 					if ((!BestRatings[i].ContainsKey(category)) || (ratings[i] > BestRatings[i][category]))
 					{
 						BestRatings[i][category] = ratings[i];
-					}					
+					}
 				}
 
-				if ((bestValueNot9 > 0) && (vr.IsArmor) && (!vr.IsEvent))
+				if ((bestValuePriced > 0) && (vr.IsArmor) && (!vr.IsEvent))
 				{
-					ValuableItemList.Add(ratings[bestIndexNot9] + " " + APIRoles[bestIndexNot9]);
+					ValuableItemList.Add(ratings[bestIndexPriced] + " " + RatingModes[bestIndexPriced].APIRoles);
 					JsonQueries[JsonQueryIndex++] = vr;
 				}
 
@@ -193,18 +374,18 @@ namespace DDUP
 					if (vr.IsArmor)
 					{
 						// round to nearest 5cv to not imply precision
-						return ((int)((float)bestValue / 5.0f + 0.5f) * 5, Roles[bestIndex]);
+						return ((int)((float)bestValue / 5.0f + 0.5f) * 5, RatingModes[bestIndex].Name);
 					}
 					return (0, "");
 				}
-				return (0,"");
+				return (0, "");
 			}
 			else
-			{	
+			{
 				// 2nd pass for substandard stuff only looks at Rating relative to top in category
 				int bestValue = 0;
 				int bestIndex = 0;
-				for (int i = 0; i < NRoles; i++)
+				for (int i = 0; i < RatingModes.Count; i++)
 				{
 					if (BestRatings[i].ContainsKey(category))
 					{
@@ -217,8 +398,8 @@ namespace DDUP
 					}
 				}
 				// return RelativeRatingIndex - goes negative for parsing in the front end later
-				return (bestValue - 1000, Roles[bestIndex]);
-			}								
+				return (bestValue - 1000, RatingModes[bestIndex].Name);
+			}
 		}
 
 		// exponential interoplation
@@ -259,28 +440,26 @@ namespace DDUP
 				}
 			}
 
-			return maxY; 
+			return maxY;
 		}
 
 
-		public static (int, int) EvalRating(ItemViewRow vr, int hhp, int hdmg, int hspd, int hrate, int ab1, int ab2, int thp, int tdmg, int trange, int trate, bool factorInResists)
+		public static (int, int) EvalRating(ItemViewRow vr, List<DDStat> RatingStatsPriority, List<DDStat> SidesStatsPriority, bool bRequireResists)
 		{
 			int rating = 0;
 			int sides = 0;
 			float fracLeftOver = 0;
 			int maxGrowthLevels = 0;
 
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hhp, vr.HHP, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hdmg, vr.HDmg, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hspd, vr.HSpd, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, hrate, vr.HRate, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ab1, vr.Ab1, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ab2, vr.Ab2, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, thp, vr.THP, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, tdmg, vr.TDmg, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, trange, vr.TRange, vr.MaxStat, vr.SetBonus);
-			maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, trate, vr.TRate, vr.MaxStat, vr.SetBonus);
+			for (int i = 1; i < 11; i++) // loop through stats
+			{
+				int ratingMode = (RatingStatsPriority.Contains((DDStat)i) ? 1 : 0);
+				if (SidesStatsPriority.Contains((DDStat)i))
+					ratingMode = 2;
 
+				maxGrowthLevels += AddRating(ref rating, ref sides, ref fracLeftOver, ratingMode, vr.Stats[i], vr.MaxStat, vr.SetBonus);
+			}
+			
 			int levelsLeft = vr.MaxLevel - vr.Level;
 			int resG = vr.RG;
 			int resP = vr.RP;
@@ -294,7 +473,7 @@ namespace DDUP
 				(vr.ResistanceTarget - ((resP < 23) ? 23 : resP)) +
 				(vr.ResistanceTarget - ((resF < 23) ? 23 : resF)) +
 				(vr.ResistanceTarget - ((resL < 23) ? 23 : resL));
-			
+
 			int remainingOvercappedUpgrades = Math.Min(overcappedUpgrades, overcappedUpgradesNeeded);
 			int remainingUpgrades = upgradesRequiredForResists - overcappedUpgradesNeeded + remainingOvercappedUpgrades;
 
@@ -303,7 +482,7 @@ namespace DDUP
 
 			int levelsForStatsLeft = Math.Max(0, levelsLeft - remainingUpgrades);
 
-			if (!factorInResists || (vr.ResistanceTarget == 0)) levelsForStatsLeft = levelsLeft;
+			if (!bRequireResists || (vr.ResistanceTarget == 0)) levelsForStatsLeft = levelsLeft;
 
 
 			// apply fractional rounding to leveling up, if there's anything to level up
@@ -312,10 +491,10 @@ namespace DDUP
 			// This keeps cap at 840 for Ult90s, and 0 for things with no range stat (for instance), while not messing with fully upgraded items
 			rating += (int)Math.Ceiling((Math.Max(0, Math.Min(levelsForStatsLeft, maxGrowthLevels) - fracLeftOver)) * vr.SetBonus);
 
-			if (factorInResists && cantHitResistCap)
+			if (bRequireResists && cantHitResistCap)
 			{
-				rating = 0;	
-			}		
+				rating = 0;
+			}
 			// actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.
 
 			return (rating, sides);
@@ -325,7 +504,7 @@ namespace DDUP
 		{
 			// find the ceiling when we get the set bonus
 			int bonus = (int)Math.Ceiling(value * mult);
-			
+
 			int ratingAdd = 0;
 			int sidesAdd = 0;
 
@@ -362,7 +541,7 @@ namespace DDUP
 			int greq = ((g >= -29) && (g < 31)) ? ResistRequirements[g + 29] + delta : 0;
 			int preq = ((p >= -29) && (p < 31)) ? ResistRequirements[p + 29] + delta : 0;
 			int freq = ((f >= -29) && (f < 31)) ? ResistRequirements[f + 29] + delta : 0;
-			int lreq = ((l >= -29) && (l < 31)) ? ResistRequirements[l + 29] + delta : 0;			
+			int lreq = ((l >= -29) && (l < 31)) ? ResistRequirements[l + 29] + delta : 0;
 
 			if (greq < 0) greq = 0;
 			if (preq < 0) preq = 0;

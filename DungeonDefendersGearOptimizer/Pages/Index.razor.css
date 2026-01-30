@@ -1620,20 +1620,19 @@ live-btn {
 
 .middle-pane {
     display: grid;
-    grid-template-columns: 1fr 835px;
+    grid-template-columns: 835px 1fr;
     gap: 12px;
     align-items: start; /* critical */
 }
 
-.middle-left {
+.middle-right {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.middle-right {
-    width: 835px;
-    justify-self: end;
+.middle-left {
+    width: 835px;    
     position: sticky;
     top: 12px;
     align-self: start;
