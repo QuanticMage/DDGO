@@ -13,6 +13,18 @@ DONE (Search)
 * Currency badge
 * Total events at top row of event list?
 
+* Firefox
+
+
+Hover over equipment => show stats for that piece
+Fix some refresh issues when switching characters / modes
+Right click menu to "Exclude from search"
+Make buttons not look so stupid
+Make search not update until enter
+Make multiple of the same term do 'or' not 'and'
+
+
+
 
 * Make it so extra equipment must match type and is filled with equip/bestequip
 

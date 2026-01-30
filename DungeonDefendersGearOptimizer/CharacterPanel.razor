@@ -28,16 +28,16 @@
     <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>@GetShownResist(1)</span></div>
    
 
-    <div class="equip equip--small" style="left:755px; top:185px;">@(GetEquipmentVisuals("Bracers"))</div>
-    <div class="equip equip--small" style="left:555px; top:100px;">@(GetEquipmentVisuals("Brooch"))</div>
-    <div class="equip equip--small" style="left:755px; top:100px;">@(GetEquipmentVisuals("Mask"))</div>
-    <div class="equip equip--big" style="left:656px; top:125px;">@(GetEquipmentVisuals("Helmet"))</div>
-    <div class="equip equip--big" style="left:666px; top:275px;">@(GetEquipmentVisuals("Torso"))</div>
-    <div class="equip equip--big" style="left:766px; top:300px;">@(GetEquipmentVisuals("Gauntlet"))</div>
-    <div class="equip equip--big" style="left:566px; top:225px;">@(GetEquipmentVisuals("Weapon"))</div>
-    <div class="equip equip--big" style="left:640px; top:440px;">@(GetEquipmentVisuals("Boots"))</div>
-    <div class="equip equip--big" style="left:766px; top:420px;">@(GetEquipmentVisuals("Extra"))</div>
-    <div class="equip equip--big" style="left:540px; top:360px;">@(GetEquipmentVisuals("Pet"))</div>
+    <div class="equip equip--small" style="left:755px; top:185px;" @onmouseenter='() => OnHoverStart("Bracers")' @onmouseleave ="OnHoverEnd">@(GetEquipmentVisuals("Bracers"))</div>
+    <div class="equip equip--small" style="left:555px; top:100px;" @onmouseenter='() => OnHoverStart("Brooch")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Brooch"))</div>
+    <div class="equip equip--small" style="left:755px; top:100px;" @onmouseenter='() => OnHoverStart("Mask")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Mask"))</div>
+    <div class="equip equip--big" style="left:656px; top:125px;" @onmouseenter='() => OnHoverStart("Helmet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Helmet"))</div>
+    <div class="equip equip--big" style="left:666px; top:275px;" @onmouseenter='() => OnHoverStart("Torso")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Torso"))</div>
+    <div class="equip equip--big" style="left:766px; top:300px;" @onmouseenter='() => OnHoverStart("Gauntlet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Gauntlet"))</div>
+    <div class="equip equip--big" style="left:566px; top:225px;" @onmouseenter='() => OnHoverStart("Weapon")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Weapon"))</div>
+    <div class="equip equip--big" style="left:640px; top:440px;" @onmouseenter='() => OnHoverStart("Boots")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Boots"))</div>
+    <div class="equip equip--big" style="left:766px; top:420px;" @onmouseenter='() => OnHoverStart("Extra")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Extra"))</div>
+    <div class="equip equip--big" style="left:540px; top:360px;" @onmouseenter='() => OnHoverStart("Pet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Pet"))</div>
 
     <img class="selected-hero-icon"
          src="@SelectedHeroIconUrl"
@@ -77,6 +77,7 @@
         private string? SelectedRatingMode;
         private string? SelectedHero;
         public DDHeroInfo? SelectedHeroInfo { get; set; }
+        public ItemViewRow? HoveredEquipment { get; set; }
 
         // Raw strings shown in the RadioSelect. Format matters:
         //   "Name (ClassName)" where ClassName is used to pick icons.
@@ -85,10 +86,12 @@
         [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
+        [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
 
         public int[] ShownStat = new int[11];
         public int[] ShownResist = new int[4];
         public bool ShowUpgraded = false;
+        private bool bHasArmorSetBonus = false;
 
         private const string DefaultHeroName = "Test Jester";
         private const string DefaultHeroClass = "Jester";
@@ -104,13 +107,24 @@
 
         private string GetShownStat( DDStat stat )
         {
-            return ShownStat[(int)stat].ToString();
+            if ( HoveredEquipment == null)
+                return ShownStat[(int)stat].ToString();
+
+            int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedStats[(int)stat] : HoveredEquipment.Stats[(int)stat]);
+            float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
+            if (baseStat < 0) multiplier = 1.0f;
+            return ((int)Math.Ceiling(multiplier * baseStat)).ToString();
         }
 
         private string GetShownResist( int r)
         {
-            return ShownResist[r].ToString() + "%";
+            if (HoveredEquipment == null)
+                return ShownResist[r].ToString() + "%";
 
+            int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedResists[r] : HoveredEquipment.Resists[r]);
+            float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
+            if (baseStat < 0) multiplier = 1.0f;
+            return ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%"; 
         }
 
         public void UpdateCharacterTotalStats()
@@ -125,7 +139,8 @@
                     armorSet = v.Value.Set;
                 }
             }
-            bool bArmorBonusSet = (armorPieces == 4);
+            bHasArmorSetBonus = true;
+
 
             for (int i = 1; i < 11; i++)
             {
@@ -141,17 +156,15 @@
                 for (int i = 1; i < 11; i++)                
                 {
                     int baseStat = (ShowUpgraded ? v.Value.UpgradedStats[i] : v.Value.Stats[i]);
-                    float multiplier = (v.Value.IsArmor && bArmorBonusSet) ? v.Value.SetBonus : 1.0f;
-                    if (baseStat < 0) multiplier = 1.0f;
-                    Console.WriteLine($"Stat {i}: {(int)Math.Ceiling(multiplier * baseStat)}");
+                    float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
+                    if (baseStat < 0) multiplier = 1.0f;                    
                     ShownStat[i] += (int)Math.Ceiling(multiplier * baseStat);
                 }
                 for (int i = 0; i < 4; i++)
                 {
                     int baseResist = (ShowUpgraded ? v.Value.UpgradedResists[i] : v.Value.Resists[i]);
-                    float multiplier = (v.Value.IsArmor && bArmorBonusSet) ? v.Value.SetBonus : 1.0f;
+                    float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
                     if (baseResist < 0) multiplier = 1.0f;
-                    Console.WriteLine($"Resist {i}: {(int)Math.Ceiling(multiplier * baseResist)}");
                     // always show resists for nightmare
                     ShownResist[i] += (int)Math.Ceiling(multiplier * baseResist);
 
@@ -271,7 +284,7 @@
                 bestMode = "Builder App";
 
             SelectedRatingMode = $"{bestMode} ({bestMode})";
-            // since we dson't use the index on this one, just pass it through
+            // since we dson't use the index on this one, just pass it through    
             OnRatingModeChanged((SelectedRatingMode, 0));
         }
 
@@ -304,6 +317,8 @@
                 if (OnEquipFromFile.HasDelegate)
                     await OnEquipFromFile.InvokeAsync();
                 SetRatingModeFromEquipment();
+                if (OnChangedHero.HasDelegate)
+                    await OnChangedHero.InvokeAsync();
             });
 
             return Task.CompletedTask;
@@ -375,6 +390,42 @@
                 EquippedItems[slot] = r;
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
             UpdateCharacterTotalStats();           
+        }
+
+        private CancellationTokenSource? _hoverCts;
+        private const int HoverDelayMs = 150; // tweak to taste
+
+
+        private async Task OnHoverStart(string slot)
+        {
+            _hoverCts?.Cancel();
+            _hoverCts = new CancellationTokenSource();
+            var token = _hoverCts.Token;
+
+            try
+            {
+                await Task.Delay(HoverDelayMs, token);
+
+                if (token.IsCancellationRequested)
+                    return;
+
+                if (EquippedItems.TryGetValue(slot, out var item))
+                {
+                    HoveredEquipment = item;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // expected when hover changes quickly
+            }
+        }
+
+        private void OnHoverEnd()
+        {
+            _hoverCts?.Cancel();
+            HoveredEquipment = null;
+            StateHasChanged();
         }
     }
    

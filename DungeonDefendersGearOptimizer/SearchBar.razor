@@ -1,16 +1,14 @@
-﻿@implements IDisposable
-
-<div class="searchwrapper">
+﻿<div class="searchwrapper">
     <div class="searchbar">
         <span class="searchbar_icon" aria-hidden="true">🔎</span>
 
         <input class="searchbar_input"
                type="search"
                placeholder="Custom search…"
-               @bind="Value"
+               @bind="_current"
                @bind:event="oninput"
-               @bind:after="HandleAfterInput"
-               aria-label="Search items" />      
+               @onkeydown="HandleKeyDown"
+               @onkeydown:preventDefault="_preventDefault" />
     </div>
 </div>
 
@@ -18,36 +16,29 @@
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
-    // Called after typing stops
-    [Parameter] public EventCallback<string> OnDebounced { get; set; }
+    private string _current = "";
+    private bool _preventDefault = false;
 
-    private CancellationTokenSource? _cts;
-
-    private async Task HandleAfterInput()
+    protected override void OnParametersSet()
     {
-        // 1. Cancel any previous pending search tasks
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = new CancellationTokenSource();
-
-        try
+        // ONLY sync if the parent is passing a non-empty string
+        // that is different from what we have.
+        if (!string.IsNullOrEmpty(Value) && Value != _current)
         {
-            // 2. Wait for the user to stop typing (300ms is the "sweet spot")
-            await Task.Delay(500, _cts.Token);
-
-            // 3. Notify the parent only once typing has paused
-            await ValueChanged.InvokeAsync(Value);
-            await OnDebounced.InvokeAsync(Value);
-        }
-        catch (TaskCanceledException)
-        {
-            // Do nothing, a newer keystroke has started a new timer
+            _current = Value;
         }
     }
 
-    public void Dispose()
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
+        if (e.Key == "Enter")
+        {
+            _preventDefault = true;
+            await ValueChanged.InvokeAsync(_current);
+        }
+        else
+        {
+            _preventDefault = false;
+        }
     }
 }

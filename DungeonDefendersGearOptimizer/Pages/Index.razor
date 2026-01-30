@@ -132,7 +132,8 @@
             OnEquipFromFile="HandleEquipFromFile"
             OnEquipBest="HandleEquipBest"
             OnClickEquipment="HandleEquipmentClick"
-            OnChangedRatingMode="HandleChangedRatingMode"/>
+            OnChangedRatingMode="HandleChangedRatingMode"
+            OnChangedHero="HandleChangedHero"/>
     </div>
 
     <div class="middle-right">    
@@ -177,9 +178,15 @@
                 class="tool-filter"
                 checked="@_showUpgradedStats"
                 @onchange="@((e) => { _showUpgradedStats= e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Show Upgrades and Set Bonus</span>
+            <span>Fully upgrade items</span>
         </label>
-
+        <label class="utility-toggle">
+            <input type="checkbox"
+                    class="tool-filter"
+                    checked="@_assumeSetBonuses"
+                    @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Assume set bonuses</span>
+        </label>
     </div>
     <br/>
     
@@ -221,8 +228,7 @@
 
                 <div class="filter-search-control">
             
-                    <SearchBar @bind-Value="_searchText"
-                                OnDebounced="ApplySearch"/>
+                    <SearchBar ValueChanged="ApplySearch"/>
                     <button type="button"
                             class="help-icon"
                             aria-label="Search help"
@@ -308,9 +314,9 @@
             new("Only Events",    MutexGroup: "eventMode"),
             new("Exclude Events", MutexGroup: "eventMode"),
 
-            new("Exclude Equipped"),        
+            new("Exclude Other Characters Equipment"),
 
-            new("Exclude Missing Resists"),          
+            new("Exclude Missing Resists"),
         };
     }
 
@@ -874,6 +880,7 @@
     private CharacterPanel? _characterPanel;    
     private bool _showEventCollection = false;
     private bool _showUpgradedStats = false;
+    private bool _assumeSetBonuses = false;
     private string _eventSearch = "";
     private double _overlayHeightPx = 0;
     private ElementReference _scrollRef;
@@ -1000,168 +1007,270 @@
     Ab1, Ab2, ResG, ResP, ResF, ResL, Location, Quality, 
     Rating, Sides, Lvl, MaxLvl, ResSum, ResAvg, Value, Name</i>";
 
-    private string[] ValidTags = { "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "thp", "tdmg", "trate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",  "ressum", "resavg", "resg", "resp", "resf", "resl", "name"};
+    private string[] ValidTags =
+ {
+    "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides",
+    "thp", "tdmg", "trate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",
+    "ressum", "resavg", "resg", "resp", "resf", "resl", "name"
+};
 
     static string[] Tokenize(string input)
     {
-        var matches = Regex.Matches(input, "\"([^\"]*)\"|(\\S+)");
         var tokens = new List<string>();
 
-        foreach (Match m in matches)
+        var regex = new Regex(
+            @"(?<token>-?\w+(?:<=|>=|!=|==|<|>|:)=?""[^""]*"")|""[^""]*""|\S+",
+            RegexOptions.Compiled);
+
+        foreach (Match m in regex.Matches(input))
         {
-            if (m.Groups[1].Success)
-                tokens.Add(m.Groups[1].Value); // quoted token, no quotes
-            else
-                tokens.Add(m.Groups[2].Value); // normal token
+            string token = m.Value;
+
+            // Strip quotes ONLY around the value, not the whole token
+            if (token.Contains(":\""))
+            {
+                int i = token.IndexOf(":\"", StringComparison.Ordinal);
+                token = token.Substring(0, i + 1) + token.Substring(i + 2, token.Length - i - 3);
+            }
+            else if (token.StartsWith("\"") && token.EndsWith("\""))
+            {
+                token = token.Substring(1, token.Length - 2);
+            }
+
+            tokens.Add(token);
         }
 
         return tokens.ToArray();
     }
 
-    private void ApplyMask( ItemViewRow r, bool negate, string op, string defaultop, int compareValue )
+    private sealed class SearchCondition
     {
-        // compare value -1 means value < constant
-        // compare value 1 means value > constant
-        // compare value 0 means value = constant (or contains if that's the query)
-
-        if (op == ":") op = defaultop;        
-
-        switch (op)
-        {
-            case ">=":            
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue < 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue >= 0);
-                break;
-            case "<=":
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue > 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue <= 0);
-                break;
-            case ">":
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue <= 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue > 0);
-                break;
-            case "<":
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue >= 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue < 0);                    
-                break;
-            case "=":
-            case "==":
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue != 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue == 0);                                    
-                break;
-            case "!=":
-                if (!negate)
-                    r.IsHiddenDueToSearch |= (compareValue == 0);
-                else
-                    r.IsHiddenDueToSearch |= (compareValue != 0);                                    
-                break;
-            default:
-                break;
-        }        
-
+        public string GroupKey = "";   // used for grouping (same tag => OR)
+        public string Tag = "";        // actual normalized tag
+        public string Op = ":";        // operator found
+        public string DefaultOp = "="; // default when Op is ":"
+        public bool Negate;
+        public string ValueString = "";
+        public int ValueNum;
     }
 
-    private void ApplySearch()
+    private string NormalizeTag(string rawTag)
     {
-        foreach (var r in _rows) r.IsHiddenDueToSearch = false;
+        string t = rawTag.ToLowerInvariant();
+
+        // IMPORTANT: string.Replace returns a new string; you must assign it back.
+        t = t.Replace("damage", "dmg");
+        t = t.Replace("tower", "t");
+        t = t.Replace("hero", "h");
+        t = t.Replace("ability", "ab");
+        t = t.Replace("health", "hp");
+        t = t.Replace("level", "lvl");
+        t = t.Replace("resistance", "res");
+        t = t.Replace("resist", "res");
+        t = t.Replace("speed", "spd");
+
+        // find actual tag (exact match preferred; fallback to contains for short aliases)
+        for (int i = 0; i < ValidTags.Length; i++)
+        {
+            if (ValidTags[i].Equals(t, StringComparison.OrdinalIgnoreCase))
+                return ValidTags[i];
+        }
+        for (int i = 0; i < ValidTags.Length; i++)
+        {
+            if (ValidTags[i].Contains(t, StringComparison.OrdinalIgnoreCase))
+                return ValidTags[i];
+        }
+
+        return "";
+    }
+
+    private static bool CompareOp(int compareValue, string op, string defaultOp)
+    {
+        if (op == ":") op = defaultOp;
+
+        return op switch
+        {
+            ">=" => compareValue >= 0,
+            "<=" => compareValue <= 0,
+            ">" => compareValue > 0,
+            "<" => compareValue < 0,
+            "=" => compareValue == 0,
+            "==" => compareValue == 0,
+            "!=" => compareValue != 0,
+            _ => true
+        };
+    }
+    
+    private bool EvaluateString(string itemValue, SearchCondition c)
+    {
+        bool isMatch;
+
+        // Use : for partial (Contains), = or == for exact
+        if (c.Op == ":")
+        {
+            isMatch = itemValue.Contains(c.ValueString, StringComparison.InvariantCultureIgnoreCase);
+        }
+        else // Handles =, ==, and default
+        {
+            isMatch = itemValue.Equals(c.ValueString, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        return c.Negate ? !isMatch : isMatch;
+    }
+
+    private bool EvaluateCondition(ItemViewRow r, SearchCondition c)
+    {
+        int cmp;
+
+        switch (c.Tag)
+        {
+            case "thp": cmp = r.Stats[(int)DDStat.TowerHealth].CompareTo(c.ValueNum); break;
+            case "tdmg": cmp = r.Stats[(int)DDStat.TowerDamage].CompareTo(c.ValueNum); break;
+            case "trate": cmp = r.Stats[(int)DDStat.TowerRate].CompareTo(c.ValueNum); break;
+            case "trange": cmp = r.Stats[(int)DDStat.TowerRange].CompareTo(c.ValueNum); break;
+
+            case "hhp": cmp = r.Stats[(int)DDStat.HeroHealth].CompareTo(c.ValueNum); break;
+            case "hdmg": cmp = r.Stats[(int)DDStat.HeroDamage].CompareTo(c.ValueNum); break;
+            case "hrate": cmp = r.Stats[(int)DDStat.HeroCastRate].CompareTo(c.ValueNum); break;
+            case "hspd": cmp = r.Stats[(int)DDStat.HeroSpeed].CompareTo(c.ValueNum); break;
+
+            case "ab1": cmp = r.Stats[(int)DDStat.HeroAbility1].CompareTo(c.ValueNum); break;
+            case "ab2": cmp = r.Stats[(int)DDStat.HeroAbility2].CompareTo(c.ValueNum); break;
+
+            case "resg": cmp = r.Resists[0].CompareTo(c.ValueNum); break;
+            case "resp": cmp = r.Resists[1].CompareTo(c.ValueNum); break;
+            case "resf": cmp = r.Resists[2].CompareTo(c.ValueNum); break;
+            case "resl": cmp = r.Resists[3].CompareTo(c.ValueNum); break;
+
+            case "ressum": cmp = (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]).CompareTo(c.ValueNum); break;
+            case "resavg": cmp = ((r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4).CompareTo(c.ValueNum); break;
+
+            case "rating": cmp = r.Rating.CompareTo(c.ValueNum); break;
+            case "sides": cmp = r.Sides.CompareTo(c.ValueNum); break;
+            case "lvl": cmp = r.Level.CompareTo(c.ValueNum); break;
+            case "maxlvl": cmp = r.MaxLevel.CompareTo(c.ValueNum); break;
+            case "value": cmp = r.Value.CompareTo(c.ValueNum); break;
+
+            case "location": return EvaluateString(r.Location, c);
+            case "quality": return EvaluateString(r.Quality, c);
+            case "set": return EvaluateString(r.Set, c);
+            case "type": return EvaluateString(r.Type, c);
+            case "best": return EvaluateString(r.BestFor, c);
+            case "name": return EvaluateString(r.Name, c);
+            default:
+                return true;
+        }
+
+        bool ok = CompareOp(cmp, c.Op, c.DefaultOp);
+        return c.Negate ? !ok : ok;
+    }
+
+    private void ApplySearch(string s)
+    {
+        _searchText = s;
+        // Build conditions first
+        var conditions = new List<SearchCondition>();
         string[] tokens = Tokenize(_searchText);
-        foreach( string t in tokens )
+
+        int freeTokenIndex = 0;
+
+        foreach (string t in tokens)
         {
             string[] parts = Regex.Split(t, @"(<=|>=|<|>|:|=|!=|==)");
-
             if (parts.Length == 0) continue;
+
             bool negateTag = false;
-            if ((parts[0] != null) && (parts[0] != "") && (parts[0][0] == '-'))
+            if (!string.IsNullOrEmpty(parts[0]) && parts[0][0] == '-')
             {
                 negateTag = true;
                 parts[0] = parts[0].Substring(1);
             }
 
+            // No operator: keep legacy behavior (each free token acts like its own AND clause on name)
             if (parts.Length == 1)
-            {                
-                foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Name.Contains(parts[0], StringComparison.InvariantCultureIgnoreCase)?0:1));
+            {
+                string v = parts[0].Trim();
+                if (v.Length == 0) continue;
+
+                conditions.Add(new SearchCondition
+                {
+                    GroupKey = $"__text__{freeTokenIndex++}", // unique => AND between free tokens (same as before)
+                    Tag = "name",
+                    Op = ":",
+                    DefaultOp = "=",
+                    Negate = negateTag,
+                    ValueString = v.ToLowerInvariant(),
+                    ValueNum = 0
+                });
+
                 continue;
             }
-            else if (parts.Length > 2) // operator
+
+            if (parts.Length > 2)
             {
-                // normalize tags
-                string tag = parts[0].ToLowerInvariant();
-                tag.Replace("damage", "dmg");
-                tag.Replace("tower", "t");
-                tag.Replace("hero", "h");
-                tag.Replace("ability", "ab");
-                tag.Replace("health", "hp");
-                tag.Replace("level", "lvl");
-                tag.Replace("resistance", "res");                
-                tag.Replace("resist", "res");
-                tag.Replace("speed", "spd");
+                string tag = NormalizeTag(parts[0]);
+                if (string.IsNullOrEmpty(tag)) continue;
 
+                string op = parts[1];
                 string valueString = parts[2].Trim().ToLowerInvariant();
-                int valueNum = 0;
-                Int32.TryParse( valueString, out valueNum );
+                int.TryParse(valueString, out int valueNum);
 
-                string actualTag = "";
-                for (int i = 0; i < ValidTags.Length; i++)
+                // GroupKey is the tag itself => same tag becomes OR
+                // (negated conditions are still OR'd within the same tag group)
+                conditions.Add(new SearchCondition
                 {
-                    if (ValidTags[i].Contains(tag))
+                    GroupKey = tag,
+                    Tag = tag,
+                    Op = op,
+                    DefaultOp = (tag is "location" or "quality" or "set" or "type" or "best" or "name") ? "=" : ">",
+                    Negate = negateTag,
+                    ValueString = valueString,
+                    ValueNum = valueNum
+                });
+            }
+        }
+
+        // Evaluate: AND across groups, OR within group
+        var groups = conditions.GroupBy(c => c.GroupKey).ToList();
+
+        foreach (var r in _rows)
+        {
+            bool hide = false;
+
+            foreach (var g in groups)
+            {
+                bool any = false;
+                foreach (var c in g)
+                {
+                    if (EvaluateCondition(r, c))
                     {
-                        actualTag = ValidTags[i];
+                        any = true;
                         break;
                     }
                 }
-                string op = parts[1];
-                if (actualTag == "") continue;
-                switch (actualTag)
+
+                if (!any)
                 {
-                    case "thp": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.TowerHealth].CompareTo(valueNum)); break;
-                    case "tdmg": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.TowerDamage].CompareTo(valueNum)); break;
-                    case "trate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.TowerRate].CompareTo(valueNum)); break;                        
-                    case "trange": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.TowerRange].CompareTo(valueNum)); break;                        
-                    case "hhp": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroHealth].CompareTo(valueNum)); break;                        
-                    case "hdmg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroDamage].CompareTo(valueNum)); break;                        
-                    case "hrate": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroCastRate].CompareTo(valueNum)); break;
-                    case "hspd": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroSpeed].CompareTo(valueNum)); break;
-                    case "ab1": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroAbility1].CompareTo(valueNum)); break;                        
-                    case "ab2": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Stats[(int)DDStat.HeroAbility2].CompareTo(valueNum)); break;
-                    case "resg": foreach (var r in _rows)  ApplyMask( r, negateTag, op, ">", r.Resists[0].CompareTo(valueNum)); break;
-                    case "resp": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[1].CompareTo(valueNum)); break;
-                    case "resf": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[2].CompareTo(valueNum)); break;
-                    case "resl": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", r.Resists[3].CompareTo(valueNum)); break;
-                    case "location": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Location.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;
-                    case "quality": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Quality.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1));; break;                        
-                    case "rating": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Rating.CompareTo(valueNum)); break;
-                    case "sides": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Sides.CompareTo(valueNum)); break;
-                    case "lvl": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Level.CompareTo(valueNum)); break;
-                    case "maxlvl": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.MaxLevel.CompareTo(valueNum)); break;
-                    case "value": foreach (var r in _rows) ApplyMask( r, negateTag, op, ">", r.Value.CompareTo(valueNum)); break;
-                    case "set": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Set.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
-                    case "type": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Type.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
-                    case "best": foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.BestFor.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                        
-                    case "ressum": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]).CompareTo(valueNum)); break;
-                    case "resavg": foreach (var r in _rows) ApplyMask(r, negateTag, op, ">", ((r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4).CompareTo(valueNum)); break;
-                    case "name":foreach (var r in _rows) ApplyMask( r, negateTag, ":", "=", (r.Name.Contains(valueString, StringComparison.InvariantCultureIgnoreCase)?0:1)); break;                                                
+                    hide = true; // failed this group => hidden
+                    break;
                 }
             }
 
-        }        
-
+            r.IsHiddenDueToSearch = hide;
+        }
 
         // this will also update our search
-        ApplyChipFilters();              
+        ApplyChipFilters();
     }
 
     // Equipping! 
 
+    private Task HandleChangedHero()
+    {
+        // if hero changes, we need to rerun the filters because some are dependent
+        ApplyChipFilters();
+        return Task.CompletedTask;
+    }
 
     private Task HandleChangedRatingMode()
     {
@@ -1427,6 +1536,7 @@
         string Layout = "5x3",
         bool ShowLivePrices = false,
         bool ShowUpgradedStats = false,
+        bool AssumeSetBonuses = false,
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
         List<string>? SelectedOther = null)
@@ -1442,6 +1552,7 @@
         Layout: "5x3",
         ShowLivePrices: false,
         ShowUpgradedStats: false,
+        AssumeSetBonuses: false,
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
@@ -1457,7 +1568,8 @@
         _selectedSets  = _ui.SelectedSetsSafe.ToList();
         _selectedOther = _ui.SelectedOtherSafe.ToList();
         _showUpgradedStats = _ui.ShowUpgradedStats;
-        
+        _assumeSetBonuses = _ui.AssumeSetBonuses;
+
         SetMode(_selectedMode);
         ApplyChipFilters();
     }
@@ -1474,6 +1586,7 @@
             SelectedSets = _selectedSets.ToList(),
             SelectedOther = _selectedOther.ToList(),
             ShowUpgradedStats = _showUpgradedStats,
+            AssumeSetBonuses = _assumeSetBonuses,
         };
 
         if (_characterPanel != null) _characterPanel.ShowUpgraded = _showUpgradedStats;
@@ -1603,13 +1716,23 @@
         int value = _showUpgradedStats ?
             (r.UpgradedResists[0] + r.UpgradedResists[1] + r.UpgradedResists[2] + r.UpgradedResists[3]) / 4 :
             (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4;
+        
+        if (_assumeSetBonuses)
+        {
+            value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
+        }
+
         return value.ToString();
     }
 
     private string GetValue( DDStat stat, ItemViewRow r )
     {
+        int value = _showUpgradedStats ? r.UpgradedStats[(int)stat] : r.Stats[(int)stat];
 
-        int value = _showUpgradedStats ? (int)Math.Ceiling( r.SetBonus * r.UpgradedStats[(int)stat] ): r.Stats[(int)stat];
+        if (_assumeSetBonuses)
+        {
+            value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
+        }        
        
         string s = value.ToString();
 
@@ -1633,7 +1756,7 @@
         bool onlyEvents = _selectedOther.Contains("Only Events");
         bool excludeEvents = _selectedOther.Contains("Exclude Events");
 
-        bool excludeEquipped = _selectedOther.Contains("Exclude Equipped");
+        bool excludeEquipped = _selectedOther.Contains("Exclude Other Characters Equipment");
 
         bool excludeMissingResists = _selectedOther.Contains("Exclude Missing Resists");
 
@@ -1688,7 +1811,7 @@
             if (excludeEvents)
                 includeItem &= !v.IsEvent;
 
-            if (excludeEquipped && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name))
+            if (excludeEquipped && (_characterPanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name))
                 includeItem &= !v.IsEquipped;
 
             if (excludeMissingResists)
@@ -2247,15 +2370,13 @@
             SetPriceStatus("Prices estimated by table", true);
             // don't care about when it gets back              
 
-            ApplyChipFilters();
-
-
             _showContent = true;
             _needsAtlasRender = true;
             await InvokeAsync(StateHasChanged);
             if (_characterPanel != null)
                 _characterPanel.ShowUpgraded = _showUpgradedStats;
-            _characterPanel?.Reload(db.Heroes);            
+            _characterPanel?.Reload(db.Heroes);
+            ApplyChipFilters();
         }
     }
 
