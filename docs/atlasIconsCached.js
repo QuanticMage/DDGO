@@ -10,16 +10,19 @@
     const ctx = c.getContext("2d", { alpha: true });
     ctx.imageSmoothingEnabled = false;
 
-    function init(atlasUrl) {
+    async function init(atlasUrl) {
         clearCache();
         atlas = new Image();
-        atlas.decoding = "async";
         atlas.src = atlasUrl;
 
-        return new Promise((resolve, reject) => {
-            atlas.onload = () => resolve(true);
-            atlas.onerror = reject;
-        });
+        try {
+            // This ensures the pixels are actually ready before the script continues
+            await atlas.decode();
+            return true;
+        } catch (err) {
+            console.error("Atlas decode failed:", err);
+            throw err;
+        }
     }
 
     function get(el, name) {
@@ -98,41 +101,45 @@
     async function renderKeyToObjectUrl(size, l1, l2, l3) {
         const dpr = window.devicePixelRatio || 1;
         const px = Math.max(1, Math.round(size * dpr));
-        const scale = px / size;
-        ctx.setTransform(scale, 0, 0, scale, 0, 0); 
 
+        // Resize first (resets state)
         c.width = px;
         c.height = px;
 
-        // Draw in CSS pixels but scale output to DPR
+        // Reset state explicitly
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+
         ctx.clearRect(0, 0, size, size);
 
         if (l1) drawBase(l1, size);
         if (l2) drawTintedOverlay(l2, size);
         if (l3) drawTintedOverlay(l3, size);
 
-        const blob = await new Promise(res => c.toBlob(res, "image/png"));
+        const blob = await new Promise((res, rej) =>
+            c.toBlob(b => (b ? res(b) : rej(new Error("toBlob returned null"))), "image/png")
+        );
+
         return URL.createObjectURL(blob);
     }
-
     async function renderAllCached() {
         if (!atlas) throw new Error("atlasIcons not initialized");
 
         const icons = document.querySelectorAll("img.atlas-icon");
+        let i = 0;
 
         for (const imgEl of icons) {
-            const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
+            // yield every ~25 icons
+            if ((++i % 25) === 0) await new Promise(r => setTimeout(r, 0));
 
+            const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
             const l1 = layer(imgEl, "l1");
             const l2 = layer(imgEl, "l2");
             const l3 = layer(imgEl, "l3");
-
             if (!l1 && !l2 && !l3) continue;
 
             const key = makeKey(size, l1, l2, l3);
-
-            // If this element already has the right rendered result, skip.
             if (imgEl.dataset.iconKey === key && imgEl.src) continue;
 
             let url = cache.get(key);
@@ -146,11 +153,73 @@
         }
     }
 
+
     // Optional: if you ever need to clear cache to free memory
     function clearCache() {
         for (const url of cache.values()) URL.revokeObjectURL(url);
         cache.clear();
     }
+    let pending = false;
+    let rendering = false;
+    let rerun = false;
+    let mo = null;
 
-    return { init, renderAllCached, clearCache };
+    // Simple Firefox detection (fine for this use-case)
+    const IS_FIREFOX = typeof InstallTrigger !== "undefined";
+
+    function scheduleRender() {
+        if (rendering) { rerun = true; return; }
+        if (pending) return;
+        pending = true;
+
+        const run = async () => {
+            pending = false;
+            rendering = true;
+            try {
+                await renderAllCached();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                rendering = false;
+                if (rerun) {
+                    rerun = false;
+                    scheduleRender();
+                }
+            }
+        };
+
+        if (IS_FIREFOX) {
+            // Firefox: wait an extra frame for Blazor/DOM to settle
+            requestAnimationFrame(() => requestAnimationFrame(run));
+        } else {
+            // Chrome: one frame is faster + less “mysterious delay”
+            requestAnimationFrame(run);
+        }
+    }
+
+    function startAutoRender(root = document.body) {
+        stopAutoRender();
+        scheduleRender(); // render whatever is there now
+
+        mo = new MutationObserver(() => scheduleRender());
+        mo.observe(root, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: [
+                "class",
+                "data-size",
+                "data-l1x", "data-l1y",
+                "data-l2x", "data-l2y", "data-l2t",
+                "data-l3x", "data-l3y", "data-l3t"
+            ]
+        });
+    }
+
+    function stopAutoRender() {
+        if (mo) { mo.disconnect(); mo = null; }
+    }
+
+
+    return { init, renderAllCached, clearCache, startAutoRender, stopAutoRender  };
 })();
