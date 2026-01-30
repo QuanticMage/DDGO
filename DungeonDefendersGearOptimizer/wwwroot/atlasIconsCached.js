@@ -127,19 +127,19 @@
         if (!atlas) throw new Error("atlasIcons not initialized");
 
         const icons = document.querySelectorAll("img.atlas-icon");
+        let i = 0;
 
         for (const imgEl of icons) {
-            const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
+            // yield every ~25 icons
+            if ((++i % 25) === 0) await new Promise(r => setTimeout(r, 0));
 
+            const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
             const l1 = layer(imgEl, "l1");
             const l2 = layer(imgEl, "l2");
             const l3 = layer(imgEl, "l3");
-
             if (!l1 && !l2 && !l3) continue;
 
             const key = makeKey(size, l1, l2, l3);
-
-            // If this element already has the right rendered result, skip.
             if (imgEl.dataset.iconKey === key && imgEl.src) continue;
 
             let url = cache.get(key);
@@ -160,18 +160,31 @@
     }
 
     let pending = false;
+    let rendering = false;
+    let rerun = false;
     let mo = null;
 
     function scheduleRender() {
+        // If a render is running, just request one more pass after it finishes.
+        if (rendering) { rerun = true; return; }
         if (pending) return;
         pending = true;
 
-        // Two RAFs helps in Firefox when DOM is still “settling”
-        requestAnimationFrame(() => {
-            requestAnimationFrame(async () => {
-                pending = false;
-                try { await renderAllCached(); } catch (e) { console.error(e); }
-            });
+        // One RAF is usually enough; Chrome can delay double RAF a lot under pressure.
+        requestAnimationFrame(async () => {
+            pending = false;
+            rendering = true;
+            try {
+                await renderAllCached();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                rendering = false;
+                if (rerun) {
+                    rerun = false;
+                    scheduleRender();
+                }
+            }
         });
     }
 
@@ -185,8 +198,7 @@
             childList: true,
             attributes: true,
             attributeFilter: [
-                "class",
-                "src",
+                "class",                
                 "data-size",
                 "data-l1x", "data-l1y",
                 "data-l2x", "data-l2y", "data-l2t",
