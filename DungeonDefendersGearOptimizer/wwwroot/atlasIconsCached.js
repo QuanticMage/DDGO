@@ -22,8 +22,26 @@
         clearCache();
         atlas = new Image();
         atlas.src = atlasUrl;
-        await atlas.decode();
+        if (!atlas.complete) {
+            await new Promise((res, rej) => {
+                atlas.onload = res;
+                atlas.onerror = rej;
+            });
+        }
+
+        // decode AFTER load for best reliability
+        if (atlas.decode) {
+            try { await atlas.decode(); } catch { }
+        }
         return true;
+    }
+
+    function setImageSrc(img, url) {
+        return new Promise(res => {
+            img.onload = () => res();
+            img.onerror = () => res();
+            img.src = url;
+        });
     }
 
     function get(el, name) {
@@ -140,8 +158,7 @@
         let i = 0;
 
         for (const imgEl of icons) {
-            // Chrome performance: reduce batch size to 15 to keep main thread responsive
-            if ((++i % 15) === 0) await new Promise(r => setTimeout(r, 0));
+            await new Promise(r => setTimeout(r, 0));
 
             const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
             const l1 = layer(imgEl, "l1");
@@ -159,7 +176,7 @@
             }
 
             imgEl.dataset.iconKey = key;
-            imgEl.src = url;
+            await setImageSrc(imgEl, url);
         }
     }
 
