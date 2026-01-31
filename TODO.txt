@@ -6,7 +6,7 @@ PRI
 (DONE) Extra equipment slot needs to be tested / work.  
 * Equip/best equip for stats weapons
 * Update for new class / beta
-* Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
+(DONE) * Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
 (DONE) Clear equipment button?
 (DONE) test Don't allow upgrades on stats that are 0
 (DONE) Fix Extra slots - shield doesn't show up
