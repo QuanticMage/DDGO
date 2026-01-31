@@ -1,28 +1,29 @@
 ﻿window.atlasIcons = (() => {
     const FRAME = 64;
     let atlas = null;
-
-    // key -> objectURL
     const cache = new Map();
 
-    // One offscreen canvas reused for all renders
-    const c = document.createElement("canvas");
-    const ctx = c.getContext("2d", { alpha: true });
+    // Use OffscreenCanvas if available for better performance in Chrome
+    // willReadFrequently: true is the "secret sauce" for Chrome tiny-canvas performance
+    const c = window.OffscreenCanvas
+        ? new OffscreenCanvas(FRAME, FRAME)
+        : document.createElement("canvas");
+    const ctx = c.getContext("2d", { alpha: true, willReadFrequently: true });
     ctx.imageSmoothingEnabled = false;
+
+    // Reusable temp canvas for tinting
+    const tmp = window.OffscreenCanvas
+        ? new OffscreenCanvas(FRAME, FRAME)
+        : document.createElement("canvas");
+    const tctx = tmp.getContext("2d", { alpha: true, willReadFrequently: true });
+    tctx.imageSmoothingEnabled = false;
 
     async function init(atlasUrl) {
         clearCache();
         atlas = new Image();
         atlas.src = atlasUrl;
-
-        try {
-            // This ensures the pixels are actually ready before the script continues
-            await atlas.decode();
-            return true;
-        } catch (err) {
-            console.error("Atlas decode failed:", err);
-            throw err;
-        }
+        await atlas.decode();
+        return true;
     }
 
     function get(el, name) {
@@ -95,34 +96,45 @@
         ctx.globalCompositeOperation = "source-over";
         ctx.drawImage(tmp, 0, 0, size, size);
     }
-
-
-
     async function renderKeyToObjectUrl(size, l1, l2, l3) {
         const dpr = window.devicePixelRatio || 1;
         const px = Math.max(1, Math.round(size * dpr));
 
-        // Resize first (resets state)
-        c.width = px;
-        c.height = px;
+        if (c.width !== px) {
+            c.width = px;
+            c.height = px;
+            tmp.width = px;
+            tmp.height = px;
+        }
 
-        // Reset state explicitly
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = "source-over";
-
         ctx.clearRect(0, 0, size, size);
 
-        if (l1) drawBase(l1, size);
-        if (l2) drawTintedOverlay(l2, size);
-        if (l3) drawTintedOverlay(l3, size);
+        // Draw layers
+        if (l1) {
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(atlas, l1.x, l1.y, FRAME, FRAME, 0, 0, size, size);
+        }
 
-        const blob = await new Promise((res, rej) =>
-            c.toBlob(b => (b ? res(b) : rej(new Error("toBlob returned null"))), "image/png")
-        );
+        [l2, l3].forEach(L => {
+            if (!L || isNoTint(L.tint)) return;
+            tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            tctx.clearRect(0, 0, size, size);
+            tctx.globalCompositeOperation = "source-over";
+            tctx.drawImage(atlas, L.x, L.y, FRAME, FRAME, 0, 0, size, size);
+            tctx.globalCompositeOperation = "source-in";
+            tctx.fillStyle = L.tint;
+            tctx.fillRect(0, 0, size, size);
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(tmp, 0, 0, size, size);
+        });
 
+        // Convert to Blob and then ObjectURL
+        // This is faster than DataURL for many small icons
+        const blob = await (c.convertToBlob ? c.convertToBlob() : new Promise(r => c.toBlob(r)));
         return URL.createObjectURL(blob);
     }
+
     async function renderAllCached() {
         if (!atlas) throw new Error("atlasIcons not initialized");
 
@@ -130,8 +142,8 @@
         let i = 0;
 
         for (const imgEl of icons) {
-            // yield every ~25 icons
-            if ((++i % 25) === 0) await new Promise(r => setTimeout(r, 0));
+            // Chrome performance: reduce batch size to 15 to keep main thread responsive
+            if ((++i % 15) === 0) await new Promise(r => setTimeout(r, 0));
 
             const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
             const l1 = layer(imgEl, "l1");
@@ -152,7 +164,6 @@
             imgEl.src = url;
         }
     }
-
 
     // Optional: if you ever need to clear cache to free memory
     function clearCache() {

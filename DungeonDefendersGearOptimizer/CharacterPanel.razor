@@ -45,6 +45,7 @@
     <div class="hero-actions">
         <button type="button" class="btn" @onclick ="SelectFromDunClicked">Equip from File</button>
         <button type="button" class="btn" @onclick ="SelectBestClicked">Equip Best</button>
+        <button type="button" class="btn" @onclick="ClearClicked">Clear</button>
     </div>
     <div style="position: absolute; left:150px; top:65px; ">
         
@@ -84,10 +85,11 @@
         private List<string> HeroChoices { get; set; } = new();
         [Parameter] public EventCallback<string?> OnEquipFromFile { get; set; }
         [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
+        [Parameter] public EventCallback<string?> OnEquipClear { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
-
+        
         public int[] ShownStat = new int[11];
         public int[] ShownResist = new int[4];
         public bool ShowUpgraded = false;
@@ -152,7 +154,6 @@
 
             foreach (var v in EquippedItems)
             {
-                Console.WriteLine("Equip Piece: " + v.Value.Name);
                 for (int i = 1; i < 11; i++)                
                 {
                     int baseStat = (ShowUpgraded ? v.Value.UpgradedStats[i] : v.Value.Stats[i]);
@@ -337,6 +338,11 @@
                 await OnEquipBest.InvokeAsync(SelectedHero);
         }
 
+        private async Task ClearClicked()
+        {
+            if (OnEquipClear.HasDelegate)
+                await OnEquipClear.InvokeAsync(SelectedHero);
+        }
         
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {

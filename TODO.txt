@@ -3,14 +3,15 @@
 TODO:
 
 PRI
-* Extra equipment slot needs to be tested / work.  
+(DONE) Extra equipment slot needs to be tested / work.  
 * Equip/best equip for stats weapons
 * Update for new class / beta
 * Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
-* Clear equipment button?
-* Don't allow upgrades on stats that are 0
-* Fix Extra slots - shield doesn't show up
-
+(DONE) Clear equipment button?
+(DONE) test Don't allow upgrades on stats that are 0
+(DONE) Fix Extra slots - shield doesn't show up
+(DONE) Mint green color!
+* Show maxlvls when hovering
 
 UI
 * Highlight Best -> remove

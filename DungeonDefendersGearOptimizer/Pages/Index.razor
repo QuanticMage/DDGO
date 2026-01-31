@@ -131,6 +131,7 @@
             
             OnEquipFromFile="HandleEquipFromFile"
             OnEquipBest="HandleEquipBest"
+            OnEquipClear="HandleEquipClear"
             OnClickEquipment="HandleEquipmentClick"
             OnChangedRatingMode="HandleChangedRatingMode"
             OnChangedHero="HandleChangedHero"/>
@@ -972,7 +973,7 @@
 
         string extra = GetTypeOfExtraSlot();
         string itemType = row.Type;
-        
+
         // can't select weapons that you can't equip
         if (itemType == "Weapon" && !IsWeaponSetValid(row.Set))
             return;
@@ -984,7 +985,7 @@
         if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra ))
             itemType = "Extra";
 
-      
+
 
         if (_characterPanel.EquippedItems.ContainsKey(itemType))
             DeselectRow(_characterPanel.EquippedItems[itemType]);
@@ -1116,7 +1117,7 @@
             _ => true
         };
     }
-    
+
     private bool EvaluateString(string itemValue, SearchCondition c)
     {
         bool isMatch;
@@ -1329,6 +1330,13 @@
     private Task HandleEquipBest()
     {
         FindAndEquipBestPieces();
+        return Task.CompletedTask;
+    }
+
+    private Task HandleEquipClear()
+    {
+        ClearAllSelections();
+                
         return Task.CompletedTask;
     }
 
@@ -1665,8 +1673,8 @@
     private static readonly Dictionary<string, string> Tips = new()
     {  
         ["Rating"] =    "Rating for the given selected\n stats.  Small number is sides.",
-        ["Value"] =     "Estimated value based on highest value role.  \nStars show how good it is relative\n to your best piece of that type for any role.\nIf you see a wrong price, \nlet Shiro and Mage know.",
-        ["Location"] =  "Location (and page) of item when sorting by Level"
+        ["Value"] =     "Stars show how good this item is at what it does best, compared to the rest of your equipment. CV is estimated trade value.",
+        ["Location"] =  "Location (and page) of item when sorting by Level."
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)

@@ -6,6 +6,7 @@ using static System.Net.WebRequestMethods;
 
 namespace DDUP
 {
+	using Microsoft.AspNetCore.Components.Web;
 	using System.Data.Common;
 	using System.Text.Json;
 
@@ -457,8 +458,9 @@ namespace DDUP
 			
 			for (int i = 0; i < 4; i++)
 				vr.UpgradedResists[i] = vr.Resists[i];
+			bool quadResists = vr.Resists[0] != 0 && vr.Resists[1] != 0 && vr.Resists[2] != 0 && vr.Resists[3] != 0;
 
-			if (bRequireResists && vr.IsArmor)
+			if (bRequireResists && vr.IsArmor && quadResists)
 			{
 				int upgradesRequiredForResists = GetUpgradesRequired(vr.ResistanceTarget, vr.Resists[0], vr.Resists[1], vr.Resists[2], vr.Resists[3]);
 				int overcappedUpgradesLeft = vr.MaxLevel / 10 - vr.Level / 10;
@@ -485,6 +487,7 @@ namespace DDUP
 			
 			foreach ( var v in RatingStatsPriority )
 			{
+				if (vr.Stats[(int)v] == 0) continue;// skip missing stats
 				int levelToMax = vr.MaxStat - vr.Stats[(int)v];
 				int levelsToInvest = Math.Max(0, Math.Min(levelToMax, levelsLeft));
 				vr.UpgradedStats[(int)v] += levelsToInvest;
@@ -494,6 +497,7 @@ namespace DDUP
 
 			foreach (var v in SidesStatsPriority)
 			{
+				if (vr.Stats[(int)v] == 0) continue; // skip missing stats
 				int levelToMax = vr.MaxStat - vr.Stats[(int)v];
 				int levelsToInvest = Math.Max(0, Math.Min(levelToMax, levelsLeft));
 				vr.UpgradedStats[(int)v] += levelsToInvest;

@@ -26,8 +26,8 @@
         window.setupGlobalTooltips = (dotNetHelper) => {
             let helpKeyDown = false;
             let hoveredTarget = null;
-            let lastTooltipText = null;   // ⭐ track current tooltip text
-            let copiedThisPress = false;  // ⭐ avoid repeat copies while holding H
+            let lastTooltipText = null;   //  track current tooltip text
+            let copiedThisPress = false;  //  avoid repeat copies while holding H
 
             const hasNormal = (el) => el?.hasAttribute("data-tooltip");
             const hasHelp = (el) => el?.hasAttribute("h-tooltip");
@@ -46,7 +46,7 @@
                 const text = getActiveTooltipText(el);
                 if (!text) return;
 
-                lastTooltipText = text; // ⭐ remember it
+                lastTooltipText = text; //  remember it
 
                 const rect = el.getBoundingClientRect();
                 dotNetHelper.invokeMethodAsync(
@@ -94,7 +94,7 @@
                     showFor(hoveredTarget);
                 }
 
-                // ⭐ COPY TO CLIPBOARD ON H PRESS
+                // COPY TO CLIPBOARD ON H PRESS
                 if (lastTooltipText && !copiedThisPress) {
                     try {
                         await navigator.clipboard.writeText(lastTooltipText);
