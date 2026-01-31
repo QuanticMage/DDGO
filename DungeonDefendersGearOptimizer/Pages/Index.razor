@@ -924,8 +924,26 @@
     // this should be updated for new characters
     private string GetTypeOfExtraSlot()
     {
-        return "Shield";
+        string? Template = _characterPanel?.SelectedHeroInfo?.Template;
+        if (Template != null && HeroTemplateData.Map.ContainsKey(Template))
+        {
+            return (HeroTemplateData.Map[Template].ExtraType);
+        }
+
+        return "None";
     }
+
+    private bool IsWeaponSetValid(string set)
+    {
+        string? Template = _characterPanel?.SelectedHeroInfo?.Template;
+        if (Template != null && HeroTemplateData.Map.ContainsKey(Template))
+        {
+            string ValidWeapons = HeroTemplateData.Map[Template].WeaponType;
+            return ValidWeapons.Contains(set);
+        }
+        return false;
+    }
+
 
     private void ClearAllSelections()
     {
@@ -954,12 +972,19 @@
 
         string extra = GetTypeOfExtraSlot();
         string itemType = row.Type;
+        
+        // can't select weapons that you can't equip
+        if (itemType == "Weapon" && !IsWeaponSetValid(row.Set))
+            return;
 
         if ((itemType == "Unknown") || (itemType == "") || (itemType == "Currency")) return;
         if ((itemType == "Shield") && (extra != "Shield")) return;
+        if (itemType == "Shield") { itemType = "Extra"; }
 
         if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra ))
             itemType = "Extra";
+
+      
 
         if (_characterPanel.EquippedItems.ContainsKey(itemType))
             DeselectRow(_characterPanel.EquippedItems[itemType]);

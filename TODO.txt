@@ -8,6 +8,9 @@ PRI
 * Update for new class / beta
 * Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
 * Clear equipment button?
+* Don't allow upgrades on stats that are 0
+* Fix Extra slots - shield doesn't show up
+
 
 UI
 * Highlight Best -> remove
