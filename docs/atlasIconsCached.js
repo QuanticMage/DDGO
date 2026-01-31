@@ -57,10 +57,8 @@
             l3 ? `${l3.x},${l3.y},${l3.tint}` : "-"
         ].join("|");
     }
-    const tmp = document.createElement("canvas");
-    const tctx = tmp.getContext("2d", { alpha: true });
-    tctx.imageSmoothingEnabled = false;
-
+    
+       
     function drawBase(L, size) {
         ctx.globalCompositeOperation = "source-over";
         ctx.drawImage(atlas, L.x, L.y, FRAME, FRAME, 0, 0, size, size);
