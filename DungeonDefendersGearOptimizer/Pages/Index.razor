@@ -145,7 +145,7 @@
     <div class="utility-row">
         <span class="utility-label"><font face="Arial">⚙️</font></span>
 
-       <label class="utility-toggle" data-tooltip=@Tips["Censor"]">
+       <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
             <input type="checkbox"
                    class="tool-filter"
                    checked="@_censor"
@@ -154,14 +154,14 @@
         </label>
 
 
-        <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]">
+        <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]>
             <input type="checkbox"
                     class="tool-filter"
                     checked="@_showUpgradedStats"
                     @onchange="@((e) => { _showUpgradedStats = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
             <span>Fully upgrade items</span>
         </label>
-                <label class="utility-toggle" data-tooltip=@Tips["AssumeSetBonuses"]">
+                <label class="utility-toggle" data-tooltip=@Tips["AssumeSetBonuses"]>
             <input type="checkbox"
                     class="tool-filter"
                     checked="@_assumeSetBonuses"
@@ -169,7 +169,7 @@
             <span>Assume set bonuses</span>
         </label>
 
-        <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]">
+        <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
             <input type="checkbox"
                    class="tool-filter"
                    checked="@_livePrices"
@@ -177,7 +177,7 @@
             <span>Get Live Prices</span>
         </label>
 
-        <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]">
+        <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]>
             <span>Itembox size</span>
             <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
                 <option value="5x3">5x3</option>
@@ -613,7 +613,7 @@
                         <div class="col-resizer"></div>
                     </th>
 
-                    <th class="sortable"  data-tooltip="@Tips["Location"]">
+                    <th class="sortable"  data-tooltip=@Tips["Location"]>
                         <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
                             Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
                         </button>
