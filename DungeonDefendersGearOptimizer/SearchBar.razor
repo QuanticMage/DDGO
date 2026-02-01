@@ -3,42 +3,56 @@
         <span class="searchbar_icon" aria-hidden="true">🔎</span>
 
         <input class="searchbar_input"
-               type="search"
+                 type="search"
                placeholder="Custom search…"
-               @bind="_current"
-               @bind:event="oninput"
-               @onkeydown="HandleKeyDown"
-               @onkeydown:preventDefault="_preventDefault" />
+               value="@_current"
+               @oninput="HandleInput"
+               @onkeydown="HandleKeyDown"/>
     </div>
 </div>
 
 @code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
     private string _current = "";
-    private bool _preventDefault = false;
+    private string _lastSubmitted = "";
 
-    protected override void OnParametersSet()
+    private async Task HandleInput(ChangeEventArgs e)
     {
-        // ONLY sync if the parent is passing a non-empty string
-        // that is different from what we have.
-        if (!string.IsNullOrEmpty(Value) && Value != _current)
+        var newValue = e.Value?.ToString() ?? "";
+
+        // Only fire when transitioning from non-empty -> empty (X / clear)
+        if (_current.Length > 0 && newValue.Length == 0)
         {
-            _current = Value;
+            _current = "";
+
+            // Optional: avoid duplicate submissions of the same value
+            if (_lastSubmitted != "")
+            {
+                _lastSubmitted = "";
+                await ValueChanged.InvokeAsync("");
+            }
+
+            return;
         }
+
+        // Normal typing: just update local state, no callback
+        _current = newValue;
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
-            _preventDefault = true;
-            await ValueChanged.InvokeAsync(_current);
-        }
-        else
-        {
-            _preventDefault = false;
+            // Submit current value, but do NOT clear the box
+            if (_lastSubmitted != _current)
+            {
+                _lastSubmitted = _current;
+                await ValueChanged.InvokeAsync(_current);
+            }
         }
     }
 }

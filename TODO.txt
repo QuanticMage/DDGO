@@ -9,14 +9,14 @@ PRI
 
 Pressing X on search filter needs to clear immediately
 
-Save all ratings for easy export
 Equip best should equip pets and weapons
 Add new events to hash - maybe change hashes then too
 Add in hover descriptions for the options
 Verify dropdowns prioritize properly
 
 Limit quality based on character level
-When using fully upgraded, the character gui doesn't update
+Ability to prioritize AB2 over Hero Dmg
+
 
 
 Add in + for formulas?
@@ -112,3 +112,5 @@ features for 1.6:
 (DONE) Export to .csv
 (DONE) Censor stats on hover in hero images.
 (DONE) Remove 0s from display
+(DONE) Save all ratings for easy export
+(DONE) When using fully upgraded, the character gui doesn't update

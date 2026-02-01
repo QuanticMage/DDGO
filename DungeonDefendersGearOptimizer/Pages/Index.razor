@@ -2059,11 +2059,7 @@
         {
             _RatingStatsPriority.Add(stat);
         }
-
-        // tie breaker of order in table
-        _RatingStatsPriority.Sort();
-
-
+      
         RecalculateRatings();
 
     }
@@ -2310,7 +2306,7 @@
             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
-            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");            
+            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");              
 
             _atlasReady = true;
 
