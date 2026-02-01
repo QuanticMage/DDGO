@@ -9,23 +9,23 @@
     <img class="hero-stat-bg" src="png/heroItemBG.png" />
     <img class="hero-equip-bg" src="png/inventoryBG.png" />
 
-    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroHealth)</span></div>
-    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroDamage)</span></div>
-    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroSpeed)</span></div>
-    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroCastRate)</span></div>
+    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' />@GetShownStat(DDStat.HeroHealth)</div>
+    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' />@GetShownStat(DDStat.HeroDamage)</div>
+    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' />@GetShownStat(DDStat.HeroSpeed)</div>
+    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' />@GetShownStat(DDStat.HeroCastRate)</div>
 
-    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroAbility1)</span></div>
-    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' /><span class='stat-val'>@GetShownStat(DDStat.HeroAbility2)</span></div>
+    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' />@GetShownStat(DDStat.HeroAbility1)</div>
+    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' />@GetShownStat(DDStat.HeroAbility2)</div>
 
-    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerHealth)</span></div>
-    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerDamage)</span></div>
-    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerRange)</span></div>
-    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' /><span class='stat-val'>@GetShownStat(DDStat.TowerRate)</span></div>
+    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' />@GetShownStat(DDStat.TowerHealth)</div>
+    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' />@GetShownStat(DDStat.TowerDamage)</div>
+    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' />@GetShownStat(DDStat.TowerRange)</div>
+    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' />@GetShownStat(DDStat.TowerRate)</div>
 
-    <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' /><span class='stat-val'>@GetShownResist(0)</span></div>
-    <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Fire Resistance.png' /><span class='stat-val'>@GetShownResist(2)</span></div>
-    <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' /><span class='stat-val'>@GetShownResist(3)</span></div>
-    <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Poison Resistance.png' /><span class='stat-val'>@GetShownResist(1)</span></div>
+    <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' />@GetShownResist(0)</div>
+    <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Fire Resistance.png' />@GetShownResist(2)</div>
+    <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' />@GetShownResist(3)</div>
+    <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Poison Resistance.png' />@GetShownResist(1)</div>
    
 
     <div class="equip equip--small" style="left:755px; top:185px;" @onmouseenter='() => OnHoverStart("Bracers")' @onmouseleave ="OnHoverEnd">@(GetEquipmentVisuals("Bracers"))</div>
@@ -47,7 +47,7 @@
         <button type="button" class="btn" @onclick ="SelectBestClicked">Equip Best</button>
         <button type="button" class="btn" @onclick="ClearClicked">Clear</button>
     </div>
-    <div style="position: absolute; left:150px; top:65px; ">
+    <div style="position: absolute; left:150px; top:60px; ">
         
         <RadioSelect Items="@HeroChoices"
                      Value="@SelectedHero"
@@ -58,7 +58,7 @@
                      DefaultIconUrl="png/empty.png" />
     </div>
 
-    <div style="position: absolute; left:310px; top:65px; ">
+    <div style="position: absolute; left:310px; top:60px; ">
 
         <RadioSelect Items="@(Ratings.RatingModes.Select(row => $"{row.Name} ({row.Name})").ToList())"
                      Value="@SelectedRatingMode"
@@ -69,7 +69,8 @@
                      DefaultIconUrl="png/empty.png" 
                      MenuWidth = "clamp(360px, 50vw, 400px)"/>
     </div>
-
+    <div class="character-level" style="position: absolute; left: 150px; top: 75px; ">@CharacterString</div>
+    <div class="item-level" style="position: absolute; left: 325px; top: 500px; ">@ItemLevelString</div>
 
     @inject IJSRuntime JS
     @code {
@@ -79,6 +80,8 @@
         private string? SelectedHero;
         public DDHeroInfo? SelectedHeroInfo { get; set; }
         public ItemViewRow? HoveredEquipment { get; set; }
+        private string ItemLevelString = "";
+        private string CharacterString = "";
 
         // Raw strings shown in the RadioSelect. Format matters:
         //   "Name (ClassName)" where ClassName is used to pick icons.
@@ -113,27 +116,45 @@
 
         // key: class name inside parentheses, eg "Apprentice"
         // value: icon url/path, eg "png/Apprentice_TinyIcon.png"
-        private Dictionary<string, string> HeroIcons { get; set; }
-        = new(StringComparer.OrdinalIgnoreCase);
-
-        private string GetShownStat( DDStat stat )
+        private Dictionary<string, string> HeroIcons { get; set; }  = new(StringComparer.OrdinalIgnoreCase);
+        private RenderFragment GetShownStat(DDStat statIn)
         {
-            if ( HoveredEquipment == null)
-                return ShownStat[(int)stat].ToString();
+            var statText = ShownStat[(int)statIn].ToString();
 
-            return HoveredEquipment.GetStringStatValue(stat, ShowUpgraded, bHasArmorSetBonus, CensorUltPlusPlus);            
+            if (HoveredEquipment != null)
+                statText = HoveredEquipment.GetStringStatValue(statIn, ShowUpgraded, bHasArmorSetBonus, CensorUltPlusPlus);
+
+            var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
+
+            return GetShownStat(statText, isNegative, (HoveredEquipment != null));
         }
 
-        private string GetShownResist( int r)
-        {
-            if (HoveredEquipment == null)
-                return ShownResist[r].ToString() + "%";
+        private RenderFragment GetShownStat(string statText, bool bIsNegative, bool hover) =>
+        @<span class='stat-val @(hover ? "hover" : "") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
+        ;
 
-            int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedResists[r] : HoveredEquipment.Resists[r]);
-            float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
-            if (baseStat < 0) multiplier = 1.0f;
-            return ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%"; 
+
+        private RenderFragment GetShownResist(int r)
+        {
+            var statText = ShownResist[r].ToString() + "%";
+
+            if (HoveredEquipment != null)
+            {
+                int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedResists[r] : HoveredEquipment.Resists[r]);
+                float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
+
+                if (baseStat < 0) multiplier = 1.0f;
+
+                statText = baseStat == 0 ? "" : ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%";
+            }
+
+            var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
+            return GetShownResist(statText, isNegative, (HoveredEquipment != null));
         }
+
+        private RenderFragment GetShownResist(string statText, bool bIsNegative, bool hover) =>
+        @<span class='stat-val resist @(hover?"hover":"") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
+        ;
 
         public void UpdateCharacterTotalStats()
         {
@@ -191,7 +212,7 @@
 
             StateHasChanged();
         }
-          
+
         private string SelectedHeroIconUrl
         {
             get
@@ -255,15 +276,7 @@
             // Default selection
             if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
             {
-                SelectedHero = HeroChoices.FirstOrDefault();
-                SelectedHeroInfo = HeroInfoByIndex[0];
-                _ = InvokeAsync(async () =>
-                {
-                    if (OnEquipFromFile.HasDelegate)
-                        await OnEquipFromFile.InvokeAsync();
-                    SetRatingModeFromEquipment();
-                });
-
+                OnHeroChanged((HeroChoices[0], 0));           
             }
 
             // If the current selection no longer exists, clear it.
@@ -327,6 +340,19 @@
                 if (OnChangedHero.HasDelegate)
                     await OnChangedHero.InvokeAsync();
             });
+
+            string className = "Unknown";
+            if (SelectedHeroInfo != null)
+            {
+                if (HeroTemplateData.Map.ContainsKey(SelectedHeroInfo.Template))
+                {
+                    className = HeroTemplateData.Map[SelectedHeroInfo.Template].ClassName;
+                }
+                CharacterString = $"Level {SelectedHeroInfo.HeroLevel} {className}";
+            }
+            else
+                CharacterString = $"Unknown";
+
 
             return Task.CompletedTask;
         }
@@ -424,6 +450,7 @@
                 if (EquippedItems.TryGetValue(slot, out var item))
                 {
                     HoveredEquipment = item;
+                    ItemLevelString = $"Lvl {item.Level} / {item.MaxLevel}";
                     await InvokeAsync(StateHasChanged);
                 }
             }
@@ -436,7 +463,8 @@
         private void OnHoverEnd()
         {
             _hoverCts?.Cancel();
-            HoveredEquipment = null;
+            HoveredEquipment = null;    
+            ItemLevelString = "";
             StateHasChanged();
         }
     }

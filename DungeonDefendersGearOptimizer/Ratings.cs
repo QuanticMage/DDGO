@@ -486,9 +486,10 @@ namespace DDUP
 			bool quadResists = vr.Resists[0] != 0 && vr.Resists[1] != 0 && vr.Resists[2] != 0 && vr.Resists[3] != 0;
 
 			vr.UpgradesRequiredForResists = 0;
+			vr.BrokenResists = false;
 
 			if (vr.IsArmor)
-			{
+			{				
 				int upgradesRequiredForResists = GetUpgradesRequired(vr.ResistanceTarget, vr.Resists[0], vr.Resists[1], vr.Resists[2], vr.Resists[3]);
 				int overcappedUpgradesLeft = vr.MaxLevel / 10 - vr.Level / 10;
 				int overcappedUpgradesNeeded =
@@ -540,7 +541,8 @@ namespace DDUP
 			if (bRequireResists && !bMaxedResists && (vr.Resists[0] + vr.Resists[1] + vr.Resists[2] + vr.Resists[3] < vr.ResistanceTarget * 4))
 			{
 				sides += rating;
-				rating = 0;				
+				rating = 0;
+				vr.BrokenResists = true;
 			}
 					
 			// actual rating and sides can be higher because each stat gets ceilinged first, but we wont' worry about that.

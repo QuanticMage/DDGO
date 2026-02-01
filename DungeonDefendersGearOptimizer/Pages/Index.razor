@@ -7,7 +7,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defenders Gear Optimizer</h1>        
-        <div class="build"><i>Jan 31 2026 - Version 1.5d</i></div>    
+        <div class="build"><i>Feb 1 2026 - Version 1.6</i></div>    
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -747,7 +747,7 @@
                 @foreach (var r in _rows)
                 {
                     <tr @key="@r.Idx" data-key="@r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="()=>OnRowClicked(r)">
-                        <td class="cell-rating">
+                        <td class="cell-rating" data-tooltip=@(r.BrokenResists?(ShowUpgradesToMaxResist(r)):"")>
                             <span class="rating-primary">@r.Rating</span>
                             <span class="rating-sides">@r.Sides</span>
                         </td>
@@ -821,13 +821,13 @@
                         <td class="num cell-range @CellShadingStyle(DDStat.TowerRange)">@GetValue(DDStat.TowerRange, r)</td>
                         <td class="num cell-rate @CellShadingStyle(DDStat.TowerRate)">@GetValue(DDStat.TowerRate, r)</td>
 
-                        <td class="resist @CellShadingStyle(DDStat.HeroResistance)" 
-                            data-tooltip=@(
-                              $"<div class='resist-container'>" +
-                                $"<img class='resist-icon' src='png/Generic Resistance.png' alt='G' /><span class='resist-val'>{r.Resists[0]}</span>" +
-                                $"<img class='resist-icon' src='png/Poison Resistance.png'  class='resist-icon' alt='P' /><span class='resist-val'>{r.Resists[1]}</span>" +
-                                $"<img class='resist-icon' src='png/Fire Resistance.png'    class='resist-icon' alt='F' /><span class='resist-val'>{r.Resists[2]}</span>" +
-                                $"<img class='resist-icon' src='png/Lightning Resistance.png' class='resist-icon' alt='L' /><span class='resist-val'>{r.Resists[3]}</span>" +
+                        <td class="resist @CellShadingStyle(DDStat.HeroResistance)"
+                                data-tooltip=@(
+                                $"<div class='resist-container'>" +
+                                ResistLine("png/Generic Resistance.png", "G", r.Resists[0]) +
+                                ResistLine("png/Poison Resistance.png", "P", r.Resists[1]) +
+                                ResistLine("png/Fire Resistance.png", "F", r.Resists[2]) +
+                                ResistLine("png/Lightning Resistance.png", "L", r.Resists[3]) +
                                 $"</div><br>{ShowUpgradesToMaxResist(r)}")>
                             @(GetResistValue(r))
                     </td>
@@ -925,6 +925,16 @@
 
         InvokeAsync(StateHasChanged);
     }
+
+    string ResistLine(string img, string alt, int value)
+    {
+        return value != 0
+            ? $"<img class='resist-icon' src='{img}' alt='{alt}' />" +
+              $"<span class='resist-val'>{value}</span>"
+            : "";
+    }
+
+
 
     // this should be updated for new characters
     private string GetTypeOfExtraSlot()
@@ -1419,7 +1429,9 @@
             (r.ResistanceTarget - ((r.Resists[2] < 23) ? 23 : r.Resists[2])) +
             (r.ResistanceTarget - ((r.Resists[3] < 23) ? 23 : r.Resists[3]));
 
-        if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || ( upgradesRequiredForResists > (r.MaxLevel - r.Level)))        
+        if ((r.Resists[0] == 0) || (r.Resists[1] == 0) || (r.Resists[2] == 0) || (r.Resists[3] == 0))
+            return "Missing resist type";
+        else if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || (upgradesRequiredForResists > (r.MaxLevel - r.Level)))
             return "Can't cap with remaining levels";
         else if (upgradesRequiredForResists == 0)
             return "";        
@@ -1921,12 +1933,30 @@
     private void FindAndEquipBestPieces()
     {
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
+        var hinfo = _characterPanel?.SelectedHeroInfo;
+
+        List<string> ExcludedQualities = new List<string>();
+
+        if (hinfo != null)
+        {
+            int level = hinfo.HeroLevel;
+            if (level < 60) ExcludedQualities.Add("Godly");
+            if ( level < 74 ) ExcludedQualities.Add("Mythical");
+            if ( level < 78 ) ExcludedQualities.Add("Transcendent");
+            if ( level < 83 ) ExcludedQualities.Add("Supreme");
+            if ( level < 90 ) ExcludedQualities.Add("Ult90");
+            if ( level < 93 ) ExcludedQualities.Add("Ult93");
+            if ( level < 100 ) ExcludedQualities.Add("Ult+");
+            if ( level < 100) ExcludedQualities.Add("Ult++");
+        }
 
         for (int i = 0; i < _rows.Count; i++)
         {
             var r = _rows[i];       
-            if (!r.IsHidden && r.IsEligibleForBest)
+            if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality))
+            {
                 TestForBestPiece(r.Type, r.Set, r.Rating, BestPieces);                            
+            }
         }
 
         // find best armor set

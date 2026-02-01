@@ -95,7 +95,7 @@ namespace DDUP
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
 		public int UpgradesRequiredForResists { get; set; }
-
+		public bool BrokenResists = false;
 
 		public ItemViewRow(
 				int Rating,

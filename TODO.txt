@@ -3,41 +3,46 @@
 TODO:
 
 PRI
-* Equip/best equip for stats weapons
+
+(DONE) Show maxlvls when hovering
+(DONE) Better hover behavior for items => stats
+(DONE) Better stat styles
+(DONE) Limit quality based on character level	
+(DONE) Fix hover highlight- different color than selected?
+
+* Add in hover descriptions for the options
+* Add in + for formulas?
+
+* Custom filter => separate with commas, better space handling
+* Custom filter => drop down with selection
+* Custom filter => support + and ops
+* Custom filter => better tooltip
+
+* Adobe color
+
+* Rework save option system- Save text filter state, selected character, etc?
 * Update for new class / beta
-* Show maxlvls when hovering
-
-Pressing X on search filter needs to clear immediately
-
-Equip best should equip pets and weapons
-Add new events to hash - maybe change hashes then too
-Add in hover descriptions for the options
-Verify dropdowns prioritize properly
-
-Limit quality based on character level
-Ability to prioritize AB2 over Hero Dmg
+* Equip best should equip pets and weapons
+* Add new events to hash - maybe change hashes then too
 
 
+if(int(GetEquipment().NameIndex_QualityDescriptor) >= int(19))
+    if(((int(GetEquipment().NameIndex_QualityDescriptor) >= int(16)) && int(GetEquipment().EquipmentType) >= int(7)) && int(GetEquipment().EquipmentType) <= int(10))
+    if(GetEquipment().IsA('HeroEquipment_Familiar_PawnBooster') && int(GetEquipment().NameIndex_QualityDescriptor) >= int(14))
+    if((PathName(GetEquipment().ObjectArchetype) == "FamGuardians.EquipmentGuardianMage") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
+    if((PathName(GetEquipment().ObjectArchetype) == "Fam_Seahorse.Equipment_Familiar_SeahorseProjectile") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(16))
+    if((PathName(GetEquipment().ObjectArchetype) == "DunDef_CDT_LifeTree.Equipment.Familiars.Pony.EquipmentLifePony") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
 
-Add in + for formulas?
-BestFor, Name, Type Set, Quality, Upgrades, Max Upgrades, 10 stats, 4 resists, Location, App, Hermit, DMG, TRange, THP, AB2 DPS, AB1 DPS, Gunwitch, AB1, HHP
 
-Set Bonus
-Upgrades Unused
-Ups need for Res
-Res fix (can't res)
-Bad res (off by a few)
-show nothing for -0-
-average armor values
+Allow respec?
+
 
 UI
 * Highlight Best -> remove
 * More tooltips
 * Dark mode
 * Currency badge
-* Better hover behavior for items => stats
 * Right click menu to "Exclude from search" (Extra filter tile w/ hover?) for location and individual items
-* Save text filter state, selected character, etc?
 * Use class icons for stats instead of default ones
 * Custom filter is a dropdown list of recent custom searches
 
@@ -114,3 +119,7 @@ features for 1.6:
 (DONE) Remove 0s from display
 (DONE) Save all ratings for easy export
 (DONE) When using fully upgraded, the character gui doesn't update
+(DONE) Ability to prioritize AB2 over Hero Dmg - needs documentation
+(DONE) Pressing X on search filter needs to clear immediately
+(DONE) Fix hunter not working
+(DONE) Broken resists - explain why 
