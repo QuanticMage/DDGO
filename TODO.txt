@@ -3,14 +3,7 @@
 TODO:
 
 PRI
-
-(DONE) Show maxlvls when hovering
-(DONE) Better hover behavior for items => stats
-(DONE) Better stat styles
-(DONE) Limit quality based on character level	
-(DONE) Fix hover highlight- different color than selected?
-(DONE) Much better tooltips
-
+Fix hover highlight- different color than selected?
 * Add in + for formulas?
 
 * Custom filter => separate with commas, better space handling
@@ -122,3 +115,9 @@ features for 1.6:
 (DONE) Pressing X on search filter needs to clear immediately
 (DONE) Fix hunter not working
 (DONE) Broken resists - explain why 
+(DONE) Show maxlvls when hovering
+(DONE) Better hover behavior for items => stats
+(DONE) Better stat styles
+(DONE) Limit quality based on character level	
+
+(DONE) Much better tooltips
