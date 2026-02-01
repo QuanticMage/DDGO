@@ -12,6 +12,7 @@ Remove 0s from display
 Save all ratings for easy export
 Equip best should equip pets and weapons
 Add new events to hash - maybe change hashes then too
+Censor stats on hover in hero images.
 
 Make sure dropdowns prioritize properly
 
@@ -107,3 +108,6 @@ NOTES:
 (DONE) test Don't allow upgrades on stats that are 0
 (DONE) Fix Extra slots - shield doesn't show up
 (DONE) Mint green color!
+
+features for 1.6:
+(DONE) Export to Clipboard

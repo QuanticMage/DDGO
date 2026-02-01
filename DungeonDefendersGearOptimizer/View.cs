@@ -200,6 +200,24 @@ namespace DDUP
 			this.IsHiddenDueToSearch = false;
 			this.CurrentEquippedSlot = "";
 		}
+		public string GetStringStatValue(DDStat stat,  bool showUpgradedStats, bool assumeSetBonuses, bool censor)
+		{			
+			int value = showUpgradedStats ? UpgradedStats[(int)stat] : Stats[(int)stat];
+
+			if (assumeSetBonuses)
+			{
+				value = (value > 0) ? (int)Math.Ceiling(SetBonus * value) : value;
+			}
+
+			string s = value.ToString();
+
+			if (((Quality == "Ult++") && censor) ||
+				(((Quality == "Ult++") || (Quality == "Ult+") || (Quality == "Ult90") || (Quality == "Ult93") || (Quality == "Supreme") || (Quality == "Transcendent"))
+				  && ((Name == "Unicorn") || (Name == "Rainbow Unicorn") || (Name == "Propeller Cat"))))
+				return s.Substring(0, s.Length - 1) + "x";
+			else
+				return s;
+		}
 	}
 }
 

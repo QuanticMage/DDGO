@@ -98,8 +98,8 @@
                         <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="OpenFileDialog">
                             <span>Load new</span>
                         </button>
-                        <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="CopyAllToClipboard">
-                            <span>Export to Clipboard</span>
+                        <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="ExportToCSV">
+                            <span>Export to .csv</span>
                         </button>
                     </div>
                 </div>
@@ -1386,7 +1386,7 @@
         StateHasChanged();
     }
 
-    private async void ExportEventCollection()
+    private async Task ExportEventCollection()
     {
         if (_eventCollection == null || _eventCollection.Count == 0)
             return;
@@ -1562,6 +1562,7 @@
         int Version = 1,
         string RatingMode = "Builder App",
         string Layout = "5x3",
+        bool Censor = true,
         bool ShowLivePrices = false,
         bool ShowUpgradedStats = false,
         bool AssumeSetBonuses = false,
@@ -1576,6 +1577,7 @@
 
     static UiState DefaultState() => new(
         Version: 1,
+        Censor: true,
         RatingMode: "Builder App",
         Layout: "5x3",
         ShowLivePrices: false,
@@ -1584,13 +1586,14 @@
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
-        );
+    );
 
     private void ApplyUiToFields()
     {
         _selectedMode = _ui.RatingMode;
         _itemboxSize  = _ui.Layout;
         _livePrices   = _ui.ShowLivePrices;
+        _censor = _ui.Censor;
 
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
         _selectedSets  = _ui.SelectedSetsSafe.ToList();
@@ -1605,19 +1608,23 @@
     private void SyncFieldsToUi()
     {
         _ui = _ui with
-        {
-            Version = CurrentUIOptionsVersion,
-            RatingMode = _selectedMode,
-            Layout = _itemboxSize,
-            ShowLivePrices = _livePrices,
-            SelectedTypes = _selectedTypes.ToList(),
-            SelectedSets = _selectedSets.ToList(),
-            SelectedOther = _selectedOther.ToList(),
-            ShowUpgradedStats = _showUpgradedStats,
-            AssumeSetBonuses = _assumeSetBonuses,
-        };
+            {
+                Version = CurrentUIOptionsVersion,
+                RatingMode = _selectedMode,
+                Layout = _itemboxSize,
+                ShowLivePrices = _livePrices,
+                SelectedTypes = _selectedTypes.ToList(),
+                SelectedSets = _selectedSets.ToList(),
+                SelectedOther = _selectedOther.ToList(),
+                ShowUpgradedStats = _showUpgradedStats,
+                AssumeSetBonuses = _assumeSetBonuses,
+            };
 
-        if (_characterPanel != null) _characterPanel.ShowUpgraded = _showUpgradedStats;
+        if (_characterPanel != null)
+        {
+            _characterPanel.ShowUpgraded = _showUpgradedStats;            
+            _characterPanel.CensorUltPlusPlus = _censor;
+        }
     }
 
     private string LastLoadedText =>
@@ -1646,8 +1653,8 @@
     public string GetLocation( ItemViewRow viewRow)
     {
         // no folders for tavern or characters
-        if (( viewRow.IndexInFolder == -1) || (viewRow.Location[0] == 'T') || (viewRow.Location[0] == 'C'))
-            return viewRow.Location;
+        if (( viewRow.IndexInFolder == -1) || (viewRow.Location == null) || (viewRow.Location[0] == 'T') || (viewRow.Location[0] == 'C'))
+            return viewRow?.Location ??"";
 
         int idx = viewRow.IndexInFolder;
         int itemsPerPage = 15;
@@ -1755,22 +1762,7 @@
 
     private string GetValue( DDStat stat, ItemViewRow r )
     {
-        int value = _showUpgradedStats ? r.UpgradedStats[(int)stat] : r.Stats[(int)stat];
-
-        if (_assumeSetBonuses)
-        {
-            value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
-        }        
-
-        string s = value.ToString();
-
-        if ( ((r.Quality == "Ult++") && IsCensorEnabled) ||
-            (((r.Quality == "Ult++") || (r.Quality == "Ult+") || (r.Quality == "Ult90") || (r.Quality == "Ult93") || (r.Quality == "Supreme") || (r.Quality == "Transcendent"))
-              && ((r.Name == "Unicorn") || (r.Name == "Rainbow Unicorn") || (r.Name == "Propeller Cat"))))
-            return s.Substring(0, s.Length - 1) + "x";            
-        else
-            return s;
-
+        return r.GetStringStatValue(stat, _showUpgradedStats, _assumeSetBonuses, _censor);    
     }
 
     int VisibleCount => _rows.Count(r => !r.IsHidden);
@@ -2241,7 +2233,8 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        _dotNetRef = DotNetObjectReference.Create(this);
+        if (_dotNetRef == null)
+            _dotNetRef = DotNetObjectReference.Create(this);
         // 1) UI state
         var json = await JS.InvokeAsync<string?>("appState.get", UiStateKey);
         if (!string.IsNullOrWhiteSpace(json))
@@ -2308,16 +2301,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _dotNetRef = DotNetObjectReference.Create(this);
 
         if (firstRender)
         {
+            _dotNetRef = DotNetObjectReference.Create(this);
+
             await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);            
             var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
-            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");
+            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");            
+
             _atlasReady = true;
 
             StateHasChanged();
@@ -2403,7 +2398,10 @@
             _needsAtlasRender = true;
             await InvokeAsync(StateHasChanged);
             if (_characterPanel != null)
+            {
                 _characterPanel.ShowUpgraded = _showUpgradedStats;
+                _characterPanel.CensorUltPlusPlus = _censor;                
+            }
             _characterPanel?.Reload(db.Heroes);
             ApplyChipFilters();
         }
@@ -2508,10 +2506,20 @@
         }
     }
 
-
-    private async Task CopyAllToClipboard()
+    private static string Csv(string? value)
     {
-        List<string> lines=  new();
+        value ??= "";
+        // Escape quotes by doubling them, and quote the field if needed
+        bool mustQuote = value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r');
+        if (value.Contains('"'))
+            value = value.Replace("\"", "\"\"");
+        return mustQuote ? $"\"{value}\"" : value;
+    }
+
+    private async Task ExportToCSV()
+    {
+        List<string> lines = new();
+
         int app = Ratings.GetRatingModeInfo("Builder App")?.ListIndex ?? 0;
         int hermit = Ratings.GetRatingModeInfo("Builder Hermit")?.ListIndex ?? 0;
         int dmg = Ratings.GetRatingModeInfo("Builder EV")?.ListIndex ?? 0;
@@ -2523,48 +2531,77 @@
         int ab1 = Ratings.GetRatingModeInfo("AB1 Only")?.ListIndex ?? 0;
         int hhp = Ratings.GetRatingModeInfo("Guardian Summoner")?.ListIndex ?? 0;
 
-        lines.Add("BestFor\tName\tType\tSet\tQuality\tLevel\tMax Level\tHero Health\tHero Speed\tHero Damage\tHero Cast Rate\tAB1\tAB2\tTower Health\tTower Rate\tTower Damage\tTower Range\t" +
-        "Res Generic\tRes Poison\tRes Fire\tRes Electric\tLocation\tBuilder App\tBuilder Hermit\tBuilder EV\tBuilder TRange\tBuilder Summoner\tDPS AB2\tDPS AB1\tGunwitch\tAB1 Only\tGuardian Summoner\t" +
-        "Set Bonus\tUnusued Upgrades\tUps Needed for Res");
-
-        // use this order to match theoran's spreadsheets
-
-        foreach ( var r in _rows)
+        // Header row
+        lines.Add(string.Join(",", new[]
         {
-            if (r.IsHidden)
-                continue;
-            string line = "";
-            line += $"{r.BestFor}\t{r.Name}\t{r.Type}\t{r.Set}\t{r.Quality}\t{r.Level}\t{r.MaxLevel}\t";
-            
-            for (int i = 0; i < 10; i++)
-            {
-                if (r.Stats[i+1] == 0)
-                    line += "\t";
-                else
-                    line += $"{r.Stats[i+1]}\t";
-            }
+        "BestFor","Name","Type","Set","Quality","Level","Max Level",
+        "Hero Health","Hero Speed","Hero Damage","Hero Cast Rate","AB1","AB2",
+        "Tower Health","Tower Rate","Tower Damage","Tower Range",
+        "Res Generic","Res Poison","Res Fire","Res Electric",
+        "Location",
+        "Builder App","Builder Hermit","Builder EV","Builder TRange","Builder Summoner",
+        "DPS AB2","DPS AB1","Gunwitch","AB1 Only","Guardian Summoner",
+        "Set Bonus","Unusued Upgrades","Ups Needed for Res"
+        }));
 
-            for (int i = 0; i < 4; i++)
-            {
-                if ( r.Resists[i] == 0)
-                    line += "\t";
-                else
-                    line += $"{r.Resists[i]}\t";
-            }
+        foreach (var r in _rows)
+        {
+            if (r.IsHidden) continue;
+
             string upgradesRequiredForResists = "";
             if (r.IsArmor && r.UpgradesRequiredForResists == -1)
                 upgradesRequiredForResists = "Res Fix";
             else if (r.IsArmor)
                 upgradesRequiredForResists = r.UpgradesRequiredForResists.ToString();
 
-            line += $"{r.Location}\t{r.CachedRatings[app]}\t{r.CachedRatings[hermit]}\t{r.CachedRatings[dmg]}\t{r.CachedRatings[trange]}\t{r.CachedRatings[thp]}\t" +
-                    $"{r.CachedRatings[ab2dps]}\t{r.CachedRatings[ab1dps]}\t{r.CachedRatings[gunwitch]}\t{r.CachedRatings[ab1]}\t{r.CachedRatings[hhp]}\t" +
-                    $"{r.SetBonus:F2}\t{r.MaxLevel - r.Level}\t{upgradesRequiredForResists}";
-            lines.Add(line);
+            var fields = new List<string>
+        {
+            Csv(r.BestFor),
+            Csv(r.Name),
+            Csv(r.Type),
+            Csv(r.Set),
+            Csv(r.Quality),
+            r.Level.ToString(),
+            r.MaxLevel.ToString()
+        };
+
+            // Stats 1..10 (your code uses Stats[i+1])
+            for (int i = 0; i < 10; i++)
+                fields.Add(r.Stats[i + 1] == 0 ? "" : r.Stats[i + 1].ToString());
+
+            // Resists 0..3
+            for (int i = 0; i < 4; i++)
+                fields.Add(r.Resists[i] == 0 ? "" : r.Resists[i].ToString());
+
+            fields.Add(Csv(r.Location));
+
+            fields.Add(r.CachedRatings[app].ToString());
+            fields.Add(r.CachedRatings[hermit].ToString());
+            fields.Add(r.CachedRatings[dmg].ToString());
+            fields.Add(r.CachedRatings[trange].ToString());
+            fields.Add(r.CachedRatings[thp].ToString());
+
+            fields.Add(r.CachedRatings[ab2dps].ToString());
+            fields.Add(r.CachedRatings[ab1dps].ToString());
+            fields.Add(r.CachedRatings[gunwitch].ToString());
+            fields.Add(r.CachedRatings[ab1].ToString());
+            fields.Add(r.CachedRatings[hhp].ToString());
+
+            fields.Add(r.SetBonus.ToString("F2"));
+            fields.Add((r.MaxLevel - r.Level).ToString());
+            fields.Add(Csv(upgradesRequiredForResists));
+
+            lines.Add(string.Join(",", fields));
         }
 
-        var text = string.Join(Environment.NewLine, lines);
+        var csvText = string.Join(Environment.NewLine, lines);
 
-        await JS.InvokeVoidAsync("copyToClipboard", text);
+        // Trigger download
+        await JS.InvokeVoidAsync(
+            "download.fromText",
+            "DDEquipment.csv",
+            "text/csv;charset=utf-8",
+            csvText
+        );
     }
 }

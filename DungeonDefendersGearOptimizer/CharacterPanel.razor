@@ -89,12 +89,13 @@
         [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
         [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
-        
+
         public int[] ShownStat = new int[11];
         public int[] ShownResist = new int[4];
         public bool ShowUpgraded = false;
+        public bool CensorUltPlusPlus = false;   
         private bool bHasArmorSetBonus = false;
-
+        
         private const string DefaultHeroName = "Test Jester";
         private const string DefaultHeroClass = "Jester";
         private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();
@@ -112,10 +113,7 @@
             if ( HoveredEquipment == null)
                 return ShownStat[(int)stat].ToString();
 
-            int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedStats[(int)stat] : HoveredEquipment.Stats[(int)stat]);
-            float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
-            if (baseStat < 0) multiplier = 1.0f;
-            return ((int)Math.Ceiling(multiplier * baseStat)).ToString();
+            return HoveredEquipment.GetStringStatValue(stat, ShowUpgraded, bHasArmorSetBonus, CensorUltPlusPlus);            
         }
 
         private string GetShownResist( int r)
