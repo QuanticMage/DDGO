@@ -92,6 +92,11 @@ namespace DDUP
 		public double CachedY { get; set; }
 		public double CachedHeight { get; set; }
 
+		public List<int> CachedRatings = new List<int>();
+		public List<int> CachedSides = new List<int>();
+		public int UpgradesRequiredForResists { get; set; }
+
+
 		public ItemViewRow(
 				int Rating,
 				int Sides,

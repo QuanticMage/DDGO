@@ -16,18 +16,45 @@ namespace DDUP
 	}
 	public class Ratings
 	{
-		public struct RatingModeInfo
-		{			
-			public string Name;
-			public string Icon;
-			public string UpgradePriority;
-			public List<DDStat> RatingStatsPriority;
-			public List<DDStat> SidesStatsPriority;
-			public bool RequireResists;
-			public string APIRoles;			
-			public bool CanBeBestFor;
+		public class RatingModeInfo
+		{
+			public string Name = "";
+			public string Icon = "";
+			public string UpgradePriority = "";
+			public List<DDStat> RatingStatsPriority = new();
+			public List<DDStat> SidesStatsPriority = new();
+			public bool RequireResists = false;
+			public string APIRoles = "";			
+			public bool CanBeBestFor = false;
+			public int ListIndex = -1;
 		};
+		
+		private static Dictionary<string, RatingModeInfo>? RatingMap = null;
+		private static void InitMap()
+		{
+			if (RatingMap == null)
+				RatingMap = new Dictionary<string, RatingModeInfo>();
+			
+			int i = 0;
+			foreach ( var v in RatingModes)
+			{
+				v.ListIndex = i++;
+				RatingMap?.Add(v.Name, v);
+			}
+		}
 
+		public static RatingModeInfo? GetRatingModeInfo( string ratingMode )
+		{
+			if (RatingMap == null)
+				InitMap();
+			if (RatingMap == null)
+				return null;
+
+			if (RatingMap.ContainsKey(ratingMode))
+				return RatingMap[ratingMode];
+			return null;
+		}
+		
 
 		public static readonly List<RatingModeInfo> RatingModes = new()
 		{
@@ -192,8 +219,8 @@ namespace DDUP
 				Name = "Guardian Summoner",
 				Icon = "png/Summoner_TinyIcon.png",
 				UpgradePriority = "",
-				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility2 },
-				SidesStatsPriority = new List<DDStat>() { },
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroAbility2 },
 				RequireResists = true,
 				APIRoles = "",
 				CanBeBestFor = true
@@ -304,14 +331,12 @@ namespace DDUP
 		// always measure CV first to also get the BestRatings populated
 		public static (int, string) GetBestValue(bool measureCV, ItemViewRow vr)
 		{
-			int[] ratings = new int[RatingModes.Count];
 			
 			for (int i = 0; i < Ratings.RatingModes.Count; i++ )
 			{
-				if (Ratings.RatingModes[i].CanBeBestFor )
-				{
-					(ratings[i], _) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);
-				}
+				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);
+				vr.CachedRatings.Add(rating);
+				vr.CachedSides.Add(sides);
 			}
 			
 			string category = vr.Type;
@@ -337,7 +362,7 @@ namespace DDUP
 					{
 						if (CV_Values.ContainsKey(RatingModes[i].Name))
 						{
-							value = (int)(EvaluateExponential(ratings[i], CV_Values[RatingModes[i].Name]));
+							value = (int)(EvaluateExponential(vr.CachedRatings[i], CV_Values[RatingModes[i].Name]));
 							if (value > bestValue)
 							{
 								bestValue = value;
@@ -357,15 +382,15 @@ namespace DDUP
 					}
 					
 					// best overall ratings per category
-					if ((!BestRatings[i].ContainsKey(category)) || (ratings[i] > BestRatings[i][category]))
+					if ((!BestRatings[i].ContainsKey(category)) || (vr.CachedRatings[i] > BestRatings[i][category]))
 					{
-						BestRatings[i][category] = ratings[i];
+						BestRatings[i][category] = vr.CachedRatings[i];
 					}
 				}
 
 				if ((bestValuePriced > 0) && (vr.IsArmor) && (!vr.IsEvent))
 				{
-					ValuableItemList.Add(ratings[bestIndexPriced] + " " + RatingModes[bestIndexPriced].APIRoles);
+					ValuableItemList.Add(vr.CachedRatings[bestIndexPriced] + " " + RatingModes[bestIndexPriced].APIRoles);
 					JsonQueries[JsonQueryIndex++] = vr;
 				}
 
@@ -390,7 +415,7 @@ namespace DDUP
 				{
 					if (BestRatings[i].ContainsKey(category))
 					{
-						int value = (int)(ratings[i] * 1000 / BestRatings[i][category]);
+						int value = (int)(vr.CachedRatings[i] * 1000 / BestRatings[i][category]);
 						if (value > bestValue)
 						{
 							bestValue = value;
@@ -460,7 +485,9 @@ namespace DDUP
 				vr.UpgradedResists[i] = vr.Resists[i];
 			bool quadResists = vr.Resists[0] != 0 && vr.Resists[1] != 0 && vr.Resists[2] != 0 && vr.Resists[3] != 0;
 
-			if (bRequireResists && vr.IsArmor && quadResists)
+			vr.UpgradesRequiredForResists = 0;
+
+			if (vr.IsArmor)
 			{
 				int upgradesRequiredForResists = GetUpgradesRequired(vr.ResistanceTarget, vr.Resists[0], vr.Resists[1], vr.Resists[2], vr.Resists[3]);
 				int overcappedUpgradesLeft = vr.MaxLevel / 10 - vr.Level / 10;
@@ -472,14 +499,19 @@ namespace DDUP
 
 				if ((overcappedUpgradesLeft >= overcappedUpgradesNeeded) && (levelsLeft >= upgradesRequiredForResists))
 				{
-					levelsLeft -= upgradesRequiredForResists;
+					if (bRequireResists && quadResists)
+					{
+						levelsLeft -= upgradesRequiredForResists;
+					}
 					vr.UpgradedResists[0] = Math.Max(vr.UpgradedResists[0], vr.ResistanceTarget);
 					vr.UpgradedResists[1] = Math.Max(vr.UpgradedResists[1], vr.ResistanceTarget);
 					vr.UpgradedResists[2] = Math.Max(vr.UpgradedResists[2], vr.ResistanceTarget);
 					vr.UpgradedResists[3] = Math.Max(vr.UpgradedResists[3], vr.ResistanceTarget);
-					
+					vr.UpgradesRequiredForResists = upgradesRequiredForResists;
 					bMaxedResists = true;
-				}				
+				}
+				else
+					vr.UpgradesRequiredForResists = -1;
 			}
 
 			for (int i = 1; i < 11; i++)

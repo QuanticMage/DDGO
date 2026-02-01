@@ -3,15 +3,32 @@
 TODO:
 
 PRI
-(DONE) Extra equipment slot needs to be tested / work.  
 * Equip/best equip for stats weapons
 * Update for new class / beta
-(DONE) * Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
-(DONE) Clear equipment button?
-(DONE) test Don't allow upgrades on stats that are 0
-(DONE) Fix Extra slots - shield doesn't show up
-(DONE) Mint green color!
 * Show maxlvls when hovering
+Ctrl+C Ctrl+V - copy whole table
+Pressing X on search filter needs to clear immediately
+Remove 0s from display
+Save all ratings for easy export
+Equip best should equip pets and weapons
+Add new events to hash - maybe change hashes then too
+
+Make sure dropdowns prioritize properly
+
+Limit quality based on character level
+
+
+
+Add in + for formulas?
+BestFor, Name, Type Set, Quality, Upgrades, Max Upgrades, 10 stats, 4 resists, Location, App, Hermit, DMG, TRange, THP, AB2 DPS, AB1 DPS, Gunwitch, AB1, HHP
+
+Set Bonus
+Upgrades Unused
+Ups need for Res
+Res fix (can't res)
+Bad res (off by a few)
+show nothing for -0-
+average armor values
 
 UI
 * Highlight Best -> remove
@@ -82,3 +99,11 @@ NOTES:
 212: Tinkerer's Workshop Secret DU increase
 500 : Used to only look at the best time for saves once (nm -> ruthless conversion)
 2019-2020 : Ruthless TBR
+
+
+(DONE) Extra equipment slot needs to be tested / work.  
+(DONE) * Tool tip => “Stars show how good this item is at what it does best. Weak stats don’t lower the rating.”
+(DONE) Clear equipment button?
+(DONE) test Don't allow upgrades on stats that are 0
+(DONE) Fix Extra slots - shield doesn't show up
+(DONE) Mint green color!

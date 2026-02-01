@@ -7,7 +7,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1 >Dungeon Defenders Gear Optimizer</h1>        
-        <div class="build"><i>Jan 30 2026 - Version 1.5b</i></div>    
+        <div class="build"><i>Jan 31 2026 - Version 1.5d</i></div>    
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -98,6 +98,9 @@
                         <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="OpenFileDialog">
                             <span>Load new</span>
                         </button>
+                        <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="CopyAllToClipboard">
+                            <span>Export to Clipboard</span>
+                        </button>
                     </div>
                 </div>
             }       
@@ -109,7 +112,8 @@
         <div class="credits">            
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
             <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>            
-            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Favon, Scryllix, Shiro, Sesar, SteveTrevor, Tbolt, and Thales</i></div>            
+            <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Favon, Renim, Scryllix, Shiro,</i></div>
+            <div class="credits-thanks"><span style="margin-left:110px;"></span><i>Sesar, SteveTrevor, Tbolt, Thales, and Theoran</i></div>
         </div>
 
     <h3 class="links-title">Quick Links</h3>
@@ -1336,7 +1340,7 @@
     private Task HandleEquipClear()
     {
         ClearAllSelections();
-                
+
         return Task.CompletedTask;
     }
 
@@ -1740,7 +1744,7 @@
         int value = _showUpgradedStats ?
             (r.UpgradedResists[0] + r.UpgradedResists[1] + r.UpgradedResists[2] + r.UpgradedResists[3]) / 4 :
             (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4;
-        
+
         if (_assumeSetBonuses)
         {
             value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
@@ -1757,7 +1761,7 @@
         {
             value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
         }        
-       
+
         string s = value.ToString();
 
         if ( ((r.Quality == "Ult++") && IsCensorEnabled) ||
@@ -2126,16 +2130,16 @@
                 nameof(ItemViewRow.Level)    => Cmp(a.Level, b.Level),
                 nameof(ItemViewRow.MaxLevel) => Cmp(a.MaxLevel, b.MaxLevel),
 
-               nameof(DDStat.HeroHealth) => Cmp(a.Stats[(int)DDStat.HeroHealth], b.Stats[(int)DDStat.HeroHealth]),
-               nameof(DDStat.HeroDamage) => Cmp(a.Stats[(int)DDStat.HeroDamage], b.Stats[(int)DDStat.HeroDamage]),
-               nameof(DDStat.HeroSpeed) => Cmp(a.Stats[(int)DDStat.HeroSpeed], b.Stats[(int)DDStat.HeroSpeed]),
-               nameof(DDStat.HeroCastRate)  => Cmp(a.Stats[(int)DDStat.HeroCastRate], b.Stats[(int)DDStat.HeroCastRate]),
-               nameof(DDStat.HeroAbility1)   => Cmp(a.Stats[(int)DDStat.HeroAbility1], b.Stats[(int)DDStat.HeroAbility1]),
-               nameof(DDStat.HeroAbility2)   => Cmp(a.Stats[(int)DDStat.HeroAbility2], b.Stats[(int)DDStat.HeroAbility2]),
-               nameof(DDStat.TowerHealth)   => Cmp(a.Stats[(int)DDStat.TowerHealth], b.Stats[(int)DDStat.TowerHealth]),
-               nameof(DDStat.TowerDamage)  => Cmp(a.Stats[(int)DDStat.TowerDamage], b.Stats[(int)DDStat.TowerDamage]),
-               nameof(DDStat.TowerRange) => Cmp(a.Stats[(int)DDStat.TowerRange], b.Stats[(int)DDStat.TowerRange]),
-               nameof(DDStat.TowerRate) => Cmp(a.Stats[(int)DDStat.TowerRate], b.Stats[(int)DDStat.TowerRate]),
+                nameof(DDStat.HeroHealth) => Cmp(a.Stats[(int)DDStat.HeroHealth], b.Stats[(int)DDStat.HeroHealth]),
+                nameof(DDStat.HeroDamage) => Cmp(a.Stats[(int)DDStat.HeroDamage], b.Stats[(int)DDStat.HeroDamage]),
+                nameof(DDStat.HeroSpeed) => Cmp(a.Stats[(int)DDStat.HeroSpeed], b.Stats[(int)DDStat.HeroSpeed]),
+                nameof(DDStat.HeroCastRate)  => Cmp(a.Stats[(int)DDStat.HeroCastRate], b.Stats[(int)DDStat.HeroCastRate]),
+                nameof(DDStat.HeroAbility1)   => Cmp(a.Stats[(int)DDStat.HeroAbility1], b.Stats[(int)DDStat.HeroAbility1]),
+                nameof(DDStat.HeroAbility2)   => Cmp(a.Stats[(int)DDStat.HeroAbility2], b.Stats[(int)DDStat.HeroAbility2]),
+                nameof(DDStat.TowerHealth)   => Cmp(a.Stats[(int)DDStat.TowerHealth], b.Stats[(int)DDStat.TowerHealth]),
+                nameof(DDStat.TowerDamage)  => Cmp(a.Stats[(int)DDStat.TowerDamage], b.Stats[(int)DDStat.TowerDamage]),
+                nameof(DDStat.TowerRange) => Cmp(a.Stats[(int)DDStat.TowerRange], b.Stats[(int)DDStat.TowerRange]),
+                nameof(DDStat.TowerRate) => Cmp(a.Stats[(int)DDStat.TowerRate], b.Stats[(int)DDStat.TowerRate]),
 
                 nameof(DDStat.HeroResistance) => Cmp(a.Resists[0]+a.Resists[1]+a.Resists[2]+a.Resists[3], b.Resists[0]+b.Resists[1]+b.Resists[2]+b.Resists[3]),
 
@@ -2409,7 +2413,7 @@
     [JSInvokable]
     public async Task OnFileDropped(string fileName, byte[] bytes)
     {
-        
+
         StateHasChanged();
 
         try
@@ -2502,5 +2506,65 @@
             _status = "No file selected.";
             StateHasChanged();
         }
+    }
+
+
+    private async Task CopyAllToClipboard()
+    {
+        List<string> lines=  new();
+        int app = Ratings.GetRatingModeInfo("Builder App")?.ListIndex ?? 0;
+        int hermit = Ratings.GetRatingModeInfo("Builder Hermit")?.ListIndex ?? 0;
+        int dmg = Ratings.GetRatingModeInfo("Builder EV")?.ListIndex ?? 0;
+        int trange = Ratings.GetRatingModeInfo("Builder TRange")?.ListIndex ?? 0;
+        int thp = Ratings.GetRatingModeInfo("Builder Summoner")?.ListIndex ?? 0;
+        int ab2dps = Ratings.GetRatingModeInfo("DPS AB2")?.ListIndex ?? 0;
+        int ab1dps = Ratings.GetRatingModeInfo("DPS AB1")?.ListIndex ?? 0;
+        int gunwitch = Ratings.GetRatingModeInfo("Gunwitch")?.ListIndex ?? 0;
+        int ab1 = Ratings.GetRatingModeInfo("AB1 Only")?.ListIndex ?? 0;
+        int hhp = Ratings.GetRatingModeInfo("Guardian Summoner")?.ListIndex ?? 0;
+
+        lines.Add("BestFor\tName\tType\tSet\tQuality\tLevel\tMax Level\tHero Health\tHero Speed\tHero Damage\tHero Cast Rate\tAB1\tAB2\tTower Health\tTower Rate\tTower Damage\tTower Range\t" +
+        "Res Generic\tRes Poison\tRes Fire\tRes Electric\tLocation\tBuilder App\tBuilder Hermit\tBuilder EV\tBuilder TRange\tBuilder Summoner\tDPS AB2\tDPS AB1\tGunwitch\tAB1 Only\tGuardian Summoner\t" +
+        "Set Bonus\tUnusued Upgrades\tUps Needed for Res");
+
+        // use this order to match theoran's spreadsheets
+
+        foreach ( var r in _rows)
+        {
+            if (r.IsHidden)
+                continue;
+            string line = "";
+            line += $"{r.BestFor}\t{r.Name}\t{r.Type}\t{r.Set}\t{r.Quality}\t{r.Level}\t{r.MaxLevel}\t";
+            
+            for (int i = 0; i < 10; i++)
+            {
+                if (r.Stats[i+1] == 0)
+                    line += "\t";
+                else
+                    line += $"{r.Stats[i+1]}\t";
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                if ( r.Resists[i] == 0)
+                    line += "\t";
+                else
+                    line += $"{r.Resists[i]}\t";
+            }
+            string upgradesRequiredForResists = "";
+            if (r.IsArmor && r.UpgradesRequiredForResists == -1)
+                upgradesRequiredForResists = "Res Fix";
+            else if (r.IsArmor)
+                upgradesRequiredForResists = r.UpgradesRequiredForResists.ToString();
+
+            line += $"{r.Location}\t{r.CachedRatings[app]}\t{r.CachedRatings[hermit]}\t{r.CachedRatings[dmg]}\t{r.CachedRatings[trange]}\t{r.CachedRatings[thp]}\t" +
+                    $"{r.CachedRatings[ab2dps]}\t{r.CachedRatings[ab1dps]}\t{r.CachedRatings[gunwitch]}\t{r.CachedRatings[ab1]}\t{r.CachedRatings[hhp]}\t" +
+                    $"{r.SetBonus:F2}\t{r.MaxLevel - r.Level}\t{upgradesRequiredForResists}";
+            lines.Add(line);
+        }
+
+        var text = string.Join(Environment.NewLine, lines);
+
+        await JS.InvokeVoidAsync("copyToClipboard", text);
     }
 }
