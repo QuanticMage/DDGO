@@ -161,7 +161,7 @@
 				WeaponType = "Squire"
 			},
 			// ========= HUNTER ===========
-			["DunDefNewHeroes.HeroTemplateRanger"] = new HeroTemplateData
+			["DunDefNewHeroes.HeroTemplateHunter"] = new HeroTemplateData
 			{
 				Index = 6,
 				ClassName = "Ranger",

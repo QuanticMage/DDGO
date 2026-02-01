@@ -237,7 +237,7 @@
 
                 if (tpl is not null && !string.IsNullOrWhiteSpace(tpl.ClassIcon))
                     icons[className] = tpl.ClassIcon;
-            }
+            }            
 
             // New hero entries, ordered by template Index.
             foreach (var tpl in HeroTemplateData.Map.Values.OrderBy(t => t.Index).Take(15))
