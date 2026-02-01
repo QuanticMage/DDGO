@@ -502,13 +502,13 @@ namespace DDUP
 					if (bRequireResists && quadResists)
 					{
 						levelsLeft -= upgradesRequiredForResists;
+						vr.UpgradedResists[0] = Math.Max(vr.UpgradedResists[0], vr.ResistanceTarget);
+						vr.UpgradedResists[1] = Math.Max(vr.UpgradedResists[1], vr.ResistanceTarget);
+						vr.UpgradedResists[2] = Math.Max(vr.UpgradedResists[2], vr.ResistanceTarget);
+						vr.UpgradedResists[3] = Math.Max(vr.UpgradedResists[3], vr.ResistanceTarget);
+						bMaxedResists = true;
 					}
-					vr.UpgradedResists[0] = Math.Max(vr.UpgradedResists[0], vr.ResistanceTarget);
-					vr.UpgradedResists[1] = Math.Max(vr.UpgradedResists[1], vr.ResistanceTarget);
-					vr.UpgradedResists[2] = Math.Max(vr.UpgradedResists[2], vr.ResistanceTarget);
-					vr.UpgradedResists[3] = Math.Max(vr.UpgradedResists[3], vr.ResistanceTarget);
-					vr.UpgradesRequiredForResists = upgradesRequiredForResists;
-					bMaxedResists = true;
+					vr.UpgradesRequiredForResists = upgradesRequiredForResists;										
 				}
 				else
 					vr.UpgradesRequiredForResists = -1;
