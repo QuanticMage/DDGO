@@ -92,10 +92,18 @@
 
         public int[] ShownStat = new int[11];
         public int[] ShownResist = new int[4];
-        public bool ShowUpgraded = false;
-        public bool CensorUltPlusPlus = false;   
+        private bool ShowUpgraded = false;
+        private bool CensorUltPlusPlus = false;   
         private bool bHasArmorSetBonus = false;
-        
+
+        public void SetUIFlags(bool bShowUpgraded, bool bCensorUltPlusPlus )
+        {
+            ShowUpgraded = bShowUpgraded;
+            CensorUltPlusPlus = bCensorUltPlusPlus;
+            UpdateCharacterTotalStats();
+        }
+
+
         private const string DefaultHeroName = "Test Jester";
         private const string DefaultHeroClass = "Jester";
         private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();

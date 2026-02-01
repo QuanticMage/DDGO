@@ -210,6 +210,8 @@ namespace DDUP
 			}
 
 			string s = value.ToString();
+			if (s == "0")
+				return "";
 
 			if (((Quality == "Ult++") && censor) ||
 				(((Quality == "Ult++") || (Quality == "Ult+") || (Quality == "Ult90") || (Quality == "Ult93") || (Quality == "Supreme") || (Quality == "Transcendent"))

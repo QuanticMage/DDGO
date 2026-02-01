@@ -6,18 +6,17 @@ PRI
 * Equip/best equip for stats weapons
 * Update for new class / beta
 * Show maxlvls when hovering
-Ctrl+C Ctrl+V - copy whole table
+
 Pressing X on search filter needs to clear immediately
-Remove 0s from display
+
 Save all ratings for easy export
 Equip best should equip pets and weapons
 Add new events to hash - maybe change hashes then too
-Censor stats on hover in hero images.
-
-Make sure dropdowns prioritize properly
+Add in hover descriptions for the options
+Verify dropdowns prioritize properly
 
 Limit quality based on character level
-
+When using fully upgraded, the character gui doesn't update
 
 
 Add in + for formulas?
@@ -110,4 +109,6 @@ NOTES:
 (DONE) Mint green color!
 
 features for 1.6:
-(DONE) Export to Clipboard
+(DONE) Export to .csv
+(DONE) Censor stats on hover in hero images.
+(DONE) Remove 0s from display

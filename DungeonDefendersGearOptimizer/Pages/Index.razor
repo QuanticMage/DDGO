@@ -1622,8 +1622,7 @@
 
         if (_characterPanel != null)
         {
-            _characterPanel.ShowUpgraded = _showUpgradedStats;            
-            _characterPanel.CensorUltPlusPlus = _censor;
+            _characterPanel.SetUIFlags(_showUpgradedStats, _censor);            
         }
     }
 
@@ -2399,8 +2398,7 @@
             await InvokeAsync(StateHasChanged);
             if (_characterPanel != null)
             {
-                _characterPanel.ShowUpgraded = _showUpgradedStats;
-                _characterPanel.CensorUltPlusPlus = _censor;                
+                _characterPanel.SetUIFlags(_showUpgradedStats, _censor);
             }
             _characterPanel?.Reload(db.Heroes);
             ApplyChipFilters();
