@@ -9,8 +9,8 @@ PRI
 (DONE) Better stat styles
 (DONE) Limit quality based on character level	
 (DONE) Fix hover highlight- different color than selected?
+(DONE) Much better tooltips
 
-* Add in hover descriptions for the options
 * Add in + for formulas?
 
 * Custom filter => separate with commas, better space handling
@@ -24,7 +24,6 @@ PRI
 * Update for new class / beta
 * Equip best should equip pets and weapons
 * Add new events to hash - maybe change hashes then too
-
 
 if(int(GetEquipment().NameIndex_QualityDescriptor) >= int(19))
     if(((int(GetEquipment().NameIndex_QualityDescriptor) >= int(16)) && int(GetEquipment().EquipmentType) >= int(7)) && int(GetEquipment().EquipmentType) <= int(10))

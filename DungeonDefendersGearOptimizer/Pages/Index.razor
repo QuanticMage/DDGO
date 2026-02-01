@@ -145,15 +145,31 @@
     <div class="utility-row">
         <span class="utility-label"><font face="Arial">⚙️</font></span>
 
-        <label class="utility-toggle">
+       <label class="utility-toggle" data-tooltip=@Tips["Censor"]">
             <input type="checkbox"
                    class="tool-filter"
                    checked="@_censor"
                    @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
             <span>Censor Ult++</span>
         </label>
-    
-        <label class="utility-toggle">
+
+
+        <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]">
+            <input type="checkbox"
+                    class="tool-filter"
+                    checked="@_showUpgradedStats"
+                    @onchange="@((e) => { _showUpgradedStats = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Fully upgrade items</span>
+        </label>
+                <label class="utility-toggle" data-tooltip=@Tips["AssumeSetBonuses"]">
+            <input type="checkbox"
+                    class="tool-filter"
+                    checked="@_assumeSetBonuses"
+                    @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+            <span>Assume set bonuses</span>
+        </label>
+
+        <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]">
             <input type="checkbox"
                    class="tool-filter"
                    checked="@_livePrices"
@@ -161,28 +177,13 @@
             <span>Get Live Prices</span>
         </label>
 
-        <label class="utility-select">
+        <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]">
             <span>Itembox size</span>
             <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
                 <option value="5x3">5x3</option>
                 <option value="4x3">4x3</option>
                 <option value="6x4">6x4</option>
             </select>
-        </label>
-
-        <label class="utility-toggle">
-            <input type="checkbox"
-                class="tool-filter"
-                checked="@_showUpgradedStats"
-                @onchange="@((e) => { _showUpgradedStats= e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Fully upgrade items</span>
-        </label>
-        <label class="utility-toggle">
-            <input type="checkbox"
-                    class="tool-filter"
-                    checked="@_assumeSetBonuses"
-                    @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Assume set bonuses</span>
         </label>
     </div>
     <br/>
@@ -470,7 +471,7 @@
                     </th>
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                           <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroHealth)
                                 @onclick="() => ChangeImportance(DDStat.HeroHealth)">
                             <img src="@GetImportanceImage(DDStat.HeroHealth)" />
                         </button>
@@ -479,7 +480,7 @@
 
                         <th class="importance-cell">
                         <div class="th-center">
-                       <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroDamage)
                                 @onclick="() => ChangeImportance(DDStat.HeroDamage)">
                                 <img src="@GetImportanceImage(DDStat.HeroDamage)" />
                         </button>
@@ -487,7 +488,7 @@
                     </th>
                          <th class="importance-cell">
                         <div class="th-center">
-                   <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroSpeed)
                                 @onclick="() => ChangeImportance(DDStat.HeroSpeed)">
                                 <img  src="@GetImportanceImage(DDStat.HeroSpeed)" />
                         </button>
@@ -496,7 +497,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                            <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroCastRate)
                                 @onclick="() => ChangeImportance(DDStat.HeroCastRate)">
                                 <img  src="@GetImportanceImage(DDStat.HeroCastRate)" />
                             </button>
@@ -505,7 +506,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroAbility1)
                                 @onclick="() => ChangeImportance(DDStat.HeroAbility1)">
                                 <img  src="@GetImportanceImage(DDStat.HeroAbility1)" />
                         </button>
@@ -514,7 +515,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroAbility2)
                                 @onclick="() => ChangeImportance(DDStat.HeroAbility2)">
                                 <img  src="@GetImportanceImage(DDStat.HeroAbility2)" />
                         </button>
@@ -523,7 +524,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerHealth)
                                 @onclick="() => ChangeImportance(DDStat.TowerHealth)">
                                 <img  src="@GetImportanceImage(DDStat.TowerHealth)" />
                         </button>
@@ -532,7 +533,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerDamage)
                                 @onclick="() => ChangeImportance(DDStat.TowerDamage)">
                                 <img  src="@GetImportanceImage(DDStat.TowerDamage)" />
                         </button>
@@ -541,7 +542,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerRange)
                                 @onclick="() => ChangeImportance(DDStat.TowerRange)">
                                 <img  src="@GetImportanceImage(DDStat.TowerRange)" />
                         </button>
@@ -550,7 +551,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button" 
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerRate)
                                 @onclick="() => ChangeImportance(DDStat.TowerRate)">
                                 <img  src="@GetImportanceImage(DDStat.TowerRate)" />
                         </button>
@@ -562,7 +563,7 @@
 
                     <th class="importance-cell">
                         <div class="th-center">
-                        <button type="button"
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroResistance)
                                 @onclick="() => ChangeImportance(DDStat.HeroResistance)">
                                 <img  src="@GetImportanceImage(DDStat.HeroResistance)" />
                         </button>
@@ -1024,25 +1025,118 @@
 
     // ======= search filter ==========
     private string SearchHelp =
-            @"Search syntax
-    • Simple Usage (Direct search)
-        Dragon → Name must contain ""Dragon""
+    @"<div class='tt'>
+     <div class='tt-title'>Custom Filter</div>
+      <div class='tt-row'>
+        Filter with one or more constraints
+      </div>  
+      <div class='tt-row'>
+        <span class='k'>Text</span>
+        <span class='v'><code>Dragon</code> → Name contains 'Dragon'</span>
+      </div>
 
-    • Advanced Usage (Fields) 
-        Ab1>=500 → Ab1 is larger or equal to 500 (must not have spaces)
-        Location:ItemBox  → Location contains ""ItemBox""
-        -Best:Hermit → Exclude items that are best for hermit (dash negates)
+      <div class='tt-row'>
+        <span class='k'>Field</span>
+        <span class='v'><code>Location:ItemBox</code> → Location contains 'ItemBox'</span>
+      </div>
 
-    Fields
-    <i>THP, TDmg, TRate, TRange, HHP, HDmg, HRate, HSpeed,
-    Ab1, Ab2, ResG, ResP, ResF, ResL, Location, Quality, 
-    Rating, Sides, Lvl, MaxLvl, ResSum, ResAvg, Value, Name</i>";
+      <div class='tt-row'>
+        <span class='k'>Compare</span>
+        <span class='v'><code>Ab1&gt;=500</code> → Ability 1 is greater or equal to 500</span>
+      </div>
+
+      <div class='tt-row'>
+        <span class='k'>Exclude</span>
+        <span class='v'><code>-Best:Hermit</code> → negates term.  This means Best does NOT contain 'Hermit'</span>
+      </div>
+
+      <div class='tt-divider'></div>
+
+      <div class='tt-sub'>Operators</div>
+      <div class='tt-inline'>
+        <code>:</code> contains&nbsp;&nbsp
+    <code>=</code>
+    equals&nbsp;&nbsp;
+    <code>!=</code>
+    not equals&nbsp;&nbsp;
+    <code>&gt; &gt;= &lt; &lt;=</code>
+    compare&nbsp;&nbsp;
+    <code>-</code>
+    exclude
+      </div>
+
+      <div class='tt-sub'>Fields</div>
+      <div class='tt-fields'>
+        <code>THP</code><code>TDmg</code><code>TRate</code><code>TRange</code>
+        <code>HHP</code><code>HDmg</code><code>HRate</code><code>HSpeed</code>
+        <code>Ab1</code><code>Ab2</code>
+        <code>ResG</code><code>ResP</code><code>ResF</code><code>ResL</code>
+        <code>Location</code><code>Quality</code><code>Rating</code><code>Sides</code>
+        <code>Lvl</code><code>MaxLvl</code><code>ResSum</code><code>ResAvg</code>
+        <code>Value</code><code>Name</code>
+      </div>
+
+      <div class='tt-note'>No spaces around operators.</div>
+        <div class='tt-note'>Enclose strings in &quot;double quotes&quot; to compare with spaces</div> 
+    <style>
+        .tt, .tt * {white-space: normal !important; }
+        .tt{
+    max-width: 420px;
+    padding: 10px 10px 8px;
+    border-radius: 10px;
+    background: rgba(15,18,26,.98);
+    color: #e9ecf1;
+    font: 12px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .tt-title{ font-weight: 650; font-size: 13px; margin-bottom: 6px; }
+  .tt-row{ display:flex; gap:8px; margin: 3px 0; }
+  .k{
+    width: 54px;
+    flex: 0 0 54px;
+    color: rgba(233,236,241,.65);
+  }
+  .v{ flex: 1; }
+  code{
+    font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+    font-size: 11px;
+    color: #dbe6ff;
+    background: rgba(255,255,255,.05);
+    padding: 1px 4px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .tt-divider{
+    height: 1px;
+    background: rgba(255,255,255,.10);
+    margin: 7px 0;
+  }
+  .tt-sub{
+    margin-top: 6px;
+    margin-bottom: 4px;
+    color: rgba(233,236,241,.65);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: 10px;
+  }
+  .tt-inline{ color: rgba(233,236,241,.9); }
+  .tt-fields{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tt-note{
+    margin-top: 6px;
+    color: rgba(233,236,241,.65);
+    font-size: 11px;
+  }</style>"
+    ;
 
     private string[] ValidTags =
  {
-    "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides",
+    "name", "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides",
     "thp", "tdmg", "trate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",
-    "ressum", "resavg", "resg", "resp", "resf", "resl", "name"
+    "ressum", "resavg", "resg", "resp", "resf", "resl",
 };
 
     static string[] Tokenize(string input)
@@ -1694,9 +1788,14 @@
 
     private static readonly Dictionary<string, string> Tips = new()
     {  
-        ["Rating"] =    "Rating for the given selected\n stats.  Small number is sides.",
-        ["Value"] =     "Stars show how good this item is at what it does best,\ncompared to the rest of your equipment.\nCV is estimated trade value.",
-        ["Location"] =  "Location (and page) of item when sorting by Level."
+        ["Rating"] =        "Rating is the sum of important stats,\naffected by upgrades, required resists,\nand set bonuses.\nSmall number is sides.",
+        ["Value"] =         "Stars show how good this item is at what it does best,\ncompared to the rest of your equipment.\nCV is estimated trade value.",
+        ["Location"] =      "Location (and page) of item\nwhen sorting by Level.",
+        ["Censor"] =        "Censors Ult++ and other special items\nfor sharing screenshots on DDRnG.",
+        ["ShowUpgraded"] = "Shows items as if fully upgraded\naccording to current priority.",
+        ["AssumeSetBonuses"] = "Shows items as if they have\na set bonus in the table.",
+        ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
+        ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -2089,10 +2188,24 @@
         {
             _RatingStatsPriority.Add(stat);
         }
-      
+
         RecalculateRatings();
 
     }
+
+    private string ImportanceTooltip( DDStat stat )
+    {
+        if (_RatingStatsPriority.Contains(stat) || ((stat == DDStat.HeroResistance) && _bRequireResists))
+        {
+            return "Stat is important and added to Rating.\nClick to change.";
+        }
+        else if (_SidesStatsPriority.Contains(stat))
+        {
+            return "Stat is a side and shown next to \nRating, but not added in.\nClick to change.";
+        }
+        return "Stat is unimportant.\nClick to change.";
+    }
+
 
     private string GetImportanceImage( DDStat stat )
     {       

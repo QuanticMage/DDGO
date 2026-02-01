@@ -43,11 +43,11 @@
          src="@SelectedHeroIconUrl"
          alt="Selected hero" />
     <div class="hero-actions">
-        <button type="button" class="btn" @onclick ="SelectFromDunClicked">Equip from File</button>
-        <button type="button" class="btn" @onclick ="SelectBestClicked">Equip Best</button>
-        <button type="button" class="btn" @onclick="ClearClicked">Clear</button>
+        <button type="button" class="btn" @onclick ="SelectFromDunClicked" data-tooltip="Wear in-game equipment">Equip from File</button>
+        <button type="button" class="btn" @onclick ="SelectBestClicked" data-tooltip="Wear best armor set and accessories, chosen from filtered item list"> Best</button>
+        <button type="button" class="btn" @onclick="ClearClicked" data-tooltip="Remove all equipment">Clear</button>
     </div>
-    <div style="position: absolute; left:150px; top:60px; ">
+    <div style="position: absolute; left:150px; top:60px;"  data-tooltip="Click to choose hero">
         
         <RadioSelect Items="@HeroChoices"
                      Value="@SelectedHero"
@@ -58,7 +58,7 @@
                      DefaultIconUrl="png/empty.png" />
     </div>
 
-    <div style="position: absolute; left:310px; top:60px; ">
+    <div style="position: absolute; left:310px; top:60px; " data-tooltip="Click to choose archetype for Ratings">
 
         <RadioSelect Items="@(Ratings.RatingModes.Select(row => $"{row.Name} ({row.Name})").ToList())"
                      Value="@SelectedRatingMode"

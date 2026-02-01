@@ -24,103 +24,134 @@
     <script src="_framework/blazor.webassembly.js"></script>
 
     <script>
-        window.setupGlobalTooltips = (dotNetHelper) => {
-            let helpKeyDown = false;
-            let hoveredTarget = null;
-            let lastTooltipText = null;   //  track current tooltip text
-            let copiedThisPress = false;  //  avoid repeat copies while holding H
+		window.setupGlobalTooltips = (dotNetHelper) => {
+			// Prevent double-registration if called multiple times (e.g., Blazor reconnects)
+			if (window.__globalTooltipsInstalled) return;
+			window.__globalTooltipsInstalled = true;
 
-            const hasNormal = (el) => el?.hasAttribute("data-tooltip");
-            const hasHelp = (el) => el?.hasAttribute("h-tooltip");
+			let helpKeyDown = false;
+			let hoveredTarget = null;
 
-            const getActiveTooltipText = (el) => {
-                if (!el) return null;
+			// Delay handling
+			let showTimer = null;
+			const TOOLTIP_DELAY = 250;
 
-                if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
-                if (hasNormal(el)) return el.getAttribute("data-tooltip");
-                if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
+			const hasNormal = (el) => el?.hasAttribute("data-tooltip");
+			const hasHelp = (el) => el?.hasAttribute("h-tooltip");
 
-                return null;
-            };
+			const getActiveTooltipText = (el) => {
+				if (!el) return null;
 
-            const showFor = (el) => {
-                const text = getActiveTooltipText(el);
-                if (!text) return;
+				// Help tooltip has priority only while holding H
+				if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
 
-                lastTooltipText = text; //  remember it
+				// Otherwise normal tooltip if present
+				if (hasNormal(el)) return el.getAttribute("data-tooltip");
 
-                const rect = el.getBoundingClientRect();
-                dotNetHelper.invokeMethodAsync(
-                    "ShowGlobalTooltip",
-                    text,
-                    rect.left + rect.width / 2,
-                    rect.top,
-                    window.innerWidth
-                );
-            };
+				return null;
+			};
 
+			const showNow = (el) => {
+				const text = getActiveTooltipText(el);
+				if (!text) return;
 
-            const hide = () => {
-                lastTooltipText = null;
-                dotNetHelper.invokeMethodAsync("HideGlobalTooltip");
-            };
+				const rect = el.getBoundingClientRect();
+				dotNetHelper.invokeMethodAsync(
+					"ShowGlobalTooltip",
+					text,
+					rect.left + rect.width / 2,
+					rect.top,
+					window.innerWidth
+				);
+			};
 
-            document.addEventListener("mouseover", (e) => {
-                const el = e.target.closest("[data-tooltip],[h-tooltip]");
-                if (!el) return;
+			const queueShow = (el) => {
+				clearTimeout(showTimer);
+				showTimer = setTimeout(() => {
+					// Only show if we're still hovering the same element
+					if (hoveredTarget !== el) return;
+					showNow(el);
+				}, TOOLTIP_DELAY);
+			};
 
-                hoveredTarget = el;
-                showFor(el);
-            }, true);
+			const hide = () => {
+				clearTimeout(showTimer);
+				showTimer = null;
+				dotNetHelper.invokeMethodAsync("HideGlobalTooltip");
+			};
 
-            document.addEventListener("mouseout", (e) => {
-                const from = e.target.closest("[data-tooltip],[h-tooltip]");
-                if (!from) return;
+			document.addEventListener(
+				"mouseover",
+				(e) => {
+					const el = e.target.closest("[data-tooltip],[h-tooltip]");
+					if (!el) return;
 
-                if (hoveredTarget && e.relatedTarget && hoveredTarget.contains(e.relatedTarget))
-                    return;
+					hoveredTarget = el;
+					queueShow(el);
+				},
+				true
+			);
 
-                hoveredTarget = null;
-                hide();
-            }, true);
+			document.addEventListener(
+				"mouseout",
+				(e) => {
+					const from = e.target.closest("[data-tooltip],[h-tooltip]");
+					if (!from) return;
 
-            window.addEventListener("keydown", async (e) => {
-                if (e.key !== "h" && e.key !== "H") return;
-                if (helpKeyDown) return;
+					// If still inside the same element, ignore
+					if (e.relatedTarget && from.contains(e.relatedTarget)) return;
 
-                helpKeyDown = true;
-                copiedThisPress = false;
+					if (hoveredTarget === from) hoveredTarget = null;
+					hide(); // hide immediately (no delay)
+				},
+				true
+			);
 
-                if (hoveredTarget && hasHelp(hoveredTarget)) {
-                    showFor(hoveredTarget);
-                }
+			window.addEventListener(
+				"keydown",
+				async (e) => {
+					if (e.key !== "h" && e.key !== "H") return;
+					if (helpKeyDown) return; // ignore repeat while holding
 
-                // COPY TO CLIPBOARD ON H PRESS
-                if (lastTooltipText && !copiedThisPress) {
-                    try {
-                        await navigator.clipboard.writeText(lastTooltipText);
-                        copiedThisPress = true;
-                    } catch {
-                        // ignore clipboard failures silently
-                    }
-                }
-            }, true);
+					helpKeyDown = true;
 
-            window.addEventListener("keyup", (e) => {
-                if (e.key !== "h" && e.key !== "H") return;
+					// When entering help mode, show immediately (no delay)
+					clearTimeout(showTimer);
+					if (hoveredTarget) showNow(hoveredTarget);
 
-                helpKeyDown = false;
-                copiedThisPress = false;
+					// Copy CURRENT active tooltip text (not cached)
+					const textToCopy = getActiveTooltipText(hoveredTarget);
+					if (!textToCopy) return;
 
-                if (hoveredTarget) {
-                    const text = getActiveTooltipText(hoveredTarget);
-                    if (text) showFor(hoveredTarget);
-                    else hide();
-                } else {
-                    hide();
-                }
-            }, true);
-        };
+					try {
+						await navigator.clipboard.writeText(textToCopy);
+					} catch {
+						// ignore clipboard failures silently
+					}
+				},
+				true
+			);
+
+			window.addEventListener(
+				"keyup",
+				(e) => {
+					if (e.key !== "h" && e.key !== "H") return;
+
+					helpKeyDown = false;
+
+					// After releasing H, revert tooltip based on normal rules
+					if (hoveredTarget) {
+						const text = getActiveTooltipText(hoveredTarget);
+						if (text) queueShow(hoveredTarget);
+						else hide();
+					} else {
+						hide();
+					}
+				},
+				true
+			);
+		};
+
 
         window.appState = {
             get: (key) => localStorage.getItem(key),

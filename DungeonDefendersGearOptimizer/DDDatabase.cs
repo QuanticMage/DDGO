@@ -237,7 +237,7 @@ public class DDEquipmentInfo
 				if (Stats[0] > 0)
 					name += $" ({1 + (this.Stats[0]) / 16})";
 			}
-			
+
 			bool bIsEligibleForBest =
 				(this.Type == "Boots") ||
 				(this.Type == "Helmet") ||
