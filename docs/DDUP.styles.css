@@ -1136,12 +1136,13 @@ th.importance-cell[b-yrayc6w7vb] {
     /* remove the “mystery indent” */
     padding-left: 6px; /* or 4px, but avoid “alignment by vibes” */
     margin-top: 2px;
-    max-width: 640px;   
+    max-width: 800px;   
     width: fit-content;
 }
 
 /* Make the "Search" pill behave like .fg-btn */
 .filter-search-label[b-yrayc6w7vb] {
+    flex: 0 0 auto;
     min-height: 30px;
     padding: 1px 12px;
     border-radius: 999px;
@@ -1165,10 +1166,28 @@ th.importance-cell[b-yrayc6w7vb] {
     align-items: center;
     flex: 1 1 auto;
     min-width: 260px; /* keeps it from looking stubby */
-    max-width: 620px; /* prevents “runway input” */
+    max-width: 800px; /* prevents “runway input” */    
 }
 
-
+.filter-error[b-yrayc6w7vb] {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 2px 8px;
+    height: 22px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .15px;
+    white-space: nowrap;
+    color: rgba(140,55,55,.9);
+    border: 1px solid rgba(170,90,90,.28);
+    background: linear-gradient( to bottom, rgba(255,140,140,.12), rgba(255,140,140,.05) );
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 1px 2px rgba(0,0,0,.06);
+}
+.filter-error:empty[b-yrayc6w7vb] {
+    display: none;
+}
 
 .filters-groups[b-yrayc6w7vb] {
     display: flex;
@@ -2227,7 +2246,9 @@ live-btn[b-yrayc6w7vb] {
 }
 
 .help-icon[b-yrayc6w7vb] {
+    flex: 0 0 auto;
     width: 30px;
+    max-width:30px;
     height: 26px;
     display: inline-flex;
     align-items: center;
