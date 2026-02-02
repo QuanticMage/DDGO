@@ -2601,12 +2601,12 @@ live-btn[b-yrayc6w7vb] {
 
 /* Shrink the primary rating number */
 .compact-table .rating-primary[b-yrayc6w7vb] {
-    font-size: 16px;
+    font-size: 20px;
 }
 
 /* Shrink the Stat Numbers */
 table.grid.compact-table td.num[b-yrayc6w7vb] {
-    font-size: 15px;
+    font-size: 18px;
 }
 
 
@@ -2616,7 +2616,7 @@ table.grid.compact-table .atlas-icon[b-yrayc6w7vb] {
 }
 table.grid.compact-table td.cell-name[b-yrayc6w7vb]
 {
-    font-size:16px;
+    font-size:18px;
     font-weight: 400;
 }
 /* /RadioSelect.razor.rz.scp.css */

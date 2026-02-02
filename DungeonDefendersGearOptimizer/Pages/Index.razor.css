@@ -1962,12 +1962,12 @@ live-btn {
 
 /* Shrink the primary rating number */
 .compact-table .rating-primary {
-    font-size: 16px;
+    font-size: 20px;
 }
 
 /* Shrink the Stat Numbers */
 table.grid.compact-table td.num {
-    font-size: 15px;
+    font-size: 18px;
 }
 
 
@@ -1977,6 +1977,6 @@ table.grid.compact-table .atlas-icon {
 }
 table.grid.compact-table td.cell-name
 {
-    font-size:16px;
+    font-size:18px;
     font-weight: 400;
 }
