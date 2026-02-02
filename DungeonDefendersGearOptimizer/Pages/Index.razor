@@ -8,8 +8,8 @@
 
 <div class="top-pane">
     <div class="left-pane">
-        <h1 >Dungeon Defenders Gear Optimizer</h1>        
-        <div class="build"><i>Feb 1 2026 - Version 1.6</i></div>    
+        <h1>Dungeon Defenders Gear Optimizer</h1>
+        <div class="build"><i>Feb 1 2026 - Version 1.6b</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -70,10 +70,11 @@
                     </div>
                 </div>
             }
-            else  @* ============== LOADED FILE TILE ============== *@          
+            else
+  @* ============== LOADED FILE TILE ============== *@          
             {
                 <div class="dz2-card-loaded">
-                    <div class="dz2-filename">@_loadedFileName</div>                                                                    
+                    <div class="dz2-filename">@_loadedFileName</div>
                     @* status *@
                     @if (_isLoading)
                     {
@@ -87,7 +88,7 @@
                     {
                         <div class="status">@_status</div>
                         @_status2
-                    }                                          
+                    }
                     <div class="dz2-actions">
                         @if (_canLoadLast)
                         {
@@ -105,727 +106,858 @@
                         </button>
                     </div>
                 </div>
-            }       
+            }
         </div>
     </div>
 
-     @* ============== CREDITS AND LINK PANE ============== *@     
+    @* ============== CREDITS AND LINK PANE ============== *@     
     <aside class="info-pane">
-        <div class="credits">            
+        <div class="credits">
             <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
-            <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>            
+            <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>
             <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Favon, Renim, Scryllix, Shiro,</i></div>
             <div class="credits-thanks"><span style="margin-left:110px;"></span><i>Sesar, SteveTrevor, Tbolt, Thales, and Theoran</i></div>
         </div>
 
-    <h3 class="links-title">Quick Links</h3>
-    <ul class="link-list">
-        <li><a href="https://dungeondefenders.wiki.gg" rel="noopener">Dungeon Defender's Wiki</a></li>
-        <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2968079729" rel="noopener">Chiku’s Guide</a></li>
-        <li><a href="https://docs.google.com/spreadsheets/d/11v0h3LLUDYEkTxvkLVWUzYv8wXvjZ1cPTJJ-o1QqVDM/edit?gid=1598543540#gid=1598543540" rel="noopener">Best-in-Slot Doc</a></li>
-        <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>           
-        <li><a href="https://docs.google.com/spreadsheets/d/1XzYuWB4I9RoNe8x-DD2M1koWs72tW8sTgyQ_n-d7l-E/edit?pli=1&gid=2059687993#gid=2059687993" rel="noopener">Event price sheet</a></li>
-    </ul>    
+        <h3 class="links-title">Quick Links</h3>
+        <ul class="link-list">
+            <li><a href="https://dungeondefenders.wiki.gg" rel="noopener">Dungeon Defender's Wiki</a></li>
+            <li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2968079729" rel="noopener">Chiku’s Guide</a></li>
+            <li><a href="https://docs.google.com/spreadsheets/d/11v0h3LLUDYEkTxvkLVWUzYv8wXvjZ1cPTJJ-o1QqVDM/edit?gid=1598543540#gid=1598543540" rel="noopener">Best-in-Slot Doc</a></li>
+            <li><a href="https://www.dundefplanner.com" target="_blank" rel="noopener">DunDefPlanner for sharing layouts</a></li>
+            <li><a href="https://docs.google.com/spreadsheets/d/1XzYuWB4I9RoNe8x-DD2M1koWs72tW8sTgyQ_n-d7l-E/edit?pli=1&gid=2059687993#gid=2059687993" rel="noopener">Event price sheet</a></li>
+        </ul>
     </aside>
 </div>
 
 @if (@_showContent)
 {
-<div class="middle-pane">    
-    <div class="middle-left">
-       <CharacterPanel @ref="_characterPanel"
-            
-            OnEquipFromFile="HandleEquipFromFile"
-            OnEquipBest="HandleEquipBest"
-            OnEquipClear="HandleEquipClear"
-            OnClickEquipment="HandleEquipmentClick"
-            OnChangedRatingMode="HandleChangedRatingMode"
-            OnChangedHero="HandleChangedHero"/>
-    </div>
+    <div class="middle-pane">
+        <div class="middle-left">
+            <CharacterPanel @ref="_characterPanel"
+                            OnEquipFromFile="HandleEquipFromFile"
+                            OnEquipBest="HandleEquipBest"
+                            OnEquipClear="HandleEquipClear"
+                            OnClickEquipment="HandleEquipmentClick"
+                            OnChangedRatingMode="HandleChangedRatingMode"
+                            OnChangedHero="HandleChangedHero" />
+        </div>
 
-    <div class="middle-right">    
-    <div class="utility-row">
-        <span class="utility-label"><font face="Arial">⚙️</font></span>
+        <div class="middle-right">
+            <div class="utility-row">
+                <span class="utility-label"><font face="Arial">⚙️</font></span>
 
-       <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
-            <input type="checkbox"
-                   class="tool-filter"
-                   checked="@_censor"
-                   @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Censor Ult++</span>
-        </label>
+                <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_censor"
+                           @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
+                    <span>Censor Ult++</span>
+                </label>
 
 
-        <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]>
-            <input type="checkbox"
-                    class="tool-filter"
-                    checked="@_showUpgradedStats"
-                    @onchange="@((e) => { _showUpgradedStats = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Fully upgrade items</span>
-        </label>
+                <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_showUpgradedStats"
+                           @onchange="@((e) => { _showUpgradedStats = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+                    <span>Fully upgrade items</span>
+                </label>
                 <label class="utility-toggle" data-tooltip=@Tips["AssumeSetBonuses"]>
-            <input type="checkbox"
-                    class="tool-filter"
-                    checked="@_assumeSetBonuses"
-                    @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
-            <span>Assume set bonuses</span>
-        </label>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_assumeSetBonuses"
+                           @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
+                    <span>Assume set bonuses</span>
+                </label>
 
-        <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
-            <input type="checkbox"
-                   class="tool-filter"
-                   checked="@_livePrices"
-                   @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
-            <span>Get Live Prices</span>
-        </label>
+                <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_livePrices"
+                           @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
+                    <span>Get Live Prices</span>
+                </label>
 
-        <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]>
-            <span>Itembox size</span>
-            <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
-                <option value="5x3">5x3</option>
-                <option value="4x3">4x3</option>
-                <option value="6x4">6x4</option>
-            </select>
-        </label>
-    </div>
-    <br/>
-    
-    <div class="filters-menu-header">
-        Filters
-    </div>
-    <div class="filters-column">
-        <FilterChips Title="Type" Theme="type"
-                     Options="_typeOptions"
-                     Placeholder="Any"
-                     ShowNoneAll="true"
-                     MenuMaxHeightPx="520"
-                     @bind-Selected="SelectedTypes"
-                     Presets="@(new[]
-                     {
-                         new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),       
-                     })"  />       
+                <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]>
+                    <span>Itembox size</span>
+                    <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
+                        <option value="5x3">5x3</option>
+                        <option value="4x3">4x3</option>
+                        <option value="6x4">6x4</option>
+                    </select>
+                </label>
+            </div>
+            <br />
 
-        <FilterChips Title="Set" Theme="set"
-                     Options="_setOptions"
-                     Placeholder="Any"
-                     ShowNoneAll="true"
-                     MenuMaxHeightPx="520"
-                     @bind-Selected="SelectedSets"    
-                     Presets="@(new[]
-                     {
-                         new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),       
-                         new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),       
-                     })"  />       
+            <div class="filters-menu-header">
+                Filters
+            </div>
+            <div class="filters-column">
+                <FilterChips Title="Type" Theme="type"
+                             Options="_typeOptions"
+                             Placeholder="Any"
+                             ShowNoneAll="true"
+                             MenuMaxHeightPx="520"
+                             @bind-Selected="SelectedTypes"
+                             Presets="@(new[]
+                                                  {
+                                                  new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),
+                                              })" />
 
-        <FilterChips Title="Other" Theme="other"
-                        Options="_otherOptions"
-                        Placeholder="None"
-                        @bind-Selected="SelectedOther" />
-            <div class="filter-search-row">
-                <div class="filter-search-label">
-                    Custom
-                </div>
+            <FilterChips Title="Set" Theme="set"
+                         Options="_setOptions"
+                         Placeholder="Any"
+                         ShowNoneAll="true"
+                         MenuMaxHeightPx="520"
+                         @bind-Selected="SelectedSets"
+                         Presets="@(new[]
+                                              {
+                                                  new FilterChips.Preset("Armor", new [] { "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"}),
+                                                  new FilterChips.Preset("Weapons", new [] { "Squire", "Apprentice", "Monk", "Huntress"}),
+                                              })" />
 
-                <div class="filter-search-control">
-            
-                    <SearchBar ValueChanged="ApplySearch"/>
-                    <button type="button"
-                            class="help-icon"
-                            aria-label="Search help"
-                            data-tooltip="@SearchHelp">
-                    ?
-                    </button>
+            <FilterChips Title="Other" Theme="other"
+                         Options="_otherOptions"
+                         Placeholder="None"
+                         @bind-Selected="SelectedOther" />
+            @if (_showFilterHelp)
+                {
+                    <div class="tooltip-backdrop" @onclick="CloseFilterHelp"></div>
+                }
+
+                <div class="filter-search-row">
+                    <div class="filter-history" @onclick:stopPropagation="true">
+                        <button type="button"
+                                class="filter-search-label"
+                                aria-haspopup="true"
+                                aria-expanded="@_searchHistoryOpen"
+                                @onclick="ToggleSearchHistory">
+                            Custom <span class="fg-caret" aria-hidden="true">▾</span>
+                        </button>
+
+                        @if (_searchHistoryOpen)
+                        {
+                            <div class="fg-backdrop" @onclick="CloseSearchHistory"></div>
+
+                            <div class="fg-menu"
+                                 style="--menuMaxHeight:320px;"
+                                 @onclick:stopPropagation="true">
+                                <div class="fg-menu-header">
+                                    <div class="fg-menu-title">Recent</div>
+                                    <div class="fg-menu-actions">
+                                        <button type="button" class="fg-action" @onclick="ClearSearchHistoryAsync">Clear</button>
+                                    </div>
+                                </div>
+
+                                @if (_searchHistory.Count == 0)
+                                {
+                                    <div class="fg-placeholder">No recent searches</div>
+                                }
+                                else
+                                {
+                                    @foreach (var item in _searchHistory)
+                                    {
+                                        <button type="button"
+                                                class="fg-menuitem"
+                                                @onclick="() => ApplySearchHistory(item)">
+                                            @item
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="filter-search-control" @onclick:stopPropagation="true">
+
+                        <SearchBar Value="@_searchText" ValueChanged="ApplySearch" />
+
+                        <span class="help-wrap">
+                            <button type="button"
+                                    class="help-icon @(_showFilterHelp ? "toggled" : "")"
+                                    aria-label="Search help"
+                                    aria-expanded="@_showFilterHelp"
+                                    aria-controls="custom-filter-tooltip"
+                                    @onclick="ToggleFilterHelp">
+                                ?
+                            </button>
+
+                            @if (_showFilterHelp)
+                            {
+                                <div id="custom-filter-tooltip"
+                                     class="tt"
+                                     role="tooltip"
+                                     @onclick:stopPropagation="true">
+                                    <div class="tt-title">Custom Filter</div>
+                                    <div class="tt-row">
+                                        Filter with one or more constraints (you can combine terms and expressions)
+                                    </div>
+
+                                    <div class="tt-divider"></div>
+
+                                    <div class="tt-sub">Examples</div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Text</span>
+                                        <span class="v"><code>Dragon</code> → Name contains 'Dragon'</span>
+                                    </div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Field</span>
+                                        <span class="v"><code>Location:ItemBox</code> → Location contains 'ItemBox'</span>
+                                    </div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Compare</span>
+                                        <span class="v"><code>Ab1&gt;=500</code> → Ability 1 is greater or equal to 500</span>
+                                    </div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Math</span>
+                                        <span class="v"><code>(TDmg+TRate)&gt;=1000</code> → supports arithmetic</span>
+                                    </div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Logic</span>
+                                        <span class="v"><code>Quality=ult++ and (Sides&gt;500 or Rating&gt;1000)</code></span>
+                                    </div>
+
+                                    <div class="tt-row">
+                                        <span class="k">Exclude</span>
+                                        <span class="v"><code>Best!:Hermit</code> → Best does NOT contain 'Hermit'</span>
+                                    </div>
+
+                                    <div class="tt-divider"></div>
+
+                                    <div class="tt-sub">Operators</div>
+                                    <div class="tt-inline">
+                                        <code>:</code> contains&nbsp;&nbsp;
+                                        <code>=</code> equals&nbsp;&nbsp;
+                                        <code>!=</code> not equals&nbsp;&nbsp;
+                                        <code>&gt; &gt;= &lt; &lt;=</code> compare&nbsp;&nbsp;
+                                        <code>!:</code> does not contain
+                                    </div>
+                                    <div class="tt-inline" style="margin-top:4px;">
+                                        <code>( )</code> group&nbsp;&nbsp;
+                                        <code>+</code> add&nbsp;&nbsp;
+                                        <code>-</code> subtract&nbsp;&nbsp;
+                                        <code>*</code> multiply&nbsp;&nbsp;
+                                        <code>/</code> divide&nbsp;&nbsp;
+                                        <code>!</code> boolean not&nbsp;&nbsp;
+                                        <code>and</code>&nbsp;&nbsp;
+                                        <code>or</code>&nbsp;&nbsp;
+                                        <code>not</code>&nbsp;&nbsp;
+                                    </div>
+
+                                    <div class="tt-sub">Fields</div>
+                                    <div class="tt-fields">
+                                        <code>THP</code><code>TDmg</code><code>TRate</code><code>TRange</code>
+                                        <code>HHP</code><code>HDmg</code><code>HRate</code><code>HSpeed</code>
+                                        <code>Ab1</code><code>Ab2</code>
+                                        <code>ResG</code><code>ResP</code><code>ResF</code><code>ResL</code>
+                                        <code>Location</code><code>Quality</code><code>Rating</code><code>Sides</code>
+                                        <code>Lvl</code><code>MaxLvl</code><code>ResSum</code><code>ResAvg</code>
+                                        <code>Value</code><code>Name</code>
+                                    </div>
+
+                                    <div class="tt-note">
+                                        Enclose strings in &quot;double quotes&quot; to compare with spaces.
+                                    </div>
+                                </div>
+                            }
+                    </span>
                     <div class="filter-error">@_customFilterError</div>
                 </div>
             </div>
-    </div>
+        </div>
 
 
-    @code {
-        private List<string> _selectedTypes = new();
-        private List<string> _selectedSets = new();
-        private List<string> _selectedOther = new();
+        @code {
+            private List<string> _selectedTypes = new();
+            private List<string> _selectedSets = new();
+            private List<string> _selectedOther = new();
 
-        // Bind targets 
-        private List<string> SelectedTypes
-        {
-            get => _selectedTypes;
-            set
+            // Bind targets
+            private List<string> SelectedTypes
             {
-                _selectedTypes = value ?? new();
-                ApplyChipFilters();
+                get => _selectedTypes;
+                set
+                {
+                    _selectedTypes = value ?? new();
+                    ApplyChipFilters();
+                }
             }
+
+            private List<string> SelectedSets
+            {
+                get => _selectedSets;
+                set
+                {
+                    _selectedSets = value ?? new();
+                    ApplyChipFilters();
+                }
+            }
+
+            private List<string> SelectedOther
+            {
+                get => _selectedOther;
+                set
+                {
+                    _selectedOther = value ?? new();
+                    ApplyChipFilters();
+                }
+            }
+
+
+
+            private readonly List<FilterChips.Option> _typeOptions = new()
+                {
+
+                new("Helmet"),
+                new("Gauntlet"),
+                new("Torso"),
+                new("Boots"),
+                new("Brooch"),
+                new("Mask"),
+                new("Bracers"),
+                new("Shield"),
+                new("Pets"),
+                new("Weapons"),
+                new("Currency"),
+                };
+
+            private readonly List<FilterChips.Option> _setOptions = new()
+                {
+                new("Pristine"),
+                new("Plate"),
+                new("Chain"),
+                new("Mail"),
+                new("Leather"),
+                new("Zamira"),
+                new("Squire"),
+                new("Apprentice"),
+                new("Monk"),
+                new("Huntress"),
+                };
+
+            private readonly List<FilterChips.Option> _otherOptions = new()
+                {
+
+                new("Only Events",    MutexGroup: "eventMode"),
+                new("Exclude Events", MutexGroup: "eventMode"),
+
+                new("Exclude Other Characters Equipment"),
+
+                new("Exclude Missing Resists"),
+                };
         }
 
-        private List<string> SelectedSets
-        {
-            get => _selectedSets;
-            set
-            {
-                _selectedSets = value ?? new();
-                ApplyChipFilters();
-            }
-        }
-
-        private List<string> SelectedOther
-        {
-            get => _selectedOther;
-            set
-            {
-                _selectedOther = value ?? new();
-                ApplyChipFilters();
-            }
-        }    
-
-
-
-        private readonly List<FilterChips.Option> _typeOptions = new()
-        {
-
-            new("Helmet"),
-            new("Gauntlet"),
-            new("Torso"),
-            new("Boots"),
-            new("Brooch"),
-            new("Mask"),
-            new("Bracers"),
-            new("Shield"),        
-            new("Pets"),
-            new("Weapons"),      
-            new("Currency"),             
-        };
-
-        private readonly List<FilterChips.Option> _setOptions = new()
-        {
-            new("Pristine"),
-            new("Plate"),
-            new("Chain"),
-            new("Mail"),
-            new("Leather"),      
-            new("Zamira"),      
-            new("Squire"),
-            new("Apprentice"),
-            new("Monk"),
-            new("Huntress"),        
-        };
-
-        private readonly List<FilterChips.Option> _otherOptions = new()
-        {
-        
-            new("Only Events",    MutexGroup: "eventMode"),
-            new("Exclude Events", MutexGroup: "eventMode"),
-
-            new("Exclude Other Characters Equipment"),
-
-            new("Exclude Missing Resists"),
-        };
-    }
-
-    <div class="summary">@_summary</div> 
-    <div class="stats-row">
-      <div class="metric-card highlighted-card">
-        <span class="metric-label">Equipped Armor Rating</span>
-        <div class="metric-main">
-          <span class="metric-number">@EquippedArmorRating</span>
-          <span class="metric-type  highlighted-card-type">@EquippedArmorSet</span>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <span class="metric-label">Vanity Account Armor Total</span>    
-        <div class="metric-main">
-          <span class="metric-number">@ArmorTotalValue</span>
-          <span class="metric-type">CV</span>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <span class="metric-label">Vanity Account Event Total</span>
-         <div class="metric-main">
-          <span class="metric-number">@EventTotalValue</span>
-          <span class="metric-type">CV</span>
-
-          <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
-           @CollectedEventCount / @TotalEventCount
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    @if (_showEventCollection)
-    {
-        <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
-            <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
-                <div class="event-overlay-header">
-                    <div class="event-overlay-titlewrap">
-                        <div class="event-overlay-title">Event Collection</div>
-                        <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
-                    </div>
-                    <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
-                    <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
-                </div>
-
-                <div class="event-overlay-tools">
-                    <input class="event-search"
-                           placeholder="Search categories…"
-                           @onchange="OnEventSearchChanged" />
-                </div>
-
-                <div class="event-overlay-body">
-                    @foreach (var group in VisibleEventCollection
-                        .GroupBy(x => x.Category)
-                        .OrderBy(g => GetCategoryOrderKey(g.Key))
-                        .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
-                    {                    
-                        var cat = SplitCategory(group.Key);
-                        <div class="event-cat">
-                            <div class="event-cat-hdr">
-                                <span class="event-cat-page">@cat.Page</span>
-                                <span class="event-cat-sep">›</span>
-                                <span class="event-cat-section">@cat.Section</span>
-                            </div>
-
-                            <div class="event-list">
-                                @foreach (var item in group
-                                    .OrderByDescending(x => x.Price)
-                                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                                )
-                                {
-                                    <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
-                                        <div class="event-line">
-                                            <div class="event-name">@item.Name</div>
-                                            <div class="event-price">@(item.Price!=0?@item.Price:"Unknown") CVx</div>
-                                            <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    }
+        <div class="summary">@_summary</div>
+        <div class="stats-row">
+            <div class="metric-card highlighted-card">
+                <span class="metric-label">Equipped Armor Rating</span>
+                <div class="metric-main">
+                    <span class="metric-number">@EquippedArmorRating</span>
+                    <span class="metric-type  highlighted-card-type">@EquippedArmorSet</span>
                 </div>
             </div>
+
+            <div class="metric-card">
+                <span class="metric-label">Vanity Account Armor Total</span>
+                <div class="metric-main">
+                    <span class="metric-number">@ArmorTotalValue</span>
+                    <span class="metric-type">CV</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <span class="metric-label">Vanity Account Event Total</span>
+                <div class="metric-main">
+                    <span class="metric-number">@EventTotalValue</span>
+                    <span class="metric-type">CV</span>
+
+                    <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
+                        @CollectedEventCount / @TotalEventCount
+                    </button>
+                </div>
+
+            </div>
         </div>
-    }
-    </div> 
-    
-    </div> @* Middle pane *@
-    <div class="bottom-pane">    
+
+        @if (_showEventCollection)
+        {
+            <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
+                <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
+                    <div class="event-overlay-header">
+                        <div class="event-overlay-titlewrap">
+                            <div class="event-overlay-title">Event Collection</div>
+                            <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
+                        </div>
+                        <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
+                        <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+                    </div>
+
+                    <div class="event-overlay-tools">
+                        <input class="event-search"
+                               placeholder="Search categories…"
+                               @onchange="OnEventSearchChanged" />
+                    </div>
+
+                    <div class="event-overlay-body">
+                        @foreach (var group in VisibleEventCollection
+                                            .GroupBy(x => x.Category)
+                                            .OrderBy(g => GetCategoryOrderKey(g.Key))
+                                            .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+                        {
+                            var cat = SplitCategory(group.Key);
+                            <div class="event-cat">
+                                <div class="event-cat-hdr">
+                                    <span class="event-cat-page">@cat.Page</span>
+                                    <span class="event-cat-sep">›</span>
+                                    <span class="event-cat-section">@cat.Section</span>
+                                </div>
+
+                                <div class="event-list">
+                                    @foreach (var item in group
+                                                                .OrderByDescending(x => x.Price)
+                                                                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                                                                )
+                                    {
+                                        <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
+                                            <div class="event-line">
+                                                <div class="event-name">@item.Name</div>
+                                                <div class="event-price">@(item.Price != 0 ? @item.Price : "Unknown") CVx</div>
+                                                <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div> @* Middle pane *@
+<div class="bottom-pane">
 
     @if (_rows.Count == 0)
-    {  
+    {
     }
     else
-    {   
-    <div class="grid-wrap" @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
-       <div class="overlay-layer" aria-hidden="true">
-        @if (_characterPanel is not null)
-        {
-           @foreach (var e in _characterPanel.EquippedItems)
-           {
-                <div class="row-highlight" @key=@($"{e.Key}")
-                    style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
-                </div>         
-           }
-        }
-        </div>
-        <table class="grid" @ref="_tableRef">
-            <colgroup>
-                <col style="width:80px" />   @* Rating *@
-                <col style="width:75px" />   @* Value *@
-                <col style="width:65px" />   @* BestFor *@
-                <col style="width:70px" />   @* Type *@
-                <col style="width:70px" />   @* Position *@
-
-                <col style="width:15%" />    @* Name (2*) *@
-                <col style="width:10%" />    @* Location (2*) *@
-                <col style="width:80px" />   @* Quality *@
-            
-                <col style="width:55px" />   @* Lvl *@
-                <col style="width:55px" />   @* MaxLvl *@
-
-                <col style="width:60px" />   @* HHP *@
-                <col style="width:60px" />   @* HDmg *@
-                <col style="width:60px" />   @* HSpd *@
-                <col style="width:60px" />   @* HRate *@
-                <col style="width:60px" />   @* Ab1 *@
-                <col style="width:60px" />   @* Ab2 *@
-                <col style="width:60px" />   @* THP *@
-                <col style="width:60px" />   @* TDmg *@
-                <col style="width:60px" />   @* TRange *@
-                <col style="width:60px" />   @* TRate *@
-
-                <col style="width:60px" />   @* RG *@
-            </colgroup>
-  
-            <thead>
-                <tr class="rating-row">                
-                    <th colspan="10">       
-                
-                        <span class="hint-text">
-                            <span class="hint-left">
-                                @VisibleCount / @TotalCount items visible
-                            </span>
-
-                            <span class="hint-right">
-                                Click names to sort, or stars to adjust the rating calculation →
-                            </span>
-                        </span>
-                    </th>
-                    <th class="importance-cell">
-                        <div class="th-center">
-                           <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroHealth)
-                                @onclick="() => ChangeImportance(DDStat.HeroHealth)">
-                            <img src="@GetImportanceImage(DDStat.HeroHealth)" />
-                        </button>
+    {
+        <div class="grid-wrap" @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
+            <div class="overlay-layer" aria-hidden="true">
+                @if (_characterPanel is not null)
+                {
+                    @foreach (var e in _characterPanel.EquippedItems)
+                    {
+                        <div class="row-highlight" @key=@($"{e.Key}")
+                             style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
                         </div>
-                    </th>
+                    }
+                }
+            </div>
+            <table class="grid" @ref="_tableRef">
+                <colgroup>
+                    <col style="width:80px" />   @* Rating *@
+                    <col style="width:75px" />   @* Value *@
+                    <col style="width:65px" />   @* BestFor *@
+                    <col style="width:70px" />   @* Type *@
+                    <col style="width:70px" />   @* Position *@
+
+                    <col style="width:15%" />    @* Name (2*) *@
+                    <col style="width:10%" />    @* Location (2*) *@
+                    <col style="width:80px" />   @* Quality *@
+
+                    <col style="width:55px" />   @* Lvl *@
+                    <col style="width:55px" />   @* MaxLvl *@
+
+                    <col style="width:60px" />   @* HHP *@
+                    <col style="width:60px" />   @* HDmg *@
+                    <col style="width:60px" />   @* HSpd *@
+                    <col style="width:60px" />   @* HRate *@
+                    <col style="width:60px" />   @* Ab1 *@
+                    <col style="width:60px" />   @* Ab2 *@
+                    <col style="width:60px" />   @* THP *@
+                    <col style="width:60px" />   @* TDmg *@
+                    <col style="width:60px" />   @* TRange *@
+                    <col style="width:60px" />   @* TRate *@
+
+                    <col style="width:60px" />   @* RG *@
+                </colgroup>
+
+                <thead>
+                    <tr class="rating-row">
+                        <th colspan="10">
+
+                            <span class="hint-text">
+                                <span class="hint-left">
+                                    @VisibleCount / @TotalCount items visible
+                                </span>
+
+                                <span class="hint-right">
+                                    Click names to sort, or stars to adjust the rating calculation →
+                                </span>
+                            </span>
+                        </th>
+                        <th class="importance-cell">
+                            <div class="th-center">
+                                <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroHealth)
+                                        @onclick="() => ChangeImportance(DDStat.HeroHealth)">
+                                    <img src="@GetImportanceImage(DDStat.HeroHealth)" />
+                                </button>
+                            </div>
+                        </th>
 
                         <th class="importance-cell">
-                        <div class="th-center">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroDamage)
-                                @onclick="() => ChangeImportance(DDStat.HeroDamage)">
-                                <img src="@GetImportanceImage(DDStat.HeroDamage)" />
-                        </button>
-                        </div>
-                    </th>
-                         <th class="importance-cell">
-                        <div class="th-center">
+                                        @onclick="() => ChangeImportance(DDStat.HeroDamage)">
+                                    <img src="@GetImportanceImage(DDStat.HeroDamage)" />
+                                </button>
+                            </div>
+                        </th>
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroSpeed)
-                                @onclick="() => ChangeImportance(DDStat.HeroSpeed)">
-                                <img  src="@GetImportanceImage(DDStat.HeroSpeed)" />
-                        </button>
-                         </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.HeroSpeed)">
+                                    <img src="@GetImportanceImage(DDStat.HeroSpeed)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroCastRate)
-                                @onclick="() => ChangeImportance(DDStat.HeroCastRate)">
-                                <img  src="@GetImportanceImage(DDStat.HeroCastRate)" />
-                            </button>
-                        </div>                    
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.HeroCastRate)">
+                                    <img src="@GetImportanceImage(DDStat.HeroCastRate)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroAbility1)
-                                @onclick="() => ChangeImportance(DDStat.HeroAbility1)">
-                                <img  src="@GetImportanceImage(DDStat.HeroAbility1)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.HeroAbility1)">
+                                    <img src="@GetImportanceImage(DDStat.HeroAbility1)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroAbility2)
-                                @onclick="() => ChangeImportance(DDStat.HeroAbility2)">
-                                <img  src="@GetImportanceImage(DDStat.HeroAbility2)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.HeroAbility2)">
+                                    <img src="@GetImportanceImage(DDStat.HeroAbility2)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerHealth)
-                                @onclick="() => ChangeImportance(DDStat.TowerHealth)">
-                                <img  src="@GetImportanceImage(DDStat.TowerHealth)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.TowerHealth)">
+                                    <img src="@GetImportanceImage(DDStat.TowerHealth)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerDamage)
-                                @onclick="() => ChangeImportance(DDStat.TowerDamage)">
-                                <img  src="@GetImportanceImage(DDStat.TowerDamage)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.TowerDamage)">
+                                    <img src="@GetImportanceImage(DDStat.TowerDamage)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerRange)
-                                @onclick="() => ChangeImportance(DDStat.TowerRange)">
-                                <img  src="@GetImportanceImage(DDStat.TowerRange)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.TowerRange)">
+                                    <img src="@GetImportanceImage(DDStat.TowerRange)" />
+                                </button>
+                            </div>
+                        </th>
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.TowerRate)
-                                @onclick="() => ChangeImportance(DDStat.TowerRate)">
-                                <img  src="@GetImportanceImage(DDStat.TowerRate)" />
-                        </button>
-                        </div>
+                                        @onclick="() => ChangeImportance(DDStat.TowerRate)">
+                                    <img src="@GetImportanceImage(DDStat.TowerRate)" />
+                                </button>
+                            </div>
 
-                    </th>
+                        </th>
 
-                    <!-- Resists (all toggle the same flag, but still distinct columns) -->
+                        <!-- Resists (all toggle the same flag, but still distinct columns) -->
 
-                    <th class="importance-cell">
-                        <div class="th-center">
+                        <th class="importance-cell">
+                            <div class="th-center">
                                 <button type="button" data-tooltip=@ImportanceTooltip(DDStat.HeroResistance)
-                                @onclick="() => ChangeImportance(DDStat.HeroResistance)">
-                                <img  src="@GetImportanceImage(DDStat.HeroResistance)" />
-                        </button>
-                        </div>
-                    </th>
+                                        @onclick="() => ChangeImportance(DDStat.HeroResistance)">
+                                    <img src="@GetImportanceImage(DDStat.HeroResistance)" />
+                                </button>
+                            </div>
+                        </th>
 
-                </tr>
-                <tr class="header-row" >
-                    <th class="sortable" data-tooltip=@Tips["Rating"]>
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
-                            Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                    </tr>
+                    <tr class="header-row">
+                        <th class="sortable" data-tooltip=@Tips["Rating"]>
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Rating))">
+                                Rating <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Rating))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-                    <th class="sortable" data-tooltip=@Tips["Value"]>
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
-                             Est. Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-                
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.BestFor))">
-                             Best For<span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.BestFor))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                        <th class="sortable" data-tooltip=@Tips["Value"]>
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Value))">
+                                Est. Value* <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Value))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Type))">
-                            Type <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Type))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.BestFor))">
+                                Best For<span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.BestFor))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Set))">
-                            Set <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Set))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
-                            Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Type))">
+                                Type <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Type))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-                    <th class="sortable"  data-tooltip=@Tips["Location"]>
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
-                            Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Set))">
+                                Set <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Set))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Name))">
+                                Name <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Name))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
-                            Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
+                        <th class="sortable" data-tooltip=@Tips["Location"]>
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Location))">
+                                Location <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Location))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
-
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
-                            Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable">
-                        <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
-                            MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroHealth)">
-                        <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(DDStat.HeroHealth))">
-                            <img src="png/Hero Health.png" alt="HHP" />
-                            <span class="hdr-text">Hero<br />Health</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroHealth))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroDamage)">
-                        <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(DDStat.HeroDamage))">
-                            <img src="png/Hero Damage.png" alt="HDmg" />
-                            <span class="hdr-text">Hero<br />Damage</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroDamage))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroSpeed)">
-                        <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(DDStat.HeroSpeed))">
-                            <img src="png/Move Speed.png" alt="HSpd" />
-                            <span class="hdr-text">Hero<br />Speed</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroSpeed))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroCastRate)">
-                        <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(DDStat.HeroCastRate))">
-                            <img src="png/Cast Rate.png" alt="HRate" />
-                            <span class="hdr-text">Hero<br />Cast Rate</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroCastRate))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroAbility1)">
-                        <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(DDStat.HeroAbility1))">
-                            <img src="png/AB1/Monk AB1.png" alt="Ab1" />
-                            <span class="hdr-text">Hero<br />Ability 1</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroAbility1))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroAbility2)">
-                        <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(DDStat.HeroAbility2))">
-                            <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
-                            <span class="hdr-text">Hero<br />Ability 2</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroAbility2))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.TowerHealth)">
-                        <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(DDStat.TowerHealth))">
-                            <img src="png/Tower Health.png" alt="THP" />
-                            <span class="hdr-text">Tower<br /> Health</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerHealth))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header  @HeaderShadingStyle(DDStat.TowerDamage)">
-                        <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(DDStat.TowerDamage))">
-                            <img src="png/Tower Damage.png" alt="TDmg" />
-                            <span class="hdr-text">Tower<br />Damage</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerDamage))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header  @HeaderShadingStyle(DDStat.TowerRange)">
-                        <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(DDStat.TowerRange))">
-                            <img src="png/Tower Range.png" alt="TRng" />
-                            <span class="hdr-text">Tower<br />Range</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerRange))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.TowerRate)">
-                        <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(DDStat.TowerRate))">
-                            <img src="png/Tower Rate.png" alt="TRate" />
-                            <span class="hdr-text">Tower<br />Rate</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerRate))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>
-
-                    <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroResistance)">
-                        <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(DDStat.HeroResistance))">
-                            <img src="png/all_resistances.png" alt="Res" />
-                            <span class="hdr-text">Average Resistance</span>
-                            <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroResistance))</span>
-                        </button>
-                        <div class="col-resizer"></div>
-                    </th>            
-                </tr>
-            </thead>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
+                                Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
 
 
-            <tbody>
-                @foreach (var r in _rows)
-                {
-                    <tr @key="@r.Idx" data-key="@r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="()=>OnRowClicked(r)">
-                        <td class="cell-rating" data-tooltip=@(r.BrokenResists?(ShowUpgradesToMaxResist(r)):"")>
-                            <span class="rating-primary">@r.Rating</span>
-                            <span class="rating-sides">@r.Sides</span>
-                        </td>
-                        <td>
-                            @{
-                                var (text, icon, tooltip) = GetValueDisplay(r);
-                                bool hasText = !string.IsNullOrWhiteSpace(text);
-                                bool hasIcon = !string.IsNullOrWhiteSpace(icon);
-                            }
-                            <span class="value-icon @(hasText? "" : "value-icon-only")" data-tooltip="@tooltip">
-                                @if (hasIcon)
-                                {
-                                    <img class="icon" src="@icon"/>
-                                }
-                                @if (hasText)
-                                {
-                                    <span class="label">@text</span>
-                                }
-                            </span>
-                        </td>
-                        <td class="text bestfor">@r.BestFor</td>
-                        <td class="text cell-type">@r.Type</td>
-                        <td class="text cell-type">@r.Set</td>
-                        <td class="text cell-name" h-tooltip="@GetFunHash(r)">
-                            <span class="name-row">
-                                    <img class="atlas-icon"
-                                        alt=""
-                                        width="32" height="32"
-                                        data-size="64"
-                                        data-l1x="@r.IconX" data-l1y="@r.IconY"
-                                        data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-                                        data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
-                                    <span class="name-name">
-                                    @r.Name 
-                                </span>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
+                                Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
+                                MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroHealth)">
+                            <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(DDStat.HeroHealth))">
+                                <img src="png/Hero Health.png" alt="HHP" />
+                                <span class="hdr-text">Hero<br />Health</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroHealth))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroDamage)">
+                            <button type="button" class="th-btn th-icon" title="Hero Damage" @onclick="() => SortBy(nameof(DDStat.HeroDamage))">
+                                <img src="png/Hero Damage.png" alt="HDmg" />
+                                <span class="hdr-text">Hero<br />Damage</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroDamage))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroSpeed)">
+                            <button type="button" class="th-btn th-icon" title="Hero Speed" @onclick="() => SortBy(nameof(DDStat.HeroSpeed))">
+                                <img src="png/Move Speed.png" alt="HSpd" />
+                                <span class="hdr-text">Hero<br />Speed</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroSpeed))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroCastRate)">
+                            <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(DDStat.HeroCastRate))">
+                                <img src="png/Cast Rate.png" alt="HRate" />
+                                <span class="hdr-text">Hero<br />Cast Rate</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroCastRate))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroAbility1)">
+                            <button type="button" class="th-btn th-icon" title="Ability 1" @onclick="() => SortBy(nameof(DDStat.HeroAbility1))">
+                                <img src="png/AB1/Monk AB1.png" alt="Ab1" />
+                                <span class="hdr-text">Hero<br />Ability 1</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroAbility1))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroAbility2)">
+                            <button type="button" class="th-btn th-icon" title="Ability 2" @onclick="() => SortBy(nameof(DDStat.HeroAbility2))">
+                                <img src="png/AB2/Hero Boost Monk AB2.png" alt="Ab2" />
+                                <span class="hdr-text">Hero<br />Ability 2</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroAbility2))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.TowerHealth)">
+                            <button type="button" class="th-btn th-icon" title="Tower Health" @onclick="() => SortBy(nameof(DDStat.TowerHealth))">
+                                <img src="png/Tower Health.png" alt="THP" />
+                                <span class="hdr-text">Tower<br /> Health</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerHealth))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header  @HeaderShadingStyle(DDStat.TowerDamage)">
+                            <button type="button" class="th-btn th-icon" title="Tower Damage" @onclick="() => SortBy(nameof(DDStat.TowerDamage))">
+                                <img src="png/Tower Damage.png" alt="TDmg" />
+                                <span class="hdr-text">Tower<br />Damage</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerDamage))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header  @HeaderShadingStyle(DDStat.TowerRange)">
+                            <button type="button" class="th-btn th-icon" title="Tower Range" @onclick="() => SortBy(nameof(DDStat.TowerRange))">
+                                <img src="png/Tower Range.png" alt="TRng" />
+                                <span class="hdr-text">Tower<br />Range</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerRange))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.TowerRate)">
+                            <button type="button" class="th-btn th-icon" title="Tower Rate" @onclick="() => SortBy(nameof(DDStat.TowerRate))">
+                                <img src="png/Tower Rate.png" alt="TRate" />
+                                <span class="hdr-text">Tower<br />Rate</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.TowerRate))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+
+                        <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroResistance)">
+                            <button type="button" class="th-btn th-icon" title="Generic Resist" @onclick="() => SortBy(nameof(DDStat.HeroResistance))">
+                                <img src="png/all_resistances.png" alt="Res" />
+                                <span class="hdr-text">Average Resistance</span>
+                                <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroResistance))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+                    @foreach (var r in _rows)
+                    {
+                        <tr @key="@r.Idx" data-key="@r.Idx" class="data-row @GetRowClass(r.IsHidden)" @onclick="() => OnRowClicked(r)">
+                            <td class="cell-rating" data-tooltip=@(r.BrokenResists ? (ShowUpgradesToMaxResist(r)) : "")>
+                                <span class="rating-primary">@r.Rating</span>
+                                <span class="rating-sides">@r.Sides</span>
+                            </td>
+                            <td>
                                 @{
-                                    bool IsBlack(string? c)
+                                    var (text, icon, tooltip) = GetValueDisplay(r);
+                                    bool hasText = !string.IsNullOrWhiteSpace(text);
+                                    bool hasIcon = !string.IsNullOrWhiteSpace(icon);
+                                }
+                                <span class="value-icon @(hasText ? "" : "value-icon-only")" data-tooltip="@tooltip">
+                                    @if (hasIcon)
                                     {
-                                        if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
-                                        var s = c.Trim().ToLowerInvariant();
-                                        return s == "#000" || s == "#000000" ||
-                                               s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
-                                               s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+                                        <img class="icon" src="@icon" />
+                                    }
+                                    @if (hasText)
+                                    {
+                                        <span class="label">@text</span>
+                                    }
+                                </span>
+                            </td>
+                            <td class="text bestfor">@r.BestFor</td>
+                            <td class="text cell-type">@r.Type</td>
+                            <td class="text cell-type">@r.Set</td>
+                            <td class="text cell-name" h-tooltip="@GetFunHash(r)">
+                                <span class="name-row">
+                                    <img class="atlas-icon"
+                                         alt=""
+                                         width="32" height="32"
+                                         data-size="64"
+                                         data-l1x="@r.IconX" data-l1y="@r.IconY"
+                                         data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+                                         data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+                                    <span class="name-name">
+                                        @r.Name
+                                    </span>
+                                    @{
+                                        bool IsBlack(string? c)
+                                        {
+                                            if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
+                                            var s = c.Trim().ToLowerInvariant();
+                                            return s == "#000" || s == "#000000" ||
+                                            s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
+                                            s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+                                        }
+
+                                        var show = !IsBlack(r.Color1) || !IsBlack(r.Color2);
                                     }
 
-                                    var show = !IsBlack(r.Color1) || !IsBlack(r.Color2);
-                                }
+                                    @if (show)
+                                    {
+                                        <span class="name-colors">
+                                            <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
+                                        </span>
+                                    }
+                                </span>
+                            </td>
+                            <td class="text location">@GetLocation(r)</td>
+                            <td class="text @QualityClass(r.Quality)">@r.Quality</td>
 
-                                @if (show)
-                                {
-                                    <span class="name-colors">
-                                        <ColorSwatches Name="" Color1="@r.Color1" Color2="@r.Color2" />
-                                    </span>
-                                }                      
-                            </span> 
-                        </td>
-                        <td class="text location">@GetLocation(r)</td>
-                        <td class="text @QualityClass(r.Quality)">@r.Quality</td>
-                
-                        <td class="num">@r.Level</td>
-                        <td class="num">@r.MaxLevel</td>
+                            <td class="num">@r.Level</td>
+                            <td class="num">@r.MaxLevel</td>
 
-                        <td class="num cell-health @CellShadingStyle(DDStat.HeroHealth)">@GetValue(DDStat.HeroHealth, r)</td>
-                        <td class="num cell-damage @CellShadingStyle(DDStat.HeroDamage)">@GetValue(DDStat.HeroDamage, r)</td>
-                        <td class="num cell-range @CellShadingStyle(DDStat.HeroSpeed)">@GetValue(DDStat.HeroSpeed, r)</td>
-                        <td class="num cell-rate @CellShadingStyle(DDStat.HeroCastRate)">@GetValue(DDStat.HeroCastRate, r)</td>
-                        <td class="num cell-ab1 @CellShadingStyle(DDStat.HeroAbility1)">@GetValue(DDStat.HeroAbility1, r)</td>
-                        <td class="num cell-ab2 @CellShadingStyle(DDStat.HeroAbility2)">@GetValue(DDStat.HeroAbility2, r)</td>
-                        <td class="num cell-health @CellShadingStyle(DDStat.TowerHealth)">@GetValue(DDStat.TowerHealth, r)</td>
-                        <td class="num cell-damage @CellShadingStyle(DDStat.TowerDamage)">@GetValue(DDStat.TowerDamage, r)</td>
-                        <td class="num cell-range @CellShadingStyle(DDStat.TowerRange)">@GetValue(DDStat.TowerRange, r)</td>
-                        <td class="num cell-rate @CellShadingStyle(DDStat.TowerRate)">@GetValue(DDStat.TowerRate, r)</td>
+                            <td class="num cell-health @CellShadingStyle(DDStat.HeroHealth)">@GetValue(DDStat.HeroHealth, r)</td>
+                            <td class="num cell-damage @CellShadingStyle(DDStat.HeroDamage)">@GetValue(DDStat.HeroDamage, r)</td>
+                            <td class="num cell-range @CellShadingStyle(DDStat.HeroSpeed)">@GetValue(DDStat.HeroSpeed, r)</td>
+                            <td class="num cell-rate @CellShadingStyle(DDStat.HeroCastRate)">@GetValue(DDStat.HeroCastRate, r)</td>
+                            <td class="num cell-ab1 @CellShadingStyle(DDStat.HeroAbility1)">@GetValue(DDStat.HeroAbility1, r)</td>
+                            <td class="num cell-ab2 @CellShadingStyle(DDStat.HeroAbility2)">@GetValue(DDStat.HeroAbility2, r)</td>
+                            <td class="num cell-health @CellShadingStyle(DDStat.TowerHealth)">@GetValue(DDStat.TowerHealth, r)</td>
+                            <td class="num cell-damage @CellShadingStyle(DDStat.TowerDamage)">@GetValue(DDStat.TowerDamage, r)</td>
+                            <td class="num cell-range @CellShadingStyle(DDStat.TowerRange)">@GetValue(DDStat.TowerRange, r)</td>
+                            <td class="num cell-rate @CellShadingStyle(DDStat.TowerRate)">@GetValue(DDStat.TowerRate, r)</td>
 
-                        <td class="resist @CellShadingStyle(DDStat.HeroResistance)"
+                            <td class="resist @CellShadingStyle(DDStat.HeroResistance)"
                                 data-tooltip=@(
                                 $"<div class='resist-container'>" +
                                 ResistLine("png/Generic Resistance.png", "G", r.Resists[0]) +
@@ -833,15 +965,15 @@
                                 ResistLine("png/Fire Resistance.png", "F", r.Resists[2]) +
                                 ResistLine("png/Lightning Resistance.png", "L", r.Resists[3]) +
                                 $"</div><br>{ShowUpgradesToMaxResist(r)}")>
-                            @(GetResistValue(r))
+                        @(GetResistValue(r))
                     </td>
                 </tr>
-                }
-            </tbody>
-        </table>
-        </div>        
-    }        
-    </div>
+                                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
 }
 
 @code {
@@ -865,7 +997,7 @@
     private record ModeOption(string Value, string Label);
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
-    private bool _censor = true;    
+    private bool _censor = true;
     private bool _livePrices = false;
     private string _itemboxSize = "5x3";
     private bool _showContent = false;
@@ -877,7 +1009,7 @@
     private string _searchText = "";
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
-    private CharacterPanel? _characterPanel;    
+    private CharacterPanel? _characterPanel;
     private bool _showEventCollection = false;
     private bool _showUpgradedStats = false;
     private bool _assumeSetBonuses = false;
@@ -888,12 +1020,20 @@
     private string _customFilterError = "";
 
     // Current sorting criteria
-    private bool _bRequireResists = false;    
+    private bool _bRequireResists = false;
     private List<DDStat> _RatingStatsPriority = new();
     private List<DDStat> _SidesStatsPriority = new();
+    private bool _showFilterHelp = false;
 
+    void OpenFilterHelp() => _showFilterHelp = true;
+    void CloseFilterHelp() => _showFilterHelp = false;
 
-    // ======= selection ==========    
+    private void ToggleFilterHelp()
+    {
+        _showFilterHelp = !_showFilterHelp;
+    }
+
+    // ======= selection ==========
     public sealed class OverlayMeasure
     {
         public double overlayHeight { get; set; }
@@ -971,20 +1111,20 @@
         if (equippedItems is null)
             return;
 
-        foreach ( var v in equippedItems )
-            DeselectRow(v);       
+        foreach (var v in equippedItems)
+            DeselectRow(v);
     }
 
-    private void DeselectRow( ItemViewRow row )
+    private void DeselectRow(ItemViewRow row)
     {
         if (row.CurrentEquippedSlot == "") return;
 
         _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
-        row.CurrentEquippedSlot = "";        
-        UpdateEquipmentRatingAndType();        
+        row.CurrentEquippedSlot = "";
+        UpdateEquipmentRatingAndType();
     }
 
-    private void SelectRow( ItemViewRow row )
+    private void SelectRow(ItemViewRow row)
     {
         if (row.CurrentEquippedSlot != "") return;
         if (_characterPanel == null) return;
@@ -1000,7 +1140,7 @@
         if ((itemType == "Shield") && (extra != "Shield")) return;
         if (itemType == "Shield") { itemType = "Extra"; }
 
-        if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra ))
+        if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra))
             itemType = "Extra";
 
 
@@ -1008,27 +1148,27 @@
         if (_characterPanel.EquippedItems.ContainsKey(itemType))
             DeselectRow(_characterPanel.EquippedItems[itemType]);
 
-        _characterPanel?.ChangeEquipment(itemType, row);        
+        _characterPanel?.ChangeEquipment(itemType, row);
         row.CurrentEquippedSlot = itemType;
         UpdateEquipmentRatingAndType();
     }
 
-    private bool IsSelected( ItemViewRow row)
+    private bool IsSelected(ItemViewRow row)
     {
         return (row.CurrentEquippedSlot != "");
     }
 
-    private void OnRowClicked( ItemViewRow row )
+    private void OnRowClicked(ItemViewRow row)
     {
         if (IsSelected(row))
             DeselectRow(row);
         else
-            SelectRow(row);        
+            SelectRow(row);
     }
 
-    // ======= search filter ==========    
-   private string SearchHelp =
-@"<div class='tt'>
+    // ======= search filter ==========
+    private string SearchHelp =
+ @"<div class='tt'>
    <div class='tt-title'>Custom Filter</div>
     <div class='tt-row'>
       Filter with one or more constraints (you can combine terms and expressions)
@@ -1084,11 +1224,11 @@
       <code>-</code> subtract&nbsp;&nbsp;
       <code>*</code> multiply&nbsp;&nbsp;
       <code>/</code> divide&nbsp;&nbsp;
-        <code>!</code> boolean not&nbsp;&nbsp;      
+        <code>!</code> boolean not&nbsp;&nbsp;
         <code>and</code>&nbsp;&nbsp;
       <code>or</code>&nbsp;&nbsp;
-      <code>not</code>&nbsp;&nbsp;      
-       
+      <code>not</code>&nbsp;&nbsp;
+
     </div>
 
     <div class='tt-sub'>Fields</div>
@@ -1196,7 +1336,7 @@
         return "";
     }
 
-    
+
     // ----------------------------------------------------
     // 1) Lexer
     // ----------------------------------------------------
@@ -1454,7 +1594,7 @@
             if (d < min) return min;
             if (d > max) return max;
             return d;
-        }    
+        }
     }
 
     // ----------------------------------------------------
@@ -1783,7 +1923,7 @@
             {
                 Consume(TokKind.Bang);
                 return new BoolUnary(ParseUnaryBool());
-            }         
+            }
             return ParsePrimaryBool();
         }
 
@@ -2010,7 +2150,7 @@
     // ----------------------------------------------------
     // 5) Integration: ApplySearch
     // ----------------------------------------------------
-    private void ApplySearch(string s)
+    private async Task ApplySearch(string s)
     {
         _searchText = s ?? "";
         _customFilterError = "";
@@ -2044,6 +2184,9 @@
                 bool show = root.Eval(r);
                 r.IsHiddenDueToSearch = !show;
             }
+
+            // Persist successful custom searches (most-recent-first)
+            await AddToSearchHistoryAsync(_searchText);
         }
         catch (Exception ex)
         {
@@ -2081,10 +2224,10 @@
         }
 
         return tokens.ToArray();
-    }    
-    
+    }
 
-    // Equipping! 
+
+    // Equipping!
 
     private Task HandleChangedHero()
     {
@@ -2103,7 +2246,7 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleEquipmentClick( ItemViewRow row )
+    private Task HandleEquipmentClick(ItemViewRow row)
     {
         // deselect this row
         DeselectRow(row);
@@ -2111,8 +2254,8 @@
     }
 
     private Task HandleEquipFromFile()
-    {       
-        if (_characterPanel == null) 
+    {
+        if (_characterPanel == null)
             return Task.CompletedTask;
 
 
@@ -2122,7 +2265,7 @@
             return Task.CompletedTask;
         }
 
-        foreach( var v in _characterPanel.SelectedHeroInfo.Equipment)
+        foreach (var v in _characterPanel.SelectedHeroInfo.Equipment)
         {
             if (v.cachedItemRow != null)
                 SelectRow(v.cachedItemRow);
@@ -2167,7 +2310,7 @@
             if (string.IsNullOrWhiteSpace(_eventSearch))
                 return _eventCollection;
 
-            var s = _eventSearch.Trim();            
+            var s = _eventSearch.Trim();
             return _eventCollection.Where(x => ((x.Category != null) && (x.Category.Contains(s, StringComparison.OrdinalIgnoreCase))) || ((x.Name != null) && (x.Name.Contains(s, StringComparison.OrdinalIgnoreCase))));
         }
     }
@@ -2209,7 +2352,7 @@
     }
 
 
-    private string ShowUpgradesToMaxResist( ItemViewRow r )
+    private string ShowUpgradesToMaxResist(ItemViewRow r)
     {
         int upgradesRequiredForResists = Ratings.GetUpgradesRequired(r.ResistanceTarget, r.Resists[0], r.Resists[1], r.Resists[2], r.Resists[3]);
         int overcappedUpgradesLeft = (r.MaxLevel - r.Level) / 10;
@@ -2224,7 +2367,7 @@
         else if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || (upgradesRequiredForResists > (r.MaxLevel - r.Level)))
             return "Can't cap with remaining levels";
         else if (upgradesRequiredForResists == 0)
-            return "";        
+            return "";
         return $"{upgradesRequiredForResists} levels required for cap";
     }
 
@@ -2354,10 +2497,10 @@
             .ToList();
 
 
-/*      var uncollectedEvents = _eventCollection
-    .Where(x => x.OwnedCount == 0)
-    .ToList();*/
-    CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
+        /*      var uncollectedEvents = _eventCollection
+            .Where(x => x.OwnedCount == 0)
+            .ToList();*/
+        CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
     public sealed record UiState(
@@ -2393,12 +2536,12 @@
     private void ApplyUiToFields()
     {
         _selectedMode = _ui.RatingMode;
-        _itemboxSize  = _ui.Layout;
-        _livePrices   = _ui.ShowLivePrices;
+        _itemboxSize = _ui.Layout;
+        _livePrices = _ui.ShowLivePrices;
         _censor = _ui.Censor;
 
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
-        _selectedSets  = _ui.SelectedSetsSafe.ToList();
+        _selectedSets = _ui.SelectedSetsSafe.ToList();
         _selectedOther = _ui.SelectedOtherSafe.ToList();
         _showUpgradedStats = _ui.ShowUpgradedStats;
         _assumeSetBonuses = _ui.AssumeSetBonuses;
@@ -2410,21 +2553,21 @@
     private void SyncFieldsToUi()
     {
         _ui = _ui with
-            {
-                Version = CurrentUIOptionsVersion,
-                RatingMode = _selectedMode,
-                Layout = _itemboxSize,
-                ShowLivePrices = _livePrices,
-                SelectedTypes = _selectedTypes.ToList(),
-                SelectedSets = _selectedSets.ToList(),
-                SelectedOther = _selectedOther.ToList(),
-                ShowUpgradedStats = _showUpgradedStats,
-                AssumeSetBonuses = _assumeSetBonuses,
-            };
+        {
+            Version = CurrentUIOptionsVersion,
+            RatingMode = _selectedMode,
+            Layout = _itemboxSize,
+            ShowLivePrices = _livePrices,
+            SelectedTypes = _selectedTypes.ToList(),
+            SelectedSets = _selectedSets.ToList(),
+            SelectedOther = _selectedOther.ToList(),
+            ShowUpgradedStats = _showUpgradedStats,
+            AssumeSetBonuses = _assumeSetBonuses,
+        };
 
         if (_characterPanel != null)
         {
-            _characterPanel.SetUIFlags(_showUpgradedStats, _censor);            
+            _characterPanel.SetUIFlags(_showUpgradedStats, _censor);
         }
     }
 
@@ -2451,11 +2594,11 @@
         StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
     }
 
-    public string GetLocation( ItemViewRow viewRow)
+    public string GetLocation(ItemViewRow viewRow)
     {
         // no folders for tavern or characters
-        if (( viewRow.IndexInFolder == -1) || (viewRow.Location == null) || (viewRow.Location[0] == 'T') || (viewRow.Location[0] == 'C'))
-            return viewRow?.Location ??"";
+        if ((viewRow.IndexInFolder == -1) || (viewRow.Location == null) || (viewRow.Location[0] == 'T') || (viewRow.Location[0] == 'C'))
+            return viewRow?.Location ?? "";
 
         int idx = viewRow.IndexInFolder;
         int itemsPerPage = 15;
@@ -2465,7 +2608,7 @@
 
         int subFolderItems = (db.SubfolderCount.ContainsKey(viewRow.Location)) ? db.SubfolderCount[viewRow.Location] : 0;
 
-        itemsPerPage-= subFolderItems;
+        itemsPerPage -= subFolderItems;
         int pageNumber = (int)(viewRow.IndexInFolder / itemsPerPage) + 1;
         return viewRow.Location + " (" + pageNumber.ToString() + ")";
 
@@ -2476,18 +2619,18 @@
     {
         _status2 = stat;
         _showLivePrices = showLivePrices;
-        StateHasChanged();        
+        StateHasChanged();
 
     }
 
     // TOOLTIPS GO HERE
 
     private static readonly Dictionary<string, string> Tips = new()
-    {  
-        ["Rating"] =        "Rating is the sum of important stats,\naffected by upgrades, required resists,\nand set bonuses.\nSmall number is sides.",
-        ["Value"] =         "Stars show how good this item is at what it does best,\ncompared to the rest of your equipment.\nCV is estimated trade value.",
-        ["Location"] =      "Location (and page) of item\nwhen sorting by Level.",
-        ["Censor"] =        "Censors Ult++ and other special items\nfor sharing screenshots on DDRnG.",
+    {
+        ["Rating"] = "Rating is the sum of important stats,\naffected by upgrades, required resists,\nand set bonuses.\nSmall number is sides.",
+        ["Value"] = "Stars show how good this item is at what it does best,\ncompared to the rest of your equipment.\nCV is estimated trade value.",
+        ["Location"] = "Location (and page) of item\nwhen sorting by Level.",
+        ["Censor"] = "Censors Ult++ and other special items\nfor sharing screenshots on DDRnG.",
         ["ShowUpgraded"] = "Shows items as if fully upgraded\naccording to current priority.",
         ["AssumeSetBonuses"] = "Shows items as if they have\na set bonus in the table.",
         ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
@@ -2509,8 +2652,8 @@
         new("AB1 Only", "AB1 Only"),
         new("DPS AB1", "DPS AB1"),
         new("DPS AB2", "DPS AB2"),
-        new("Pure DPS", "Pure DPS"),        
-        new("Gunwitch", "Gunwitch"),        
+        new("Pure DPS", "Pure DPS"),
+        new("Gunwitch", "Gunwitch"),
         new("Guardian Summoner", "Guardian Summoner"),
         //new("Best Rating", "Best Rating")
     };
@@ -2536,7 +2679,7 @@
                 if (row.Value > -100) return ("⭐️⭐️⭐️", "", "");// "png/ValueHighest.png");
                 else if (row.Value > -200) return ("⭐️⭐️", "", "");// "png/ValueHigh.png");
                 else if (row.Value > -300) return ("⭐️", "", "");//"png/ValueMid.png");
-                else  return ("❌", "", "");// "png/ValueLow.png");               
+                else return ("❌", "", "");// "png/ValueLow.png");
             }
             return ("", "", "");
         }
@@ -2552,7 +2695,7 @@
         "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"
     };
 
-    private string GetResistValue( ItemViewRow r )
+    private string GetResistValue(ItemViewRow r)
     {
         int value = _showUpgradedStats ?
             (r.UpgradedResists[0] + r.UpgradedResists[1] + r.UpgradedResists[2] + r.UpgradedResists[3]) / 4 :
@@ -2566,9 +2709,9 @@
         return value.ToString();
     }
 
-    private string GetValue( DDStat stat, ItemViewRow r )
+    private string GetValue(DDStat stat, ItemViewRow r)
     {
-        return r.GetStringStatValue(stat, _showUpgradedStats, _assumeSetBonuses, _censor);    
+        return r.GetStringStatValue(stat, _showUpgradedStats, _assumeSetBonuses, _censor);
     }
 
     int VisibleCount => _rows.Count(r => !r.IsHidden);
@@ -2673,7 +2816,7 @@
         }
         if (_RatingStatsPriority.Contains(stat)) return "cell-stat-primary";
         if (_SidesStatsPriority.Contains(stat)) return "cell-stat-side";
-        return "cell-stat-dimmed";        
+        return "cell-stat-dimmed";
     }
 
     private void SetMode(string mode)
@@ -2692,7 +2835,7 @@
                 _SidesStatsPriority.AddRange(v.SidesStatsPriority);
                 _bRequireResists = v.RequireResists;
             }
-        }        
+        }
 
         QueueSaveUiState();
         RecalculateRatings();
@@ -2700,7 +2843,7 @@
 
     private void TestForBestPiece(string type, string set, int rating, Dictionary<string, int> BestPieces)
     {
-        if ( set == "Any" )
+        if (set == "Any")
         {
             TestForBestPiece(type, "Chain", rating, BestPieces);
             TestForBestPiece(type, "Pristine", rating, BestPieces);
@@ -2736,21 +2879,21 @@
         {
             int level = hinfo.HeroLevel;
             if (level < 60) ExcludedQualities.Add("Godly");
-            if ( level < 74 ) ExcludedQualities.Add("Mythical");
-            if ( level < 78 ) ExcludedQualities.Add("Transcendent");
-            if ( level < 83 ) ExcludedQualities.Add("Supreme");
-            if ( level < 90 ) ExcludedQualities.Add("Ult90");
-            if ( level < 93 ) ExcludedQualities.Add("Ult93");
-            if ( level < 100 ) ExcludedQualities.Add("Ult+");
-            if ( level < 100) ExcludedQualities.Add("Ult++");
+            if (level < 74) ExcludedQualities.Add("Mythical");
+            if (level < 78) ExcludedQualities.Add("Transcendent");
+            if (level < 83) ExcludedQualities.Add("Supreme");
+            if (level < 90) ExcludedQualities.Add("Ult90");
+            if (level < 93) ExcludedQualities.Add("Ult93");
+            if (level < 100) ExcludedQualities.Add("Ult+");
+            if (level < 100) ExcludedQualities.Add("Ult++");
         }
 
         for (int i = 0; i < _rows.Count; i++)
         {
-            var r = _rows[i];       
+            var r = _rows[i];
             if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality))
             {
-                TestForBestPiece(r.Type, r.Set, r.Rating, BestPieces);                            
+                TestForBestPiece(r.Type, r.Set, r.Rating, BestPieces);
             }
         }
 
@@ -2758,7 +2901,7 @@
         //-------------------------
         string[] Sets = { "Plate", "Pristine", "Leather", "Mail", "Chain" };
         int[] Scores = new int[5];
-        foreach ( var v in BestPieces )
+        foreach (var v in BestPieces)
         {
             for (int i = 0; i < 5; i++)
             {
@@ -2766,7 +2909,7 @@
                 {
                     Scores[i] += v.Value;
                 }
-            }            
+            }
         }
 
         string bestSet = Sets[0];
@@ -2790,16 +2933,16 @@
             if ((r.Set == bestSet) || (r.Set == "Any"))
             {
                 string typeString = bestSet + "_" + r.Type;
-                if ( BestPieces.ContainsKey(typeString))
+                if (BestPieces.ContainsKey(typeString))
                 {
-                    int rating = BestPieces[typeString];    
+                    int rating = BestPieces[typeString];
                     if (r.Rating == rating)
                     {
                         highlight = true;
                         BestPieces[typeString] = -99999;
                         NameString += r.Name + " ";
                     }
-                }                                
+                }
             }
 
             if (highlight)
@@ -2819,7 +2962,7 @@
         int totalRating = 0;
         int totalSides = 0;
 
-        foreach( var v in _characterPanel.EquippedItems)
+        foreach (var v in _characterPanel.EquippedItems)
         {
             ItemViewRow row = v.Value;
             if (row == null) continue;
@@ -2827,7 +2970,7 @@
             if ((foundSet == "None") && row.IsArmor)
                 foundSet = row.Set;
 
-            if ((foundSet != "None") && row.IsArmor && row.Set != foundSet )
+            if ((foundSet != "None") && row.IsArmor && row.Set != foundSet)
                 foundSet = "Mixed";
 
             totalRating += row.Rating;
@@ -2845,7 +2988,7 @@
     {
 
         for (int i = 0; i < _rows.Count; i++)
-        {            
+        {
             var r = _rows[i];
             float mult = r.SetBonus;
             int maxR = r.ResistanceTarget;
@@ -2853,7 +2996,7 @@
             (int rating, int sides) = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
 
             _rows[i].Rating = rating;
-            _rows[i].Sides = sides;            
+            _rows[i].Sides = sides;
         }
 
 
@@ -2867,11 +3010,11 @@
 
 
 
-    private void ChangeImportance( DDStat stat )
+    private void ChangeImportance(DDStat stat)
     {
         if (stat == DDStat.HeroResistance)
             _bRequireResists = !_bRequireResists;
-        else  if (_RatingStatsPriority.Contains(stat))
+        else if (_RatingStatsPriority.Contains(stat))
         {
             _RatingStatsPriority.Remove(stat);
             _SidesStatsPriority.Add(stat);
@@ -2889,7 +3032,7 @@
 
     }
 
-    private string ImportanceTooltip( DDStat stat )
+    private string ImportanceTooltip(DDStat stat)
     {
         if (_RatingStatsPriority.Contains(stat) || ((stat == DDStat.HeroResistance) && _bRequireResists))
         {
@@ -2903,8 +3046,8 @@
     }
 
 
-    private string GetImportanceImage( DDStat stat )
-    {       
+    private string GetImportanceImage(DDStat stat)
+    {
         if (stat == DDStat.HeroResistance)
         {
             return _bRequireResists ? "png/importance-rating.png" : "png/importance-none.png";
@@ -2942,40 +3085,40 @@
         int Compare(ItemViewRow a, ItemViewRow b)
         {
             int loc = 0;
-            if ( _sortColumn == nameof(ItemViewRow.Location))
+            if (_sortColumn == nameof(ItemViewRow.Location))
             {
-                loc = CmpStr(a.Location, b.Location); 
-                if ( loc == 0) loc = Cmp(a.IndexInFolder, b.IndexInFolder);                
-            } 
+                loc = CmpStr(a.Location, b.Location);
+                if (loc == 0) loc = Cmp(a.IndexInFolder, b.IndexInFolder);
+            }
 
             int c = _sortColumn switch
             {
-                nameof(ItemViewRow.Rating)   => Cmp(a.Rating, b.Rating),
-                nameof(ItemViewRow.Value)    => Cmp(a.Value, b.Value),
-                nameof(ItemViewRow.BestFor)  => CmpStr(a.BestFor, b.BestFor),
-                nameof(ItemViewRow.Level)    => Cmp(a.Level, b.Level),
+                nameof(ItemViewRow.Rating) => Cmp(a.Rating, b.Rating),
+                nameof(ItemViewRow.Value) => Cmp(a.Value, b.Value),
+                nameof(ItemViewRow.BestFor) => CmpStr(a.BestFor, b.BestFor),
+                nameof(ItemViewRow.Level) => Cmp(a.Level, b.Level),
                 nameof(ItemViewRow.MaxLevel) => Cmp(a.MaxLevel, b.MaxLevel),
 
                 nameof(DDStat.HeroHealth) => Cmp(a.Stats[(int)DDStat.HeroHealth], b.Stats[(int)DDStat.HeroHealth]),
                 nameof(DDStat.HeroDamage) => Cmp(a.Stats[(int)DDStat.HeroDamage], b.Stats[(int)DDStat.HeroDamage]),
                 nameof(DDStat.HeroSpeed) => Cmp(a.Stats[(int)DDStat.HeroSpeed], b.Stats[(int)DDStat.HeroSpeed]),
-                nameof(DDStat.HeroCastRate)  => Cmp(a.Stats[(int)DDStat.HeroCastRate], b.Stats[(int)DDStat.HeroCastRate]),
-                nameof(DDStat.HeroAbility1)   => Cmp(a.Stats[(int)DDStat.HeroAbility1], b.Stats[(int)DDStat.HeroAbility1]),
-                nameof(DDStat.HeroAbility2)   => Cmp(a.Stats[(int)DDStat.HeroAbility2], b.Stats[(int)DDStat.HeroAbility2]),
-                nameof(DDStat.TowerHealth)   => Cmp(a.Stats[(int)DDStat.TowerHealth], b.Stats[(int)DDStat.TowerHealth]),
-                nameof(DDStat.TowerDamage)  => Cmp(a.Stats[(int)DDStat.TowerDamage], b.Stats[(int)DDStat.TowerDamage]),
+                nameof(DDStat.HeroCastRate) => Cmp(a.Stats[(int)DDStat.HeroCastRate], b.Stats[(int)DDStat.HeroCastRate]),
+                nameof(DDStat.HeroAbility1) => Cmp(a.Stats[(int)DDStat.HeroAbility1], b.Stats[(int)DDStat.HeroAbility1]),
+                nameof(DDStat.HeroAbility2) => Cmp(a.Stats[(int)DDStat.HeroAbility2], b.Stats[(int)DDStat.HeroAbility2]),
+                nameof(DDStat.TowerHealth) => Cmp(a.Stats[(int)DDStat.TowerHealth], b.Stats[(int)DDStat.TowerHealth]),
+                nameof(DDStat.TowerDamage) => Cmp(a.Stats[(int)DDStat.TowerDamage], b.Stats[(int)DDStat.TowerDamage]),
                 nameof(DDStat.TowerRange) => Cmp(a.Stats[(int)DDStat.TowerRange], b.Stats[(int)DDStat.TowerRange]),
                 nameof(DDStat.TowerRate) => Cmp(a.Stats[(int)DDStat.TowerRate], b.Stats[(int)DDStat.TowerRate]),
 
-                nameof(DDStat.HeroResistance) => Cmp(a.Resists[0]+a.Resists[1]+a.Resists[2]+a.Resists[3], b.Resists[0]+b.Resists[1]+b.Resists[2]+b.Resists[3]),
+                nameof(DDStat.HeroResistance) => Cmp(a.Resists[0] + a.Resists[1] + a.Resists[2] + a.Resists[3], b.Resists[0] + b.Resists[1] + b.Resists[2] + b.Resists[3]),
 
-                nameof(ItemViewRow.Name)     => CmpStr(a.Name, b.Name),
+                nameof(ItemViewRow.Name) => CmpStr(a.Name, b.Name),
                 nameof(ItemViewRow.Location) => loc,
 
-                nameof(ItemViewRow.Type)     => CmpStr(a.Type, b.Type),
-                nameof(ItemViewRow.Set )    => CmpStr(a.Set, b.Set),
+                nameof(ItemViewRow.Type) => CmpStr(a.Type, b.Type),
+                nameof(ItemViewRow.Set) => CmpStr(a.Set, b.Set),
 
-                nameof(ItemViewRow.Quality)  => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
+                nameof(ItemViewRow.Quality) => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
                 _ => Cmp(a.Rating, b.Rating),
             };
 
@@ -3002,7 +3145,7 @@
         return q switch
         {
             "Ult++" => 7,
-            "Ult+" => 6, 
+            "Ult+" => 6,
             "Ult93" => 5,
             "Ult90" => 4,
             "Supreme" => 3,
@@ -3012,8 +3155,8 @@
         };
     }
 
-    //r.CurrentEquippedSlot, 
-    //string currentSelectedSlot, 
+    //r.CurrentEquippedSlot,
+    //string currentSelectedSlot,
     private string GetRowClass(bool h)
     {
         if (h) return "hidden-row";
@@ -3034,6 +3177,12 @@
         else return "cell-quality-default";
     }
     const string UiStateKey = "ddgo.uiState.v1";
+    const string SearchHistoryKey = "ddgo.searchHistory.v1";
+
+    private bool _searchHistoryOpen;
+    private List<string> _searchHistory = new();
+
+
 
     CancellationTokenSource? _saveCts;
 
@@ -3065,6 +3214,67 @@
             Console.WriteLine("Save UI state failed: " + ex);
         }
     }
+
+    private void ToggleSearchHistory() => _searchHistoryOpen = !_searchHistoryOpen;
+
+    private void CloseSearchHistory() => _searchHistoryOpen = false;
+
+    private async Task LoadSearchHistoryAsync()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("appState.get", SearchHistoryKey);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonSerializer.Deserialize<List<string>>(json);
+                if (list != null)
+                    _searchHistory = list.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).Take(10).ToList();
+            }
+        }
+        catch
+        {
+            // ignore bad JSON / schema changes
+            _searchHistory = new();
+        }
+    }
+
+    private async Task SaveSearchHistoryAsync()
+    {
+        var json = JsonSerializer.Serialize(_searchHistory);
+        await JS.InvokeVoidAsync("appState.set", SearchHistoryKey, json);
+    }
+
+    private async Task AddToSearchHistoryAsync(string filter)
+    {
+        var s = (filter ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(s))
+            return;
+
+        // De-dupe (case-insensitive), move to top
+        _searchHistory.RemoveAll(x => string.Equals(x, s, StringComparison.OrdinalIgnoreCase));
+        _searchHistory.Insert(0, s);
+
+        if (_searchHistory.Count > 10)
+            _searchHistory = _searchHistory.Take(10).ToList();
+
+        await SaveSearchHistoryAsync();
+    }
+
+    private async Task ClearSearchHistoryAsync()
+    {
+        _searchHistory.Clear();
+        await SaveSearchHistoryAsync();
+        CloseSearchHistory();
+    }
+
+    private async Task ApplySearchHistory(string filter)
+    {
+        _searchText = filter ?? "";
+        _searchHistoryOpen = false;
+        await ApplySearch(_searchText);
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
         if (_dotNetRef == null)
@@ -3080,6 +3290,9 @@
 
         ApplyUiToFields();
 
+        await LoadSearchHistoryAsync();
+
+
         if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
         {
             var ok = await JS.InvokeAsync<bool>("dropzone.tryLoadLastHandleAndRead", _dotNetRef); // returns true if it loaded bytes & called into .NET or returned bytes
@@ -3090,11 +3303,11 @@
         var cachedList = await JS.InvokeAsync<int[]?>("dropzone.tryLoadCachedDunBytes");
         var cached = cachedList?.Select(i => (byte)i).ToArray();
         if (cached is { Length: > 0 })
-            await LoadDunBytesAsync(oldFileName ??"", cached);
+            await LoadDunBytesAsync(oldFileName ?? "", cached);
     }
 
 
-    static UiState NormalizeV1(UiState s)   
+    static UiState NormalizeV1(UiState s)
     {
         return s with
         {
@@ -3140,12 +3353,12 @@
         {
             _dotNetRef = DotNetObjectReference.Create(this);
 
-            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);            
+            await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);
             var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
             _canLoadLast = supports && await JS.InvokeAsync<bool>("dropzone.hasLast");
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
-            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");              
+            await JS.InvokeVoidAsync("atlasIcons.startAutoRender");
 
             _atlasReady = true;
 
@@ -3158,11 +3371,11 @@
             await JS.InvokeVoidAsync("gridOverlayObservers.start", _scrollRef, _tableRef, _dotNetRef);
         }
 
-        if (_needsAtlasRender && _showContent && _atlasReady )
+        if (_needsAtlasRender && _showContent && _atlasReady)
         {
             _needsAtlasRender = false;
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
-        }   
+        }
 
     }
 
@@ -3185,21 +3398,21 @@
     public async Task LoadDunBytesAsync(string fileName, byte[] bytes)
     {
         _loadedFileName = fileName;
-        _lastLoadedAt = DateTime.Now;        
+        _lastLoadedAt = DateTime.Now;
         _error = null;
         _isLoading = true;
         _status = $"Reading {fileName}…";
         await db.LoadFromDun(bytes);
         if (!db.IsReady)
         {
-            _error = db.Status;               
+            _error = db.Status;
         }
         else
         {
             _status = db.Status;
             _rows.Clear();
             Ratings.ClearBestRatings();
-            for (int i =0; i < db.Items.Count; i++)
+            for (int i = 0; i < db.Items.Count; i++)
             {
                 ItemViewRow itemViewRow = db.Items[i].ToItemViewRow();
                 _rows.Add(itemViewRow);
@@ -3207,11 +3420,11 @@
                 (int value, itemViewRow.BestFor) = Ratings.GetBestValue(true, itemViewRow);
 
                 // don't override set event values
-                if ( itemViewRow.Value == 0)
+                if (itemViewRow.Value == 0)
                     itemViewRow.Value = value;
-            }            
+            }
             // now go through and get relative value
-            foreach( var v in _rows )
+            foreach (var v in _rows)
             {
                 // only override if we don't have a value yet
                 if (v.Value == 0)
@@ -3226,7 +3439,7 @@
 
             CalculateVanityTotals();
             SetPriceStatus("Prices estimated by table", true);
-            // don't care about when it gets back              
+            // don't care about when it gets back
 
             _showContent = true;
             _needsAtlasRender = true;
@@ -3255,7 +3468,7 @@
         }
         catch (Exception ex)
         {
-            _showContent = false;            
+            _showContent = false;
             _error = $"Error: {ex.Message} {db.Status}";
             _isLoading = false;
         }
@@ -3286,11 +3499,11 @@
     {
         int at = 0;
         int et = 0;
-        foreach  (var v in _rows)
+        foreach (var v in _rows)
         {
-            if ( v.IsArmor && !v.IsEvent && v.Value > 0)
+            if (v.IsArmor && !v.IsEvent && v.Value > 0)
                 at += v.Value;
-            if ( v.IsEvent && v.Value > 0)
+            if (v.IsEvent && v.Value > 0)
                 et += v.Value;
         }
         ArmorTotalValue = at;
@@ -3305,7 +3518,7 @@
 
     private void GetLivePrices()
     {
-        _ = Ratings.AsyncShiroPriceAPICall(this);        
+        _ = Ratings.AsyncShiroPriceAPICall(this);
     }
     private async Task LoadLastFile()
     {

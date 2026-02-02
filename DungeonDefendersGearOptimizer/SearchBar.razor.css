@@ -8,6 +8,7 @@
 	background: none;
 	border: 0;
 	box-shadow: none;
+	z-index: 100;
 }
 
 .searchbar {

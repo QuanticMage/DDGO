@@ -3,22 +3,31 @@
         <span class="searchbar_icon" aria-hidden="true">🔎</span>
 
         <input class="searchbar_input"
-                 type="search"
+               type="search"
                placeholder="Custom search…"
                value="@_current"
                @oninput="HandleInput"
-               @onkeydown="HandleKeyDown"/>
+               @onkeydown="HandleKeyDown" />
     </div>
 </div>
 
 @code {
-    [Inject] private IJSRuntime JS { get; set; } = default!;
-
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
     private string _current = "";
     private string _lastSubmitted = "";
+
+    protected override void OnParametersSet()
+    {
+        var v = Value ?? "";
+        if (!string.Equals(v, _current, StringComparison.Ordinal))
+        {
+            _current = v;
+            // Treat external set as the current submitted value to avoid a duplicate enter.
+            _lastSubmitted = v;
+        }
+    }
 
     private async Task HandleInput(ChangeEventArgs e)
     {

@@ -9,6 +9,7 @@ Scroll to selected equipment piece? what is the best interface...
 Full equation parser
 
 Does the best button just work for Accs at the min? would be good if it could change armour as well
+Make custom field wider!
 
 
 PRI
@@ -17,8 +18,8 @@ Fix hover highlight- different color than selected?
 
 * Custom filter => separate with commas, better space handling
 * Custom filter => drop down with selection
-* Custom filter => support + and ops
-* Custom filter => better tooltip
+(DONE) Custom filter => support + and ops
+(DONE) Custom filter => better tooltip
 
 * Adobe color
 
