@@ -5,6 +5,12 @@ TODO:
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
 
+Scroll to selected equipment piece? what is the best interface...
+
+
+Does the best button just work for Accs at the min? would be good if it could change armour as well
+
+
 PRI
 Fix hover highlight- different color than selected?
 * Add in + for formulas?
