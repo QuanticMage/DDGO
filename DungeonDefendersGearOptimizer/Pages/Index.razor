@@ -9,7 +9,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Feb 1 2026 - Version 1.6b</i></div>
+        <div class="build"><i>Feb 2 2026 - Version 1.6c</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -132,8 +132,8 @@
 
 @if (@_showContent)
 {
-    <div class="middle-pane">
-        <div class="middle-left">
+    <div class="middle-pane" style="@(_compactDisplay?"grid-template-columns: 668px 1fr;":"grid-template-columns: 835px 1fr;")">
+        <div class="middle-left" style="@(_compactDisplay?"zoom:0.8; width:668px;":"width: 835px;")">
             <CharacterPanel @ref="_characterPanel"
                             OnEquipFromFile="HandleEquipFromFile"
                             OnEquipBest="HandleEquipBest"
@@ -143,7 +143,7 @@
                             OnChangedHero="HandleChangedHero" />
         </div>
 
-        <div class="middle-right">
+        <div class="middle-right" style="@(_compactDisplay?"zoom:0.9;":"")">
             <div class="utility-row">
                 <span class="utility-label"><font face="Arial">⚙️</font></span>
 
@@ -154,7 +154,6 @@
                            @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
                     <span>Censor Ult++</span>
                 </label>
-
 
                 <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]>
                     <input type="checkbox"
@@ -170,6 +169,15 @@
                            @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); StateHasChanged(); })" />
                     <span>Assume set bonuses</span>
                 </label>
+                
+                <label class="utility-toggle" data-tooltip=@Tips["CompactDisplay"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_compactDisplay"
+                           @onchange="@((e) => { _compactDisplay = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
+                    <span>Compact Display</span>
+                </label>
+
 
                 <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
                     <input type="checkbox"
@@ -561,10 +569,10 @@
                     }
                 }
             </div>
-            <table class="grid" @ref="_tableRef">
+            <table class="grid @(_compactDisplay?"compact-table":"")" @ref="_tableRef">
                 <colgroup>
-                    <col style="width:80px" />   @* Rating *@
-                    <col style="width:75px" />   @* Value *@
+                    <col style="width:85px" />   @* Rating *@
+                    <col style="width:80px" />   @* Value *@
                     <col style="width:65px" />   @* BestFor *@
                     <col style="width:70px" />   @* Type *@
                     <col style="width:70px" />   @* Position *@
@@ -889,18 +897,18 @@
                             </td>
                             <td>
                                 @{
-                                    var (text, icon, tooltip) = GetValueDisplay(r);
-                                    bool hasText = !string.IsNullOrWhiteSpace(text);
-                                    bool hasIcon = !string.IsNullOrWhiteSpace(icon);
+                                    var (emojiText, text, tooltip) = GetValueDisplay(r);
+                                    bool hasEmojiText = !string.IsNullOrWhiteSpace(emojiText);
+                                    bool hasText = !string.IsNullOrWhiteSpace(text);                                    
                                 }
-                                <span class="value-icon @(hasText ? "" : "value-icon-only")" data-tooltip="@tooltip">
-                                    @if (hasIcon)
+                                <span class="value-icon" data-tooltip="@tooltip">
+                                    @if (hasEmojiText)
                                     {
-                                        <img class="icon" src="@icon" />
+                                        <span class="value-emoji">@emojiText</span>
                                     }
                                     @if (hasText)
                                     {
-                                        <span class="label">@text</span>
+                                        <span class="value-text">@text</span>
                                     }
                                 </span>
                             </td>
@@ -1018,6 +1026,7 @@
     private ElementReference _scrollRef;
     private bool _overlayObserversStarted;
     private string _customFilterError = "";
+    private bool _compactDisplay = false;
 
     // Current sorting criteria
     private bool _bRequireResists = false;
@@ -1165,140 +1174,6 @@
         else
             SelectRow(row);
     }
-
-    // ======= search filter ==========
-    private string SearchHelp =
- @"<div class='tt'>
-   <div class='tt-title'>Custom Filter</div>
-    <div class='tt-row'>
-      Filter with one or more constraints (you can combine terms and expressions)
-    </div>
-
-    <div class='tt-divider'></div>
-
-    <div class='tt-sub'>Examples</div>
-
-    <div class='tt-row'>
-      <span class='k'>Text</span>
-      <span class='v'><code>Dragon</code> → Name contains 'Dragon'</span>
-    </div>
-
-    <div class='tt-row'>
-      <span class='k'>Field</span>
-      <span class='v'><code>Location:ItemBox</code> → Location contains 'ItemBox'</span>
-    </div>
-
-    <div class='tt-row'>
-      <span class='k'>Compare</span>
-      <span class='v'><code>Ab1&gt;=500</code> → Ability 1 is greater or equal to 500</span>
-    </div>
-
-    <div class='tt-row'>
-      <span class='k'>Math</span>
-      <span class='v'><code>(TDmg+TRate)&gt;=1000</code> → supports arithmetic</span>
-    </div>
-
-    <div class='tt-row'>
-      <span class='k'>Logic</span>
-      <span class='v'><code>Quality=ult++ and (Sides>500 or Rating>1000)</code></span>
-    </div>
-
-    <div class='tt-row'>
-      <span class='k'>Exclude</span>
-      <span class='v'><code>Best!:Hermit</code> → Best does NOT contain 'Hermit'</span>
-    </div>
-
-    <div class='tt-divider'></div>
-
-    <div class='tt-sub'>Operators</div>
-    <div class='tt-inline'>
-      <code>:</code> contains&nbsp;&nbsp;
-      <code>=</code> equals&nbsp;&nbsp;
-      <code>!=</code> not equals&nbsp;&nbsp;
-      <code>&gt; &gt;= &lt; &lt;=</code> compare&nbsp;&nbsp;
-      <code>!:</code> does not contain
-    </div>
-    <div class='tt-inline' style='margin-top:4px;'>
-      <code>( )</code> group&nbsp;&nbsp;
-      <code>+</code> add&nbsp;&nbsp;
-      <code>-</code> subtract&nbsp;&nbsp;
-      <code>*</code> multiply&nbsp;&nbsp;
-      <code>/</code> divide&nbsp;&nbsp;
-        <code>!</code> boolean not&nbsp;&nbsp;
-        <code>and</code>&nbsp;&nbsp;
-      <code>or</code>&nbsp;&nbsp;
-      <code>not</code>&nbsp;&nbsp;
-
-    </div>
-
-    <div class='tt-sub'>Fields</div>
-    <div class='tt-fields'>
-      <code>THP</code><code>TDmg</code><code>TRate</code><code>TRange</code>
-      <code>HHP</code><code>HDmg</code><code>HRate</code><code>HSpeed</code>
-      <code>Ab1</code><code>Ab2</code>
-      <code>ResG</code><code>ResP</code><code>ResF</code><code>ResL</code>
-      <code>Location</code><code>Quality</code><code>Rating</code><code>Sides</code>
-      <code>Lvl</code><code>MaxLvl</code><code>ResSum</code><code>ResAvg</code>
-      <code>Value</code><code>Name</code>
-    </div>
-
-    <div class='tt-note'>Enclose strings in &quot;double quotes&quot; to compare with spaces.</div>
-
-  <style>
-      .tt, .tt * { white-space: normal !important; }
-      .tt{
-        max-width: 560px; /* enlarged */
-        padding: 10px 10px 8px;
-        border-radius: 10px;
-        background: rgba(15,18,26,.98);
-        color: #e9ecf1;
-        font: 12px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-        border: 1px solid rgba(255,255,255,.10);
-      }
-      .tt-title{ font-weight: 650; font-size: 13px; margin-bottom: 6px; }
-      .tt-row{ display:flex; gap:8px; margin: 3px 0; }
-      .k{
-        width: 54px;
-        flex: 0 0 54px;
-        color: rgba(233,236,241,.65);
-      }
-      .v{ flex: 1; }
-      code{
-        font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
-        font-size: 11px;
-        color: #dbe6ff;
-        background: rgba(255,255,255,.05);
-        padding: 1px 4px;
-        border-radius: 6px;
-        border: 1px solid rgba(255,255,255,.08);
-      }
-      .tt-divider{
-        height: 1px;
-        background: rgba(255,255,255,.10);
-        margin: 7px 0;
-      }
-      .tt-sub{
-        margin-top: 6px;
-        margin-bottom: 4px;
-        color: rgba(233,236,241,.65);
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        font-size: 10px;
-      }
-      .tt-inline{ color: rgba(233,236,241,.9); }
-      .tt-fields{
-        display:flex;
-        flex-wrap: wrap;
-        gap: 4px;
-      }
-      .tt-note{
-        margin-top: 6px;
-        color: rgba(233,236,241,.65);
-        font-size: 11px;
-      }
-  </style>
-</div>";
-
 
     private static readonly string[] ValidTags =
      {
@@ -2500,7 +2375,7 @@
         /*      var uncollectedEvents = _eventCollection
             .Where(x => x.OwnedCount == 0)
             .ToList();*/
-        CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
+    CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
     public sealed record UiState(
@@ -2511,6 +2386,7 @@
         bool ShowLivePrices = false,
         bool ShowUpgradedStats = false,
         bool AssumeSetBonuses = false,
+        bool CompactDisplay = false,
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
         List<string>? SelectedOther = null)
@@ -2528,6 +2404,7 @@
         ShowLivePrices: false,
         ShowUpgradedStats: false,
         AssumeSetBonuses: false,
+        CompactDisplay: false,
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
@@ -2539,6 +2416,7 @@
         _itemboxSize = _ui.Layout;
         _livePrices = _ui.ShowLivePrices;
         _censor = _ui.Censor;
+        _compactDisplay = _ui.CompactDisplay;
 
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
         _selectedSets = _ui.SelectedSetsSafe.ToList();
@@ -2563,6 +2441,7 @@
             SelectedOther = _selectedOther.ToList(),
             ShowUpgradedStats = _showUpgradedStats,
             AssumeSetBonuses = _assumeSetBonuses,
+            CompactDisplay = _compactDisplay,
         };
 
         if (_characterPanel != null)
@@ -2635,6 +2514,7 @@
         ["AssumeSetBonuses"] = "Shows items as if they have\na set bonus in the table.",
         ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
         ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
+        ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows."
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -2658,19 +2538,19 @@
         //new("Best Rating", "Best Rating")
     };
 
-    private (string text, string icon, string tooltip) GetValueDisplay(ItemViewRow row)
+    private (string emojiText, string text, string tooltip) GetValueDisplay(ItemViewRow row)
     {
         if (row.IsEvent && (row.Value == 0))
         {
-            return ("💎 ???", "", "");
+            return ("💎","???", "");
         }
 
         if (row.Value > 0)
         {
             if (row.Value > 300)
-                return ("💰Auction", "", "Estimated " + row.Value.ToString() + "cv");
+                return ("💰", "Auction", "Estimated " + row.Value.ToString() + "cv");
             else
-                return ("💎" + row.Value.ToString() + "cv", "", "");
+                return ("💎", row.Value.ToString() + "cv", "");
         }
         else
         {
@@ -2780,7 +2660,8 @@
             if (excludeEvents)
                 includeItem &= !v.IsEvent;
 
-            if (excludeEquipped && (_characterPanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name))
+            if ((excludeEquipped && (_characterPanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name)) ||
+                (excludeEquipped && (_characterPanel?.SelectedHeroInfo == null) && (v.Location.StartsWith("Character"))))
                 includeItem &= !v.IsEquipped;
 
             if (excludeMissingResists)

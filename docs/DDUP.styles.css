@@ -719,7 +719,7 @@ table.grid td.cell-rating[b-yrayc6w7vb] {
 }
 
 .rating-primary[b-yrayc6w7vb] {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     line-height: 1;
 }
@@ -727,7 +727,7 @@ table.grid td.cell-rating[b-yrayc6w7vb] {
 .rating-sides[b-yrayc6w7vb] {
     font-size: 12px;
     opacity: 0.6;
-    margin-left: 4px;
+    margin-left: 0px;
     vertical-align: baseline; /* keeps it aligned nicely */
 }
 
@@ -917,7 +917,7 @@ th.num .th-btn[b-yrayc6w7vb] {
 }
 
 .hdr-text[b-yrayc6w7vb] {
-    font-size: 12px;
+    font-size: 10px;
     opacity: 0.9;
     display: block;
     text-align: center;
@@ -1284,31 +1284,19 @@ h1[b-yrayc6w7vb] {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    line-height: 1;
+    line-height: 1;    
 }
 
-    /* normal icon + text */
-    .value-icon .icon[b-yrayc6w7vb] {
-        width: 20px;
-        height: 20px;
-        min-width: 20px;
-        min-height: 20px;
-        object-fit: contain;
-        display: block;
-    }
+.value-icon .value-emoji[b-yrayc6w7vb] {    
+    font-size: 14px;
+    letter-spacing: -5px;
+}
 
-    .value-icon.value-icon-only[b-yrayc6w7vb] {
-        justify-content: center;
-        width: 100%;
-    }
-
-        /* icon-only mode */
-        .value-icon.value-icon-only .icon[b-yrayc6w7vb] {
-            width: 25px;
-            height: 25px;
-            min-width: 25px;
-            min-height: 25px;
-        }
+.value-icon .value-text[b-yrayc6w7vb] {    
+    line-height: 1;
+    font-size: 13px;    
+}
+    
 
 .stats-row[b-yrayc6w7vb] {
     display: flex; /* Lays children out in a row */
@@ -2275,9 +2263,8 @@ live-btn[b-yrayc6w7vb] {
 
 .middle-pane[b-yrayc6w7vb] {
     display: grid;
-    grid-template-columns: 835px 1fr;
     gap: 12px;
-    align-items: start; /* critical */
+    align-items: start;
 }
 
 .middle-right[b-yrayc6w7vb] {
@@ -2289,15 +2276,15 @@ live-btn[b-yrayc6w7vb] {
 }
 
 .middle-left[b-yrayc6w7vb] {
-    width: 835px;
-    position: sticky;
+    position: sticky;    
     top: 12px;
-    align-self: start;
+    align-self: start;    
 }
 
 
 .grid-wrap[b-yrayc6w7vb] {
     max-height: 60vh;
+    min-height: 850px;
     overflow: auto;
     border: 3px solid black;
     position: relative;
@@ -2604,6 +2591,33 @@ live-btn[b-yrayc6w7vb] {
 
 .fg-menu[b-yrayc6w7vb]::-webkit-scrollbar-track {
     background: transparent;
+}
+
+/* Normal row height is influenced by font-size and padding */
+.compact-table td[b-yrayc6w7vb] {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+/* Shrink the primary rating number */
+.compact-table .rating-primary[b-yrayc6w7vb] {
+    font-size: 16px;
+}
+
+/* Shrink the Stat Numbers */
+table.grid.compact-table td.num[b-yrayc6w7vb] {
+    font-size: 15px;
+}
+
+
+/* Reduce the size of the Atlas Icon images*/
+table.grid.compact-table .atlas-icon[b-yrayc6w7vb] {
+    transform: scale(0.8)
+}
+table.grid.compact-table td.cell-name[b-yrayc6w7vb]
+{
+    font-size:16px;
+    font-weight: 400;
 }
 /* /RadioSelect.razor.rz.scp.css */
 
