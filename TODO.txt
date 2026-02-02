@@ -11,6 +11,14 @@ Full equation parser
 Does the best button just work for Accs at the min? would be good if it could change armour as well
 Make custom field wider!
 
+Respect <color> tags
+Fix colors primary/secondary on some (check Shiros)
+<color:b,g,r>
+Special icons for each class
+
+Update location on export to have page
+Left click => select item when clicking in character panel.  Right click to remove.
+
 
 PRI
 Fix hover highlight- different color than selected?
