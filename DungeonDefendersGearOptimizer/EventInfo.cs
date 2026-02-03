@@ -214,6 +214,24 @@ namespace DDUP
 			new ("Odin's Mask", "Accessories > Masks", "Sweaty Chaotic Obelisk Breaches Shattered Invader", 44),
 			new ("Olaf", "Pets > Exclusives", "Corrupted Mid Armory Wipes Ancient Swarm", 413),
 			new ("Old One's Stache", "Accessories > Masks", "Wild Grim Banner Builds Ancient Spider", 46),
+			new ("Ork Hat", "Accessories > High End Hats", "Fire Corrupted Monk Boosts Brutal Swarm", 0),// akatiki/rl/old school/1
+			new ("Ork Hat", "Accessories > High End Hats", "Nerfed Fragile Workshop Shatters Chaotic Cultist", 0), // akatiki/rl/old school/2			
+			new ("Ork Hat", "Accessories > High End Hats", "Shiny Nerfed Defender Farms Locked Pack", 0), // akatiki/rl/normal/1
+			new ("Ork Hat", "Accessories > High End Hats", "Radiant Tilted Obelisk Breaches Cooked Orc", 0), // akatiki/rl/normal/2			
+			new ("Ork Hat", "Accessories > High End Hats", "Mythic Swift Trap Deletes Enchanted Assassin", 0), // akatiki/rl/hard/1
+			new ("Ork Hat", "Accessories > High End Hats", "Heroic Grim Protector Locks Nerfed Spider", 0), // akatiki/rl/hard/2
+			new ("Ork Hat", "Accessories > High End Hats", "Chaotic Ancient Huntress Carries Wild Goblin", 0), // akatiki/rl/extreme/1
+			new ("Ork Hat", "Accessories > High End Hats", "Nerfed Juicy Aura Ratios Beloved Necromancer", 0), // akatiki/rl/extreme/2
+			new ("Ork Hat", "Accessories > High End Hats", "Drippy Juicy Monk Fortifies Swift Kobold", 0), // non-exclusive
+			new ("Ork Hat", "Accessories > High End Hats", "Mythic Grim Beacon Freezes Ancient Wretch", 0),// akatiki/nm/old school/1
+			new ("Ork Hat", "Accessories > High End Hats", "Enchanted Swift Builder Withstands Shiny Minion", 0),// akatiki/nm/old school/2
+			new ("Ork Hat", "Accessories > High End Hats", "Beloved Nerfed Crystal Fortifies Mid Spider", 0),// akatiki/nm/normal/1
+			new ("Ork Hat", "Accessories > High End Hats", "Enchanted Chaotic Fireball Launches Endless Ravager", 0),// akatiki/nm/normal/2		
+			new ("Ork Hat", "Accessories > High End Hats", "Radiant Swift Aura Yeets Ancient Brood", 0),// akatiki/nm/hard/1
+			new ("Ork Hat", "Accessories > High End Hats", "Chaotic Cracked Fireball Pops Radiant Berserker", 0),// akatiki/nm/hard/2
+			new ("Ork Hat", "Accessories > High End Hats", "Sweaty Tilted Lightning Rushes Beloved Brood", 0), // akatiki/nm/extreme/1
+			new ("Ork Hat", "Accessories > High End Hats", "Mythic Corrupted Relic Locks Luminous Horde", 0), // akatiki/nm/extreme/2
+			new ("Ork Hat", "Accessories > High End Hats", "Corrupted Beloved Vanguard Carries Swift Minion", 0), // akatiki/nm/extreme/3
 			new ("Overload", "Pets > Builder", "Chaotic Goated Core Carries Luminous Pillager", 112),
 			new ("Overlord", "Pets > Streamer", "Heroic Mid Stronghold Shatters Ancient Kobold", 125),
 			new ("Paper Straw", "Weapons > Exclusive", "Beloved Nerfed Huntress Wins Sweaty Necromancer", 150),
@@ -301,9 +319,11 @@ namespace DDUP
 			new ("The Devil's Poolskimmer", "Weapons > Monk", "Luminous Swift Obelisk Explodes Endless Ravager", 52),
 			new ("The Downpour", "Weapons > Apprentice", "Cracked Shattered Sentinel Ratios Drippy Goblin", 261),
 			new ("The Goblinator", "Pets > Exclusives", "Radiant Fortified Core Yeets Fortified Corruptor", 393),
+			new ("The Perforator", "Weapons > Streamer", "Swift Nerfed Totem Boosts Beloved Cultist", 0),
 			new ("The Prince's Glove", "Weapons > Squire", "Grim Juicy Protector Wins Corrupted Marauder", 79),
 			new ("The Queen of Fire", "Pets > Exclusives", "Locked Swift Workshop Freezes Hardened Demon", 75),
-			new ("The Rainmaker", "Weapons > Apprentice", "Endless Fire Sentinel Explodes Heroic Ogre", 270),
+			new ("The Rainmaker", "Weapons > Apprentice", "Endless Fire Sentinel Explodes Heroic Ogre", 0),
+			new ("The Sins of the Jungle", "Weapons > Monk", "Tactical Fire Forge Defends Sweaty Minion", 270),
 			new ("Thermopylae's Wrath", "Weapons > Exclusive", "Tilted Swift Champion Fortifies Chaotic Pack", 80),
 			new ("Thorn of Nature", "Weapons > Monk", "Cracked Swift Relic Breaches Hardened Abomination", 69),
 			new ("Thread of Destiny", "Accessories > Bracers", "Grim Radiant Barricade Throws Tilted Marauder", 80),
