@@ -26,18 +26,18 @@
     <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Fire Resistance.png' />@GetShownResist(2)</div>
     <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' />@GetShownResist(3)</div>
     <div class="stat" style="left:412px; top:455px;"><img class="icon" src='png/Poison Resistance.png' />@GetShownResist(1)</div>
-   
 
-    <div class="equip equip--small" style="left:755px; top:185px;" @onmouseenter='() => OnHoverStart("Bracers")' @onmouseleave ="OnHoverEnd">@(GetEquipmentVisuals("Bracers"))</div>
-    <div class="equip equip--small" style="left:555px; top:100px;" @onmouseenter='() => OnHoverStart("Brooch")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Brooch"))</div>
+
+    <div class="equip equip--small" style="left:755px; top:185px;"  @onmouseenter='() => OnHoverStart("Bracers")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Bracers"))</div>
+    <div class="equip equip--small" style="left:555px; top:100px;"  @onmouseenter='() => OnHoverStart("Brooch")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Brooch"))</div>
     <div class="equip equip--small" style="left:755px; top:100px;" @onmouseenter='() => OnHoverStart("Mask")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Mask"))</div>
-    <div class="equip equip--big" style="left:656px; top:125px;" @onmouseenter='() => OnHoverStart("Helmet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Helmet"))</div>
-    <div class="equip equip--big" style="left:666px; top:275px;" @onmouseenter='() => OnHoverStart("Torso")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Torso"))</div>
-    <div class="equip equip--big" style="left:766px; top:300px;" @onmouseenter='() => OnHoverStart("Gauntlet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Gauntlet"))</div>
-    <div class="equip equip--big" style="left:566px; top:225px;" @onmouseenter='() => OnHoverStart("Weapon")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Weapon"))</div>
-    <div class="equip equip--big" style="left:640px; top:440px;" @onmouseenter='() => OnHoverStart("Boots")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Boots"))</div>
-    <div class="equip equip--big" style="left:766px; top:420px;" @onmouseenter='() => OnHoverStart("Extra")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Extra"))</div>
-    <div class="equip equip--big" style="left:540px; top:360px;" @onmouseenter='() => OnHoverStart("Pet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Pet"))</div>
+    <div class="equip equip--big" style="left:656px; top:125px;"    @onmouseenter='() => OnHoverStart("Helmet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Helmet"))</div>
+    <div class="equip equip--big" style="left:666px; top:275px;"    @onmouseenter='() => OnHoverStart("Torso")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Torso"))</div>
+    <div class="equip equip--big" style="left:766px; top:300px;"    @onmouseenter='() => OnHoverStart("Gauntlet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Gauntlet"))</div>
+    <div class="equip equip--big" style="left:566px; top:225px;"    @onmouseenter='() => OnHoverStart("Weapon")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Weapon"))</div>
+    <div class="equip equip--big" style="left:640px; top:440px;"    @onmouseenter='() => OnHoverStart("Boots")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Boots"))</div>
+    <div class="equip equip--big" style="left:766px; top:420px;"    @onmouseenter='() => OnHoverStart("Extra")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Extra"))</div>
+    <div class="equip equip--big" style="left:540px; top:360px;"    @onmouseenter='() => OnHoverStart("Pet")' @onmouseleave="OnHoverEnd">@(GetEquipmentVisuals("Pet"))</div>
 
     <img class="selected-hero-icon"
          src="@SelectedHeroIconUrl"
@@ -71,6 +71,7 @@
     </div>
     <div class="character-level" style="position: absolute; left: 150px; top: 75px; ">@CharacterString</div>
     <div class="item-level" style="position: absolute; left: 325px; top: 500px; ">@ItemLevelString</div>
+    <div class="item-location" style="position: absolute; left: 100px; top: 500px; ">@ItemLocationString</div>
 </div>
 
 @inject IJSRuntime JS
@@ -82,7 +83,8 @@
     public DDHeroInfo? SelectedHeroInfo { get; set; }
     public ItemViewRow? HoveredEquipment { get; set; }
     private string ItemLevelString = "";
-    private string CharacterString = "";
+    private string ItemLocationString = "";
+    private string CharacterString = "";    
 
     // Raw strings shown in the RadioSelect. Format matters:
     //   "Name (ClassName)" where ClassName is used to pick icons.
@@ -94,6 +96,7 @@
     [Parameter] public EventCallback<ItemViewRow?> OnRightClickEquipment { get; set; }
     [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
     [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
+    [Parameter] public Func<ItemViewRow, string>? GetLocationFunc { get; set; }
 
     public int[] ShownStat = new int[11];
     public int[] ShownResist = new int[4];
@@ -474,6 +477,9 @@
             if (EquippedItems.TryGetValue(slot, out var item))
             {
                 HoveredEquipment = item;
+
+                var locationStr = GetLocationFunc?.Invoke(item) ?? item.Location;
+                ItemLocationString = locationStr ?? "";
                 ItemLevelString = $"Lvl {item.Level} / {item.MaxLevel}";
                 await InvokeAsync(StateHasChanged);
             }
@@ -484,11 +490,13 @@
         }
     }
 
+
     private void OnHoverEnd()
     {
         _hoverCts?.Cancel();
         HoveredEquipment = null;    
         ItemLevelString = "";
+        ItemLocationString = "";
         StateHasChanged();
     }
 
