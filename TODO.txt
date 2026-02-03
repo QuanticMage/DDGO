@@ -11,6 +11,8 @@ Respect <color> tags
 
 Update location on export to have page
 
+New event items, new gun, beta characters
+
 
 PRI
 Fix hover highlight- different color than selected?
