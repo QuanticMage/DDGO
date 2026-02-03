@@ -228,7 +228,6 @@ namespace DDUP
 					ResistLine("png/Fire Resistance.png", "F", Resists[2]) +
 					ResistLine("png/Lightning Resistance.png", "L", Resists[3]) +
 					$"</div><br>{CachedUpgradesToMaxResistText}";
-
 			this.HasCustomColor = !IsBlack(Color1) || !IsBlack(Color2);
 			this.PlainName = RemoveParenthesizedName(this.Name);
 
@@ -237,7 +236,7 @@ namespace DDUP
 
 		public void UpdateValueDisplay()
 		{
-			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();
+			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();	
 		}
 
 		private (string emojiText, string text, string tooltip) GetValueDisplay()
@@ -294,6 +293,7 @@ namespace DDUP
 
 		public string ShowUpgradesToMaxResist()
 		{
+			
 			int upgradesRequiredForResists = Ratings.GetUpgradesRequired(ResistanceTarget, Resists[0], Resists[1], Resists[2], Resists[3]);
 			int overcappedUpgradesLeft = (MaxLevel - Level) / 10;
 			int overcappedUpgradesNeeded =
@@ -302,7 +302,9 @@ namespace DDUP
 				(ResistanceTarget - ((Resists[2] < 23) ? 23 : Resists[2])) +
 				(ResistanceTarget - ((Resists[3] < 23) ? 23 : Resists[3]));
 
-			if ((Resists[0] == 0) || (Resists[1] == 0) || (Resists[2] == 0) || (Resists[3] == 0))
+			if ((Resists[0] == 0) && (Resists[1] == 0) && (Resists[2] == 0) && (Resists[3] == 0))
+				return "No resists";
+			else if ((Resists[0] == 0) || (Resists[1] == 0) || (Resists[2] == 0) || (Resists[3] == 0))
 				return "Missing resist type";
 			else if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || (upgradesRequiredForResists > (MaxLevel - Level)))
 				return "Can't cap with remaining levels";
@@ -310,6 +312,21 @@ namespace DDUP
 				return "";
 			return $"{upgradesRequiredForResists} levels required for cap";
 		}
+
+		public string GetStringResistValue(bool _showUpgradedStats, bool _assumeSetBonuses)
+		{
+			int value = _showUpgradedStats ?
+				(UpgradedResists[0] + UpgradedResists[1] + UpgradedResists[2] + UpgradedResists[3]) / 4 :
+				(Resists[0] + Resists[1] + Resists[2] + Resists[3]) / 4;
+
+			if (_assumeSetBonuses)
+			{
+				value = (value > 0) ? (int)Math.Ceiling(SetBonus * value) : value;
+			}
+
+			return value.ToString();
+		}
+
 
 		public string GetStringStatValue(DDStat stat,  bool showUpgradedStats, bool assumeSetBonuses, bool censor)
 		{			

@@ -8,7 +8,9 @@ TODO:
 Does the best button just work for Accs at the min? would be good if it could change armour as well
 
 Respect <color> tags
-Update location on export to have page
+
+Update location on export to have page, update location  in hover
+
 New event items, new gun, beta characters
 "Why is this not updating"? help 
 (DONE) Optimizations

@@ -953,9 +953,7 @@
                             <td class="num cell-damage @CachedStatShadingStyles[(int)DDStat.TowerDamage]">@r.CachedStatValues[(int)DDStat.TowerDamage]</td>
                             <td class="num cell-range @CachedStatShadingStyles[(int)DDStat.TowerRange]">@r.CachedStatValues[(int)DDStat.TowerRange]</td>
                             <td class="num cell-rate @CachedStatShadingStyles[(int)DDStat.TowerRate])">@r.CachedStatValues[(int)DDStat.TowerRate]</td>
-
-                            <td class="resist @CachedStatShadingStyles[(int)DDStat.HeroResistance]" data-tooltip="@r.CachedResistanceTooltip")>
-                                    @r.CachedResistDisplayValue</td>
+                            <td class="resist @CachedStatShadingStyles[(int)DDStat.HeroResistance]" data-tooltip="@r.CachedResistanceTooltip">@r.CachedResistDisplayValue</td>
                 </tr>
                 }
                 </tbody>
@@ -1673,27 +1671,14 @@
     };
 
 
-    private string GetResistValue(ItemViewRow r)
-    {
-        int value = _showUpgradedStats ?
-            (r.UpgradedResists[0] + r.UpgradedResists[1] + r.UpgradedResists[2] + r.UpgradedResists[3]) / 4 :
-            (r.Resists[0] + r.Resists[1] + r.Resists[2] + r.Resists[3]) / 4;
-
-        if (_assumeSetBonuses)
-        {
-            value = (value > 0) ? (int)Math.Ceiling(r.SetBonus * value) : value;
-        }
-
-        return value.ToString();
-    }
 
     private void UpdateStatValues()
     {
         foreach (var r in _rows)
         {
             for (int i = 1; i < 11; i ++)
-                r.CachedStatValues[i] = r.GetStringStatValue((DDStat)i, _showUpgradedStats, _assumeSetBonuses, _censor);            
-            r.CachedResistDisplayValue = GetResistValue(r);
+                r.CachedStatValues[i] = r.GetStringStatValue((DDStat)i, _showUpgradedStats, _assumeSetBonuses, _censor);
+            r.CachedResistDisplayValue = r.GetStringResistValue(_showUpgradedStats, _assumeSetBonuses);
 
         }           
     }
@@ -2275,6 +2260,9 @@
 
         ApplyUiToFields();
 
+        for (int i = 0; i < 11; i++)
+            CachedStatShadingStyles[i] = "";
+
         await LoadSearchHistoryAsync();
 
 
@@ -2336,14 +2324,14 @@
 
     protected override bool ShouldRender()
     {
-        Console.WriteLine($"{GetType().Name} ShouldRender() = true");        
+        //Console.WriteLine($"{GetType().Name} ShouldRender() = true");        
         return true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _renderCount++;
-        Console.WriteLine($"{GetType().Name} rendered #{_renderCount} (first={firstRender})");
+        //Console.WriteLine($"{GetType().Name} rendered #{_renderCount} (first={firstRender})");
 
 
         if (firstRender)

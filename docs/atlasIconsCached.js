@@ -155,28 +155,32 @@
         if (!atlas) throw new Error("atlasIcons not initialized");
 
         const icons = document.querySelectorAll("img.atlas-icon");
-        let i = 0;
 
-        for (const imgEl of icons) {
-            await new Promise(r => setTimeout(r, 0));
+        ignoreMutations = true;
+        try {
+            for (const imgEl of icons) {
+                await new Promise(r => setTimeout(r, 0));
 
-            const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
-            const l1 = layer(imgEl, "l1");
-            const l2 = layer(imgEl, "l2");
-            const l3 = layer(imgEl, "l3");
-            if (!l1 && !l2 && !l3) continue;
+                const size = int(get(imgEl, "data-size")) || imgEl.width || 20;
+                const l1 = layer(imgEl, "l1");
+                const l2 = layer(imgEl, "l2");
+                const l3 = layer(imgEl, "l3");
+                if (!l1 && !l2 && !l3) continue;
 
-            const key = makeKey(size, l1, l2, l3);
-            if (imgEl.dataset.iconKey === key && imgEl.src) continue;
+                const key = makeKey(size, l1, l2, l3);
+                if (imgEl.dataset.iconKey === key && imgEl.src) continue;
 
-            let url = cache.get(key);
-            if (!url) {
-                url = await renderKeyToObjectUrl(size, l1, l2, l3);
-                cache.set(key, url);
+                let url = cache.get(key);
+                if (!url) {
+                    url = await renderKeyToObjectUrl(size, l1, l2, l3);
+                    cache.set(key, url);
+                }
+
+                imgEl.dataset.iconKey = key;
+                await setImageSrc(imgEl, url);
             }
-
-            imgEl.dataset.iconKey = key;
-            await setImageSrc(imgEl, url);
+        } finally {
+            ignoreMutations = false;
         }
     }
 
@@ -222,12 +226,20 @@
             requestAnimationFrame(run);
         }
     }
+    let ignoreMutations = false;
 
     function startAutoRender(root = document.body) {
         stopAutoRender();
-        scheduleRender(); // render whatever is there now
+        scheduleRender();
 
-        mo = new MutationObserver(() => scheduleRender());
+        mo = new MutationObserver((mutations) => {
+            if (ignoreMutations) return;
+
+            // Optional: only react if something relevant changed
+            // (e.g. nodes added/removed or your layer attrs changed)
+            scheduleRender();
+        });
+
         mo.observe(root, {
             subtree: true,
             childList: true,
@@ -238,9 +250,11 @@
                 "data-l1x", "data-l1y",
                 "data-l2x", "data-l2y", "data-l2t",
                 "data-l3x", "data-l3y", "data-l3t"
+                // IMPORTANT: do NOT include "src" or "data-icon-key"
             ]
         });
     }
+
 
     function stopAutoRender() {
         if (mo) { mo.disconnect(); mo = null; }
