@@ -298,6 +298,19 @@
     text-shadow: 0 2px 3px rgba(0,0,0,.9), /* readability */
     0 0 5px rgba(80,255,120,.95); /* glow */
 }
+
+.item-location[b-qo4i33znsx] {
+    position: absolute;
+    font-size: 14px;
+    font-weight: 400;
+    max-width:200px;
+    white-space: wrap;
+    line-height: 1;
+    padding: 2px 6px;
+    pointer-events: none;
+    z-index: 0;
+    color: #f0f0f080;    
+}
 /* /FilterChips.razor.rz.scp.css */
 /* =========================
 FilterChips.razor.css
