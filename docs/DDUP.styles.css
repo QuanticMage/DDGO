@@ -1286,13 +1286,13 @@ h1[b-yrayc6w7vb] {
 }
 
 .value-icon .value-emoji[b-yrayc6w7vb] {    
-    font-size: 14px;
+    font-size: 16px;
     letter-spacing: -5px;
 }
 
 .value-icon .value-text[b-yrayc6w7vb] {    
     line-height: 1;
-    font-size: 13px;    
+    font-size: 15px;    
 }
     
 
@@ -2593,8 +2593,9 @@ live-btn[b-yrayc6w7vb] {
 
 /* Normal row height is influenced by font-size and padding */
 .compact-table td[b-yrayc6w7vb] {
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    line-height:0.9;
 }
 
 /* Shrink the primary rating number */

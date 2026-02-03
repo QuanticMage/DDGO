@@ -1,5 +1,7 @@
 ﻿using DDUP;
 using Microsoft.AspNetCore.Components;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DDUP
 {
@@ -94,8 +96,27 @@ namespace DDUP
 
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
+
+		public string[] CachedStatValues = new string[11];
+		public string CachedResistanceTooltip = "";
+		public string CachedUpgradesToMaxResistText = "";
+		public string CachedResistDisplayValue = "";
+		public string CachedValueDisplayIcons = "";
+		public string CachedValueDisplayText = "";
+		public string CachedValueDisplayTooltip = "";
+		public bool HasCustomColor = false;
+		public string PlainName = "";
+
 		public int UpgradesRequiredForResists { get; set; }
 		public bool BrokenResists = false;
+
+		string ResistLine(string img, string alt, int value)
+		{
+			return value != 0
+				? $"<img class='resist-icon' src='{img}' alt='{alt}' />" +
+				  $"<span class='resist-val'>{value}</span>"
+				: "";
+		}
 
 		public ItemViewRow(
 				int Rating,
@@ -103,7 +124,7 @@ namespace DDUP
 				string Name,
 				string Location,
 				string Quality,
-				string Type,				
+				string Type,
 				string Set,
 				int Level,
 				int MaxLevel,
@@ -133,9 +154,9 @@ namespace DDUP
 				int ResistanceTarget,
 				int MaxStat,
 
-				string Color1, 
+				string Color1,
 				string Color2,
-				
+
 				bool IsEvent,
 				bool IsMissingResists,
 				bool IsEquipped,
@@ -175,7 +196,7 @@ namespace DDUP
 			this.Resists[3] = RL;
 
 			this.Idx = Idx;
-			
+
 			this.IsEvent = IsEvent;
 			this.IsMissingResists = IsMissingResists;
 			this.IsEquipped = IsEquipped;
@@ -199,7 +220,97 @@ namespace DDUP
 			this.IconY = IconY;
 			this.IsHiddenDueToSearch = false;
 			this.CurrentEquippedSlot = "";
+			this.CachedUpgradesToMaxResistText = ShowUpgradesToMaxResist();
+			this.CachedResistanceTooltip =
+					$"<div class='resist-container'>" +
+					ResistLine("png/Generic Resistance.png", "G", Resists[0]) +
+					ResistLine("png/Poison Resistance.png", "P", Resists[1]) +
+					ResistLine("png/Fire Resistance.png", "F", Resists[2]) +
+					ResistLine("png/Lightning Resistance.png", "L", Resists[3]) +
+					$"</div><br>{CachedUpgradesToMaxResistText}";
+
+			this.HasCustomColor = !IsBlack(Color1) || !IsBlack(Color2);
+			this.PlainName = RemoveParenthesizedName(this.Name);
+
+			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();	
 		}
+
+		public void UpdateValueDisplay()
+		{
+			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();
+		}
+
+		private (string emojiText, string text, string tooltip) GetValueDisplay()
+		{
+			if (IsEvent && (Value == 0))
+			{
+				return ("💎", "???", "");
+			}
+
+			if (Value > 0)
+			{
+				if (Value > 300)
+					return ("💰", "Auction", "Estimated " + Value.ToString() + "cv");
+				else
+					return ("💎", Value.ToString() + "cv", "");
+			}
+			else
+			{
+				if ((Type != "Weapon") && (Type != "Pet") && (Type != "Currency"))
+				{
+					if (Value > -100) return ("⭐️⭐️⭐️", "", "");// "png/ValueHighest.png");
+					else if (Value > -200) return ("⭐️⭐️", "", "");// "png/ValueHigh.png");
+					else if (Value > -300) return ("⭐️", "", "");//"png/ValueMid.png");
+					else return ("❌", "", "");// "png/ValueLow.png");
+				}
+				return ("", "", "");
+			}
+		}
+
+
+		public string RemoveParenthesizedName(string s)
+		{
+			if (string.IsNullOrWhiteSpace(s))
+				return s;
+
+			// Remove anything inside parentheses including the parentheses
+			var result = Regex.Replace(s, @"\s*\(.*?\)", "");
+
+			return result.Trim();
+		}
+
+
+		// helper function
+		bool IsBlack(string? c)
+		{
+			if (string.IsNullOrWhiteSpace(c)) return true; // treat empty as "no color"
+
+			var s = c.Trim().ToLowerInvariant();
+			return s == "#000" || s == "#000000" ||
+			s == "rgb(0,0,0)" || s == "rgb(0, 0, 0)" ||
+			s == "rgba(0,0,0,1)" || s == "rgba(0, 0, 0, 1)";
+		}
+
+
+		public string ShowUpgradesToMaxResist()
+		{
+			int upgradesRequiredForResists = Ratings.GetUpgradesRequired(ResistanceTarget, Resists[0], Resists[1], Resists[2], Resists[3]);
+			int overcappedUpgradesLeft = (MaxLevel - Level) / 10;
+			int overcappedUpgradesNeeded =
+				(ResistanceTarget - ((Resists[0] < 23) ? 23 : Resists[0])) +
+				(ResistanceTarget - ((Resists[1] < 23) ? 23 : Resists[1])) +
+				(ResistanceTarget - ((Resists[2] < 23) ? 23 : Resists[2])) +
+				(ResistanceTarget - ((Resists[3] < 23) ? 23 : Resists[3]));
+
+			if ((Resists[0] == 0) || (Resists[1] == 0) || (Resists[2] == 0) || (Resists[3] == 0))
+				return "Missing resist type";
+			else if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || (upgradesRequiredForResists > (MaxLevel - Level)))
+				return "Can't cap with remaining levels";
+			else if (upgradesRequiredForResists == 0)
+				return "";
+			return $"{upgradesRequiredForResists} levels required for cap";
+		}
+
 		public string GetStringStatValue(DDStat stat,  bool showUpgradedStats, bool assumeSetBonuses, bool censor)
 		{			
 			int value = showUpgradedStats ? UpgradedStats[(int)stat] : Stats[(int)stat];

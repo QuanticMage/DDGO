@@ -300,13 +300,14 @@ namespace DDUP
 						Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value + "=>" + prices[i]);
 						// update price estimates
 						JsonQueries[i].Value = prices[i];
+						JsonQueries[i].UpdateValueDisplay();
 					}
 				}
 				else
 				{
 					Console.WriteLine("Query Count Mismatch!");
 				}
-
+		
 			}
 			catch (TaskCanceledException ex)
 			{
