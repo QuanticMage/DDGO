@@ -469,7 +469,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						obj.Load();
 						var iconProperty = GetProperty(obj, "EquipmentIconMat");
 						if (iconProperty == null) continue;
-
+					
 						var matInst = FindObjectByPath(item, iconProperty.Value);
 						matInst.Load();
 

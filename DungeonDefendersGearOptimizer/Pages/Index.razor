@@ -9,7 +9,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Feb 2 2026 - Version 1.6c</i></div>
+        <div class="build"><i>Feb 2 2026 - Version 1.7</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -139,6 +139,7 @@
                             OnEquipBest="HandleEquipBest"
                             OnEquipClear="HandleEquipClear"
                             OnClickEquipment="HandleEquipmentClick"
+                            OnRightClickEquipment="HandleEquipmentRightClick"
                             OnChangedRatingMode="HandleChangedRatingMode"
                             OnChangedHero="HandleChangedHero" />
         </div>
@@ -177,7 +178,13 @@
                            @onchange="@((e) => { _compactDisplay = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
                     <span>Compact Display</span>
                 </label>
-
+                <label class="utility-toggle" data-tooltip=@Tips["SidesAreImportant"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_sidesAreImportant"
+                           @onchange="@((e) => { _sidesAreImportant = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
+                    <span>Sides Important for Best</span>
+                </label>
 
                 <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
                     <input type="checkbox"
@@ -925,7 +932,7 @@
                                          data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
                                          data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
                                     <span class="name-name">
-                                        @r.Name
+                                        @(_compactDisplay ? RemoveParenthesizedName(r.Name): r.Name)
                                     </span>
                                     @{
                                         bool IsBlack(string? c)
@@ -1027,6 +1034,7 @@
     private bool _overlayObserversStarted;
     private string _customFilterError = "";
     private bool _compactDisplay = false;
+    public bool _sidesAreImportant = false;
 
     // Current sorting criteria
     private bool _bRequireResists = false;
@@ -1053,6 +1061,17 @@
         public string? key { get; set; }
         public double y { get; set; }
         public double h { get; set; }
+    }
+
+    public string RemoveParenthesizedName(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return s;
+
+        // Remove anything inside parentheses including the parentheses
+        var result = Regex.Replace(s, @"\s*\(.*?\)", "");
+
+        return result.Trim();
     }
 
     [JSInvokable]
@@ -2123,6 +2142,13 @@
 
     private Task HandleEquipmentClick(ItemViewRow row)
     {
+        JS.InvokeVoidAsync("scrollRowIntoView", row.Idx);
+        return Task.CompletedTask;
+    }
+
+
+    private Task HandleEquipmentRightClick(ItemViewRow row)
+    {
         // deselect this row
         DeselectRow(row);
         return Task.CompletedTask;
@@ -2387,6 +2413,7 @@
         bool ShowUpgradedStats = false,
         bool AssumeSetBonuses = false,
         bool CompactDisplay = false,
+        bool SidesAreImportant = false,
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
         List<string>? SelectedOther = null)
@@ -2405,6 +2432,7 @@
         ShowUpgradedStats: false,
         AssumeSetBonuses: false,
         CompactDisplay: false,
+        SidesAreImportant: false,
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
@@ -2423,6 +2451,7 @@
         _selectedOther = _ui.SelectedOtherSafe.ToList();
         _showUpgradedStats = _ui.ShowUpgradedStats;
         _assumeSetBonuses = _ui.AssumeSetBonuses;
+        _sidesAreImportant = _ui.SidesAreImportant;
 
         SetMode(_selectedMode);
         ApplyChipFilters();
@@ -2431,18 +2460,19 @@
     private void SyncFieldsToUi()
     {
         _ui = _ui with
-        {
-            Version = CurrentUIOptionsVersion,
-            RatingMode = _selectedMode,
-            Layout = _itemboxSize,
-            ShowLivePrices = _livePrices,
-            SelectedTypes = _selectedTypes.ToList(),
-            SelectedSets = _selectedSets.ToList(),
-            SelectedOther = _selectedOther.ToList(),
-            ShowUpgradedStats = _showUpgradedStats,
-            AssumeSetBonuses = _assumeSetBonuses,
-            CompactDisplay = _compactDisplay,
-        };
+            {
+                Version = CurrentUIOptionsVersion,
+                RatingMode = _selectedMode,
+                Layout = _itemboxSize,
+                ShowLivePrices = _livePrices,
+                SelectedTypes = _selectedTypes.ToList(),
+                SelectedSets = _selectedSets.ToList(),
+                SelectedOther = _selectedOther.ToList(),
+                ShowUpgradedStats = _showUpgradedStats,
+                AssumeSetBonuses = _assumeSetBonuses,
+                CompactDisplay = _compactDisplay,
+                SidesAreImportant = _sidesAreImportant,
+                };
 
         if (_characterPanel != null)
         {
@@ -2514,7 +2544,8 @@
         ["AssumeSetBonuses"] = "Shows items as if they have\na set bonus in the table.",
         ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
         ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
-        ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows."
+        ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
+        ["SidesAreImportant"] = "Makes Sides count for best\ngear (half as important as Rating)."
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -2774,7 +2805,7 @@
             var r = _rows[i];
             if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality))
             {
-                TestForBestPiece(r.Type, r.Set, r.Rating, BestPieces);
+                TestForBestPiece(r.Type, r.Set, r.Rating + (_sidesAreImportant ? r.Sides/2:0), BestPieces);
             }
         }
 
@@ -2817,7 +2848,7 @@
                 if (BestPieces.ContainsKey(typeString))
                 {
                     int rating = BestPieces[typeString];
-                    if (r.Rating == rating)
+                    if ((r.Rating + (_sidesAreImportant ? r.Sides / 2 : 0)) == rating)
                     {
                         highlight = true;
                         BestPieces[typeString] = -99999;

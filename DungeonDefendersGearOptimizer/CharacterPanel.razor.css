@@ -90,7 +90,6 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
-    filter: contrast(0.95) brightness(0.95);
     opacity: 0.9;
 }
 
@@ -98,7 +97,6 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
-    filter: contrast(0.95) brightness(0.95);
     opacity: 0.9;
 }
 /* --- EQUIPMENT SLOT WRAPPER --- */

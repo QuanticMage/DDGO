@@ -91,7 +91,6 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
-    filter: contrast(0.95) brightness(0.95);
     opacity: 0.9;
 }
 
@@ -99,7 +98,6 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
-    filter: contrast(0.95) brightness(0.95);
     opacity: 0.9;
 }
 /* --- EQUIPMENT SLOT WRAPPER --- */
@@ -2284,7 +2282,7 @@ live-btn[b-yrayc6w7vb] {
 
 .grid-wrap[b-yrayc6w7vb] {
     max-height: 60vh;
-    min-height: 850px;
+    min-height: 750px;
     overflow: auto;
     border: 3px solid black;
     position: relative;

@@ -165,7 +165,13 @@
                 return true;
             }
             return false;
-        };
+		};
+		window.scrollRowIntoView = (key) => {
+			const el = document.querySelector(`[data-key="${key}"]`);
+			if (el) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+		};
 
     </script>
 

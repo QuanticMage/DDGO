@@ -5,27 +5,23 @@ TODO:
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
 
-Scroll to selected equipment piece? what is the best interface...
-Full equation parser
-
 Does the best button just work for Accs at the min? would be good if it could change armour as well
-Make custom field wider!
 
 Respect <color> tags
-Fix colors primary/secondary on some (check Shiros)
-<color:b,g,r>
-Special icons for each class
 
 Update location on export to have page
-Left click => select item when clicking in character panel.  Right click to remove.
 
 
 PRI
 Fix hover highlight- different color than selected?
-* Add in + for formulas?
-
-* Custom filter => separate with commas, better space handling
-* Custom filter => drop down with selection
+(DONE) Scroll to selected equipment piece? what is the best interface...
+(DONE) Full equation parser
+(DONE) Make custom field wider!
+(DONE) Fix colors primary/secondary on some (check Shiros)
+(DONE) Special icons for each class
+(DONE) Left click => select item when clicking in character panel.  Right click to remove.
+(DONE) Add in + for formulas?
+(DONE) Custom filter => drop down with selection
 (DONE) Custom filter => support + and ops
 (DONE) Custom filter => better tooltip
 

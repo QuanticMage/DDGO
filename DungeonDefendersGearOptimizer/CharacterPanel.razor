@@ -9,19 +9,19 @@
     <img class="hero-stat-bg" src="png/heroItemBG.png" />
     <img class="hero-equip-bg" src="png/inventoryBG.png" />
 
-    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='png/Hero Health.png' />@GetShownStat(DDStat.HeroHealth)</div>
-    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='png/Hero Damage.png' />@GetShownStat(DDStat.HeroDamage)</div>
-    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='png/Move Speed.png' />@GetShownStat(DDStat.HeroSpeed)</div>
-    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='png/Cast Rate.png' />@GetShownStat(DDStat.HeroCastRate)</div>
+    <div class="stat" style="left:148px; top:155px;"><img class="icon" src='@GetStatIcon(DDStat.HeroHealth)' />@GetShownStat(DDStat.HeroHealth)</div>
+    <div class="stat" style="left:236px; top:155px;"><img class="icon" src='@GetStatIcon(DDStat.HeroDamage)' />@GetShownStat(DDStat.HeroDamage)</div>
+    <div class="stat" style="left:324px; top:155px;"><img class="icon" src='@GetStatIcon(DDStat.HeroSpeed)' />@GetShownStat(DDStat.HeroSpeed)</div>
+    <div class="stat" style="left:412px; top:155px;"><img class="icon" src='@GetStatIcon(DDStat.HeroCastRate)' />@GetShownStat(DDStat.HeroCastRate)</div>
 
-    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='png/AB1/Monk AB1.png' />@GetShownStat(DDStat.HeroAbility1)</div>
-    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='png/AB2/Hero Boost Monk AB2.png' />@GetShownStat(DDStat.HeroAbility2)</div>
+    <div class="stat" style="left:236px; top:255px;"><img class="icon" src='@GetStatIcon(DDStat.HeroAbility1)' />@GetShownStat(DDStat.HeroAbility1)</div>
+    <div class="stat" style="left:324px; top:255px;"><img class="icon" src='@GetStatIcon(DDStat.HeroAbility2)' />@GetShownStat(DDStat.HeroAbility2)</div>
 
-    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='png/Tower Health.png' />@GetShownStat(DDStat.TowerHealth)</div>
-    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='png/Tower Damage.png' />@GetShownStat(DDStat.TowerDamage)</div>
-    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='png/Tower Range.png' />@GetShownStat(DDStat.TowerRange)</div>
-    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='png/Tower Rate.png' />@GetShownStat(DDStat.TowerRate)</div>
-
+    <div class="stat" style="left:148px; top:355px;"><img class="icon" src='@GetStatIcon(DDStat.TowerHealth)' />@GetShownStat(DDStat.TowerHealth)</div>
+    <div class="stat" style="left:236px; top:355px;"><img class="icon" src='@GetStatIcon(DDStat.TowerDamage)' />@GetShownStat(DDStat.TowerDamage)</div>
+    <div class="stat" style="left:324px; top:355px;"><img class="icon" src='@GetStatIcon(DDStat.TowerRange)' />@GetShownStat(DDStat.TowerRange)</div>
+    <div class="stat" style="left:412px; top:355px;"><img class="icon" src='@GetStatIcon(DDStat.TowerRate)' />@GetShownStat(DDStat.TowerRate)</div>
+    
     <div class="stat" style="left:148px; top:455px;"><img class="icon" src='png/Generic Resistance.png' />@GetShownResist(0)</div>
     <div class="stat" style="left:236px; top:455px;"><img class="icon" src='png/Fire Resistance.png' />@GetShownResist(2)</div>
     <div class="stat" style="left:324px; top:455px;"><img class="icon" src='png/Lightning Resistance.png' />@GetShownResist(3)</div>
@@ -71,404 +71,426 @@
     </div>
     <div class="character-level" style="position: absolute; left: 150px; top: 75px; ">@CharacterString</div>
     <div class="item-level" style="position: absolute; left: 325px; top: 500px; ">@ItemLevelString</div>
+</div>
 
-    @inject IJSRuntime JS
-    @code {
+@inject IJSRuntime JS
+@code {
 
-        public string GetRatingMode() { return SelectedRatingMode ?? ""; }
-        private string? SelectedRatingMode;
-        private string? SelectedHero;
-        public DDHeroInfo? SelectedHeroInfo { get; set; }
-        public ItemViewRow? HoveredEquipment { get; set; }
-        private string ItemLevelString = "";
-        private string CharacterString = "";
+    public string GetRatingMode() { return SelectedRatingMode ?? ""; }
+    private string? SelectedRatingMode;
+    private string? SelectedHero;
+    public DDHeroInfo? SelectedHeroInfo { get; set; }
+    public ItemViewRow? HoveredEquipment { get; set; }
+    private string ItemLevelString = "";
+    private string CharacterString = "";
 
-        // Raw strings shown in the RadioSelect. Format matters:
-        //   "Name (ClassName)" where ClassName is used to pick icons.
-        private List<string> HeroChoices { get; set; } = new();
-        [Parameter] public EventCallback<string?> OnEquipFromFile { get; set; }
-        [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
-        [Parameter] public EventCallback<string?> OnEquipClear { get; set; }
-        [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
-        [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
-        [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
+    // Raw strings shown in the RadioSelect. Format matters:
+    //   "Name (ClassName)" where ClassName is used to pick icons.
+    private List<string> HeroChoices { get; set; } = new();
+    [Parameter] public EventCallback<string?> OnEquipFromFile { get; set; }
+    [Parameter] public EventCallback<string?> OnEquipBest { get; set; }
+    [Parameter] public EventCallback<string?> OnEquipClear { get; set; }
+    [Parameter] public EventCallback<ItemViewRow?> OnClickEquipment { get; set; }
+    [Parameter] public EventCallback<ItemViewRow?> OnRightClickEquipment { get; set; }
+    [Parameter] public EventCallback<ItemViewRow?> OnChangedRatingMode { get; set; }
+    [Parameter] public EventCallback<ItemViewRow?> OnChangedHero { get; set; }
 
-        public int[] ShownStat = new int[11];
-        public int[] ShownResist = new int[4];
-        private bool ShowUpgraded = false;
-        private bool CensorUltPlusPlus = false;   
-        private bool bHasArmorSetBonus = false;
+    public int[] ShownStat = new int[11];
+    public int[] ShownResist = new int[4];
+    private bool ShowUpgraded = false;
+    private bool CensorUltPlusPlus = false;   
+    private bool bHasArmorSetBonus = false;
 
-        public void SetUIFlags(bool bShowUpgraded, bool bCensorUltPlusPlus )
+    public void SetUIFlags(bool bShowUpgraded, bool bCensorUltPlusPlus )
+    {
+        ShowUpgraded = bShowUpgraded;
+        CensorUltPlusPlus = bCensorUltPlusPlus;
+        UpdateCharacterTotalStats();
+    }
+
+
+    private const string DefaultHeroName = "Test Jester";
+    private const string DefaultHeroClass = "Jester";
+    private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();
+    public Dictionary<string, ItemViewRow> EquippedItems = new();
+
+    private static RenderFragment EmptyFragment => builder => { };
+
+    private string GetStatIcon(DDStat statIn)
+    {
+        if (SelectedHeroInfo != null)
         {
-            ShowUpgraded = bShowUpgraded;
-            CensorUltPlusPlus = bCensorUltPlusPlus;
-            UpdateCharacterTotalStats();
+            HeroTemplateData template = HeroTemplateData.Map[SelectedHeroInfo.Template];
+            if (template != null)
+            {
+                return template.StatIcons[(int)statIn - 1];
+            }
+        }
+        return HeroTemplateData.Map["DunDefPlayers.HeroTemplateRecruit"].StatIcons[(int)statIn - 1];
+    }
+
+    // key: class name inside parentheses, eg "Apprentice"
+    // value: icon url/path, eg "png/Apprentice_TinyIcon.png"
+    private Dictionary<string, string> HeroIcons { get; set; }  = new(StringComparer.OrdinalIgnoreCase);
+    private RenderFragment GetShownStat(DDStat statIn)
+    {
+        var statText = ShownStat[(int)statIn].ToString();
+
+        if (HoveredEquipment != null)
+            statText = HoveredEquipment.GetStringStatValue(statIn, ShowUpgraded, bHasArmorSetBonus, CensorUltPlusPlus);
+
+        var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
+
+        return GetShownStat(statText, isNegative, (HoveredEquipment != null));
+    }
+
+    private RenderFragment GetShownStat(string statText, bool bIsNegative, bool hover) =>
+    @<span class='stat-val @(hover ? "hover" : "") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
+    ;
+
+
+    private RenderFragment GetShownResist(int r)
+    {
+        var statText = ShownResist[r].ToString() + "%";
+
+        if (HoveredEquipment != null)
+        {
+            int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedResists[r] : HoveredEquipment.Resists[r]);
+            float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
+
+            if (baseStat < 0) multiplier = 1.0f;
+
+            statText = baseStat == 0 ? "" : ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%";
         }
 
+        var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
+        return GetShownResist(statText, isNegative, (HoveredEquipment != null));
+    }
 
-        private const string DefaultHeroName = "Test Jester";
-        private const string DefaultHeroClass = "Jester";
-        private Dictionary<int, DDHeroInfo> HeroInfoByIndex = new();
-        public Dictionary<string, ItemViewRow> EquippedItems = new();
+    private RenderFragment GetShownResist(string statText, bool bIsNegative, bool hover) =>
+    @<span class='stat-val resist @(hover?"hover":"") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
+    ;
 
-        private static RenderFragment EmptyFragment => builder => { };
-
-        // key: class name inside parentheses, eg "Apprentice"
-        // value: icon url/path, eg "png/Apprentice_TinyIcon.png"
-        private Dictionary<string, string> HeroIcons { get; set; }  = new(StringComparer.OrdinalIgnoreCase);
-        private RenderFragment GetShownStat(DDStat statIn)
+    public void UpdateCharacterTotalStats()
+    {
+        int armorPieces = 0;
+        string armorSet = "";
+        foreach (var v in EquippedItems)
         {
-            var statText = ShownStat[(int)statIn].ToString();
+            if (v.Value.IsArmor && ((v.Value.Set == armorSet) || (armorSet == "")))
+            {
+                armorPieces++;
+                armorSet = v.Value.Set;
+            }
+        }
+        bHasArmorSetBonus = true;
 
-            if (HoveredEquipment != null)
-                statText = HoveredEquipment.GetStringStatValue(statIn, ShowUpgraded, bHasArmorSetBonus, CensorUltPlusPlus);
 
-            var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
-
-            return GetShownStat(statText, isNegative, (HoveredEquipment != null));
+        for (int i = 1; i < 11; i++)
+        {
+            ShownStat[i] = (SelectedHeroInfo != null) ? SelectedHeroInfo.Stats[i] : 0;
         }
 
-        private RenderFragment GetShownStat(string statText, bool bIsNegative, bool hover) =>
-        @<span class='stat-val @(hover ? "hover" : "") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
-        ;
+        for (int i = 0; i < 4; i++)
+            ShownResist[i] = 0;
 
-
-        private RenderFragment GetShownResist(int r)
+        foreach (var v in EquippedItems)
         {
-            var statText = ShownResist[r].ToString() + "%";
-
-            if (HoveredEquipment != null)
+            for (int i = 1; i < 11; i++)                
             {
-                int baseStat = (ShowUpgraded ? HoveredEquipment.UpgradedResists[r] : HoveredEquipment.Resists[r]);
-                float multiplier = (HoveredEquipment.IsArmor && bHasArmorSetBonus) ? HoveredEquipment.SetBonus : 1.0f;
-
-                if (baseStat < 0) multiplier = 1.0f;
-
-                statText = baseStat == 0 ? "" : ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%";
+                int baseStat = (ShowUpgraded ? v.Value.UpgradedStats[i] : v.Value.Stats[i]);
+                float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
+                if (baseStat < 0) multiplier = 1.0f;                    
+                ShownStat[i] += (int)Math.Ceiling(multiplier * baseStat);
             }
-
-            var isNegative = statText.StartsWith("-", StringComparison.Ordinal);
-            return GetShownResist(statText, isNegative, (HoveredEquipment != null));
-        }
-
-        private RenderFragment GetShownResist(string statText, bool bIsNegative, bool hover) =>
-        @<span class='stat-val resist @(hover?"hover":"") @(bIsNegative ? "negative-stat" : "")'>@statText</span>
-        ;
-
-        public void UpdateCharacterTotalStats()
-        {
-            int armorPieces = 0;
-            string armorSet = "";
-            foreach (var v in EquippedItems)
-            {
-                if (v.Value.IsArmor && ((v.Value.Set == armorSet) || (armorSet == "")))
-                {
-                    armorPieces++;
-                    armorSet = v.Value.Set;
-                }
-            }
-            bHasArmorSetBonus = true;
-
-
-            for (int i = 1; i < 11; i++)
-            {
-                ShownStat[i] = (SelectedHeroInfo != null) ? SelectedHeroInfo.Stats[i] : 0;
-            }
-
             for (int i = 0; i < 4; i++)
-                ShownResist[i] = 0;
-
-            foreach (var v in EquippedItems)
             {
-                for (int i = 1; i < 11; i++)                
-                {
-                    int baseStat = (ShowUpgraded ? v.Value.UpgradedStats[i] : v.Value.Stats[i]);
-                    float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
-                    if (baseStat < 0) multiplier = 1.0f;                    
-                    ShownStat[i] += (int)Math.Ceiling(multiplier * baseStat);
-                }
-                for (int i = 0; i < 4; i++)
-                {
-                    int baseResist = (ShowUpgraded ? v.Value.UpgradedResists[i] : v.Value.Resists[i]);
-                    float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
-                    if (baseResist < 0) multiplier = 1.0f;
-                    // always show resists for nightmare
-                    ShownResist[i] += (int)Math.Ceiling(multiplier * baseResist);
+                int baseResist = (ShowUpgraded ? v.Value.UpgradedResists[i] : v.Value.Resists[i]);
+                float multiplier = (v.Value.IsArmor && bHasArmorSetBonus) ? v.Value.SetBonus : 1.0f;
+                if (baseResist < 0) multiplier = 1.0f;
+                // always show resists for nightmare
+                ShownResist[i] += (int)Math.Ceiling(multiplier * baseResist);
 
-                }
-            }
-
-            for (int i = 1; i < 11; i++)
-                ShownStat[i] = Math.Max(0, ShownStat[i]);
-
-            for (int i = 0; i < 4; i++ )
-            {
-                if ( ShownResist[i] < 0.0f)
-                    ShownResist[i] = Math.Min(90, (int)Math.Ceiling(ShownResist[i] * 0.55));
-                else
-                    ShownResist[i] = Math.Min(90, (int)Math.Floor(ShownResist[i] * 0.55));
-            }
-
-            StateHasChanged();
-        }
-
-        private string SelectedHeroIconUrl
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(SelectedHero))
-                    return "png/empty.png";
-
-                // Expected format: "Name (ClassName)"
-                var start = SelectedHero.LastIndexOf('(');
-                var end = SelectedHero.LastIndexOf(')');
-
-                if (start < 0 || end <= start)
-                    return "png/empty.png";
-
-                var className = SelectedHero.Substring(start + 1, end - start - 1);
-
-                return HeroIcons.TryGetValue(className, out var icon)
-                ? icon
-                : "png/empty.png";
             }
         }
 
+        for (int i = 1; i < 11; i++)
+            ShownStat[i] = Math.Max(0, ShownStat[i]);
 
-        public void Reload(List<DDHeroInfo> heroes)
+        for (int i = 0; i < 4; i++ )
         {
-            heroes ??= new();
-            HeroInfoByIndex.Clear();
-            var choices = new List<string>(heroes.Count + 15);
-            var icons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            // Existing heroes
-            foreach (var hero in heroes)
-            {
-                if (hero is null) continue;
-
-                HeroTemplateData? tpl = null;
-                if (!string.IsNullOrWhiteSpace(hero.Template))
-                    HeroTemplateData.Map.TryGetValue(hero.Template, out tpl);
-
-                HeroInfoByIndex[choices.Count] = hero;
-                var className = tpl?.ClassName ?? "Unknown";
-                choices.Add($"{hero.Name} ({className})");
-
-                if (tpl is not null && !string.IsNullOrWhiteSpace(tpl.ClassIcon))
-                    icons[className] = tpl.ClassIcon;
-            }            
-
-            // New hero entries, ordered by template Index.
-            foreach (var tpl in HeroTemplateData.Map.Values.OrderBy(t => t.Index).Take(15))
-            {
-                var className = string.IsNullOrWhiteSpace(tpl.ClassName) ? "Unknown" : tpl.ClassName;
-                choices.Add($"Test {className} ({className})");
-
-                if (!string.IsNullOrWhiteSpace(tpl.ClassIcon))
-                    icons[className] = tpl.ClassIcon;
-            }
-
-            HeroChoices = choices;
-            HeroIcons = icons;
-
-            // Default selection
-            if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
-            {
-                OnHeroChanged((HeroChoices[0], 0));           
-            }
-
-            // If the current selection no longer exists, clear it.
-            if (SelectedHero is not null && !HeroChoices.Contains(SelectedHero))
-                SelectedHero = null;           
-
-            StateHasChanged();       
-
-        }
-
-        private void SetRatingModeFromEquipment()
-        {
-            if (SelectedHeroInfo == null)
-                return;
-
-            string bestMode = SelectedHeroInfo.Equipment
-                .Where(v => v.cachedItemRow != null &&
-                !string.IsNullOrWhiteSpace(v.cachedItemRow.BestFor))
-                .GroupBy(v => v?.cachedItemRow?.BestFor)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .FirstOrDefault() ?? "";
-
-            if (SelectedHeroInfo.Equipment.Count == 0)
-                bestMode = "Builder App";
-
-            SelectedRatingMode = $"{bestMode} ({bestMode})";
-            // since we dson't use the index on this one, just pass it through    
-            OnRatingModeChanged((SelectedRatingMode, 0));
-        }
-
-
-        private Task OnRatingModeChanged((string?, int) args)
-        {
-            SelectedRatingMode = args.Item1;
-            _ = InvokeAsync(async () =>
-            {
-                if (OnChangedRatingMode.HasDelegate)
-                    await OnChangedRatingMode.InvokeAsync();
-            });
-
-            return Task.CompletedTask;
-        }
-
-        private Task OnHeroChanged((string?, int ) args)
-        {
-            string name = args.Item1 ??"";
-            int index = args.Item2;
-            SelectedHero = name;
-            if ((index >= 0) && (index < HeroInfoByIndex.Count))
-                SelectedHeroInfo = HeroInfoByIndex[index];
+            if ( ShownResist[i] < 0.0f)
+                ShownResist[i] = Math.Min(90, (int)Math.Ceiling(ShownResist[i] * 0.55));
             else
-                SelectedHeroInfo = null;
-
-            // Let the UI update immediately (label, etc.) before doing extra work.
-            _ = InvokeAsync(async () =>
-            {
-                if (OnEquipFromFile.HasDelegate)
-                    await OnEquipFromFile.InvokeAsync();
-                SetRatingModeFromEquipment();
-                if (OnChangedHero.HasDelegate)
-                    await OnChangedHero.InvokeAsync();
-            });
-
-            string className = "Unknown";
-            if (SelectedHeroInfo != null)
-            {
-                if (HeroTemplateData.Map.ContainsKey(SelectedHeroInfo.Template))
-                {
-                    className = HeroTemplateData.Map[SelectedHeroInfo.Template].ClassName;
-                }
-                CharacterString = $"Level {SelectedHeroInfo.HeroLevel} {className}";
-            }
-            else
-                CharacterString = $"Unknown";
-
-
-            return Task.CompletedTask;
+                ShownResist[i] = Math.Min(90, (int)Math.Floor(ShownResist[i] * 0.55));
         }
 
+        StateHasChanged();
+    }
 
-        private async Task SelectFromDunClicked()
+    private string SelectedHeroIconUrl
+    {
+        get
         {
-            if (OnEquipFromFile.HasDelegate)
-                await OnEquipFromFile.InvokeAsync(SelectedHero);
-        }
+            if (string.IsNullOrWhiteSpace(SelectedHero))
+                return "png/empty.png";
 
-        private async Task SelectBestClicked()
-        {
-            if (OnEquipBest.HasDelegate)
-                await OnEquipBest.InvokeAsync(SelectedHero);
-        }
+            // Expected format: "Name (ClassName)"
+            var start = SelectedHero.LastIndexOf('(');
+            var end = SelectedHero.LastIndexOf(')');
 
-        private async Task ClearClicked()
-        {
-            if (OnEquipClear.HasDelegate)
-                await OnEquipClear.InvokeAsync(SelectedHero);
-        }
-        
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
-        }
+            if (start < 0 || end <= start)
+                return "png/empty.png";
 
-        // the main index.razor pokes and changes this - encapsulate at some point
-        
-        public RenderFragment GetEquipmentVisuals(string slot)
-        {
-            if (EquippedItems.ContainsKey(slot))
-            {
-                ItemViewRow row = EquippedItems[slot];
-                string tierTag = "tier-" + row.Quality.Replace("+", "plus").ToLowerInvariant();
-                string name = Regex.Replace(row.Name, @"\s*\([^()]*\)", "");
-                return GetEquipmentRenderVisual(row, tierTag, name);
-            }
+            var className = SelectedHero.Substring(start + 1, end - start - 1);
 
-            return EmptyFragment;
-        }
-
-        private RenderFragment GetEquipmentRenderVisual(ItemViewRow r, string tierTag, string name) =>
-        @<div @onclick="() => ClickEquipment(r)">
-        <img class="frame" src="png/equipFrame.png" alt=""/>
-        <img class="atlas-icon overlay"             
-             alt=""
-             data-size="64"
-             data-l1x="@r.IconX" data-l1y="@r.IconY"
-             data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
-             data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
-        <div class="tag @tierTag">    
-            <div class="tag-rating">@r.Rating</div>
-            <div class="tag-name">@name</div>
-        </div>
-        </div>
-        ;
-
-        public async Task ClickEquipment(ItemViewRow row )
-        {
-            if (OnClickEquipment.HasDelegate)
-                await OnClickEquipment.InvokeAsync(row);
-        }
-
-
-        //<img class='overlay" @GetEquipmentProps("Torso") alt="">
-        public async Task ChangeEquipment(string slot, ItemViewRow? r)
-        {
-            if (r == null)
-                EquippedItems.Remove(slot);
-            else
-                EquippedItems[slot] = r;
-            await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
-            UpdateCharacterTotalStats();           
-        }
-
-        private CancellationTokenSource? _hoverCts;
-        private const int HoverDelayMs = 150; // tweak to taste
-
-
-        private async Task OnHoverStart(string slot)
-        {
-            _hoverCts?.Cancel();
-            _hoverCts = new CancellationTokenSource();
-            var token = _hoverCts.Token;
-
-            try
-            {
-                await Task.Delay(HoverDelayMs, token);
-
-                if (token.IsCancellationRequested)
-                    return;
-
-                if (EquippedItems.TryGetValue(slot, out var item))
-                {
-                    HoveredEquipment = item;
-                    ItemLevelString = $"Lvl {item.Level} / {item.MaxLevel}";
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // expected when hover changes quickly
-            }
-        }
-
-        private void OnHoverEnd()
-        {
-            _hoverCts?.Cancel();
-            HoveredEquipment = null;    
-            ItemLevelString = "";
-            StateHasChanged();
+            return HeroIcons.TryGetValue(className, out var icon)
+            ? icon
+            : "png/empty.png";
         }
     }
-   
-</div>
-@code {
+
+
+    public void Reload(List<DDHeroInfo> heroes)
+    {
+        heroes ??= new();
+        HeroInfoByIndex.Clear();
+        var choices = new List<string>(heroes.Count + 15);
+        var icons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        // Existing heroes
+        foreach (var hero in heroes)
+        {
+            if (hero is null) continue;
+
+            HeroTemplateData? tpl = null;
+            if (!string.IsNullOrWhiteSpace(hero.Template))
+                HeroTemplateData.Map.TryGetValue(hero.Template, out tpl);
+
+            HeroInfoByIndex[choices.Count] = hero;
+            var className = tpl?.ClassName ?? "Unknown";
+            choices.Add($"{hero.Name} ({className})");
+
+            if (tpl is not null && !string.IsNullOrWhiteSpace(tpl.ClassIcon))
+                icons[className] = tpl.ClassIcon;
+        }            
+
+        // New hero entries, ordered by template Index.
+        foreach (var tpl in HeroTemplateData.Map.Values.OrderBy(t => t.Index).Take(15))
+        {
+            var className = string.IsNullOrWhiteSpace(tpl.ClassName) ? "Unknown" : tpl.ClassName;
+            choices.Add($"Test {className} ({className})");
+
+            if (!string.IsNullOrWhiteSpace(tpl.ClassIcon))
+                icons[className] = tpl.ClassIcon;
+        }
+
+        HeroChoices = choices;
+        HeroIcons = icons;
+
+        // Default selection
+        if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
+        {
+            OnHeroChanged((HeroChoices[0], 0));           
+        }
+
+        // If the current selection no longer exists, clear it.
+        if (SelectedHero is not null && !HeroChoices.Contains(SelectedHero))
+            SelectedHero = null;           
+
+        StateHasChanged();       
+
+    }
+
+    private void SetRatingModeFromEquipment()
+    {
+        if (SelectedHeroInfo == null)
+            return;
+
+        string bestMode = SelectedHeroInfo.Equipment
+            .Where(v => v.cachedItemRow != null &&
+            !string.IsNullOrWhiteSpace(v.cachedItemRow.BestFor))
+            .GroupBy(v => v?.cachedItemRow?.BestFor)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .FirstOrDefault() ?? "";
+
+        if (SelectedHeroInfo.Equipment.Count == 0)
+            bestMode = "Builder App";
+
+        SelectedRatingMode = $"{bestMode} ({bestMode})";
+        // since we dson't use the index on this one, just pass it through    
+        OnRatingModeChanged((SelectedRatingMode, 0));
+    }
+
+
+    private Task OnRatingModeChanged((string?, int) args)
+    {
+        SelectedRatingMode = args.Item1;
+        _ = InvokeAsync(async () =>
+        {
+            if (OnChangedRatingMode.HasDelegate)
+                await OnChangedRatingMode.InvokeAsync();
+        });
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnHeroChanged((string?, int ) args)
+    {
+        string name = args.Item1 ??"";
+        int index = args.Item2;
+        SelectedHero = name;
+        if ((index >= 0) && (index < HeroInfoByIndex.Count))
+            SelectedHeroInfo = HeroInfoByIndex[index];
+        else
+            SelectedHeroInfo = null;
+
+        // Let the UI update immediately (label, etc.) before doing extra work.
+        _ = InvokeAsync(async () =>
+        {
+            if (OnEquipFromFile.HasDelegate)
+                await OnEquipFromFile.InvokeAsync();
+            SetRatingModeFromEquipment();
+            if (OnChangedHero.HasDelegate)
+                await OnChangedHero.InvokeAsync();
+        });
+
+        string className = "Unknown";
+        if (SelectedHeroInfo != null)
+        {
+            if (HeroTemplateData.Map.ContainsKey(SelectedHeroInfo.Template))
+            {
+                className = HeroTemplateData.Map[SelectedHeroInfo.Template].ClassName;
+            }
+            CharacterString = $"Level {SelectedHeroInfo.HeroLevel} {className}";
+        }
+        else
+            CharacterString = $"Unknown";
+
+
+        return Task.CompletedTask;
+    }
+
+
+    private async Task SelectFromDunClicked()
+    {
+        if (OnEquipFromFile.HasDelegate)
+            await OnEquipFromFile.InvokeAsync(SelectedHero);
+    }
+
+    private async Task SelectBestClicked()
+    {
+        if (OnEquipBest.HasDelegate)
+            await OnEquipBest.InvokeAsync(SelectedHero);
+    }
+
+    private async Task ClearClicked()
+    {
+        if (OnEquipClear.HasDelegate)
+            await OnEquipClear.InvokeAsync(SelectedHero);
+    }
+        
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+    }
+
+    // the main index.razor pokes and changes this - encapsulate at some point
+        
+    public RenderFragment GetEquipmentVisuals(string slot)
+    {
+        if (EquippedItems.ContainsKey(slot))
+        {
+            ItemViewRow row = EquippedItems[slot];
+            string tierTag = "tier-" + row.Quality.Replace("+", "plus").ToLowerInvariant();
+            string name = Regex.Replace(row.Name, @"\s*\([^()]*\)", "");
+            return GetEquipmentRenderVisual(row, tierTag, name);
+        }
+
+        return EmptyFragment;
+    }
+
+    private RenderFragment GetEquipmentRenderVisual(ItemViewRow r, string tierTag, string name) =>
+    @<div 
+    @onclick="() => ClickEquipment(r)"
+    @oncontextmenu="() => RightClickEquipment(r)"
+    @oncontextmenu:preventDefault="true"
+    @oncontextmenu:stopPropagation="true">
+    <img class="frame" src="png/equipFrame.png" alt=""/>
+    <img class="atlas-icon overlay"             
+            alt=""
+            data-size="64"
+            data-l1x="@r.IconX" data-l1y="@r.IconY"
+            data-l2x="@r.IconX1" data-l2y="@r.IconY1" data-l2t="@r.Color1"
+            data-l3x="@r.IconX2" data-l3y="@r.IconY2" data-l3t="@r.Color2" />
+    <div class="tag @tierTag">    
+        <div class="tag-rating">@r.Rating</div>
+        <div class="tag-name">@name</div>
+    </div>
+    </div>
+    ;
+
+    public async Task ClickEquipment(ItemViewRow row )
+    {
+        if (OnClickEquipment.HasDelegate)
+            await OnClickEquipment.InvokeAsync(row);
+    }
+
+    public async Task RightClickEquipment(ItemViewRow row)
+    {
+        if (OnRightClickEquipment.HasDelegate)
+            await OnRightClickEquipment.InvokeAsync(row);
+    }
+
+    //<img class='overlay" @GetEquipmentProps("Torso") alt="">
+    public async Task ChangeEquipment(string slot, ItemViewRow? r)
+    {
+        if (r == null)
+            EquippedItems.Remove(slot);
+        else
+            EquippedItems[slot] = r;
+        await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+        UpdateCharacterTotalStats();           
+    }
+
+    private CancellationTokenSource? _hoverCts;
+    private const int HoverDelayMs = 150; // tweak to taste
+
+
+    private async Task OnHoverStart(string slot)
+    {
+        _hoverCts?.Cancel();
+        _hoverCts = new CancellationTokenSource();
+        var token = _hoverCts.Token;
+
+        try
+        {
+            await Task.Delay(HoverDelayMs, token);
+
+            if (token.IsCancellationRequested)
+                return;
+
+            if (EquippedItems.TryGetValue(slot, out var item))
+            {
+                HoveredEquipment = item;
+                ItemLevelString = $"Lvl {item.Level} / {item.MaxLevel}";
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // expected when hover changes quickly
+        }
+    }
+
+    private void OnHoverEnd()
+    {
+        _hoverCts?.Cancel();
+        HoveredEquipment = null;    
+        ItemLevelString = "";
+        StateHasChanged();
+    }
+
 }
+   

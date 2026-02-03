@@ -66,6 +66,11 @@ public struct DDLinearColor
 		A += o.A;
 	}
 
+	public override string ToString()
+	{
+		return $"(R:{R} G:{G} B:{B} A:{A})";
+	}
+
 	public string ToCString()
 	{
 		float r = R;
@@ -73,26 +78,20 @@ public struct DDLinearColor
 		float b = B;
 		float a = A;
 
-		// --- Normalize RGB if any component > 1 ---
-		float maxRgb = Math.Max(r, Math.Max(g, b));
-		if (maxRgb > 1.0f)
-		{
-			float inv = 1.0f / maxRgb;
-			r *= inv;
-			g *= inv;
-			b *= inv;
-		}
+		if (r == -1) r = 1.0f;
+		if (g == -1) g = 1.0f;
+		if (b == -1) b = 1.0f;
 
 		// --- Clamp all channels ---
 		r = Clamp01(r);
 		g = Clamp01(g);
 		b = Clamp01(b);
 		a = Clamp01(a); // A is clamped, not normalized
-
-
+		
 		r = (float)Math.Pow(r, 1 / 2.2);
 		g = (float)Math.Pow(g, 1 / 2.2);
 		b = (float)Math.Pow(b, 1 / 2.2);
+		
 
 		// --- Convert to 0–255 ---
 		uint Ri = (uint)(r * 255.0f + 0.5f);
@@ -140,7 +139,7 @@ public class DDEquipmentInfo
 	public int LocX, LocY, LocZ;
 	public byte bUpgradable, bRenameAtMax, bNoSell, bNoDrop, bAutoLock, bOnceEffect, bLocked, ManualLR;
 	public DDLinearColor Color1, Color2;
-	public DDLinearColor IconColor1, IconColor2;
+	public DDLinearColor IconColorSecondary, IconColorPrimary;
 	public string GeneratedName = "";
 	public string UserEquipName = "";
 	public string ForgerName = "";
@@ -309,8 +308,8 @@ public class DDEquipmentInfo
 				MaxStat: maxStatLevel,
 				ResistanceTarget: maxR,
 				FunHashString: this.FunHashString,
-				Color1: IconColor1.ToCString(),
-				Color2: IconColor2.ToCString(),
+				Color1: IconColorSecondary.ToCString(),
+				Color2: IconColorPrimary.ToCString(),
 
 				IndexInFolder: IndexInFolder,
 				IconX: IconX,
@@ -535,8 +534,9 @@ public class DDDatabase
 			Items[i].Quality = quality;
 			Items[i].Idx = i;
 
-			DDLinearColor IconColor1 = Items[i].Color1;
-			DDLinearColor IconColor2 = Items[i].Color2;
+			// these are swapped
+			DDLinearColor IconColorPrimary = Items[i].Color1;
+			DDLinearColor IconColorSecondary = Items[i].Color2;			
 
 			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
 			{
@@ -597,7 +597,7 @@ public class DDDatabase
 				Items[i].IconY2 = entry.IconY2;
 
 				
-				if ((Items[i].Color1.R == 0) && (Items[i].Color1.G == 0) && (Items[i].Color1.B == 0))
+				if ((IconColorSecondary.R == 0) && (IconColorSecondary.G == 0) && (IconColorSecondary.B == 0))
 				{
 					// use color set
 					int colorSet = Items[i].SecondaryColorSet;
@@ -605,17 +605,17 @@ public class DDDatabase
 					{
 						if ((colorSet < 0) || (colorSet >= entry.SecondaryColorSets.Count)) colorSet = 0;
 
-						IconColor1 = entry.SecondaryColorSets[colorSet];
-						IconColor1.Scale(entry.IconColorMulSecondary);
-						IconColor1.Add(entry.IconColorAddSecondary);
-					}
+						IconColorSecondary = entry.SecondaryColorSets[colorSet];
+						IconColorSecondary.Scale(entry.IconColorMulSecondary);
+						IconColorSecondary.Add(entry.IconColorAddSecondary);
+					}					
 				}
 				else // override
-				{
-					IconColor1.Add(entry.IconColorAddSecondary);
+				{					
+					IconColorSecondary.Add(entry.IconColorAddSecondary);
 				}
 
-				if ((Items[i].Color2.R == 0) && (Items[i].Color2.G == 0) && (Items[i].Color2.B == 0))
+				if ((IconColorPrimary.R == 0) && (IconColorPrimary.G == 0) && (IconColorPrimary.B == 0))
 				{
 					// use color set
 					int colorSet = Items[i].PrimaryColorSet;
@@ -623,18 +623,19 @@ public class DDDatabase
 					{
 						if ((colorSet < 0) || (colorSet >= entry.PrimaryColorSets.Count)) colorSet = 0;
 
-						IconColor2 = entry.PrimaryColorSets[colorSet];
-						IconColor2.Scale(entry.IconColorMulPrimary);
-						IconColor2.Add(entry.IconColorAddPrimary);
+						IconColorPrimary = entry.PrimaryColorSets[colorSet];
+						IconColorPrimary.Scale(entry.IconColorMulPrimary);
+						IconColorPrimary.Add(entry.IconColorAddPrimary);
 					}
 				}
 				else // override
 				{
-					IconColor2.Add(entry.IconColorAddPrimary);
+					IconColorPrimary.Add(entry.IconColorAddPrimary);
 				}			
 			}
-			Items[i].IconColor1 = IconColor1;
-			Items[i].IconColor2 = IconColor2;
+			Items[i].IconColorSecondary = IconColorSecondary;
+			Items[i].IconColorPrimary = IconColorPrimary;
+			//Items[i].Location = $"{IconColorPrimary} {IconColorSecondary}";
 
 			int c1r = (int)Items[i].Color1.R * 100;
 			int c1g = (int)Items[i].Color1.G * 100;
