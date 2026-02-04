@@ -5,11 +5,15 @@ TODO:
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
 
+Add a warning when you are spec'd into something other than your build
+
 Does the best button just work for Accs at the min? would be good if it could change armour as well
 
 Respect <color> tags
 
-Update location on export to have page, update location  in hover
+Update location on export to have page
+Update hover to show location in lower left of page (with location())  - suggeseted by who
+Optimize!!!
 
 New event items, new gun, beta characters
 "Why is this not updating"? help 
@@ -17,6 +21,7 @@ New event items, new gun, beta characters
 
 PRI
 Fix hover highlight- different color than selected?
+
 
 * Adobe color
 
