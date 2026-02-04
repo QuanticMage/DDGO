@@ -57,13 +57,15 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["Modules"] = Tuple.Create("Engine.ParticleEmitter.Modules", PropertyType.ObjectProperty);
 			UnrealConfig.VariableTypes["Emitters"] = Tuple.Create("Engine.ParticleSystem.Emitters", PropertyType.ObjectProperty);
 			UnrealConfig.VariableTypes["InstanceParameters"] = Tuple.Create("Engine.ParticleSystemComponent.InstanceParameters", PropertyType.StructProperty);
-			UnrealConfig.VariableTypes["PrimaryColorSets"] = Tuple.Create("UDKGame.HeroEquipment.PrimaryColorSets", PropertyType.StructProperty);
-			UnrealConfig.VariableTypes["SecondaryColorSets"] = Tuple.Create("UDKGame.HeroEquipment.SecondaryColorSets", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["PrimaryColorSets"] = Tuple.Create("UDKGame.HeroEquipment.PrimaryColorSets", PropertyType.LinearColor);
+			UnrealConfig.VariableTypes["SecondaryColorSets"] = Tuple.Create("UDKGame.HeroEquipment.SecondaryColorSets", PropertyType.LinearColor);
 			UnrealConfig.VariableTypes["RandomBaseNames"] = Tuple.Create("UDKGame.HeroEquipment.RandomBaseNames", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MaxLevelRangeDifficultyArray"] = Tuple.Create("UDKGame.HeroEquipment.MaxLevelRangeDifficultyArray", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["QualityDescriptorNames"] = Tuple.Create("UDKGame.HeroEquipment.QualityDescriptorNames", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["LevelRequirementOverrides"] = Tuple.Create("UDKGame.HeroEquipment.LevelRequirementOverrides", PropertyType.StructProperty);
 
+			UnrealConfig.VariableTypes["ScalarParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.ScalarParameterValues", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["VectorParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.VectorParameterValues", PropertyType.Vector4);
 			UnrealConfig.VariableTypes["TextureParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.TextureParameterValues", PropertyType.StructProperty);
 			//};
 			
@@ -132,7 +134,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			var upkBase = "UDKGame.upk";
 			var upkCore = "Core.upk";
 			var upkEngine = "Core.upk";
-			var packageDir = @"G:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
 			// Always build paths with Path.Combine			
 

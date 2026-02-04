@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms.Design;
 using System.Windows.Forms.Integration;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
 using UELib;
@@ -75,8 +77,11 @@ namespace DungeonDefendersOfflinePreprocessor
 			MainWindow.Log($"Loaded {package.PackageName}");
 		}
 
-		Dictionary<string, string> ParseArray(UDefaultProperty property)
+		Dictionary<string, string> ParseDictionary(UDefaultProperty property)
 		{
+			if (property == null)
+				return new Dictionary<string, string>();
+
 			string rawValue = property.Value.ToString();
 			var result = new Dictionary<string, string>();
 
@@ -472,7 +477,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					
 						var matInst = FindObjectByPath(item, iconProperty.Value);
 						matInst.Load();
-
+						
 						var textureArrayProperty = GetProperty(matInst, "TextureParameterValues");
 						if (textureArrayProperty == null)
 						{
@@ -509,7 +514,8 @@ namespace DungeonDefendersOfflinePreprocessor
 
 						if (textureArrayProperty == null) continue;
 
-						var parsedElements = ParseArray(textureArrayProperty);
+					
+						var parsedElements = ParseDictionary(textureArrayProperty);
 						string[] targetKeys = { "EquipmentIcon", "EquipmentIconColorLayers" };
 
 						foreach (var key in targetKeys)
@@ -615,6 +621,10 @@ namespace DungeonDefendersOfflinePreprocessor
 			MainWindow.Log($"Atlas complete! Saved {uniqueIcons.Count} unique icons to {atlasWidth}x{atlasHeight} texture.");
 		}
 
+		// This was before I figured out how to set up the structures properly
+
+
+		/*
 		public List<ULinearColor>? GetColorSetProperty(UObject? obj, string propertyName)
 		{
 			if (obj == null || string.IsNullOrWhiteSpace(propertyName))
@@ -725,8 +735,37 @@ namespace DungeonDefendersOfflinePreprocessor
 			stream.Seek(currentOffset, SeekOrigin.Begin);
 			return null;
 		}
+		*/
 
+		public static List<ULinearColor> ParseColorSetArray(string input)
+		{
+			var colors = new List<ULinearColor>();
 
+			if (string.IsNullOrWhiteSpace(input))
+				return colors;
+
+			// Split safely on any newline style (\r\n, \n, etc.)
+			var lines = input.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+
+			foreach (var line in lines)
+			{
+				// Extract floats using regex
+				var matches = Regex.Matches(line, @"[-+]?\d*\.\d+|\d+");
+
+				// Expect at least 4 numbers (R,G,B,A). Skip the index at [0].
+				if (matches.Count >= 5)
+				{
+					float r = float.Parse(matches[1].Value, CultureInfo.InvariantCulture);
+					float g = float.Parse(matches[2].Value, CultureInfo.InvariantCulture);
+					float b = float.Parse(matches[3].Value, CultureInfo.InvariantCulture);
+					float a = float.Parse(matches[4].Value, CultureInfo.InvariantCulture);
+
+					colors.Add(new ULinearColor(r, g, b, a));
+				}
+			}
+
+			return colors;
+		}
 
 		public string GetObjectCSLine(UObject? obj)
 		{
@@ -884,10 +923,17 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += $", IconColorMulSecondary = {iconColorMulSecondary.Value}f";
 			}
 
-			var primaryColorSet = GetColorSetProperty(obj, "PrimaryColorSets");
-			var secondaryColorSet = GetColorSetProperty(obj, "SecondaryColorSets");
+			
 
-			if (primaryColorSet != null)
+			var primaryColorSetArray = GetProperty(obj, "PrimaryColorSets");
+			var secondaryColorSetArray = GetProperty(obj, "SecondaryColorSets");
+
+			var primaryColorSet = (primaryColorSetArray != null ? ParseColorSetArray(primaryColorSetArray.Value) : null);
+			var secondaryColorSet = (secondaryColorSetArray != null ? ParseColorSetArray(secondaryColorSetArray.Value) : null);
+
+
+
+			if ((primaryColorSet != null) && (primaryColorSet.Count > 0))
 			{
 				csString += ", PrimaryColorSets = new List<DDLinearColor> { ";
 				for (int i = 0; i < primaryColorSet.Count; i++)
@@ -899,7 +945,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += "}";
 			}
 
-			if (secondaryColorSet != null)
+			if ((secondaryColorSet != null) && (secondaryColorSet.Count > 0))
 			{
 				csString += ", SecondaryColorSets = new List<DDLinearColor> { ";
 				for (int i = 0; i < secondaryColorSet.Count; i++)
@@ -910,6 +956,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				}
 				csString += "}";
 			}
+
 			if (IconRefs.ContainsKey(objPath))
 				csString += " }, // " + IconRefs[objPath].IconBase + " " + IconRefs[objPath].IconMask1 + " " + IconRefs[objPath].IconMask2;
 			else
