@@ -82,17 +82,13 @@ public struct DDLinearColor
 		if (g == -1) g = 1.0f;
 		if (b == -1) b = 1.0f;
 
-		// --- Clamp all channels ---
-		r = Clamp01(r);
-		g = Clamp01(g);
-		b = Clamp01(b);
-		a = Clamp01(a); // A is clamped, not normalized
+		r = r / (r + 1);
+		g = g / (g + 1);
+		b = b / (b + 1);
 		
 		r = (float)Math.Pow(r, 1 / 2.2);
 		g = (float)Math.Pow(g, 1 / 2.2);
 		b = (float)Math.Pow(b, 1 / 2.2);
-		
-
 		// --- Convert to 0–255 ---
 		uint Ri = (uint)(r * 255.0f + 0.5f);
 		uint Gi = (uint)(g * 255.0f + 0.5f);
@@ -265,7 +261,6 @@ public class DDEquipmentInfo
 				mult = 1.0f;
 				maxR = 0;
 			}
-
 
 			cachedItemRow = new ItemViewRow(
 				Rating: 0,

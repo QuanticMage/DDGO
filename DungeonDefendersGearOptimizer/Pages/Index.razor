@@ -1078,12 +1078,13 @@
     private bool IsWeaponSetValid(string set)
     {
         string? Template = _characterPanel?.SelectedHeroInfo?.Template;
+
         if (Template != null && HeroTemplateData.Map.ContainsKey(Template))
         {
             string ValidWeapons = HeroTemplateData.Map[Template].WeaponType;
             return ValidWeapons.Contains(set);
         }
-        return false;
+        return true;
     }
 
 
