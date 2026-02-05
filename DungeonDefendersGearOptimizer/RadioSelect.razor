@@ -32,14 +32,15 @@
                             tabindex="-1"
                             class="rs-item @(isOn ? "on" : "") @(_keyboardNav && _activeIndex == i ? "active" : "")"
                             @onmouseover="() => _activeIndex = index"
-                            @onclick="() => Pick(index)">
+                            @onclick="() => Pick(index)"
+                            data-tooltip="@opt.Tooltip">
 
                         <img class="rs-icon"
                              src="@GetIconUrl(opt)"
                              alt=""
                              aria-hidden="true" />
 
-                        <span class="rs-label">@opt.Name</span>
+                        <span class="rs-label" >@opt.Name</span>
                     </button>
                 }
             </div>
@@ -55,7 +56,7 @@
 </div>
 
 @code {
-    private sealed record ParsedOption(string Raw, string Name, string? ClassName);
+    private sealed record ParsedOption(string Raw, string Name, string? ClassName, string? Tooltip);
 
     [Parameter] public List<string> Items { get; set; } = new();
 
@@ -122,21 +123,23 @@
     private string? _valueLabel =>
         _options.FirstOrDefault(o => o.Raw == Value)?.Name;
 
-    private static readonly Regex _nameClassRx =
-        new(@"^\s*(?<name>.*?)\s*(?:\(\s*(?<class>[^)]+)\s*\))?\s*$",
-            RegexOptions.Compiled);
+    private static readonly Regex _nameClassTooltipRx =
+     new(@"^\s*(?<name>.*?)\s*(?:\(\s*(?<class>[^)]+)\s*\))?\s*(?:\[\s*(?<tooltip>[^\]]+)\s*\])?\s*$",
+         RegexOptions.Compiled);
 
     private static ParsedOption Parse(string raw)
     {
         raw ??= "";
-        var m = _nameClassRx.Match(raw);
+        var m = _nameClassTooltipRx.Match(raw);
         var name = m.Success ? m.Groups["name"].Value : raw;
         var cls = (m.Success && m.Groups["class"].Success) ? m.Groups["class"].Value : null;
+        var ttp = (m.Success && m.Groups["tooltip"].Success) ? m.Groups["tooltip"].Value : null;
 
         name = string.IsNullOrWhiteSpace(name) ? raw : name.Trim();
         cls = string.IsNullOrWhiteSpace(cls) ? null : cls.Trim();
+        ttp = string.IsNullOrWhiteSpace(ttp) ? null : ttp.Trim();
 
-        return new ParsedOption(raw, name, cls);
+        return new ParsedOption(raw, name, cls, ttp);
     }
 
     private string GetIconUrl(ParsedOption opt)

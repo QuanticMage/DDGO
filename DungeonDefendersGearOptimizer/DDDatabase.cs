@@ -30,7 +30,10 @@ public enum DDStat : int
 	TowerRate = 8,
 	TowerDamage = 9,
 	TowerRange = 10,
+
 }
+
+
 
 public enum DDRes : int 
 {
@@ -168,6 +171,7 @@ public class DDEquipmentInfo
 
 	public ItemViewRow? cachedItemRow = null;
 
+	
 	static string FormatAmount(long xBillions, long remainder)
 	{
 		double value = xBillions * 1000000000.0 + remainder;
@@ -350,6 +354,22 @@ public class DDDatabase
 	public Dictionary<string, int> SubfolderCount = [];
 
 	private const uint UE3_COMPRESSED_TAG = 0x9E2A83C1;
+	
+	static string[] StatNames = { "Res", "HHP", "HSpd", "HDmg", "CastRate", "Ab1", "Ab2", "THP", "TRate", "TDmg", "TRange" };
+	static string[] StatLongNames = { "Average Resistance", "Hero Health", "Hero Speed", "Hero Damage", "Hero Cast Rate", "Hero Ability 1", "Hero Ability 2", "Tower Health", "Tower Rate", "Tower Damage", "Tower Range" };
+	
+	public static string DDStatToString(DDStat stat)
+	{
+		return StatNames[(int)stat];
+	}
+
+	public static string DDStatToLongString(DDStat stat)
+	{
+		return StatLongNames[(int)stat];
+	}
+
+
+
 	public async Task LoadFromDun(byte[] byteArray)
 	{
 		IsReady = false;
