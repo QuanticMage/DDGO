@@ -5,6 +5,13 @@ TODO:
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
 
+Hover over "App Builder" etc shows build order for primary stats
+Make sure when you switch order it refreshes the upgrade stuff
+Damage simulator
+
+Add weapons and pets to auto-equip.
+Wrap options menu and filter
+
 Add a warning when you are spec'd into something other than your build
 
 Does the best button just work for Accs at the min? would be good if it could change armour as well

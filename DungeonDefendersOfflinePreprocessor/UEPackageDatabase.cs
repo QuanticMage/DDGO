@@ -26,6 +26,7 @@ using UELib.Core;
 using UELib.Engine;
 using UELib.Services;
 using UELib.Types;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 
@@ -395,10 +396,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			if (obj == null || string.IsNullOrWhiteSpace(propertyName))
 				return null;
 
-			// Use a single set to prevent infinite loops from circular archetypes
 			var visited = new HashSet<UObject>(ReferenceEqualityComparer.Instance);
 
-			// 1 & 2: Walk the Instance and Archetype chain
+			// Walk the Instance and Archetype chain
 			var currentObj = obj;
 			while (currentObj != null && visited.Add(currentObj))
 			{
@@ -411,7 +411,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				currentObj = currentObj.Archetype as UObject;
 			}
 
-			// 3: Walk the Class Hierarchy
+			// Walk the Class Hierarchy
 			// In UELib, UClass inherits from UState -> UStruct -> UField -> UObject
 			var currentClass = obj.Class as UStruct;
 			while (currentClass != null)
@@ -434,6 +434,7 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			return null;
 		}
+
 		/// <summary>
 		/// Reference equality comparer for cycle detection without relying on overridden Equals/GetHashCode.
 		/// </summary>
@@ -781,11 +782,12 @@ namespace DungeonDefendersOfflinePreprocessor
 			bDontAllowNameRandomization = GetProperty(obj, "AllowNameRandomization") != null ? (GetProperty(obj, "AllowNameRandomization").Value == "false") : false;
 			bool bAllowNameRandomization = !bDontAllowNameRandomization;
 			string[] randomizationArray = new string[100];
+			
 
-
-			string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");
+			string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");			
 			if (SkipNames.Contains(objPath))
 				return "";
+
 			if (bAllowNameRandomization)
 			{
 				if (GetProperty(obj, "RandomBaseNames") != null)
@@ -956,6 +958,93 @@ namespace DungeonDefendersOfflinePreprocessor
 				}
 				csString += "}";
 			}
+
+			// Archetypes for equipment
+			// Extra properties we need for dps calculations
+			// BaseDamage
+			// BaseAltDamage
+			// BaseTotalAmmo
+			// BaseShotsPerSecond
+
+			// ProjectileTemplate reference
+			// ExtraProjectileTemplate references
+			// ProjectileSpeedBonusMultiplier
+			// MinimumProjectileSpeed
+
+			// DamageIncreasePerLevelMultiplier
+			// ElementalDamageIncreasePerLevelMultiplier
+			// MaxDamageIncreasePerLevel
+			// MaxElementalDamageIncreasePerLevel
+			// ChargeSpeedBonusLinearScale
+			// ChargeSpeedBonusExpScale
+
+			//----
+			// WeaponDamageBonus
+			// WeaponAdditionalDamageAmount
+			// WeaponSwingSpeedMultiplier
+			// WeaponShotsPerSecondBonus
+			// WeaponNumberOfProjectilesBonus
+			// EquipmentWeaponTemplate
+			// NameIndex_QualityDescriptor
+			// WeaponChargeSpeedBonus
+			// WeaponAltDamageBonus
+			// MaxEquipmentLevel
+			// ElementalDamageMultiplier
+			// WeaponDamageMultiplier
+			// WeaponKnockbackBonus
+			// WeaponSpeedOfProjectileBonus
+			// WeaponReloadSpeedBonus
+			// WeaponClipAmmoBonus
+			// WeaponBlockingBonus
+
+		
+
+			// WeaponDamageMultiplier
+			// WeaponDamageDisplayValueScale
+			// ElementalDamageMultiplier
+			// WeaponAltDamageMultiplier
+			// WeaponSwingSpeedMultiplier
+			// ProjectileInfo
+			//    ProjDamage
+			//    bPiercing
+			//    ExplosionRadius
+			//    ExplosionDamage
+			// ProjectileShootInterval
+			// ProjetileDamageMultiplier
+			// AbsoluteDamageMultiplier
+			// NightmareDamageMultiplier
+			// ExtraNightmareDamageMultiplier
+			// ShotsPerSecondExponent
+			// MinElementalDamageIncreasePerLevel
+			// UltimateDamageIncreasePerLevelMultiplier
+			// UltimateMaxDamageIncreasePerLevel
+			// ProjectileSpawnOffsets
+			// ExtraProjectileTemplates
+			// bUseStackingDamagePerArchetype
+			// PercIncreasePerStack
+			// bAddHealthCostToDamage
+			// HealthCostToDamageMultiplier
+			// bAddManaForDamage
+			// BaseDamageToManaRatio
+			// bChooseHealingTarget
+			// BaseHealAmount
+			// HealAmountMultiplier
+
+			// Archetypes for classes
+			// StatMultInitial_HeroDamage
+			// StatMultFull_HeroDamage
+			// StatExpInitial_HeroDamage
+			// StatExpFull_HeroDamage
+			// StatBoostCapInitial_HeroDamage
+			// don't care about these
+			// StatMultInitial_HeroDamage_Competitive
+			// StatMultFull_HeroDamage_Competitive 
+			// StatExpInitial_HeroDamage_Competitive 
+			// StatExpFull_HeroDamage_Competitive
+			// StatBoostCapInitial_HeroDamage_Competitive 
+
+
+
 
 			if (IconRefs.ContainsKey(objPath))
 				csString += " }, // " + IconRefs[objPath].IconBase + " " + IconRefs[objPath].IconMask1 + " " + IconRefs[objPath].IconMask2;
