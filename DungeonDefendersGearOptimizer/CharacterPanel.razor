@@ -60,7 +60,7 @@
 
     <div style="position: absolute; left:310px; top:60px; " data-tooltip="Click to choose archetype for Ratings">
 
-        <RadioSelect Items="@(Ratings.RatingModes.Select(row => $"{row.Name} ({row.Name})").ToList())"
+        <RadioSelect Items="@(Ratings.RatingModes.Select(row => $"{row.Name} ({row.Name}) [{GetStatPriority(row)}]").ToList())"
                      Value="@SelectedRatingMode"
                      ValueChanged="OnRatingModeChanged"
                      Columns="3"
@@ -118,6 +118,29 @@
     public Dictionary<string, ItemViewRow> EquippedItems = new();
 
     private static RenderFragment EmptyFragment => builder => { };
+
+    private string GetStatPriority(Ratings.RatingModeInfo rm)
+    {
+        string s = "<font size=-2>";
+        bool first = true;
+        if (rm.RequireResists)
+        {
+            s += "Resistance";
+            first = false;
+        }
+
+        foreach ( var v in rm.RatingStatsPriority )
+        {
+            if (first)
+                s += DDDatabase.DDStatToString(v);
+            else
+                s += " &gt; "+DDDatabase.DDStatToString(v);
+            first = false;
+        }
+        s += "</font>";
+
+        return s;
+    }
 
     private string GetStatIcon(DDStat statIn)
     {
