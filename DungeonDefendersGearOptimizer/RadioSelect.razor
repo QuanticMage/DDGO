@@ -33,7 +33,7 @@
                             class="rs-item @(isOn ? "on" : "") @(_keyboardNav && _activeIndex == i ? "active" : "")"
                             @onmouseover="() => _activeIndex = index"
                             @onclick="() => Pick(index)"
-                            data-tooltip=@opt.Tooltip>
+                            data-tooltip="@opt.Tooltip">
 
                         <img class="rs-icon"
                              src="@GetIconUrl(opt)"
