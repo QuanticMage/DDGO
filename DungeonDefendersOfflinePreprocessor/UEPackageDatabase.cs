@@ -483,50 +483,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						matInst.Load();
 						
 						var textureArrayProperty = GetProperty(matInst, "TextureParameterValues");
-						if (textureArrayProperty == null)
-						{
-							var expressionsProperty = GetProperty(matInst, "Expressions");
-							if (expressionsProperty != null)
-							{
-								string pattern = @"(?<=Texture=Texture2D').*?(?=')";
-								Match match = Regex.Match(expressionsProperty.Value, pattern);
-								if (match.Success)
-								{
-									backupTexturePath = match.Groups[0].Value;
-									// if this is the case, we need to load this backupTexture explicitly.  Look later.
-									break;
-								}
-							}
-						}													
-
-						// Logic for handling the Backup Texture found via Regex
-						if (!string.IsNullOrEmpty(backupTexturePath))
-						{
-							//// Extract name from path (e.g., "Folder/Sub/T_Icon" -> "T_Icon")
-							//string texName = Path.GetFileNameWithoutExtension(backupTexturePath);
-							//if (!uniqueIcons.ContainsKey(texName))
-							//{
-							//	// --- get png from file 
-							//	string packageName = item.ToString();
-							//	string referencePath = texName.GetReferencePath();
-							//	string pathDir = BaseDirectory;
-							//	int start = referencePath.IndexOf('\'') + 1;
-							//	int end = referencePath.LastIndexOf('\'');
-
-							//	string assetPath = referencePath.Substring(start, end - start);
-							//	string relativePath = assetPath.Replace('.', Path.DirectorySeparatorChar) + ".png";
-
-							//	string finalPath = Path.Combine(pathDir, packageName, relativePath);
-							//	if (File.Exists(localFilePath))
-							//	{
-							//		ir.IconBase = texName;
-							//		uniqueIcons.Add(texName, File.ReadAllBytes(localFilePath));
-							//		MainWindow.Log($"Queued backup icon (Regex): {texName}");
-							//	}
-							//}					
-							MainWindow.Log("Missing Texture " + backupTexturePath);
-						}
-
+					
 						if (textureArrayProperty == null) continue;
 
 					
