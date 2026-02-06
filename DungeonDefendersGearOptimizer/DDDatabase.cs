@@ -610,15 +610,7 @@ public class DDDatabase
 				Items[i].IconY1 = entry.IconY1;
 				Items[i].IconX2 = entry.IconX2;
 				Items[i].IconY2 = entry.IconY2;
-		
-				if (ItemTemplateNonColorized.Templates.Contains(Items[i].Template))
-				{
-					Items[i].IconX1 = 0;
-					Items[i].IconY1 = 0;
-					Items[i].IconX2 = 0;
-					Items[i].IconY2 = 0;
-				}
-
+				
 				
 				if ((IconColorSecondary.R == 0) && (IconColorSecondary.G == 0) && (IconColorSecondary.B == 0))
 				{

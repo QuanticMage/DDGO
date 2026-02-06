@@ -22,22 +22,14 @@
 
 		<!-- "Console" -->
 		<Border Grid.Row="2" BorderBrush="#CCC" BorderThickness="1" CornerRadius="6" Padding="6">
-			<ListBox x:Name="LogList"
-                     ItemsSource="{Binding LogLines}"
-                     FontFamily="Consolas"
-                     FontSize="12"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     VirtualizingPanel.IsVirtualizing="True"
-                     VirtualizingPanel.VirtualizationMode="Recycling"
-                     ScrollViewer.CanContentScroll="True">
-				<ListBox.ItemTemplate>
-					<DataTemplate>
-						<!-- Use TextBlock for speed; no wrapping like a console -->
-						<TextBlock Text="{Binding}" />
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
+			<TextBox x:Name="LogTextBox"
+             IsReadOnly="True"
+             TextWrapping="NoWrap"
+             VerticalScrollBarVisibility="Auto"
+             HorizontalScrollBarVisibility="Auto"
+             FontFamily="Consolas"
+             AcceptsReturn="True"
+             Text="{Binding LogText, Mode=OneWay}" />   
 		</Border>
 	</Grid>
 </Window>
