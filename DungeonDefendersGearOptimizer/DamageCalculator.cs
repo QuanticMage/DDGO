@@ -10,8 +10,6 @@
 	// Piercing, AOE, Heal, Mana, Wall info
 
 
-
-
 	public class DamageCalculator
 	{
 

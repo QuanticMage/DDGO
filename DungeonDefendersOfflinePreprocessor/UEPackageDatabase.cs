@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.IO.Packaging;
@@ -18,8 +19,10 @@ using System.Windows.Controls;
 using System.Windows.Forms.Design;
 using System.Windows.Forms.Integration;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
+using System.Xml.Linq;
 using UELib;
 using UELib.Branch.UE3.SFX.Tokens;
 using UELib.Core;
@@ -41,10 +44,11 @@ namespace DungeonDefendersOfflinePreprocessor
 		public string IconMask2;
 	}
 
-	public struct IconLocation
+	public class IconLocation
 	{
 		public int IconX;
 		public int IconY;
+		public byte[] TransparentMask;
 	}
 
 
@@ -60,16 +64,12 @@ namespace DungeonDefendersOfflinePreprocessor
 		private Dictionary<string, UnrealPackage> PackageCache = new(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<string, IconReference> IconRefs = new(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<string, IconLocation> IconLocs = new(StringComparer.OrdinalIgnoreCase);
-		private string BaseDirectory = "";
-		private string TempPath = @"E:\Temp\";
-		public async Task AddToDatabase( string baseDirectory, string upk )
+		private string BaseDirectory = "";		
+		public void AddToDatabase( string tempPath, string upk )
 		{
-			var upkPath = System.IO.Path.Combine(baseDirectory, upk);
-			var outputUpkPath = System.IO.Path.Combine(TempPath, upk);
+			var outputUpkPath = System.IO.Path.Combine(tempPath, upk);
 
-			await MainWindow.RunDecompressAsync(TempPath, upkPath);
-
-			BaseDirectory = baseDirectory;
+			BaseDirectory = tempPath;
 			var package = UnrealLoader.LoadPackage(outputUpkPath, System.IO.FileAccess.Read);
 			package.CookerPlatform = BuildPlatform.PC;
 			package.InitializePackage();
@@ -267,8 +267,11 @@ namespace DungeonDefendersOfflinePreprocessor
 					byte b = rgbValues[i];
 					byte g = rgbValues[i + 1];
 					byte r = rgbValues[i + 2];
+					byte a = rgbValues[i + 3];
+					if (r > a) r = a;
+					if (g > a) g = a;
 
-					byte targetValue = (channel == 'R') ? r : g;
+					byte targetValue = (channel == 'R') ? r : g;					
 
 					outputValues[i] = targetValue;     // B
 					outputValues[i + 1] = targetValue; // G
@@ -448,6 +451,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 
 
+		int IconSize = 64;
 
 
 
@@ -456,8 +460,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			// 1. Storage for UNIQUE raw texture data
 			// Key: Texture Name, Value: Raw pixel bytes from the original source file
 			var uniqueIcons = new Dictionary<string, byte[]>();
-			int iconSize = 64;
-
+			
 			foreach (var item in PackageCache.Values)
 			{
 				foreach (var exp in item.Exports)
@@ -499,18 +502,29 @@ namespace DungeonDefendersOfflinePreprocessor
 						// Logic for handling the Backup Texture found via Regex
 						if (!string.IsNullOrEmpty(backupTexturePath))
 						{
-							// Extract name from path (e.g., "Folder/Sub/T_Icon" -> "T_Icon")
-							string texName = Path.GetFileNameWithoutExtension(backupTexturePath);
-							if (!uniqueIcons.ContainsKey(texName))
-							{
-								string localFilePath = Path.Combine(@"E:\DDGOTools\Texture2D\", $"{texName}.png");
-								if (File.Exists(localFilePath))
-								{
-									ir.IconBase = texName;
-									uniqueIcons.Add(texName, File.ReadAllBytes(localFilePath));
-									MainWindow.Log($"Queued backup icon (Regex): {texName}");
-								}
-							}					
+							//// Extract name from path (e.g., "Folder/Sub/T_Icon" -> "T_Icon")
+							//string texName = Path.GetFileNameWithoutExtension(backupTexturePath);
+							//if (!uniqueIcons.ContainsKey(texName))
+							//{
+							//	// --- get png from file 
+							//	string packageName = item.ToString();
+							//	string referencePath = texName.GetReferencePath();
+							//	string pathDir = BaseDirectory;
+							//	int start = referencePath.IndexOf('\'') + 1;
+							//	int end = referencePath.LastIndexOf('\'');
+
+							//	string assetPath = referencePath.Substring(start, end - start);
+							//	string relativePath = assetPath.Replace('.', Path.DirectorySeparatorChar) + ".png";
+
+							//	string finalPath = Path.Combine(pathDir, packageName, relativePath);
+							//	if (File.Exists(localFilePath))
+							//	{
+							//		ir.IconBase = texName;
+							//		uniqueIcons.Add(texName, File.ReadAllBytes(localFilePath));
+							//		MainWindow.Log($"Queued backup icon (Regex): {texName}");
+							//	}
+							//}					
+							MainWindow.Log("Missing Texture " + backupTexturePath);
 						}
 
 						if (textureArrayProperty == null) continue;
@@ -527,8 +541,22 @@ namespace DungeonDefendersOfflinePreprocessor
 							var iconImage = FindObjectByPath(item, path) as UTexture2D;
 							if (iconImage == null) continue;
 
-							string localFilePath = Path.Combine(@"E:\DDGOTools\Texture2D\", $"{iconImage.Name}.png");
-							if (!File.Exists(localFilePath)) continue;
+							// --- get png from file 
+							string packageName = item.ToString();
+							string referencePath = iconImage.GetReferencePath();
+							string pathDir = BaseDirectory;
+							int start = referencePath.IndexOf('\'') + 1;
+							int end = referencePath.LastIndexOf('\'');
+
+							string assetPath = referencePath.Substring(start, end - start);
+							string relativePath = assetPath.Replace('.', Path.DirectorySeparatorChar) + ".png";
+
+							string finalPath = Path.Combine(pathDir, packageName, relativePath);
+							if (!File.Exists(finalPath))
+							{
+								MainWindow.Log("Can't find image at path " + finalPath);
+								continue;
+							}
 
 							if (key == "EquipmentIconColorLayers")
 							{
@@ -539,10 +567,10 @@ namespace DungeonDefendersOfflinePreprocessor
 								ir.IconMask1 = rKey;
 								ir.IconMask2 = gKey;
 								if (!uniqueIcons.ContainsKey(rKey))
-									uniqueIcons.Add(rKey, ExtractChannelAsGrayscale(localFilePath, 'R'));
+									uniqueIcons.Add(rKey, ExtractChannelAsGrayscale(finalPath, 'R'));
 
 								if (!uniqueIcons.ContainsKey(gKey))
-									uniqueIcons.Add(gKey, ExtractChannelAsGrayscale(localFilePath, 'G'));
+									uniqueIcons.Add(gKey, ExtractChannelAsGrayscale(finalPath, 'G'));
 							}
 							else 
 							{
@@ -550,7 +578,7 @@ namespace DungeonDefendersOfflinePreprocessor
 								// Standard icon handling
 								if (!uniqueIcons.ContainsKey(iconImage.Name))
 								{
-									uniqueIcons.Add(iconImage.Name, File.ReadAllBytes(localFilePath));								
+									uniqueIcons.Add(iconImage.Name,File.ReadAllBytes(finalPath));								
 								}
 							}
 						}
@@ -567,8 +595,8 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			// 2. Prepare the Atlas
 			int gridCount = (int)Math.Ceiling(Math.Sqrt(uniqueIcons.Count));
-			int atlasWidth = gridCount * iconSize;
-			int atlasHeight = gridCount * iconSize;
+			int atlasWidth = gridCount * IconSize;
+			int atlasHeight = gridCount * IconSize;
 			byte[] atlasBuffer = new byte[atlasWidth * atlasHeight * 4];
 
 			// 3. Process and Stitch
@@ -581,13 +609,12 @@ namespace DungeonDefendersOfflinePreprocessor
 				int col = index % gridCount;
 				MainWindow.Log($"Queued unique icon: {kvp.Key} at row {row} and column {col}");
 
-				il.IconX = col * iconSize;
-				il.IconY = row * iconSize;
-
+				il.IconX = col * IconSize;
+				il.IconY = row * IconSize;
 				// Use a MemoryStream to load the bytes we stored in the dictionary
 				using (var ms = new MemoryStream(kvp.Value))
 				using (var sourceBmp = new System.Drawing.Bitmap(ms))
-				using (var resizedBmp = new System.Drawing.Bitmap(iconSize, iconSize))
+				using (var resizedBmp = new System.Drawing.Bitmap(IconSize, IconSize))
 				{
 					// Resize logic
 					using (var g = System.Drawing.Graphics.FromImage(resizedBmp))
@@ -595,19 +622,41 @@ namespace DungeonDefendersOfflinePreprocessor
 						g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 						g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 						g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-						g.DrawImage(sourceBmp, 0, 0, iconSize, iconSize);
+						g.DrawImage(sourceBmp, 0, 0, IconSize, IconSize);
 					}
 
 					// Extract Bits
-					var rect = new System.Drawing.Rectangle(0, 0, iconSize, iconSize);
+					var rect = new System.Drawing.Rectangle(0, 0, IconSize, IconSize);
 					var bmpData = resizedBmp.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-					// Stitch directly into the Atlas Buffer
-					for (int y = 0; y < iconSize; y++)
+					il.TransparentMask = new byte[IconSize * IconSize];
+					unsafe
 					{
-						IntPtr sourceRowPtr = bmpData.Scan0 + (y * bmpData.Stride);
-						int destOffset = ((row * iconSize + y) * atlasWidth + (col * iconSize)) * 4;
-						System.Runtime.InteropServices.Marshal.Copy(sourceRowPtr, atlasBuffer, destOffset, iconSize * 4);
+						byte* srcBase = (byte*)bmpData.Scan0;
+
+						fixed (byte* destBase = atlasBuffer)
+						{
+							for (int y = 0; y < IconSize; y++)
+							{
+								byte* srcRow = srcBase + (y * bmpData.Stride);
+
+								int destOffset = ((row * IconSize + y) * atlasWidth + (col * IconSize)) * 4;
+								byte* destRow = destBase + destOffset;
+
+								for (int x = 0; x < IconSize; x++)
+								{
+									byte* srcPixel = srcRow + (x * 4);
+									byte* destPixel = destRow + (x * 4);
+
+									// Copy BGRA to atlas buffer
+									*((int*)destPixel) = *((int*)srcPixel);
+
+									// if full color, use alpha- otherwise use red channel
+									byte alpha = srcPixel[3];
+									il.TransparentMask[y * IconSize + x] = alpha;
+								}
+							}
+						}
 					}
 
 					resizedBmp.UnlockBits(bmpData);
@@ -618,7 +667,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			}
 
 			// 4. Final Save
-			DxtConverter.SaveToPng(atlasBuffer, atlasWidth, atlasHeight, atlasWidth, atlasHeight, @"E:\temp\HeroEquipment_Atlas.png");
+			DxtConverter.SaveToPng(atlasBuffer, atlasWidth, atlasHeight, atlasWidth, atlasHeight, BaseDirectory + @"\HeroEquipment_Atlas.png");
 			MainWindow.Log($"Atlas complete! Saved {uniqueIcons.Count} unique icons to {atlasWidth}x{atlasHeight} texture.");
 		}
 
@@ -870,11 +919,15 @@ namespace DungeonDefendersOfflinePreprocessor
 				string color1 = IconRefs[objPath].IconMask1;
 				string color2 = IconRefs[objPath].IconMask2;
 
+				byte[]? colorAlpha = null;
+				byte[]? maskRAlpha = null;
+				byte[]? maskGAlpha = null;
 				if (color != null && IconLocs.ContainsKey(color))
 				{
 					IconLocation loc = IconLocs[color];
 					x = loc.IconX;
 					y = loc.IconY;
+					colorAlpha = loc.TransparentMask;
 				}
 
 				if (color1 != null && IconLocs.ContainsKey(color1))
@@ -882,6 +935,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					IconLocation loc = IconLocs[color1];
 					x1 = loc.IconX;
 					y1 = loc.IconY;
+					maskRAlpha = loc.TransparentMask;
 				}
 
 				if (color2 != null && IconLocs.ContainsKey(color2))
@@ -889,7 +943,31 @@ namespace DungeonDefendersOfflinePreprocessor
 					IconLocation loc = IconLocs[color2];
 					x2 = loc.IconX;
 					y2 = loc.IconY;
+					maskGAlpha = loc.TransparentMask;
 				}
+
+
+				// verify the masks make sense
+				if (colorAlpha != null && maskRAlpha != null && maskGAlpha != null)
+				{
+					int error = 0;
+					for (int i = 0; i < IconSize * IconSize; i++ )
+					{						
+						if ((colorAlpha[i] < 2) && ((maskRAlpha[i] >= 32) || (maskGAlpha[i] >= 32)))
+							error++;
+					}
+
+					// these are the only exceptions to our uncolorized detection metric - Navi is a false positive, the other two are false negatives
+					if (((error > 0) && (!objPath.EndsWith("Equipment_familiar_NaviFairy'"))) ||
+						(objPath.EndsWith("Spoon.HeroEquipment_Spoon'")) ||
+						(objPath.EndsWith("Equipment_Familiar_AnimorphicEmber'")))
+					{
+						x1 = 0;
+						y1 = 0;
+						x2 = 0;
+						y2 = 0;						
+					}
+				}		
 			}
 
 			var iconColorAddPrimary = GetProperty(obj, "IconColorAddPrimary");
@@ -959,90 +1037,6 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += "}";
 			}
 
-			// Archetypes for equipment
-			// Extra properties we need for dps calculations
-			// BaseDamage
-			// BaseAltDamage
-			// BaseTotalAmmo
-			// BaseShotsPerSecond
-
-			// ProjectileTemplate reference
-			// ExtraProjectileTemplate references
-			// ProjectileSpeedBonusMultiplier
-			// MinimumProjectileSpeed
-
-			// DamageIncreasePerLevelMultiplier
-			// ElementalDamageIncreasePerLevelMultiplier
-			// MaxDamageIncreasePerLevel
-			// MaxElementalDamageIncreasePerLevel
-			// ChargeSpeedBonusLinearScale
-			// ChargeSpeedBonusExpScale
-
-			//----
-			// WeaponDamageBonus
-			// WeaponAdditionalDamageAmount
-			// WeaponSwingSpeedMultiplier
-			// WeaponShotsPerSecondBonus
-			// WeaponNumberOfProjectilesBonus
-			// EquipmentWeaponTemplate
-			// NameIndex_QualityDescriptor
-			// WeaponChargeSpeedBonus
-			// WeaponAltDamageBonus
-			// MaxEquipmentLevel
-			// ElementalDamageMultiplier
-			// WeaponDamageMultiplier
-			// WeaponKnockbackBonus
-			// WeaponSpeedOfProjectileBonus
-			// WeaponReloadSpeedBonus
-			// WeaponClipAmmoBonus
-			// WeaponBlockingBonus
-
-		
-
-			// WeaponDamageMultiplier
-			// WeaponDamageDisplayValueScale
-			// ElementalDamageMultiplier
-			// WeaponAltDamageMultiplier
-			// WeaponSwingSpeedMultiplier
-			// ProjectileInfo
-			//    ProjDamage
-			//    bPiercing
-			//    ExplosionRadius
-			//    ExplosionDamage
-			// ProjectileShootInterval
-			// ProjetileDamageMultiplier
-			// AbsoluteDamageMultiplier
-			// NightmareDamageMultiplier
-			// ExtraNightmareDamageMultiplier
-			// ShotsPerSecondExponent
-			// MinElementalDamageIncreasePerLevel
-			// UltimateDamageIncreasePerLevelMultiplier
-			// UltimateMaxDamageIncreasePerLevel
-			// ProjectileSpawnOffsets
-			// ExtraProjectileTemplates
-			// bUseStackingDamagePerArchetype
-			// PercIncreasePerStack
-			// bAddHealthCostToDamage
-			// HealthCostToDamageMultiplier
-			// bAddManaForDamage
-			// BaseDamageToManaRatio
-			// bChooseHealingTarget
-			// BaseHealAmount
-			// HealAmountMultiplier
-
-			// Archetypes for classes
-			// StatMultInitial_HeroDamage
-			// StatMultFull_HeroDamage
-			// StatExpInitial_HeroDamage
-			// StatExpFull_HeroDamage
-			// StatBoostCapInitial_HeroDamage
-			// don't care about these
-			// StatMultInitial_HeroDamage_Competitive
-			// StatMultFull_HeroDamage_Competitive 
-			// StatExpInitial_HeroDamage_Competitive 
-			// StatExpFull_HeroDamage_Competitive
-			// StatBoostCapInitial_HeroDamage_Competitive 
-
 
 
 
@@ -1085,3 +1079,4 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 	}
 }
+

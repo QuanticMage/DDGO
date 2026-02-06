@@ -1,9 +1,10 @@
 ﻿using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Windows;
@@ -14,9 +15,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using UELib;
+using UELib.Core;
 using UELib.Types;
 
 namespace DungeonDefendersOfflinePreprocessor
@@ -32,7 +34,6 @@ namespace DungeonDefendersOfflinePreprocessor
 		public static MainWindow? Instance = null;
 
 		public UEPackageDatabase db = new();
-		
 
 		public MainWindow()
 		{
@@ -72,11 +73,78 @@ namespace DungeonDefendersOfflinePreprocessor
 			
 		}
 
-	
+		private readonly StringBuilder _logBuilder = new();
+
+		public string LogText
+		{
+			get => _logBuilder.ToString();
+		}
+
+
+		public static async Task RunExtractorAsync(string outDir, string inputUpk)
+		{
+			var exePath = @"e:\ddgotools\umodel.exe";
+
+			if (!System.IO.File.Exists(exePath))
+				throw new System.IO.FileNotFoundException("umodel.exe not found", exePath);
+			
+
+			var psi = new ProcessStartInfo
+			{
+				FileName = exePath,
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				CreateNoWindow = true
+			};
+
+			psi.ArgumentList.Add($"-export");
+			psi.ArgumentList.Add($"-path={outDir}");
+			psi.ArgumentList.Add($"-out={outDir}");
+			psi.ArgumentList.Add($"-png");
+			psi.ArgumentList.Add($"-groups");
+			psi.ArgumentList.Add($"-noanim");
+			psi.ArgumentList.Add($"-nomesh");
+			psi.ArgumentList.Add($"-nostat");
+			psi.ArgumentList.Add($"-novert");
+			psi.ArgumentList.Add($"-nomorph");
+			psi.ArgumentList.Add($"-nolightmap");
+			psi.ArgumentList.Add(inputUpk);
+
+			Log(psi.Arguments);
+
+
+			using var process = new Process { StartInfo = psi };
+
+			process.OutputDataReceived += (_, e) =>
+			{
+				if (e.Data != null)
+					MainWindow.Instance?.Dispatcher.BeginInvoke(new Action(() => Log(e.Data)));
+			};
+
+			process.ErrorDataReceived += (_, e) =>
+			{
+				if (e.Data != null)
+					MainWindow.Instance?.Dispatcher.BeginInvoke(new Action(() => Log("[ERR] " + e.Data)));
+			};
+
+			Log($"Running: {psi.FileName} {psi.Arguments}");
+			process.Start();
+			process.BeginOutputReadLine();
+			process.BeginErrorReadLine();
+
+			await process.WaitForExitAsync();
+
+			Log($"Process exited with code {process.ExitCode}");
+
+		}
+
+
 
 		public static async Task RunDecompressAsync(string outDir, string inputUpkPath)
 		{
 			var exePath = @"e:\ddgotools\decompress.exe";
+
 
 			if (!System.IO.File.Exists(exePath))
 				throw new System.IO.FileNotFoundException("decompress.exe not found", exePath);
@@ -84,8 +152,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			if (!System.IO.File.Exists(inputUpkPath))
 				throw new System.IO.FileNotFoundException("Input .upk not found", inputUpkPath);
 
-			System.IO.Directory.CreateDirectory(outDir);
-
+			
 			var psi = new ProcessStartInfo
 			{
 				FileName = exePath,
@@ -128,51 +195,53 @@ namespace DungeonDefendersOfflinePreprocessor
 
 		private async void Process_Click(object sender, RoutedEventArgs e)
 		{
+			var workingDir = @"E:\Temp\DunDef";
+			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+
+			string[] files = Directory.GetFiles(packageDir);
+			System.IO.Directory.CreateDirectory(workingDir);
+
+			// all the templates we need are in these two, as well as the icons
+			string[] upkFiles = { "Startup_INT.upk", "UDKGame.upk" };
+
 			Log("Processing...");
-
-			var upk = "Startup_INT.upk";
-			var upkBase = "UDKGame.upk";
-			var upkCore = "Core.upk";
-			var upkEngine = "Core.upk";
-			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
-
-			// Always build paths with Path.Combine			
-
-
-			await db.AddToDatabase(packageDir, upkCore);
-			await db.AddToDatabase(packageDir, upkEngine);
+			foreach ( var fileName in upkFiles )
+			{
+		//		await RunDecompressAsync(workingDir, System.IO.Path.Combine(packageDir, fileName));
+			//	await RunExtractorAsync(workingDir, fileName);
+				db.AddToDatabase(workingDir, fileName);				
+			}
 			
-			await db.AddToDatabase(packageDir, upkBase);			
-			await db.AddToDatabase(packageDir, upk);
+			// Always build paths with Path.Combine			
 			db.ExportAllHeroEquipmentToAtlas();
 			db.DumpObjectsToFile(@"E:\DDGO\DungeonDefendersGearOptimizer\GeneratedItemTable.cs");
 			//db.ExportAllHeroEquipmentToAtlas();
 			//db.Explore();
 		}
 
+		private const int MaxChars = 2_000_000; // ~2MB of text
+
 		public static void Log(string message)
 		{
 			if (Instance == null)
 				return;
 
-			string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-
-			bool shouldAutoScroll = IsUserAtBottom(Instance.LogList);
-
-			Instance.LogLines.Add(line);
-
-			// Keep memory bounded
-			while (Instance.LogLines.Count > MaxLines)
-				Instance.LogLines.RemoveAt(0);
-
-			if (shouldAutoScroll)
+			Instance.Dispatcher.Invoke(() =>
 			{
-				// Wait until UI has realized containers for the new item
-				Instance.Dispatcher.BeginInvoke(new Action(() =>
+				string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+
+				Instance._logBuilder.AppendLine(line);
+
+				// Trim if too large
+				if (Instance._logBuilder.Length > MaxChars)
 				{
-					Instance.LogList.ScrollIntoView(Instance.LogLines[^1]);
-				}), DispatcherPriority.Background);
-			}
+					Instance._logBuilder.Remove(0, Instance._logBuilder.Length / 4);
+				}
+
+				Instance.LogTextBox.Text = Instance._logBuilder.ToString();
+				Instance.LogTextBox.CaretIndex = Instance.LogTextBox.Text.Length;
+				Instance.LogTextBox.ScrollToEnd();
+			});
 		}
 
 		// Detect whether the user is at (or very near) the bottom.
