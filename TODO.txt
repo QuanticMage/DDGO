@@ -1,6 +1,46 @@
 ﻿
+		// Fields for Damage Calculations;
+		public string WeaponTemplate = ""; // DunDefWeapon or derived
+		public float ScaleDamageStatExponent;
+		public float MythicalScaleDamageStatExponent;
+		public string ProjectileTemplate;
+		public List<string> ExtraProjectileTemplate;
+		public float ProjectileSpeedBonusMultiplier;
+
+		public bool bUseExtraQualityDamage;
+		public bool bUseSecondExtraQualityDamage;
+		public bool bWeaponAdditionalDamageTypeNotPoison;
+		public float TranscendentLevelBoostAmount;
+		public float SupremeLevelBoostAmount;
+		public float UltimateLevelBoostAmount;
+		public float ElementalDamageMultiplier;
+		public float ElementalDamageIncreasePerLevelMultiplier;
+		public float DamageIncreasePerLevelMultiplier;
+		public float UltimateDamageIncreasePerLevelMultiplier;
+		public float ExtraQualityDamageIncreasePerLevelMultiplier;
+		public float SecondExtraQualityDamageIncreasePerLevelMultiplier;
+		public float SecondExtraQualityMaxDamageIncreasePerLevel;
+
+		public float MaxElementalDamageIncreasePerLevel;
+		public float MinElementalDamageIncreasePerLevel;
+		public float MaxDamageIncreasePerLevel;
+		public float UltimateMaxDamageIncreasePerLevel;
+		public float ExtraQualityMaxDamageIncreasePerLevel;
+		public float AltDamageIncreasePerLevelMultiplier;
+		public float WeaponDamageDisplayValueScale;
+		public float WeaponAltDamageDisplayValueScale;
+		public float PlayerSpeedMultiplier;
+		public float WeaponDamageMultiplier;
+		public float AltWeaponDamageMultiplier;
 
 TODO:
+
+** Tower rate seems to never be grey, or columns aren't refreshed when you change stars (Theoran's video)
+** Fully upgrade doesn't upgrade resist view
+** Fully upgrade needs to recalculate when you change rating
+
+Rating mode doesn't automatically select?
+Hover tips should show up on builder app stuff but not on equipment pieces after.
 
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
@@ -28,7 +68,6 @@ New event items, new gun, beta characters
 
 PRI
 Fix hover highlight- different color than selected?
-
 
 * Adobe color
 
