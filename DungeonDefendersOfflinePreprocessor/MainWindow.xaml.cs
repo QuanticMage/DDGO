@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using DDUP;
+using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.ObjectModel;
@@ -64,6 +65,12 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["MaxLevelRangeDifficultyArray"] = Tuple.Create("UDKGame.HeroEquipment.MaxLevelRangeDifficultyArray", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["QualityDescriptorNames"] = Tuple.Create("UDKGame.HeroEquipment.QualityDescriptorNames", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["LevelRequirementOverrides"] = Tuple.Create("UDKGame.HeroEquipment.LevelRequirementOverrides", PropertyType.StructProperty);
+
+
+			UnrealConfig.VariableTypes["MeleeSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MeleeSwingInfoMultipliers", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["MainHandSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MainHandSwingInfoMultipliers", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["OffHandSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.OffHandSwingInfoMultipliers", PropertyType.StructProperty);
+
 
 			UnrealConfig.VariableTypes["ScalarParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.ScalarParameterValues", PropertyType.FloatProperty);
 			UnrealConfig.VariableTypes["VectorParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.VectorParameterValues", PropertyType.Vector4);
@@ -202,21 +209,26 @@ namespace DungeonDefendersOfflinePreprocessor
 			System.IO.Directory.CreateDirectory(workingDir);
 
 			// all the templates we need are in these two, as well as the icons
-			string[] upkFiles = { "Startup_INT.upk", "UDKGame.upk" };
+			string[] upkFiles = { "Startup_INT.upk", "UDKGame.upk", "Core.upk" };
 
 			Log("Processing...");
-			foreach ( var fileName in upkFiles )
+			await Task.Run(async () =>
 			{
-		//		await RunDecompressAsync(workingDir, System.IO.Path.Combine(packageDir, fileName));
-			//	await RunExtractorAsync(workingDir, fileName);
-				db.AddToDatabase(workingDir, fileName);				
-			}
-			
-			// Always build paths with Path.Combine			
-			db.ExportAllHeroEquipmentToAtlas();
-			db.DumpObjectsToFile(@"E:\DDGO\DungeonDefendersGearOptimizer\GeneratedItemTable.cs");
-			//db.ExportAllHeroEquipmentToAtlas();
-			//db.Explore();
+				// 1) Synchronous heavy work -> background thread
+				foreach (var fileName in upkFiles)
+				{					
+					db.AddToDatabase(workingDir, fileName);
+				}
+
+				// 2) Your async method can run here too
+				var tdb = new DDUP.ExportedTemplateDatabase();
+				await db.AddObjectsToDatabase(tdb).ConfigureAwait(false);
+				foreach (var kvp in Parse.UniqueFailedKeys)
+				{
+					MainWindow.Log($"Parse Error on [{kvp.Key}]: {kvp.Value}");
+				}
+
+			}).ConfigureAwait(true);			
 		}
 
 		private const int MaxChars = 2_000_000; // ~2MB of text
@@ -225,6 +237,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		{
 			if (Instance == null)
 				return;
+			System.Diagnostics.Debug.WriteLine(message);
 
 			Instance.Dispatcher.Invoke(() =>
 			{

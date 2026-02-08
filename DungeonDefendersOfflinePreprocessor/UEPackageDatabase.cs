@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Dynamic;
@@ -30,7 +31,7 @@ using UELib.Engine;
 using UELib.Services;
 using UELib.Types;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-
+using DDUP;
 
 
 namespace DungeonDefendersOfflinePreprocessor
@@ -52,20 +53,23 @@ namespace DungeonDefendersOfflinePreprocessor
 	}
 
 
+
+
 	public class UEPackageDatabase
 	{
 
 		// dev request
-		List<string> SkipNames = new() {
-			
+		List<string> SkipNames = new()
+		{
+
 		};
 
 
 		private Dictionary<string, UnrealPackage> PackageCache = new(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<string, IconReference> IconRefs = new(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<string, IconLocation> IconLocs = new(StringComparer.OrdinalIgnoreCase);
-		private string BaseDirectory = "";		
-		public void AddToDatabase( string tempPath, string upk )
+		private string BaseDirectory = "";
+		public void AddToDatabase(string tempPath, string upk)
 		{
 			var outputUpkPath = System.IO.Path.Combine(tempPath, upk);
 
@@ -271,7 +275,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					if (r > a) r = a;
 					if (g > a) g = a;
 
-					byte targetValue = (channel == 'R') ? r : g;					
+					byte targetValue = (channel == 'R') ? r : g;
 
 					outputValues[i] = targetValue;     // B
 					outputValues[i + 1] = targetValue; // G
@@ -293,7 +297,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 
 		private UnrealPackage? LoadPackageByName(string packageName)
-		{ 
+		{
 			if (PackageCache.ContainsKey(packageName))
 			{
 				return PackageCache[packageName];
@@ -307,6 +311,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				try
 				{
 					var pkg = UnrealLoader.LoadPackage(packagePath, System.IO.FileAccess.Read);
+					pkg.CookerPlatform = BuildPlatform.PC;
 					pkg.InitializePackage();
 					PackageCache[packageName] = pkg;
 					return pkg;
@@ -314,29 +319,61 @@ namespace DungeonDefendersOfflinePreprocessor
 				catch (Exception ex)
 				{
 				}
-			}			
+			}
 
 			return null;
 		}
 
+		/// <summary>
+		/// For an import-backed UObject, reconstruct the dotted import path (e.g. Engine.Actor or Package.Group.Obj)
+		/// and return its outermost package name.
+		/// </summary>
 		string? FindPackageNameFromImport(UObject importObj)
 		{
-			// Walk up the outer chain until we find a package
-			var current = importObj;
-			while (current != null)
+			var path = BuildImportPath(importObj);
+			if (string.IsNullOrWhiteSpace(path))
+				return null;
+			return path.Split('.')[0];
+		}
+
+		/// <summary>
+		/// Reconstruct the import path by following ImportTableItem.OuterIndex through the *owning* package's import/export tables.
+		/// This is more reliable than walking UObject.Outer because imports are often just stubs.
+		/// </summary>
+		string? BuildImportPath(UObject importObj)
+		{
+			if (importObj == null) return null;
+			if (importObj.ImportTable == null) return null;
+			if (importObj.Package == null) return null;
+
+			var ownerPkg = importObj.Package;
+			var parts = new List<string>();
+
+			// Start at the import entry for this object
+			var currentImp = importObj.ImportTable;
+			parts.Add(currentImp.ObjectName.Name);
+			int outerIndex = currentImp.OuterIndex;
+
+			while (outerIndex != 0)
 			{
-				if (current.ImportTable != null)
+				if (outerIndex < 0)
 				{
-					var import = current.ImportTable;
-					// If the outer is 0, this is a top-level import (the package itself)
-					if (import.OuterIndex == 0)
-					{
-						return current.Name;
-					}
+					// Import table indices are negative: -1 is Imports[0]
+					var outerImp = ownerPkg.Imports[-outerIndex - 1];
+					parts.Add(outerImp.ObjectName.Name);
+					outerIndex = outerImp.OuterIndex;
 				}
-				current = current.Outer;
+				else
+				{
+					// Export table indices are positive: 1 is Exports[0]
+					var outerExp = ownerPkg.Exports[outerIndex - 1];
+					parts.Add(outerExp.ObjectName.Name);
+					outerIndex = outerExp.OuterIndex;
+				}
 			}
-			return null;
+
+			parts.Reverse();
+			return string.Join(".", parts);
 		}
 
 		UClass? ResolveClass(UObject obj)
@@ -393,17 +430,105 @@ namespace DungeonDefendersOfflinePreprocessor
 			return null;
 		}
 
+		/// <summary>
+		/// Resolves a UStruct (usually a UClass) that may be import-backed into an export-backed object
+		/// from another already loaded package (or loaded on-demand via BaseDirectory).
+		/// If resolution fails, returns the original struct.
+		/// </summary>
+		UStruct? ResolveStruct(UStruct? s)
+		{
+			if (s == null) return null;
+
+			// Already export-backed.
+			if (s.ExportTable != null)
+			{
+				s.Load();
+				return s;
+			}
+
+			// Import-backed: resolve via PackageCache / BaseDirectory.
+			if (s.ImportTable != null)
+			{
+				var importPath = BuildImportPath(s);
+				var packageName = FindPackageNameFromImport(s);
+				if (!string.IsNullOrWhiteSpace(packageName))
+				{
+					var pkg = LoadPackageByName(packageName);
+					if (pkg != null)
+					{
+						// Prefer resolving by full path when available (avoids name collisions across groups).
+						UStruct? resolved = null;
+						if (!string.IsNullOrWhiteSpace(importPath))
+							resolved = FindObjectByPath(pkg, importPath) as UStruct;
+
+						// Fallback: name lookup (often sufficient for classes).
+						resolved ??= pkg.FindObject<UStruct>(s.Name);
+						if (resolved != null)
+						{
+							resolved.Load();
+							return resolved;
+						}
+						else
+						{
+							if (!string.IsNullOrWhiteSpace(importPath))
+								MainWindow.Log($"[ResolveStruct] Failed to resolve import '{importPath}' in loaded package '{packageName}'.");
+							else
+								MainWindow.Log($"[ResolveStruct] Failed to resolve import '{s.Name}' in loaded package '{packageName}'.");
+						}
+					}
+				}
+			}
+
+			return s;
+		}
+
+		/// <summary>
+		/// Gets the class default object (CDO). If UELib didn't hook up UClass.Default, attempt
+		/// to find the Default__ export by name in the owning package.
+		/// </summary>
+		UObject? GetClassDefaultObject(UClass ucl)
+		{
+			if (ucl == null) return null;
+
+			// Preferred: what UELib already linked.
+			if (ucl.Default != null)
+			{
+				ucl.Default.Load();
+				return ucl.Default;
+			}
+
+			// Fallback: find Default__<ClassName>.
+			// If the class is import-backed, its Owner is the *referencing* package, not the defining one,
+			// so hop to the imported package first.
+			UnrealPackage? pkg = ucl.Package;
+			if (ucl.ImportTable != null)
+			{
+				var pkgName = FindPackageNameFromImport(ucl);
+				if (!string.IsNullOrWhiteSpace(pkgName))
+					pkg = LoadPackageByName(pkgName);
+			}
+			if (pkg == null) return null;
+
+			string defaultName = "Default__" + ucl.Name;
+			var def = pkg.FindObject<UObject>(defaultName);
+			if (def != null)
+			{
+				def.Load();
+				return def;
+			}
+
+			return null;
+		}
+
 
 		public UDefaultProperty? GetProperty(UObject? obj, string propertyName)
 		{
 			if (obj == null || string.IsNullOrWhiteSpace(propertyName))
 				return null;
 
-			var visited = new HashSet<UObject>(ReferenceEqualityComparer.Instance);
-
 			// Walk the Instance and Archetype chain
 			var currentObj = obj;
-			while (currentObj != null && visited.Add(currentObj))
+			while (currentObj != null)
 			{
 				// Ensure the object has loaded its buffer
 				currentObj.Load();
@@ -414,29 +539,126 @@ namespace DungeonDefendersOfflinePreprocessor
 				currentObj = currentObj.Archetype as UObject;
 			}
 
-			// Walk the Class Hierarchy
+			// Walk the Class Hierarchy (resolving imports across loaded packages)
 			// In UELib, UClass inherits from UState -> UStruct -> UField -> UObject
-			var currentClass = obj.Class as UStruct;
-			while (currentClass != null)
+			var visitedClasses = new HashSet<UStruct>(ReferenceEqualityComparer.Instance);
+			var currentClass = ResolveStruct(obj.Class as UStruct);
+			while (currentClass != null && visitedClasses.Add(currentClass))
 			{
-				// Check the Class Default Object (CDO)
-				// UELib often exposes this via UClass.DefaultObject
-				if (currentClass is UClass ucl && ucl.Default != null)
+				currentClass.Load();
+
+				if (currentClass is UClass ucl)
 				{
-					if (visited.Add(ucl.Default))
+					var cdo = GetClassDefaultObject(ucl);
+					if (cdo != null)
 					{
-						ucl.Default.Load();
-						var hit = ucl.Default.Properties?.Find(propertyName);
+						var hit = cdo.Properties?.Find(propertyName);
 						if (hit != null) return hit;
+					}
+					else if (ucl.ImportTable != null)
+					{
+						// Helpful hint when the superclass lives in another package but wasn't linked.
+						var pkgHint = FindPackageNameFromImport(ucl);
+						//if (!string.IsNullOrWhiteSpace(pkgHint))
+//							MainWindow.Log($"[GetProperty] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
 					}
 				}
 
-				// Move up the Super chain (SuperName is resolved to SuperField in UELib)
-				currentClass = currentClass.Super as UStruct;
+				// Move up the Super chain, resolving imports on each step.
+				currentClass = ResolveStruct(currentClass.Super as UStruct);
 			}
 
 			return null;
 		}
+		public IReadOnlyList<UDefaultProperty> GetArrayPropertiesMerged(UObject? obj, string propertyName)
+		{
+			if (obj == null || string.IsNullOrWhiteSpace(propertyName))
+				return Array.Empty<UDefaultProperty>();
+
+			// 1) Collect the chain in the order we want to APPLY defaults:
+			//    base -> derived (so derived overrides win when applied last)
+			var chain = BuildDefaultChainBaseFirst(obj);
+
+			// 2) Merge by ArrayIndex (derived overrides replace base values)
+			var mergedByIndex = new SortedDictionary<int, UDefaultProperty>();
+
+			foreach (var o in chain)
+			{
+				o.Load();
+
+				var props = o.Properties;
+				if (props == null) continue;
+
+				foreach (var p in props)
+				{
+					if (p == null) continue;
+					if (p.Name != propertyName) continue;
+
+					// Unreal defaults are deltas: later layers override by index
+					mergedByIndex[p.ArrayIndex] = p;
+				}
+			}
+
+			return mergedByIndex.Values.ToList();
+		}
+
+		private List<UObject> BuildDefaultChainBaseFirst(UObject obj)
+		{
+			var visited = new HashSet<UObject>(ReferenceEqualityComparer.Instance);
+
+			// We’ll collect “derived-first” then reverse at the end.
+			var derivedFirst = new List<UObject>();
+
+			// A) Instance -> Archetype chain (derived-first naturally)
+			var currentObj = obj;
+			while (currentObj != null && visited.Add(currentObj))
+			{
+				derivedFirst.Add(currentObj);
+				currentObj = currentObj.Archetype as UObject;
+			}
+
+			// B) Class hierarchy: CDOs from this class up to base (resolving imports across loaded packages)
+			var visitedClasses = new HashSet<UStruct>(ReferenceEqualityComparer.Instance);
+			var currentClass = ResolveStruct(obj.Class as UStruct);
+			while (currentClass != null && visitedClasses.Add(currentClass))
+			{
+				if (currentClass is UClass ucl)
+				{
+					var cdo = GetClassDefaultObject(ucl);
+					if (cdo != null && visited.Add(cdo))
+						derivedFirst.Add(cdo);
+					else if (cdo == null && ucl.ImportTable != null)
+					{
+						var pkgHint = FindPackageNameFromImport(ucl);
+						//if (!string.IsNullOrWhiteSpace(pkgHint))
+//							MainWindow.Log($"[BuildDefaultChain] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
+					}
+				}
+
+				currentClass = ResolveStruct(currentClass.Super as UStruct);
+			}
+
+			// Now reverse so base is applied first, derived last
+			derivedFirst.Reverse();
+			return derivedFirst;
+		}
+		/*	public string GetIntArrayMaterialized(UObject? obj, string propertyName)
+			{
+				var sparse = GetArrayPropertiesMerged(obj, propertyName);
+				if (sparse.Count == 0) return Array.Empty<string>();
+
+				// Array length in defaults is usually implied by the highest explicit index + 1
+				var maxIndex = sparse.Max(p => p.ArrayIndex);
+				var result = new string[maxIndex + 1]; // ints default to 0
+				for (int i = 0; i <= maxIndex; i++)
+					p.Value[i] = "0";
+				foreach (var p in sparse)
+					result[p.ArrayIndex] = p.Value;
+
+				return result;
+			}*/
+
+
 
 		/// <summary>
 		/// Reference equality comparer for cycle detection without relying on overridden Equals/GetHashCode.
@@ -460,7 +682,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			// 1. Storage for UNIQUE raw texture data
 			// Key: Texture Name, Value: Raw pixel bytes from the original source file
 			var uniqueIcons = new Dictionary<string, byte[]>();
-			
+
 			foreach (var item in PackageCache.Values)
 			{
 				foreach (var exp in item.Exports)
@@ -474,19 +696,19 @@ namespace DungeonDefendersOfflinePreprocessor
 					IconReference ir = new(); // keep track 					
 					string backupTexturePath = "";
 					try
-					{						
+					{
 						obj.Load();
 						var iconProperty = GetProperty(obj, "EquipmentIconMat");
 						if (iconProperty == null) continue;
-					
+
 						var matInst = FindObjectByPath(item, iconProperty.Value);
 						matInst.Load();
-						
+
 						var textureArrayProperty = GetProperty(matInst, "TextureParameterValues");
-					
+
 						if (textureArrayProperty == null) continue;
 
-					
+
 						var parsedElements = ParseDictionary(textureArrayProperty);
 						string[] targetKeys = { "EquipmentIcon", "EquipmentIconColorLayers" };
 
@@ -529,13 +751,13 @@ namespace DungeonDefendersOfflinePreprocessor
 								if (!uniqueIcons.ContainsKey(gKey))
 									uniqueIcons.Add(gKey, ExtractChannelAsGrayscale(finalPath, 'G'));
 							}
-							else 
+							else
 							{
 								ir.IconBase = iconImage.Name;
 								// Standard icon handling
 								if (!uniqueIcons.ContainsKey(iconImage.Name))
 								{
-									uniqueIcons.Add(iconImage.Name,File.ReadAllBytes(finalPath));								
+									uniqueIcons.Add(iconImage.Name, File.ReadAllBytes(finalPath));
 								}
 							}
 						}
@@ -544,7 +766,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					{
 						MainWindow.Log($"Error processing {obj.Name}: {ex.Message}");
 					}
-					IconRefs[obj.GetReferencePath()] = ir;					
+					IconRefs[obj.GetReferencePath()] = ir;
 				}
 			}
 
@@ -561,7 +783,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			foreach (var kvp in uniqueIcons)
 			{
 				IconLocation il = new IconLocation();
-				
+
 				int row = index / gridCount;
 				int col = index % gridCount;
 				MainWindow.Log($"Queued unique icon: {kvp.Key} at row {row} and column {col}");
@@ -628,122 +850,6 @@ namespace DungeonDefendersOfflinePreprocessor
 			MainWindow.Log($"Atlas complete! Saved {uniqueIcons.Count} unique icons to {atlasWidth}x{atlasHeight} texture.");
 		}
 
-		// This was before I figured out how to set up the structures properly
-
-
-		/*
-		public List<ULinearColor>? GetColorSetProperty(UObject? obj, string propertyName)
-		{
-			if (obj == null || string.IsNullOrWhiteSpace(propertyName))
-				return null;
-
-			// Use a single set to prevent infinite loops from circular archetypes
-			var visited = new HashSet<UObject>(ReferenceEqualityComparer.Instance);
-
-			// 1 & 2: Walk the Instance and Archetype chain
-			var currentObj = obj;
-			while (currentObj != null && visited.Add(currentObj))
-			{
-				// Ensure the object has loaded its buffer
-				currentObj.Load();
-				if (currentObj.ExportTable == null) break;
-				
-				var hit = ReadRawColorSetProperty(currentObj.Package, currentObj.ExportTable, propertyName);
-				if (hit != null) return hit;
-
-				currentObj = currentObj.Archetype as UObject;
-			}
-
-			// 3: Walk the Class Hierarchy
-			// In UELib, UClass inherits from UState -> UStruct -> UField -> UObject
-			var currentClass = obj.Class as UStruct;
-			while (currentClass != null)
-			{
-				// Check the Class Default Object (CDO)
-				// UELib often exposes this via UClass.DefaultObject
-				if (currentClass is UClass ucl && ucl.Default != null)
-				{
-					if (visited.Add(ucl.Default))
-					{
-						ucl.Default.Load();
-						var hit = ReadRawColorSetProperty(ucl.Default.Package, ucl.Default.ExportTable, propertyName);						
-						if (hit != null) return hit;
-					}
-				}
-
-				// Move up the Super chain (SuperName is resolved to SuperField in UELib)
-				currentClass = currentClass.Super as UStruct;
-			}
-
-			return null;
-		}
-
-		// PSEUDOCODE: adjust type names to your UELib version.
-		public List<ULinearColor>? ReadRawColorSetProperty(UnrealPackage upk, UExportTableItem export, string propName)
-		{
-			var stream = upk.Stream; // or upk.GetStream()
-			long currentOffset = stream.Position;
-			stream.Seek(export.SerialOffset, SeekOrigin.Begin);
-
-			int netIndex = stream.ReadInt32();
-			while (true)							// properties
-			{
-				ulong nameIndex = stream.ReadUInt64();
-
-				string name = upk.Names[(int)nameIndex];
-				if (name == "None")
-					break;				
-				ulong typeIndex = stream.ReadUInt64();
-				string type = upk.Names[(int)typeIndex];
-				uint size = stream.ReadUInt32();
-				uint array = stream.ReadUInt32();
-
-				string StructType = "";
-				string EnumType = "";
-				if (type == "StructProperty")
-				{
-					ulong structNameIndex = stream.ReadUInt64();
-					StructType = upk.Names[(int)structNameIndex];
-				}
-
-				if (type == "ByteProperty")
-				{
-					ulong enumNameIndex = stream.ReadUInt64();
-					EnumType = upk.Names[(int)enumNameIndex];
-				}
-
-
-				if (type == "BoolProperty")
-				{
-					stream.ReadByte();
-					continue;
-				}
-
-				long endOfSection = stream.Position;
-
-				if ((type == "ArrayProperty") && (propName == name))
-				{
-					int ct = stream.ReadInt32();
-					List<ULinearColor> rtn = new();
-
-					for (int i = 0; i < ct; i++)
-					{
-						ULinearColor color = new();
-						color.Deserialize(stream);						
-						rtn.Add(color);
-
-					}
-					return rtn;
-				}
-				
-				stream.Seek(endOfSection + size, SeekOrigin.Begin);
-
-			}
-			stream.Seek(currentOffset, SeekOrigin.Begin);
-			return null;
-		}
-		*/
-
 		public static List<ULinearColor> ParseColorSetArray(string input)
 		{
 			var colors = new List<ULinearColor>();
@@ -779,7 +885,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			if (obj == null) return "";
 
 			string objPath = obj.GetReferencePath();
-			
+
 			var objTemplateMatch = Regex.Match(objPath, @"'([^']*)'");
 			var randomNameMatch = new Regex(@"""([^""]*)""");
 			var equipmentTypeMatch = new Regex(@"=(.*)");
@@ -788,9 +894,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			bDontAllowNameRandomization = GetProperty(obj, "AllowNameRandomization") != null ? (GetProperty(obj, "AllowNameRandomization").Value == "false") : false;
 			bool bAllowNameRandomization = !bDontAllowNameRandomization;
 			string[] randomizationArray = new string[100];
-			
 
-			string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");			
+
+			string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");
 			if (SkipNames.Contains(objPath))
 				return "";
 
@@ -908,8 +1014,8 @@ namespace DungeonDefendersOfflinePreprocessor
 				if (colorAlpha != null && maskRAlpha != null && maskGAlpha != null)
 				{
 					int error = 0;
-					for (int i = 0; i < IconSize * IconSize; i++ )
-					{						
+					for (int i = 0; i < IconSize * IconSize; i++)
+					{
 						if ((colorAlpha[i] < 2) && ((maskRAlpha[i] >= 32) || (maskGAlpha[i] >= 32)))
 							error++;
 					}
@@ -922,9 +1028,9 @@ namespace DungeonDefendersOfflinePreprocessor
 						x1 = 0;
 						y1 = 0;
 						x2 = 0;
-						y2 = 0;						
+						y2 = 0;
 					}
-				}		
+				}
 			}
 
 			var iconColorAddPrimary = GetProperty(obj, "IconColorAddPrimary");
@@ -960,7 +1066,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				csString += $", IconColorMulSecondary = {iconColorMulSecondary.Value}f";
 			}
 
-			
+
 
 			var primaryColorSetArray = GetProperty(obj, "PrimaryColorSets");
 			var secondaryColorSetArray = GetProperty(obj, "SecondaryColorSets");
@@ -1006,6 +1112,9 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 
 
+
+
+
 		public void DumpObjectsToFile(string file)
 		{
 			List<string> lines = new();
@@ -1015,14 +1124,14 @@ namespace DungeonDefendersOfflinePreprocessor
 			lines.Add("\t{");
 			lines.Add("\t\tpublic static readonly Dictionary<string, ItemEntry> Map = new()");
 			lines.Add("\t\t{");
-			
-			foreach ( var item in PackageCache.Values )
+
+			foreach (var item in PackageCache.Values)
 			{
-				foreach ( var obj in item.Objects )
+				foreach (var obj in item.Objects)
 				{
 					if (obj.GetReferencePath().StartsWith("HeroEquipment"))
 					{
-						lines.Add("\t\t\t" + GetObjectCSLine(obj));					
+						lines.Add("\t\t\t" + GetObjectCSLine(obj));
 					}
 				}
 			}
@@ -1033,6 +1142,742 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			File.WriteAllLines(file, lines);
 			MainWindow.Log("Finished writing new Item Database");
+		}
+
+
+		public async Task AddObjectsToDatabase(ExportedTemplateDatabase db)
+		{
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{			
+					if (DoesObjectInheritFromClass(obj, "DunDefDamageType"))
+					{
+						MainWindow.Log($"Adding DunDefDamageType {obj.GetPath()}");
+						AddDunDefDamageTypeToDB(obj, db);
+						await Task.Yield();
+				
+					}
+				}
+			}
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (DoesObjectInheritFromClass(obj, "DunDefPlayer"))
+					{
+						MainWindow.Log($"Adding DunDefPlayer {obj.GetPath()}");
+						AddPlayerToDB(obj, db);
+						await Task.Yield();
+
+					}
+				}
+			}
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (DoesObjectInheritFromClass(obj, "DunDefProjectile"))
+					{
+						MainWindow.Log($"Adding DunDefProjectile {obj.GetPath()}");
+						AddProjectileToDB(obj, db);
+						await Task.Yield();
+					}
+				}
+
+			}
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (DoesObjectInheritFromClass(obj, "DunDefWeapon"))
+					{
+						MainWindow.Log($"Adding DunDefWeapon {obj.GetPath()}");
+						AddWeaponToDB(obj, db);
+						await Task.Yield();
+					}
+				}
+			}
+
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (DoesObjectInheritFromClass(obj, "HeroEquipment"))
+					{
+						MainWindow.Log($"Adding HeroEquipment {obj.GetPath()}");
+						AddEquipmentToDB(obj, db);
+						await Task.Yield();
+					}
+				}
+			}
+		}
+
+		public bool DoesObjectInheritFromClass(UObject obj, string _class)
+		{
+			var currentClass = obj.Class as UStruct;
+			while (currentClass != null)
+			{
+				if (currentClass.Name == _class)
+					return true;
+
+				// Move up the Super chain (SuperName is resolved to SuperField in UELib)
+				currentClass = currentClass.Super as UStruct;
+			}
+			return false;
+		}
+
+		public void AddPropertyToMap(UObject obj, string property, Dictionary<string, string> map, string? def = null)
+		{
+			UDefaultProperty? prop = GetProperty(obj, property);
+			if (prop != null)
+			{
+				map.Add(property, prop.Value);
+			}
+			else if (def != null)
+			{
+				map.Add(property, def);
+			}
+			else
+			{
+				MainWindow.Log($"Couldn't find property {property} on object {obj.Name}");
+			}
+
+		}
+		public void AddArrayPropertyToMap(UObject obj, string propertyName, Dictionary<string, string> map, int forcedLength = -1, string defaultValue = "0")
+		{
+			var sparse = GetArrayPropertiesMerged(obj, propertyName); // IReadOnlyList<UDefaultProperty>
+
+			if ((sparse.Count == 1) && (sparse[0].Value.Contains("[")))
+			{
+				map[propertyName] = sparse[0].Value;
+				return;
+			}
+
+			// index -> raw string
+			var byIndex = new Dictionary<int, string>(sparse.Count);
+			var maxIndex = -1;
+
+			foreach (var p in sparse)
+			{
+				int idx = p.ArrayIndex;
+				if (idx > maxIndex) maxIndex = idx;
+
+				// no Convert.ToInt32 here
+				byIndex[idx] = p.Value?.ToString() ?? defaultValue;
+			}
+
+			int impliedLength = (maxIndex >= 0) ? (maxIndex + 1) : 0;
+			int length = (forcedLength > 0) ? forcedLength : impliedLength;
+
+			if (length <= 0)
+			{
+				map[propertyName] = "";
+				return;
+			}
+
+			var sb = new StringBuilder();
+
+			for (int i = 0; i < length; i++)
+			{
+				var v = byIndex.TryGetValue(i, out var val) ? val : defaultValue;
+
+				sb.Append(propertyName)
+				  .Append('[').Append(i).Append("]=")
+				  .Append(v)
+				  .Append("\r\n");
+			}
+
+			map[propertyName] = sb.ToString();
+
+		}
+
+
+
+		public int AddEquipmentToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Arrays (materialized)
+			AddArrayPropertyToMap(obj, "StatModifiers", propertyMap, 10, "0");
+			AddArrayPropertyToMap(obj, "DamageReductions", propertyMap);
+			AddArrayPropertyToMap(obj, "DamageReductionRandomizers", propertyMap);
+			AddArrayPropertyToMap(obj, "QualityDescriptorNames", propertyMap);
+			AddArrayPropertyToMap(obj, "QualityDescriptorRealNames", propertyMap);
+			AddArrayPropertyToMap(obj, "RandomBaseNames", propertyMap);
+			AddArrayPropertyToMap(obj, "StatEquipmentIDs", propertyMap, 10, "0");
+			AddArrayPropertyToMap(obj, "StatEquipmentTiers", propertyMap, 10, "0");
+			AddArrayPropertyToMap(obj, "StatModifierRandomizers", propertyMap, 11, "0");
+			AddArrayPropertyToMap(obj, "StatObjectArray", propertyMap);
+
+			// Icon / color set arrays
+			AddArrayPropertyToMap(obj, "PrimaryColorSets", propertyMap);
+			AddArrayPropertyToMap(obj, "SecondaryColorSets", propertyMap);
+
+			// Localized/string-ish fields
+			AddPropertyToMap(obj, "AdditionalDescription", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseForgerName", propertyMap, "0");
+			AddPropertyToMap(obj, "DamageDescription", propertyMap, "0");
+			AddPropertyToMap(obj, "Description", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentName", propertyMap, "0");
+			AddPropertyToMap(obj, "ExtraQualityUpgradeDamageNumberDescriptor", propertyMap, "0");
+			AddPropertyToMap(obj, "ForgedByDescription", propertyMap, "0");
+			AddPropertyToMap(obj, "LevelString", propertyMap, "0");
+			AddPropertyToMap(obj, "Name", propertyMap, "0");
+			AddPropertyToMap(obj, "RequiredClassString", propertyMap, "0");
+			AddPropertyToMap(obj, "UserEquipmentName", propertyMap, "0");
+			AddPropertyToMap(obj, "UserForgerName", propertyMap, "0");
+
+			// Ints
+			AddPropertyToMap(obj, "EquipmentID1", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentID2", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentSetID", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentWeaponTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "HeroStatUpgradeLimit", propertyMap, "0");
+			AddPropertyToMap(obj, "Level", propertyMap, "0");
+			AddPropertyToMap(obj, "LevelRequirementIndex", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxEquipmentLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxEquipmentLevelRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxNonTranscendentStatRollValue", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxUpgradeableSpeedProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "MinDamageBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "MinLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MinSupremeLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MinTranscendentLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MinUltimateLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MinimumSellWorth", propertyMap, "0");
+			AddPropertyToMap(obj, "StoredMana", propertyMap, "0");
+			AddPropertyToMap(obj, "UltimateMaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(obj, "UltimatePlusMaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponAdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponAdditionalDamageAmountRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponAdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponAltDamageBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponAltDamageBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponBlockingBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponChargeSpeedBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponClipAmmoBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponClipAmmoBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponDamageBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponDamageBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponKnockbackBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponKnockbackMax", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponNumberOfProjectilesQualityBaseline", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponReloadSpeedBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponShotsPerSecondBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "weaponType", propertyMap, "0");
+
+			// Floats
+			AddPropertyToMap(obj, "AdditionalWeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AltDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AltDamageRandomizerMult", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AltMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ElementalDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ElementalDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(obj, "FullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HighLevelManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HighLevelManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HighLevelRequirementRatingThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HighLevelThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxRandomValue", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxRandomValueNegative", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinElementalDamageIncreasePerLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MinEquipmentLevels", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumPercentageValue", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MythicalFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NegativeMinimumPercentageValue", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NegativeThresholdQualityPecentMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "PlayerSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "QualityThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomNegativeThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomPower", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomPowerOverrideIfNegative", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomizerQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomizerStatModifierGoNegativeChance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomizerStatModifierGoNegativeMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SecondExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SecondExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StackedStatModifier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SupremeFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SupremeLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SupremeLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TotalRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TranscendentFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TranscendentLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TranscendentLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(obj, "Ultimate93Chance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimateDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimateFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimateLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimateLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimateMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimatePlusChance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UltimatePlusPlusChance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "Values", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponAltDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponEquipmentRatingPercentBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponSwingSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RuthlessUltimate93Chance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RuthlessUltimatePlusChance", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RuthlessUltimatePlusPlusChance", propertyMap, "0.0");
+
+			// Bytes / bool-ish flags
+			AddPropertyToMap(obj, "AllowNameRandomization", propertyMap, "0");
+			AddPropertyToMap(obj, "CountsForAllArmorSets", propertyMap, "0");
+			AddPropertyToMap(obj, "NameIndex_Base", propertyMap, "0");
+			AddPropertyToMap(obj, "NameIndex_DamageReduction", propertyMap, "0");
+			AddPropertyToMap(obj, "NameIndex_QualityDescriptor", propertyMap, "0");
+			AddPropertyToMap(obj, "OnlyRandomizeBaseName", propertyMap, "0");
+
+			AddPropertyToMap(obj, "WeaponAdditionalDamageTypeNotPoison", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponBlockingBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponChargeSpeedBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponKnockbackBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponReloadSpeedBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponShotsPerSecondBonus", propertyMap, "0");
+
+			AddPropertyToMap(obj, "bCanBeEquipped", propertyMap, "0");
+			AddPropertyToMap(obj, "bCantBeDropped", propertyMap, "0");
+			AddPropertyToMap(obj, "bCantBeSold", propertyMap, "0");
+			AddPropertyToMap(obj, "bDisableRandomization", propertyMap, "0");
+			AddPropertyToMap(obj, "bEquipmentFeatureByte1", propertyMap, "0");
+			AddPropertyToMap(obj, "bEquipmentFeatureByte2", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceAllowDropping", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceAllowSelling", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceRandomizerWithMinEquipmentLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "bHideQualityDescriptors", propertyMap, "0");
+			AddPropertyToMap(obj, "bIsConsumable", propertyMap, "0");
+			AddPropertyToMap(obj, "bIsSecondary", propertyMap, "0");
+			AddPropertyToMap(obj, "bNoNegativeRandomizations", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseBonusStatsFromStacking", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseExtraQualityDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseSecondExtraQualityDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "UseColorSets", propertyMap, "0");
+
+			// Native-ish / icon section
+			AddPropertyToMap(obj, "EquipmentDescription", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentType", propertyMap, "0");
+			AddPropertyToMap(obj, "ForDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxRandomElementalDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MyRating", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MyRatingPercent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "PercentageReduction", propertyMap, "0");
+			AddPropertyToMap(obj, "UserID", propertyMap, "0");
+
+			AddPropertyToMap(obj, "WeaponAltDamageBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponBlockingBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponChargeSpeedBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponClipAmmoBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponKnockbackBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponReloadSpeedBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponShotsPerSecondBonusUse", propertyMap, "0");
+			AddPropertyToMap(obj, "bDisableTheRandomization", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceUseParentTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "UseWeaponCoreStats", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceToMinElementalScale", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceToMaxElementalScale", propertyMap, "0");
+
+			AddPropertyToMap(obj, "IconColorAddPrimary", propertyMap, "0");
+			AddPropertyToMap(obj, "IconColorAddSecondary", propertyMap, "0");
+			AddPropertyToMap(obj, "IconColorMulPrimary", propertyMap, "0.0");
+			AddPropertyToMap(obj, "IconColorMulSecondary", propertyMap, "0.0");
+
+			AddPropertyToMap(obj, "IconX", propertyMap, "0");
+			AddPropertyToMap(obj, "IconY", propertyMap, "0");
+			AddPropertyToMap(obj, "IconX1", propertyMap, "0");
+			AddPropertyToMap(obj, "IconY1", propertyMap, "0");
+			AddPropertyToMap(obj, "IconX2", propertyMap, "0");
+			AddPropertyToMap(obj, "IconY2", propertyMap, "0");
+
+			// Finally store it in your DB (adapt to your actual DB API)
+			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
+
+			if (DoesObjectInheritFromClass(obj, "HereEquipment_Familiar"))
+				propertyMap["FamiliarDataIndex"] = AddFamiliarToDB(obj, db).ToString();
+			else
+				propertyMap["FamiliarDataIndex"] = "-1";
+
+			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);
+		}
+
+		public int AddDunDefDamageTypeToDB( UObject obj, ExportedTemplateDatabase db )
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			AddPropertyToMap(obj, "AdjectiveName", propertyMap, "Default");
+			AddPropertyToMap(obj, "FriendlyName", propertyMap, "Default");
+			AddPropertyToMap(obj, "UseForNotPoisonElementalDamage", propertyMap, "false");
+			AddPropertyToMap(obj, "UseForRandomElementalDamage", propertyMap, "false");
+
+			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
+			DunDefDamageType_Data dmgType = new DunDefDamageType_Data(propertyMap, db);
+
+			// Finally store it in your DB (adapt to your actual DB API)
+			// If your DB doesn’t have this exact method name/signature, mirror AddHeroEquipment’s pattern.
+			return db.AddDunDefDamageType(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref dmgType);
+		}
+
+		public int AddFamiliarToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Arrays (materialized)
+			// HeroEquipment_Familiar_TowerDamageScaling
+			AddArrayPropertyToMap(obj, "ProjectileDelays", propertyMap);
+			AddArrayPropertyToMap(obj, "ProjectileTemplates", propertyMap);
+
+			// Floats
+			// HeroEquipment_Familiar_AoeBuffer
+			AddPropertyToMap(obj, "BuffRange", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_Corehealer
+			AddPropertyToMap(obj, "HealAmountBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealAmountExtraMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealAmountMaxPercent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRangeBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRangeStatBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRangeStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRangeStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumCoreHealthPercent", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_Melee_TowerScaling
+			AddPropertyToMap(obj, "BaseDamageToHealRatio", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DamageHealMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraNightmareMeleeDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxHealMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxHealPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxKnockbackMuliplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MeleeDamageMomentum", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MeleeHitRadius", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinHealPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "RandomizedDamageMultiplierDivisor", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_PawnBooster
+			AddPropertyToMap(obj, "BaseBoost", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostRangeStatBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostRangeStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostRangeStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostStatBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "FirstBoostInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxBoostStat", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_PlayerHealer
+			AddPropertyToMap(obj, "FalloffExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRange", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumHealDistancePercent", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_TADPS
+			AddPropertyToMap(obj, "dpsTreshold", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_TowerBooster
+			AddPropertyToMap(obj, "BaseBoostRange", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostAmountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostRangeExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ETBAttackRangeExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ETBAttackRateExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ETBDamageExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ETBResistanceExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxRangeBoostStat", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_TowerDamageScaling
+			AddPropertyToMap(obj, "AbsoluteDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AltProjectileMinimumRange", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BaseDamageToManaRatio", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BaseHealAmount", propertyMap, "0.0");
+			AddPropertyToMap(obj, "Damage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DamageManaMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraNightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealAmountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealingPriorityHealthPercentage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxManaMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxManaPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinManaPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumProjectileSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NightmareHealingMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileShootInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShotsPerSecondExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TargetRange", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_TowerHealer
+			AddPropertyToMap(obj, "HealRadius", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar
+			AddPropertyToMap(obj, "BarbStanceDamageMulti", propertyMap, "0.0");
+
+			// Ints
+			// HeroEquipment_Familiar_Corehealer
+			AddPropertyToMap(obj, "StringHealAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "StringHealRange", propertyMap, "0");
+			AddPropertyToMap(obj, "StringHealSpeed", propertyMap, "0");
+
+			// HeroEquipment_Familiar_Melee_TowerScaling
+			AddPropertyToMap(obj, "MeleeDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "RandomizedDamageMultiplierMaximum", propertyMap, "0");
+
+			// HeroEquipment_Familiar_PawnBooster
+			AddPropertyToMap(obj, "BoostStatUpgradeInterval", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxNumberOfPawnsToBoost", propertyMap, "0");
+			AddPropertyToMap(obj, "SoftMaxNumberOfPawnsToBoost", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TADPS
+			AddPropertyToMap(obj, "AdditionalName", propertyMap, "0");
+			AddPropertyToMap(obj, "fixedprojspeedbonus", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TowerBooster
+			AddPropertyToMap(obj, "MaxBoostStatValue", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxNumberOfTowersToBoost", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxTowerBoostStat", propertyMap, "0");
+			AddPropertyToMap(obj, "SoftMaxNumberOfTowersToBoost", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TowerDamageScaling
+			AddPropertyToMap(obj, "Projectile", propertyMap, "0");
+			AddPropertyToMap(obj, "ProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "ProjectileTemplateAlt", propertyMap, "0");
+			AddPropertyToMap(obj, "ShotsPerSecondBonusCap", propertyMap, "0");
+
+			// Bytes / bool-ish flags
+			// HeroEquipment_Familiar_Melee_TowerScaling
+			AddPropertyToMap(obj, "bAlsoShootProjectile", propertyMap, "0");
+			AddPropertyToMap(obj, "bDoMeleeHealing", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseRandomizedDamage", propertyMap, "0");
+
+			// HeroEquipment_Familiar_PawnBooster
+			AddPropertyToMap(obj, "ProModeFocused", propertyMap, "false");
+
+			// HeroEquipment_Familiar_PlayerHealer
+			AddPropertyToMap(obj, "bUseFixedHealSpeed", propertyMap, "false");
+
+			// HeroEquipment_Familiar_TADPS
+			AddPropertyToMap(obj, "bFixedProjSpeed", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TowerDamageScaling
+			AddPropertyToMap(obj, "DoLineOfSightCheck", propertyMap, "false");
+			AddPropertyToMap(obj, "bAddManaForDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bChooseHealingTarget", propertyMap, "0");
+			AddPropertyToMap(obj, "bDoShotsPerSecondBonusCap", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseAltProjectile", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseFixedShootSpeed", propertyMap, "0");
+			AddPropertyToMap(obj, "bWeakenEnemyTarget", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TowerHealer
+			AddPropertyToMap(obj, "bHealOverRadius", propertyMap, "0");
+
+			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
+			HeroEquipment_Familiar_Data hef = new HeroEquipment_Familiar_Data(propertyMap, db);
+
+			// Finally store it in your DB (adapt to your actual DB API)
+			// If your DB doesn’t have this exact method name/signature, mirror AddHeroEquipment’s pattern.
+			return db.AddHeroEquipmentFamiliar(ref hef);
+		}
+
+
+
+		public int AddPlayerToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Floats
+			AddPropertyToMap(obj, "AdditionalSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraPlayerDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroBonusPetDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroBoostSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NightmareModePlayerHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "PlayerWeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpFull_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AnimSpeedMultiplier", propertyMap, "0.0");
+
+			// Arrays
+			AddArrayPropertyToMap(obj, "MeleeSwingInfoMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "MainHandSwingInfoMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "OffHandSwingInfoMultipliers", propertyMap);
+
+			// DunDefPawn float
+			AddPropertyToMap(obj, "DamageMultiplierAdditional", propertyMap, "0.0");
+
+			// Ints
+			AddPropertyToMap(obj, "HeroBoostHealAmount", propertyMap, "0");
+
+			// Build data + store
+			DunDefPlayer_Data ddp = new DunDefPlayer_Data(propertyMap, db);
+
+			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
+			return db.AddDunDefPlayer(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref ddp);
+		}
+
+		public int AddProjectileToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Arrays
+			AddArrayPropertyToMap(obj, "RandomDamageTypes", propertyMap);
+
+			// Ints
+			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "ScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(obj, "ProjDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "NumAllowedPassThrough", propertyMap, "0");
+
+			// Floats
+			AddPropertyToMap(obj, "DamageRadiusFallOffExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjDamageRadius", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileDamageByWeaponDamageDivider", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileDamagePerDistanceTravelled", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileLifespan", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileMaxSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileSpeed", propertyMap, "0.0");
+
+			// Floats (homing / extra)
+			AddPropertyToMap(obj, "TowerDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HomingInterpSpeed", propertyMap, "0.0");
+
+			// Bytes / bool-ish flags (stored as byte in struct)
+			AddPropertyToMap(obj, "MultiplyProjectileDamageByPrimaryWeaponSwingSpeed", propertyMap, "0");
+			AddPropertyToMap(obj, "MultiplyProjectileDamageByWeaponDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "OnlyCollideWithIgnoreClasses", propertyMap, "0");
+			AddPropertyToMap(obj, "ScaleHeroDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bAlwaysUseRandomDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "bApplyBuffsOnAoe", propertyMap, "0");
+			AddPropertyToMap(obj, "bReplicateWeaponProjectile", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseProjectilePerDistanceScaling", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseProjectilePerDistanceSizeScaling", propertyMap, "0");
+
+			// Homing projectile flags
+			AddPropertyToMap(obj, "bPierceEnemies", propertyMap, "0");
+			AddPropertyToMap(obj, "bDamageOnTouch", propertyMap, "0");
+
+			// Build data + store
+			DunDefProjectile_Data proj = new DunDefProjectile_Data(propertyMap, db);
+
+			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
+			return db.AddDunDefProjectile(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref proj);
+		}
+
+		public int AddWeaponToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Arrays
+			AddArrayPropertyToMap(obj, "ExtraProjectileTemplates", propertyMap);
+			AddArrayPropertyToMap(obj, "MeleeSwingInfos", propertyMap);
+			AddArrayPropertyToMap(obj, "RainbowDamageTypeArrays", propertyMap);
+
+			// Ints (core)
+			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseAltDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseShotsPerSecond", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseTotalAmmo", propertyMap, "0");
+			AddPropertyToMap(obj, "RandomizedProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "ProjectileTemplate", propertyMap, "0");
+
+			// Floats (core)
+			AddPropertyToMap(obj, "WeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumProjectileSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileSpeedAddition", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
+
+			// Bytes (core flags)
+			AddPropertyToMap(obj, "bIsMeleeWeapon", propertyMap, "0");
+			AddPropertyToMap(obj, "bRandomizeProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseAdditionalProjectileDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseAltDamageForProjectileBaseDamage", propertyMap, "0");
+
+			// DunDefWeapon_Crossbow
+			AddPropertyToMap(obj, "BaseNumProjectiles", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseReloadSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ClipAmmo", propertyMap, "0");
+			AddPropertyToMap(obj, "FireIntervalMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "bUseHighShotPerSecond", propertyMap, "0");
+
+			// DunDefWeapon_MagicStaff
+			AddPropertyToMap(obj, "AbilityCooldownTime", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseChargeSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BonusDamageMulti", propertyMap, "0.0");
+			AddPropertyToMap(obj, "CooldownDuration", propertyMap, "0");
+			AddPropertyToMap(obj, "ElementalDamageForRightClickScalar", propertyMap, "0.0");
+			AddPropertyToMap(obj, "FullAltChargeTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "FullChargeTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "FullchargeRefireInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MediumChargeFFThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NumProjectiles", propertyMap, "0");
+			AddPropertyToMap(obj, "bIsRainMaker", propertyMap, "0");
+			AddPropertyToMap(obj, "bEmberorMoon", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseAttackCD", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseElementalScallingForRightClick", propertyMap, "0");
+
+			// DunDefWeapon_MagicStaff_Channeling
+			AddPropertyToMap(obj, "ChannelingProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ChannelingProjectileFireSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ChannelingProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "ChannelingRangeMultiplier", propertyMap, "0.0");
+
+			// DunDefWeapon_MeleeSword
+			AddPropertyToMap(obj, "BaseMeleeDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "DamageIncreaseForSwingSpeedFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "IsSwingingWeapon", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxMomentumMultplierByDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxTotalMomentumMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MeleeDamageMomentum", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumSwingDamageTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MinimumSwingTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MomentumMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileDamageHeroStatExponentMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SpeedMultiplierDamageExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "bShootMeleeProjectile", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseRainbowDamageType", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseWeaponDamageForProjectileDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "BlockingMomentumExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AdditionalMomentumExponent", propertyMap, "0.0");
+
+			// DunDefWeapon_Minigun
+			AddPropertyToMap(obj, "MinigunProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SpeedPerDelta", propertyMap, "0.0");
+
+			// DunDefWeapon_MonkSpear
+			AddPropertyToMap(obj, "ShootInterval", propertyMap, "0.0");
+
+			// DunDefWeapon_NessieLauncher
+			AddPropertyToMap(obj, "Multiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NessieCooldown", propertyMap, "0.0");
+
+			// Build data + store
+			DunDefWeapon_Data weap = new DunDefWeapon_Data(propertyMap, db);
+
+			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
+			return db.AddDunDefWeapon(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref weap);
 		}
 	}
 }

@@ -34,6 +34,31 @@
 		public float AltWeaponDamageMultiplier;
 
 TODO:
+Remove cache clear of icons every load
+Remove stat icons that aren't used on hover
+Auto-detect mode is broken
+Add accessories/weapons to type selection.  Actually add quick selection buttons above that in the filters
+also i have to like tick and untick get live prices for it to change the listed price
+
+Allow < > ult++ and other qualities
+
+// use this to check for events
+function bool AllowSelling()
+{
+    if((PrimaryColorOverride != self.default.PrimaryColorOverride && (PrimaryColorOverride.R > 1 || PrimaryColorOverride.G > 1 || PrimaryColorOverride.B > 1)) || (SecondaryColorOverride != self.default.SecondaryColorOverride && (SecondaryColorOverride.R > 1 || SecondaryColorOverride.G > 1 || SecondaryColorOverride.B > 1))) {
+        return false;
+    }
+    if(UserForgerName != self.default.UserForgerName && (Level != MaxEquipmentLevel || Level > 550 || MaxEquipmentLevel == 1)) {
+        return false;
+    }
+    if(StatEquipmentIDs[0]==1598025611)
+    {
+        return false;
+    }
+    return (bCantBeSold == 0 || bForceAllowSelling) && UsedInTradeManager() == none;
+}
+bCantBeSold
+
 
 ** Tower rate seems to never be grey, or columns aren't refreshed when you change stars (Theoran's video)
 ** Fully upgrade doesn't upgrade resist view
