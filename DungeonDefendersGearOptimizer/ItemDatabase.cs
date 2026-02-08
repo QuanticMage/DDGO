@@ -4,45 +4,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DDUP
 {
-	public enum WeaponType
-	{
-		None = 0,
-		Squire,
-		Monk,
-		Huntress,
-		Apprentice
-	};
-
-	public enum EquipmentType
-	{
-		Weapon = 0,
-		Torso = 1,
-		Helmet = 2,
-		Boots = 3,
-		Gloves = 4,
-		Familiar = 5,
-		Brooch = 7,
-		Bracers = 8,
-		Shield = 9,
-		Mask = 10,
-		Currency = 11,
-
-		None = 12,
-	}
-
-	public enum EquipmentSet
-	{
-		None = 0,
-		Leather = 1,
-		Mail = 2,
-		Chain = 3,
-		Plate = 4,
-		Pristine = 5,
-		Zamira = 6,
-		Any = 255,
-	}
-	
-
+	// Sort of obsolete
 	public struct Vector3 
 	{
 		public float x;
@@ -383,5 +345,8 @@ namespace DDUP
 
 		
 	}
+
+	
+
 
 }
