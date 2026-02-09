@@ -304,6 +304,7 @@ namespace DDUP
 		public int FriendlyName;  // localized string
 		public byte UseForNotPoisonElementalDamage; // bool
 		public byte UseForRandomElementalDamage; // bool
+		public int DamageTypeArrayIndex;
 
 		public DunDefDamageType_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -311,6 +312,7 @@ namespace DDUP
 			FriendlyName = db.AddString(propertyMap["FriendlyName"]);
 			UseForNotPoisonElementalDamage = Parse.BoolByte(propertyMap, "UseForNotPoisonElementalDamage");
 			UseForRandomElementalDamage = Parse.BoolByte(propertyMap, "UseForRandomElementalDamage");
+			DamageTypeArrayIndex = Parse.Int(propertyMap, "DamageTypeArrayIndex");
 		}
 	}
 
@@ -614,6 +616,7 @@ namespace DDUP
 		public Array_Data DamageReductions; // DamageReduction
 		public Array_Data DamageReductionRandomizers; // Randomizers for damage reduction
 
+		
 		public int AdditionalDescription;       // localized string
 		public float AdditionalWeaponDamageBonusRandomizerMultiplier;
 		public byte AllowNameRandomization;
@@ -654,7 +657,7 @@ namespace DDUP
 		public int MaxNonTranscendentStatRollValue;
 		public float MaxRandomValue;
 		public float MaxRandomValueNegative;
-		public int MaxUpgradeableSpeedProjectilesBonus;
+		public int MaxUpgradeableSpeedOfProjectilesBonus;
 		public int MinDamageBonus;
 		public float MinElementalDamageIncreasePerLevel;
 		public float MinEquipmentLevels;
@@ -789,12 +792,13 @@ namespace DDUP
 		public byte UseWeaponCoreStats;
 		public byte bForceToMinElementalScale;
 		public byte bForceToMaxElementalScale;
-
+		
+		
 		// Icon section
 		public int IconColorAddPrimary; // linearColor
 		public int IconColorAddSecondary; // linearColor
-		public float IconColorMulPrimary;
-		public float IconColorMulSecondary;
+		public float IconColorMultPrimary;
+		public float IconColorMultSecondary;
 
 		public byte UseColorSets;
 		public Array_Data PrimaryColorSets; // linearColor
@@ -855,7 +859,7 @@ namespace DDUP
 			MaxNonTranscendentStatRollValue = Parse.Int(propertyMap, "MaxNonTranscendentStatRollValue");
 			MaxRandomValue = Parse.Float(propertyMap, "MaxRandomValue");
 			MaxRandomValueNegative = Parse.Float(propertyMap, "MaxRandomValueNegative");
-			MaxUpgradeableSpeedProjectilesBonus = Parse.Int(propertyMap, "MaxUpgradeableSpeedProjectilesBonus");
+			MaxUpgradeableSpeedOfProjectilesBonus = Parse.Int(propertyMap, "MaxUpgradeableSpeedOfProjectilesBonus");
 			MinDamageBonus = Parse.Int(propertyMap, "MinDamageBonus");
 			MinElementalDamageIncreasePerLevel = Parse.Float(propertyMap, "MinElementalDamageIncreasePerLevel");
 			MinEquipmentLevels = Parse.Float(propertyMap, "MinEquipmentLevels");
@@ -1001,11 +1005,11 @@ namespace DDUP
 
 			IconColorAddPrimary = db.AddULinearColor(new ULinearColor_Data(propertyMap["IconColorAddPrimary"]));
 			IconColorAddSecondary = db.AddULinearColor(new ULinearColor_Data(propertyMap["IconColorAddSecondary"]));
-			IconColorMulPrimary = Parse.Float(propertyMap, "IconColorMulPrimary");
-			IconColorMulSecondary = Parse.Float(propertyMap, "IconColorMulSecondary");
+			IconColorMultPrimary = Parse.Float(propertyMap, "IconColorMultPrimary");
+			IconColorMultSecondary = Parse.Float(propertyMap, "IconColorMultSecondary");
 
-			UseColorSets = Parse.BoolByte(propertyMap, "UseColorSets");
-			PrimaryColorSets = db.BuildArray(propertyMap["PrimaryColorSets"], VarType.ULinearColor);
+			UseColorSets = Parse.BoolByte(propertyMap, "UseColorSets");			
+			PrimaryColorSets = db.BuildArray(propertyMap["PrimaryColorSets"], VarType.ULinearColor);		
 			SecondaryColorSets = db.BuildArray(propertyMap["SecondaryColorSets"], VarType.ULinearColor);
 
 			IconX = Parse.Int(propertyMap, "IconX");

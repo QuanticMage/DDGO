@@ -66,6 +66,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["MaxLevelRangeDifficultyArray"] = Tuple.Create("UDKGame.HeroEquipment.MaxLevelRangeDifficultyArray", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["QualityDescriptorNames"] = Tuple.Create("UDKGame.HeroEquipment.QualityDescriptorNames", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["LevelRequirementOverrides"] = Tuple.Create("UDKGame.HeroEquipment.LevelRequirementOverrides", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["ProjectileDelays"] = Tuple.Create("UDKGame.HeroEquipment_Familiar_WithProjectileAI.ProjectileDelays", PropertyType.FloatProperty);
 
 
 			UnrealConfig.VariableTypes["MeleeSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MeleeSwingInfoMultipliers", PropertyType.StructProperty);
@@ -207,17 +208,19 @@ namespace DungeonDefendersOfflinePreprocessor
 			System.IO.Directory.CreateDirectory(workingDir);
 
 			// all the templates we need are in these two, as well as the icons
-			string[] upkFiles = { "Startup_INT.upk", "UDKGame.upk", "Core.upk" };
+			string[] upkFiles = { "Engine.upk", "Core.upk", "UDKGame.upk", "Startup_INT.upk" };
 
 			Log("Processing...");
 			await Task.Run(async () =>
 			{
 				// 1) Synchronous heavy work -> background thread
 				foreach (var fileName in upkFiles)
-				{					
+				{
+					await RunDecompressAsync(workingDir, packageDir + fileName);
 					db.AddToDatabase(workingDir, fileName);
 				}
 
+				
 				// export the texture atlas
 				db.ExportAllHeroEquipmentToAtlas();
 

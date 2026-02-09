@@ -70,7 +70,7 @@ namespace DDUP
 		private int DunDefWeapon_DatasCount;
 		private int DunDefProjectile_DatasCount;
 		private int HeroEquipment_DatasCount;
-		private int HeroEquipment_Familiar_DatasCount;
+		private int HeroEquipment_Familiar_DatasCount;		
 
 		// String data for loaded database
 		private List<string> LoadedStrings = new();
@@ -376,9 +376,9 @@ namespace DDUP
 			if (index < 0 || index >= ULinearColorsCount)
 				throw new ArgumentOutOfRangeException(nameof(index));
 
-			return ref MemoryMarshal.Cast<byte, ULinearColor_Data>(
-				new ReadOnlySpan<byte>(AllData, ULinearColorsOffset, ULinearColorsCount * Marshal.SizeOf<ULinearColor_Data>())
-			)[index];
+			var span = new ReadOnlySpan<byte>(AllData, ULinearColorsOffset, ULinearColorsCount * Marshal.SizeOf<ULinearColor_Data>());
+
+			return ref MemoryMarshal.Cast<byte, ULinearColor_Data>(span)[index];				
 		}
 
 		public ref readonly EG_StatRandomizer_Data GetEG_StatRandomizer(int index)
@@ -966,6 +966,7 @@ namespace DDUP
 
 		public int AddHeroEquipment(string path, string className, ref HeroEquipment_Data heroEquip)
 		{
+
 			if (HeroEquipment_IndexMap.ContainsKey(path))
 				return IndexEntries[HeroEquipment_IndexMap[path]].ObjIndex;
 
