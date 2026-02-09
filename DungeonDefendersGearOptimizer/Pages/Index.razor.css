@@ -22,30 +22,45 @@ table.grid {
     overflow-wrap: anywhere;
 }
 
-    table.grid td.cell-quality-default {
-    }
+table.grid td.cell-quality-default {
+}
 
-    table.grid td.cell-quality-mythical {
-        background-color: #e6f4ea;
-        color: #1f6b3a;
-    }
+table.grid td.cell-quality-mythical {
+    background-color: #e6f4ea;
+    color: #1f6b3a;
+}
 
-    table.grid td.cell-quality-transcendent {
-        background-color: #efe3fa;
-        color: #5a2a82;
-        font-size: 0.8em;
-    }
+table.grid td.cell-quality-transcendent {
+    background-color: #efe3fa;
+    color: #5a2a82;        
+}
 
-    table.grid td.cell-quality-supreme {
-        background-color: #fff1d2;
-        color: #7a4a00;
-        font-size: 0.8em;
-    }
+table.grid td.cell-quality-supreme {
+    background-color: #fff1d2;
+    color: #7a4a00;
+    font-size: 0.8em;
+}
 
-    table.grid td.cell-quality-ult90 {
-        background-color: #e4efff;
-        color: #003c8f;
-    }
+table.grid td.cell-quality-ult90 {
+    background-color: #89b9ff;
+    color: #012a64;
+}
+
+table.grid td.cell-quality-ult93 {
+    background-color: #7affff;
+    color: #005a5a;
+}
+
+
+table.grid td.cell-quality-ultplus {
+    background: linear-gradient( 90deg, #ffe6d6 0%, #ffca9a 50%, #ffe6d6 100% );
+    color: #8a3b00;
+}
+
+table.grid td.cell-quality-ultplusplus {
+    background: linear-gradient( 90deg, #ffd6d6 0%, #ff9a9a 50%, #ffd6d6 100% );
+    color: #7a0000;
+}
 
 td.cell-type {
     font-size: 0.8em;
@@ -100,21 +115,6 @@ table.grid td.cell-name {
     position: relative;
 }
 
-table.grid td.cell-quality-ult93 {
-    background-color: #d4dfef;
-    color: #003c8f;
-}
-
-
-table.grid td.cell-quality-ultplus {
-    background: linear-gradient( 90deg, #ffe6d6 0%, #ffca9a 50%, #ffe6d6 100% );
-    color: #8a3b00;
-}
-
-table.grid td.cell-quality-ultplusplus {
-    background: linear-gradient( 90deg, #ffd6d6 0%, #ff9a9a 50%, #ffd6d6 100% );
-    color: #7a0000;
-}
 
 table.grid td[class^="cell-quality-"] {
     border-left: 4px solid rgba(0, 0, 0, 0.18);
@@ -231,6 +231,12 @@ th.sortable {
     font: inherit;
     cursor: pointer;
     color: inherit;
+    font-size: 1em;
+}
+
+.small-grid-header
+{
+    font-size: 0.9em;
 }
 
 td.num {
@@ -272,7 +278,7 @@ th.num .th-btn {
 }
 
 .sort-glyph {
-    width: 0.6em;
+    width: 0.3em;    
     text-align: center;
     opacity: 0.75;
 }

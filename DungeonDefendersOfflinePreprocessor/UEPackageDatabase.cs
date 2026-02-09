@@ -1228,6 +1228,19 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach (var obj in item.Objects)
 				{
+					if (obj.GetReferencePath().StartsWith("DunDefHero"))
+					{
+						MainWindow.Log($"Adding DunDefHero {obj.GetPath()}");
+						AddDunDefHeroToDB(obj, db);
+						await Task.Yield();
+
+					}
+				}
+			}
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
 					if (obj.GetReferencePath().StartsWith("DunDefProjectile"))
 					{
 						MainWindow.Log($"Adding DunDefProjectile {obj.GetPath()}");
@@ -1994,5 +2007,85 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
 			return db.AddDunDefWeapon(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref weap);
 		}
+
+		public int AddDunDefHeroToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Arrays
+			AddArrayPropertyToMap(obj, "StatNames", propertyMap);
+			AddArrayPropertyToMap(obj, "StatDescriptions", propertyMap);
+
+			// Bytes (core flags)
+			AddPropertyToMap(obj, "bIsMeleeHero", propertyMap, "0");
+
+			// Ints (core)
+			AddPropertyToMap(obj, "MyHeroType", propertyMap, "0");
+			AddPropertyToMap(obj, "GivenCostumeString", propertyMap, "0");     // (string ref / id)
+			AddPropertyToMap(obj, "PlayerTemplate", propertyMap, "0");         // DunDefPlayer ref/id
+			AddPropertyToMap(obj, "HeroClassDisplayName", propertyMap, "0");   // (string ref / id)
+			AddPropertyToMap(obj, "HeroClassDescription", propertyMap, "0");   // (string ref / id)
+
+			// Struct-ish / special (leave as string default; adjust if you store colors differently)
+			AddPropertyToMap(obj, "ClassNameColor", propertyMap, "0");         // ULinear_Color
+
+			// Floats (scaling)
+			AddPropertyToMap(obj, "HeroDefenseAttackRateLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroDefenseAttackRateExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroHealthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroHealthLinearFactor", propertyMap, "0.0");
+
+			// HeroDamage
+			AddPropertyToMap(obj, "StatExpFull_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroDamage", propertyMap, "0.0");
+
+			// HeroSpeed
+			AddPropertyToMap(obj, "StatMultInitial_HeroSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroSpeed", propertyMap, "0.0");
+
+			// HeroAbilityOne
+			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_HeroAbilityOne", propertyMap, "0.0");
+
+			// HeroAbilityTwo
+			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_HeroAbilityTwo", propertyMap, "0.0"); 
+
+			// DefenseHealth
+			AddPropertyToMap(obj, "StatMultInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_DefenseHealth", propertyMap, "0.0");
+
+			// DefenseDamage
+			AddPropertyToMap(obj, "StatMultInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_DefenseDamage", propertyMap, "0.0"); 
+
+			// DefenseAttackRate
+			AddPropertyToMap(obj, "StatMultInitial_DefenseAttackRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseAttackRate", propertyMap, "0.0");
+
+			// DefenseAOE
+			AddPropertyToMap(obj, "StatMultInitial_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_DefenseAOE", propertyMap, "0.0"); 
+			AddPropertyToMap(obj, "StatBoostCapInitial_HeroDamage", propertyMap, "0.0");
+			
+			// Build data + store
+			DunDefHero_Data hero = new DunDefHero_Data(propertyMap, db);
+
+			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
+			return db.AddDunDefHero(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hero);
+		}
+
 	}
 }

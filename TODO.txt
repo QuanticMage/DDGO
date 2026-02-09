@@ -34,6 +34,7 @@
 		public float AltWeaponDamageMultiplier;
 
 TODO:
+Remove non-compact, make hover show template
 Add maxhp / etc for testing in DDGO ("all things that can reach a maxhp of..")
 Remove cache clear of icons every load
 Remove stat icons that aren't used on hover

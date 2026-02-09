@@ -58,7 +58,7 @@
                             <li>Run Dungeon Defenders, log into Ranked, then click Export to Open</li>
                             <li>Go to Dungeon Defenders in your Steam library, right-click, Manage &gt; Browse Local Files</li>
                             <li>Then open the Binaries\Win32 or Win64 folder (whichever you run), and drag <b>DunDefHeroes.dun</b> here.</li>
-                            <li>This runs locally. Only aggregate armor ratings are sent to Shiro’s API for live prices, and only if you enable live prices.</li>
+                            <li>This runs locally. @*Only aggregate armor ratings are sent to Shiro’s API for live prices, and only if you enable live prices.*@</li>
                         </ul>
 
                         @if (_canLoadLast)
@@ -175,28 +175,21 @@
                     <span>Assume set bonuses</span>
                 </label>
                 
-                <label class="utility-toggle" data-tooltip=@Tips["CompactDisplay"]>
+                @* <label class="utility-toggle" data-tooltip=@Tips["CompactDisplay"]>
                     <input type="checkbox"
                            class="tool-filter"
                            checked="@_compactDisplay"
                            @onchange="@((e) => { _compactDisplay = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
                     <span>Compact Display</span>
-                </label>
+                </label> *@
                 <label class="utility-toggle" data-tooltip=@Tips["SidesAreImportant"]>
                     <input type="checkbox"
                            class="tool-filter"
                            checked="@_sidesAreImportant"
                            @onchange="@((e) => { _sidesAreImportant = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-                    <span>Sides Important for Best</span>
+                    <span>Best includes Sides</span>
                 </label>
 
-                <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
-                    <input type="checkbox"
-                           class="tool-filter"
-                           checked="@_livePrices"
-                           @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
-                    <span>Get Live Prices</span>
-                </label>
 
                 <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]>
                     <span>Itembox size</span>
@@ -206,6 +199,23 @@
                         <option value="6x4">6x4</option>
                     </select>
                 </label>
+                
+                @* <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
+                    <input type="checkbox"
+                           class="tool-filter"
+                           checked="@_livePrices"
+                           @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
+                    <span>Get Live Prices</span>
+                </label> *@
+
+                @*
+                <label class="utility-select" data-tooltip=@Tips["DPSMode"]>
+                    <span>DPS Mode</span>
+                    <select value="@_dpsMode" @onchange="OnDPSModeChanged" font="inherit">
+                        <option value="Single Target">Single Target</option>
+                        <option value="AoE">AoE</option>                        
+                    </select>
+                </label>*@
             </div>
             <br />
 
@@ -590,11 +600,11 @@
 
                     <col style="width:15%" />    @* Name (2*) *@
                     <col style="width:10%" />    @* Location (2*) *@
-                    <col style="width:80px" />   @* Quality *@
+                    <col style="width:60px" />   @* Quality *@
 
-                    <col style="width:55px" />   @* Lvl *@
                     <col style="width:55px" />   @* MaxLvl *@
-
+                    <col style="width:55px" />   @* Lvl *@
+                    <col style="width:65px" />   @* Damage *@                    
                     <col style="width:60px" />   @* HHP *@
                     <col style="width:60px" />   @* HDmg *@
                     <col style="width:60px" />   @* HSpd *@
@@ -611,7 +621,7 @@
 
                 <thead>
                     <tr class="rating-row">
-                        <th colspan="10">
+                        <th colspan="11">
 
                             <span class="hint-text">
                                 <span class="hint-left">
@@ -774,28 +784,33 @@
                             <div class="col-resizer"></div>
                         </th>
 
+
                         <th class="sortable">
                             <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Quality))">
-                                Quality <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
-                            </button>
-                            <div class="col-resizer"></div>
-                        </th>
-
-
-                        <th class="sortable">
-                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
-                                Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
+                                <span class="small-grid-header">Quality</span> <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Quality))</span>
                             </button>
                             <div class="col-resizer"></div>
                         </th>
 
                         <th class="sortable">
                             <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.MaxLevel))">
-                                MaxLvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
+                                Max Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.MaxLevel))</span>
                             </button>
                             <div class="col-resizer"></div>
                         </th>
-
+                                                
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.Level))">
+                                Lvl <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.Level))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
+                        <th class="sortable">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))">
+                               <span class="hdr-text">Actual Damage</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
+                            </button>
+                            <div class="col-resizer"></div>
+                        </th>
                         <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroHealth)">
                             <button type="button" class="th-btn th-icon" title="Hero Health" @onclick="() => SortBy(nameof(DDStat.HeroHealth))">
                                 <img src="png/Hero Health.png" alt="HHP" />
@@ -944,9 +959,9 @@
                             <td class="text location">@GetLocation(r)</td>
                             <td class="text @QualityClass(r.Quality)">@r.Quality</td>
 
-                            <td class="num">@r.Level</td>
                             <td class="num">@r.MaxLevel</td>
-
+                            <td class="num">@r.Level</td>                            
+                            <td class="num" data-tooltip="@r.DPSTooltip">@r.CachedDPSString</td>
                             <td class="num cell-health @CachedStatShadingStyles[(int)DDStat.HeroHealth]">@r.CachedStatValues[(int)DDStat.HeroHealth]</td>
                             <td class="num cell-damage @CachedStatShadingStyles[(int)DDStat.HeroDamage]">@r.CachedStatValues[(int)DDStat.HeroDamage]</td>
                             <td class="num cell-range @CachedStatShadingStyles[(int)DDStat.HeroSpeed]">@r.CachedStatValues[(int)DDStat.HeroSpeed]</td>
@@ -991,6 +1006,7 @@
     private bool _censor = true;
     private bool _livePrices = false;
     private string _itemboxSize = "5x3";
+    private string _dpsMode = "Damage per Second";
     private bool _showContent = false;
     private bool _canLoadLast = false;
     private ElementReference _tableRef;
@@ -1009,10 +1025,13 @@
     private ElementReference _scrollRef;
     private bool _overlayObserversStarted;
     private string _customFilterError = "";
-    private bool _compactDisplay = false;
+    private bool _compactDisplay = true;
     public bool _sidesAreImportant = false;
     public string[] CachedStatShadingStyles = new string[11];
     public ExportedTemplateDatabase TemplateDB = new ExportedTemplateDatabase();
+    public bool _templateDBIsLoaded = false;
+    public DamageCalculator damageCalculator = new DamageCalculator();
+
 
     // Current sorting criteria
     private bool _bRequireResists = false;
@@ -1238,6 +1257,7 @@
 
     private Task HandleChangedHero()
     {
+        UpdateDPS();
         // if hero changes, we need to rerun the filters because some are dependent
         ApplyChipFilters();
         return Task.CompletedTask;
@@ -1509,6 +1529,7 @@
         bool AssumeSetBonuses = false,
         bool CompactDisplay = false,
         bool SidesAreImportant = false,
+        string DPSMode = "Damage per Second",
         List<string>? SelectedTypes = null,
         List<string>? SelectedSets = null,
         List<string>? SelectedOther = null)
@@ -1528,6 +1549,7 @@
         AssumeSetBonuses: false,
         CompactDisplay: false,
         SidesAreImportant: false,
+        DPSMode: "Damage per Second",
         SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
         SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
         SelectedOther: new() { "Exclude Events" }
@@ -1537,9 +1559,10 @@
     {
         _selectedMode = _ui.RatingMode;
         _itemboxSize = _ui.Layout;
-        _livePrices = _ui.ShowLivePrices;
+        _dpsMode = _ui.DPSMode;
+        //_livePrices = _ui.ShowLivePrices;
         _censor = _ui.Censor;
-        _compactDisplay = _ui.CompactDisplay;
+        //_compactDisplay = _ui.CompactDisplay;
 
         _selectedTypes = _ui.SelectedTypesSafe.ToList();
         _selectedSets = _ui.SelectedSetsSafe.ToList();
@@ -1562,14 +1585,15 @@
                 Version = CurrentUIOptionsVersion,
                 RatingMode = _selectedMode,
                 Layout = _itemboxSize,
-                ShowLivePrices = _livePrices,
+            //ShowLivePrices = _livePrices,
                 SelectedTypes = _selectedTypes.ToList(),
                 SelectedSets = _selectedSets.ToList(),
                 SelectedOther = _selectedOther.ToList(),
                 ShowUpgradedStats = _showUpgradedStats,
                 AssumeSetBonuses = _assumeSetBonuses,
-                CompactDisplay = _compactDisplay,
+            //CompactDisplay = _compactDisplay,
                 SidesAreImportant = _sidesAreImportant,
+                DPSMode = _dpsMode
                 };
 
         if (_characterPanel != null)
@@ -1600,6 +1624,14 @@
         QueueSaveUiState();
         StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
     }
+
+    private void OnDPSModeChanged(ChangeEventArgs e)
+    {
+        _dpsMode = e.Value?.ToString() ?? "Nightmare";
+        QueueSaveUiState();
+        StateHasChanged();
+    }
+
 
     public string GetLocation(ItemViewRow viewRow)
     {
@@ -1643,7 +1675,8 @@
         ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
         ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
         ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
-        ["SidesAreImportant"] = "Makes Sides count for best\ngear (half as important as Rating)."
+        ["SidesAreImportant"] = "Makes Sides count for best\ngear (half as important as Rating).",
+        ["DPSMode"] = "Set DPS Display Mode"
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -1864,7 +1897,7 @@
             int level = hinfo.HeroLevel;
             if (level < 60) ExcludedQualities.Add("Godly");
             if (level < 74) ExcludedQualities.Add("Mythical");
-            if (level < 78) ExcludedQualities.Add("Transcendent");
+            if (level < 78) ExcludedQualities.Add("Trans");
             if (level < 83) ExcludedQualities.Add("Supreme");
             if (level < 90) ExcludedQualities.Add("Ult90");
             if (level < 93) ExcludedQualities.Add("Ult93");
@@ -2104,6 +2137,7 @@
                 nameof(ItemViewRow.Set) => CmpStr(a.Set, b.Set),
 
                 nameof(ItemViewRow.Quality) => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
+                nameof(ItemViewRow.DPS) => Cmp(a.DPS, b.DPS),
                 _ => Cmp(a.Rating, b.Rating),
             };
 
@@ -2134,7 +2168,7 @@
             "Ult93" => 5,
             "Ult90" => 4,
             "Supreme" => 3,
-            "Transcendent" => 2,
+            "Trans" => 2,
             "Mythical" => 1,
             _ => 0
         };
@@ -2148,7 +2182,7 @@
         else if (quality == "Ult93") return "cell-quality-ult93";
         else if (quality == "Ult90") return "cell-quality-ult90";
         else if (quality == "Supreme") return "cell-quality-supreme";
-        else if (quality == "Transcendent") return "cell-quality-transcendent";
+        else if (quality == "Trans") return "cell-quality-transcendent";
         else if (quality == "Mythical") return "cell-quality-mythical";
         else return "cell-quality-default";
     }
@@ -2277,15 +2311,19 @@
 
 
         // read the template database
-        using var responseStream = await Http.GetStreamAsync("DunDefTemplates.dbz");
-        using var gzip = new GZipStream(responseStream, CompressionMode.Decompress);
-        using var output = new MemoryStream();
+        if (!_templateDBIsLoaded)
+        {
+            using var responseStream = await Http.GetStreamAsync("DunDefTemplates.dbz");
+            using var gzip = new GZipStream(responseStream, CompressionMode.Decompress);
+            using var output = new MemoryStream();
 
-        await gzip.CopyToAsync(output);
-        byte[] tdb = output.ToArray();
-        TemplateDB.LoadFromRaw(tdb);
+            await gzip.CopyToAsync(output);
+            byte[] tdb = output.ToArray();        
+            TemplateDB.LoadFromRaw(tdb);
+            _templateDBIsLoaded = true;
+            damageCalculator.Initialize(TemplateDB);
+        }
 
-        
         if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
         {
             var ok = await JS.InvokeAsync<bool>("dropzone.tryLoadLastHandleAndRead", _dotNetRef); // returns true if it loaded bytes & called into .NET or returned bytes
@@ -2517,11 +2555,52 @@
         EventTotalValue = et;
     }
 
+    public void UpdateDPS()
+    {
+        HeroInfo info = new HeroInfo();
+        //IndexEntry
+
+        if (TemplateDB == null)
+            return;
+        if (_characterPanel == null)
+            return;
+
+        var heroEntry = TemplateDB.GetTemplateByName(_characterPanel?.SelectedHeroInfo?.Template ?? "");
+
+        // need to remake this so failure isn't a throw
+
+        info.TemplateData = TemplateDB.GetDunDefHero(heroEntry.ObjIndex);
+        info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(info.TemplateData.PlayerTemplate);
+
+        for (int i = 0; i < 11; i++)
+        {
+            info.TotalStats[i] = _characterPanel.ShownStat[i];
+        }
+        foreach ( var v in _rows)
+        {
+            if (v.Type != "Weapon")
+                continue;
+            if (v.Set != "Squire")
+                continue;
+            IndexEntry? entry = TemplateDB.GetTemplateByName(db.Items[v.Idx].Template);
+            if (entry == null)
+                continue;
+            var weaponTemplate = TemplateDB.GetHeroEquipment(entry.Value.ObjIndex);
+            v.DPS = (int)(damageCalculator.GetWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+
+
+
+            v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
+        }                 
+    }
+
 
     public string GetFunHash(ItemViewRow ivr)
     {
         return ivr.FunHashString;
     }
+    
+
 
     private void GetLivePrices()
     {

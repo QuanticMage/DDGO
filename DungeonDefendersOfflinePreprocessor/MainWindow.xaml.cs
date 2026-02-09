@@ -202,7 +202,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		private async void Process_Click(object sender, RoutedEventArgs e)
 		{
 			var workingDir = @"E:\Temp\DunDef";
-			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
 			string[] files = Directory.GetFiles(packageDir);
 			System.IO.Directory.CreateDirectory(workingDir);
@@ -216,7 +216,8 @@ namespace DungeonDefendersOfflinePreprocessor
 				// 1) Synchronous heavy work -> background thread
 				foreach (var fileName in upkFiles)
 				{
-					await RunDecompressAsync(workingDir, packageDir + fileName);
+					//await RunDecompressAsync(workingDir, packageDir + fileName);
+					//await RunExtractorAsync(workingDir, fileName); -- this locks up sometimes, needs debugging
 					db.AddToDatabase(workingDir, fileName);
 				}
 
