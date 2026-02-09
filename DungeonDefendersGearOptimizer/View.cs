@@ -106,7 +106,10 @@ namespace DDUP
 		public string CachedValueDisplayTooltip = "";
 		public bool HasCustomColor = false;
 		public string PlainName = "";
-
+		public string CachedDPSString = "";
+		public string DPSTooltip = "";
+		public int DPS = 0;
+		
 		public int UpgradesRequiredForResists { get; set; }
 		public bool BrokenResists = false;
 
@@ -342,7 +345,7 @@ namespace DDUP
 				return "";
 
 			if (((Quality == "Ult++") && censor) ||
-				(((Quality == "Ult++") || (Quality == "Ult+") || (Quality == "Ult90") || (Quality == "Ult93") || (Quality == "Supreme") || (Quality == "Transcendent"))
+				(((Quality == "Ult++") || (Quality == "Ult+") || (Quality == "Ult90") || (Quality == "Ult93") || (Quality == "Supreme") || (Quality == "Trans"))
 				  && ((Name == "Unicorn") || (Name == "Rainbow Unicorn") || (Name == "Propeller Cat"))))
 				return s.Substring(0, s.Length - 1) + "x";
 			else

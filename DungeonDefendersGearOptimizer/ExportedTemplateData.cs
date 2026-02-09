@@ -9,12 +9,22 @@ using static DDUP.ExportedTemplateDatabase;
 namespace DDUP
 {
 	public enum WeaponType
-	{
+	{		
 		None = 0,
+		Apprentice,
 		Squire,
-		Monk,
 		Huntress,
-		Apprentice
+		Monk,
+		Max = 5
+	};
+
+	public enum HeroType
+	{
+		Apprentice = 0,
+		Squire,
+		Huntress,
+		Monk,
+		Max = 4
 	};
 
 	public enum EquipmentType
@@ -79,6 +89,14 @@ namespace DDUP
 			{ "EWeaponType.EWT_WEAPON_SQUIRE",     WeaponType.Squire },
 		};
 
+		static public Dictionary<string, HeroType> _heroType = new()
+		{
+			{ "EHeroType.EHT_APPRENTICE", HeroType.Apprentice },
+			{ "EHeroType.EHT_HUNTRESS",   HeroType.Huntress },
+			{ "EHeroType.EHT_MONK",    HeroType.Monk },
+			{ "EHeroType.EHT_SQUIRE",     HeroType.Squire },
+		};
+
 		static public Dictionary<string, EquipmentType> _EquipmentType = new()
 		{
 			{ "EEquipmentType.EQT_WEAPON",           EquipmentType.Weapon },
@@ -135,6 +153,7 @@ namespace DDUP
 		Float,
 		FString,
 		ULinearColor,
+		String,
 		EG_StatRandomizer,
 		EG_StatMatchingString,
 		DamageReduction,
@@ -143,6 +162,7 @@ namespace DDUP
 		DunDefPlayer,
 		DunDefProjectile,
 		DunDefWeapon,
+		DunDefHero,
 		HeroEquipment,
 		HeroEquipment_Familiar,
 		Max
@@ -250,13 +270,13 @@ namespace DDUP
 				StringValue = db.AddString("none");
 				return;
 			}
-			
+
 			var propertyMap = PropertyParser.Parse(propertyString);
 
 			ValueThreshold = Parse.Float(propertyMap, "ValueThreshold");
 			PetValueThreshold = Parse.Float(propertyMap, "PetValueThreshold");
 			ArmorValueThreshold = Parse.Float(propertyMap, "ArmorValueThreshold");
-			StringValue = db.AddString(propertyMap.ContainsKey("StringValue")? propertyMap["StringValue"] : "");
+			StringValue = db.AddString(propertyMap.ContainsKey("StringValue") ? propertyMap["StringValue"] : "");
 		}
 	}
 
@@ -403,7 +423,7 @@ namespace DDUP
 		public DunDefProjectile_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			AdditionalDamageAmount = Parse.Int(propertyMap, "AdditionalDamageAmount");
-			AdditionalDamageType = Parse.Int(propertyMap, "AdditionalDamageType");
+			AdditionalDamageType = db.GetDunDefDamageTypeIndex(propertyMap["AdditionalDamageType"]);
 			DamageRadiusFallOffExponent = Parse.Float(propertyMap, "DamageRadiusFallOffExponent");
 			MultiplyProjectileDamageByPrimaryWeaponSwingSpeed = Parse.BoolByte(propertyMap, "MultiplyProjectileDamageByPrimaryWeaponSwingSpeed");
 			MultiplyProjectileDamageByWeaponDamage = Parse.BoolByte(propertyMap, "MultiplyProjectileDamageByWeaponDamage");
@@ -616,7 +636,7 @@ namespace DDUP
 		public Array_Data DamageReductions; // DamageReduction
 		public Array_Data DamageReductionRandomizers; // Randomizers for damage reduction
 
-		
+
 		public int AdditionalDescription;       // localized string
 		public float AdditionalWeaponDamageBonusRandomizerMultiplier;
 		public byte AllowNameRandomization;
@@ -792,8 +812,8 @@ namespace DDUP
 		public byte UseWeaponCoreStats;
 		public byte bForceToMinElementalScale;
 		public byte bForceToMaxElementalScale;
-		
-		
+
+
 		// Icon section
 		public int IconColorAddPrimary; // linearColor
 		public int IconColorAddSecondary; // linearColor
@@ -926,10 +946,10 @@ namespace DDUP
 			Values = Parse.Float(propertyMap, "Values");
 			WeaponAdditionalDamageAmount = Parse.Int(propertyMap, "WeaponAdditionalDamageAmount");
 			WeaponAdditionalDamageAmountRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponAdditionalDamageAmountRandomizer"]));
-			WeaponAdditionalDamageType = db.GetDunDefDamageTypeIndex(propertyMap["WeaponAdditionalDamageType"]); 
+			WeaponAdditionalDamageType = db.GetDunDefDamageTypeIndex(propertyMap["WeaponAdditionalDamageType"]);
 			WeaponAdditionalDamageTypeNotPoison = Parse.BoolByte(propertyMap, "WeaponAdditionalDamageTypeNotPoison");
 			WeaponAltDamageBonus = Parse.Int(propertyMap, "WeaponAltDamageBonus");
-			WeaponAltDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponAltDamageBonusRandomizer"])); 
+			WeaponAltDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponAltDamageBonusRandomizer"]));
 			WeaponAltDamageMultiplier = Parse.Float(propertyMap, "WeaponAltDamageMultiplier");
 			WeaponBlockingBonus = (byte)Parse.Int(propertyMap, "WeaponBlockingBonus");
 			WeaponBlockingBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponBlockingBonusRandomizer"]));
@@ -938,7 +958,7 @@ namespace DDUP
 			WeaponClipAmmoBonus = Parse.Int(propertyMap, "WeaponClipAmmoBonus");
 			WeaponClipAmmoBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponClipAmmoBonusRandomizer"]));
 			WeaponDamageBonus = Parse.Int(propertyMap, "WeaponDamageBonus");
-			WeaponDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponDamageBonusRandomizer"])); 
+			WeaponDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponDamageBonusRandomizer"]));
 			WeaponDamageBonusRandomizerMultiplier = Parse.Float(propertyMap, "WeaponDamageBonusRandomizerMultiplier");
 			WeaponDamageMultiplier = Parse.Float(propertyMap, "WeaponDamageMultiplier");
 			WeaponEquipmentRatingPercentBase = Parse.Float(propertyMap, "WeaponEquipmentRatingPercentBase");
@@ -1008,8 +1028,8 @@ namespace DDUP
 			IconColorMultPrimary = Parse.Float(propertyMap, "IconColorMultPrimary");
 			IconColorMultSecondary = Parse.Float(propertyMap, "IconColorMultSecondary");
 
-			UseColorSets = Parse.BoolByte(propertyMap, "UseColorSets");			
-			PrimaryColorSets = db.BuildArray(propertyMap["PrimaryColorSets"], VarType.ULinearColor);		
+			UseColorSets = Parse.BoolByte(propertyMap, "UseColorSets");
+			PrimaryColorSets = db.BuildArray(propertyMap["PrimaryColorSets"], VarType.ULinearColor);
 			SecondaryColorSets = db.BuildArray(propertyMap["SecondaryColorSets"], VarType.ULinearColor);
 
 			IconX = Parse.Int(propertyMap, "IconX");
@@ -1169,7 +1189,7 @@ namespace DDUP
 			MaxHealPerDamage = Parse.Float(propertyMap, "MaxHealPerDamage");
 			MaxKnockbackMuliplier = Parse.Float(propertyMap, "MaxKnockbackMuliplier");
 			MeleeDamageMomentum = Parse.Float(propertyMap, "MeleeDamageMomentum");
-			MeleeDamageType = Parse.Int(propertyMap, "MeleeDamageType");
+			MeleeDamageType = db.GetDunDefDamageTypeIndex(propertyMap["MeleeDamageType"]);
 			MeleeHitRadius = Parse.Float(propertyMap, "MeleeHitRadius");
 			MinHealPerDamage = Parse.Float(propertyMap, "MinHealPerDamage");
 			RandomizedDamageMultiplierDivisor = Parse.Float(propertyMap, "RandomizedDamageMultiplierDivisor");
@@ -1197,7 +1217,7 @@ namespace DDUP
 			MinimumHealDistancePercent = Parse.Float(propertyMap, "MinimumHealDistancePercent");
 			bUseFixedHealSpeed = Parse.BoolByte(propertyMap, "bUseFixedHealSpeed");
 
-			AdditionalName = Parse.Int(propertyMap, "AdditionalName");
+			AdditionalName = db.AddString(propertyMap["AdditionalName"]);
 			bFixedProjSpeed = Parse.BoolByte(propertyMap, "bFixedProjSpeed");
 			dpsTreshold = Parse.Float(propertyMap, "dpsTreshold");
 			fixedprojspeedbonus = Parse.Int(propertyMap, "fixedprojspeedbonus");
@@ -1237,8 +1257,8 @@ namespace DDUP
 			ProjectileDelays = db.BuildArray(propertyMap["ProjectileDelays"], VarType.Float);
 			ProjectileShootInterval = Parse.Float(propertyMap, "ProjectileShootInterval");
 			ProjectileSpeedBonusMultiplier = Parse.Float(propertyMap, "ProjectileSpeedBonusMultiplier");
-			ProjectileTemplate = Parse.Int(propertyMap, "ProjectileTemplate");
-			ProjectileTemplateAlt = Parse.Int(propertyMap, "ProjectileTemplateAlt");
+			ProjectileTemplate = db.GetDunDefProjectileIndex(propertyMap["ProjectileTemplate"]);
+			ProjectileTemplateAlt = db.GetDunDefProjectileIndex(propertyMap["ProjectileTemplateAlt"]);
 			ProjectileTemplates = db.BuildArray(propertyMap["ProjectileTemplates"], VarType.DunDefProjectile);
 			ShotsPerSecondBonusCap = Parse.Int(propertyMap, "ShotsPerSecondBonusCap");
 			ShotsPerSecondExponent = Parse.Float(propertyMap, "ShotsPerSecondExponent");
@@ -1257,6 +1277,115 @@ namespace DDUP
 			BarbStanceDamageMulti = Parse.Float(propertyMap, "BarbStanceDamageMulti");
 		}
 	}
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct DunDefHero_Data
+	{
+		public byte bIsMeleeHero; // bool
+		public int MyHeroType; // heroType
+		public int GivenCostumeString; // string
+		public Array_Data StatNames; // string[]
+		public Array_Data StatDescriptions; // string[]
+		public int PlayerTemplate;        // DunDefPlayer
+		public int HeroClassDisplayName;  // string
+		public int HeroClassDescription;  // string
+		public int ClassNameColor;  // ULinear_Color
+		public float HeroDefenseAttackRateLinearFactor;
+		public float HeroDefenseAttackRateExponentialFactor;
+		public float HeroHealthExponentialFactor;
+		public float HeroHealthLinearFactor;
+		public float StatExpFull_HeroDamage;
+		public float StatExpInitial_HeroDamage;
+		public float StatMultInitial_HeroDamage;
+		public float StatMultFull_HeroDamage;
+		public float StatMultInitial_HeroSpeed;
+		public float StatMultFull_HeroSpeed;
+		public float StatMultInitial_HeroAbilityOne;
+		public float StatExpInitial_HeroAbilityOne;
+		public float StatMultFull_HeroAbilityOne;
+		public float StatExptFull_HeroAbilityOne;
+		public float StatMultInitial_HeroAbilityTwo;
+		public float StatExpInitial_HeroAbilityTwo;
+		public float StatMultFull_HeroAbilityTwo;
+		public float StatExptFull_HeroAbilityTwo;
+		public float StatMultInitial_DefenseHealth;
+		public float StatExpInitial_DefenseHealth;
+		public float StatMultFull_DefenseHealth;
+		public float StatExptFull_DefenseHealth;
+		public float StatMultInitial_DefenseDamage;
+		public float StatExpInitial_DefenseDamage;
+		public float StatMultFull_DefenseDamage;
+		public float StatExptFull_DefenseDamage;
+		public float StatMultInitial_DefenseAttackRate;
+		public float StatExpInitial_DefenseAttackRate;
+		public float StatMultInitial_DefenseAOE;
+		public float StatExpInitial_DefenseAOE;
+		public float StatMultFull_DefenseAOE;
+		public float StatExptFull_DefenseAOE;
+		public float StatBoostCapInitial_HeroDamage;
+
+		public DunDefHero_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
+		{			
+			bIsMeleeHero = Parse.BoolByte(propertyMap, "bIsMeleeHero");
+			
+			MyHeroType = ImportMaps._heroType.ContainsKey(propertyMap["MyHeroType"])
+				? (int)ImportMaps._heroType[propertyMap["MyHeroType"]]
+				: Parse.Int(propertyMap, "MyHeroType");
+
+			GivenCostumeString = db.AddString(propertyMap["GivenCostumeString"]);
+			StatNames = db.BuildArray(propertyMap["StatNames"], VarType.String);
+			StatDescriptions = db.BuildArray(propertyMap["StatDescriptions"], VarType.String);
+			PlayerTemplate = db.GetDunDefPlayerIndex(propertyMap["PlayerTemplate"]); 
+			HeroClassDisplayName = db.AddString(propertyMap["HeroClassDisplayName"]);
+			HeroClassDescription = db.AddString(propertyMap["HeroClassDescription"]);
+			ClassNameColor = db.AddULinearColor(new ULinearColor_Data(propertyMap["ClassNameColor"]));			
+
+			HeroDefenseAttackRateLinearFactor = Parse.Float(propertyMap, "HeroDefenseAttackRateLinearFactor");
+			HeroDefenseAttackRateExponentialFactor = Parse.Float(propertyMap, "HeroDefenseAttackRateExponentialFactor");
+			HeroHealthExponentialFactor = Parse.Float(propertyMap, "HeroHealthExponentialFactor");
+			HeroHealthLinearFactor = Parse.Float(propertyMap, "HeroHealthLinearFactor");
+
+			StatExpFull_HeroDamage = Parse.Float(propertyMap, "StatExpFull_HeroDamage");
+			StatExpInitial_HeroDamage = Parse.Float(propertyMap, "StatExpInitial_HeroDamage");
+			StatMultInitial_HeroDamage = Parse.Float(propertyMap, "StatMultInitial_HeroDamage");
+			StatMultFull_HeroDamage = Parse.Float(propertyMap, "StatMultFull_HeroDamage");
+
+			StatMultInitial_HeroSpeed = Parse.Float(propertyMap, "StatMultInitial_HeroSpeed");
+			StatMultFull_HeroSpeed = Parse.Float(propertyMap, "StatMultFull_HeroSpeed");
+
+			StatMultInitial_HeroAbilityOne = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityOne");
+			StatExpInitial_HeroAbilityOne = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityOne");
+			StatMultFull_HeroAbilityOne = Parse.Float(propertyMap, "StatMultFull_HeroAbilityOne");
+			StatExptFull_HeroAbilityOne = Parse.Float(propertyMap, "StatExptFull_HeroAbilityOne");
+
+			StatMultInitial_HeroAbilityTwo = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityTwo");
+			StatExpInitial_HeroAbilityTwo = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityTwo");
+			StatMultFull_HeroAbilityTwo = Parse.Float(propertyMap, "StatMultFull_HeroAbilityTwo");
+			StatExptFull_HeroAbilityTwo = Parse.Float(propertyMap, "StatExptFull_HeroAbilityTwo");
+
+			StatMultInitial_DefenseHealth = Parse.Float(propertyMap, "StatMultInitial_DefenseHealth");
+			StatExpInitial_DefenseHealth = Parse.Float(propertyMap, "StatExpInitial_DefenseHealth");
+			StatMultFull_DefenseHealth = Parse.Float(propertyMap, "StatMultFull_DefenseHealth");
+			StatExptFull_DefenseHealth = Parse.Float(propertyMap, "StatExptFull_DefenseHealth");
+
+			StatMultInitial_DefenseDamage = Parse.Float(propertyMap, "StatMultInitial_DefenseDamage");
+			StatExpInitial_DefenseDamage = Parse.Float(propertyMap, "StatExpInitial_DefenseDamage");
+			StatMultFull_DefenseDamage = Parse.Float(propertyMap, "StatMultFull_DefenseDamage");
+			StatExptFull_DefenseDamage = Parse.Float(propertyMap, "StatExptFull_DefenseDamage");
+
+			StatMultInitial_DefenseAttackRate = Parse.Float(propertyMap, "StatMultInitial_DefenseAttackRate");
+			StatExpInitial_DefenseAttackRate = Parse.Float(propertyMap, "StatExpInitial_DefenseAttackRate");
+
+			StatMultInitial_DefenseAOE = Parse.Float(propertyMap, "StatMultInitial_DefenseAOE");
+			StatExpInitial_DefenseAOE = Parse.Float(propertyMap, "StatExpInitial_DefenseAOE");
+			StatMultFull_DefenseAOE = Parse.Float(propertyMap, "StatMultFull_DefenseAOE");
+			StatExptFull_DefenseAOE = Parse.Float(propertyMap, "StatExptFull_DefenseAOE");
+
+			StatBoostCapInitial_HeroDamage = Parse.Float(propertyMap, "StatBoostCapInitial_HeroDamage");
+		}
+
+	}
+
+
 	// Culture-invariant parsing everywhere (recommended for data files)
 	internal static class Parse
 	{

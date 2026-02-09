@@ -27,6 +27,7 @@ namespace DDUP
 		private List<DunDefProjectile_Data> DunDefProjectile_Datas = new();
 		private List<HeroEquipment_Data> HeroEquipment_Datas = new();
 		private List<HeroEquipment_Familiar_Data> HeroEquipment_Familiar_Datas = new();
+		private List<DunDefHero_Data> DunDefHero_Datas = new();
 
 		private List<IndexEntry> IndexEntries = new();
 
@@ -36,6 +37,7 @@ namespace DDUP
 		private Dictionary<string, int> HeroEquipment_IndexMap = new Dictionary<string, int>();
 		private Dictionary<string, int> DunDefProjectile_IndexMap = new Dictionary<string, int>();
 		private Dictionary<string, int> DunDefDamageType_IndexMap = new Dictionary<string, int>();
+		private Dictionary<string, int> DunDefHero_IndexMap = new Dictionary<string, int>();
 
 		// These variables are for managing the db once loaded
 		// Offsets into AllData for each section
@@ -54,6 +56,7 @@ namespace DDUP
 		private int DunDefProjectile_DatasOffset;
 		private int HeroEquipment_DatasOffset;
 		private int HeroEquipment_Familiar_DatasOffset;
+		private int DunDefHero_DatasOffset;
 
 		// Counts for loaded data
 		private int IndexEntriesCount;
@@ -70,7 +73,8 @@ namespace DDUP
 		private int DunDefWeapon_DatasCount;
 		private int DunDefProjectile_DatasCount;
 		private int HeroEquipment_DatasCount;
-		private int HeroEquipment_Familiar_DatasCount;		
+		private int HeroEquipment_Familiar_DatasCount;
+		private int DunDefHero_DatasCount;
 
 		// String data for loaded database
 		private List<string> LoadedStrings = new();
@@ -192,6 +196,12 @@ namespace DDUP
 					WriteStruct(writer, elem);
 				}
 
+				// Write DunDefHero_Datas
+				writer.Write(DunDefHero_Datas.Count);
+				foreach (var elem in DunDefHero_Datas)
+				{
+					WriteStruct(writer, elem);
+				}
 				return ms.ToArray();
 			}
 		}
@@ -308,6 +318,13 @@ namespace DDUP
 			HeroEquipment_Familiar_DatasOffset = offset;
 			offset += HeroEquipment_Familiar_DatasCount * Marshal.SizeOf<HeroEquipment_Familiar_Data>();
 
+
+			// Read HeroEquipment_Familiar_Datas
+			DunDefHero_DatasCount = ReadInt(span, ref offset);
+			DunDefHero_DatasOffset = offset;
+			offset += DunDefHero_DatasCount * Marshal.SizeOf<DunDefHero_Data>();
+
+
 			// Build index map for loaded templates
 			LoadedTemplateIndexMap.Clear();
 			for (int i = 0; i < IndexEntriesCount; i++)
@@ -315,12 +332,27 @@ namespace DDUP
 				ref readonly var entry = ref GetIndexEntry(i);
 				if (entry.TemplateName >= 0 && entry.TemplateName < LoadedStrings.Count)
 				{
-					string templateName = LoadedStrings[entry.TemplateName];
+					string templateName = ExtractQuotedString(LoadedStrings[entry.TemplateName]);
 					LoadedTemplateIndexMap[templateName] = i;
 				}
 			}
 		}
+		public string ExtractQuotedString(string input)
+		{
+			if (string.IsNullOrEmpty(input))
+				return input;
 
+			int firstQuote = input.IndexOf('\'');
+			int lastQuote = input.LastIndexOf('\'');
+
+			// Check if we have a pair of quotes and they're different positions
+			if (firstQuote >= 0 && lastQuote > firstQuote)
+			{
+				return input.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
+			}
+
+			return input;
+		}
 		// Helper methods for reading from byte array
 		private static T ReadStruct<T>(Span<byte> span, ref int offset) where T : struct
 		{
@@ -480,6 +512,17 @@ namespace DDUP
 				new ReadOnlySpan<byte>(AllData, HeroEquipment_Familiar_DatasOffset, HeroEquipment_Familiar_DatasCount * Marshal.SizeOf<HeroEquipment_Familiar_Data>())
 			)[index];
 		}
+
+		public ref readonly DunDefHero_Data GetDunDefHero(int index)
+		{
+			if (index < 0 || index >= DunDefHero_DatasCount)
+				throw new ArgumentOutOfRangeException(nameof(index));
+
+			return ref MemoryMarshal.Cast<byte, DunDefHero_Data>(
+				new ReadOnlySpan<byte>(AllData, DunDefHero_DatasOffset, DunDefHero_DatasCount * Marshal.SizeOf<DunDefHero_Data>())
+			)[index];
+		}
+
 
 		// Array element accessors with bounds checking
 		public int GetIntArrayElem(int index)
@@ -661,6 +704,12 @@ namespace DDUP
 						IntArrayElems.Add(GetDunDefProjectileIndex(v));
 					count = IntArrayElems.Count - start;
 					break;
+				case VarType.String:
+					start = IntArrayElems.Count;
+					foreach (var v in entries)
+						IntArrayElems.Add(AddString(v));
+					count = IntArrayElems.Count - start;
+					break;	
 				default:
 					break;
 			}
@@ -668,106 +717,6 @@ namespace DDUP
 			return new Array_Data(start, count, type);
 		}
 
-		public Array_Data AddFloatArray(List<float> entries)
-		{
-			int start = FloatArrayElems.Count;
-			FloatArrayElems.AddRange(entries);
-			int count = FloatArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.Float);
-		}
-
-		public Array_Data AddIntArray(List<int> entries)
-		{
-			int start = IntArrayElems.Count;
-			IntArrayElems.AddRange(entries);
-			int count = IntArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.Int);
-		}
-
-		public Array_Data AddDunDefPlayerArray(List<string> entries)
-		{
-			int start = IntArrayElems.Count;
-			foreach (var v in entries)
-				IntArrayElems.Add(GetDunDefPlayerIndex(v));
-			int count = IntArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.DunDefPlayer);
-		}
-
-		public Array_Data AddDunDefWeaponArray(List<string> entries)
-		{
-			int start = IntArrayElems.Count;
-			foreach (var v in entries)
-				IntArrayElems.Add(GetDunDefWeaponIndex(v));
-			int count = IntArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.DunDefWeapon);
-		}
-
-		public Array_Data AddHeroEquipmentArray(List<string> entries)
-		{
-			int start = IntArrayElems.Count;
-			foreach (var v in entries)
-				IntArrayElems.Add(GetHeroEquipmentIndex(v));
-			int count = IntArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.HeroEquipment);
-		}
-
-		public Array_Data AddDunDefDamageTypeArray(List<string> entries)
-		{
-			int start = IntArrayElems.Count;
-			foreach (var v in entries)
-				IntArrayElems.Add(GetDunDefDamageTypeIndex(v));
-			int count = IntArrayElems.Count - start;
-			return new Array_Data(start, count, VarType.DunDefDamageType);
-		}
-
-		public Array_Data AddObjArray(List<string> entries, VarType type)
-		{
-			int start = IntArrayElems.Count;
-			int count = 0;
-
-			switch (type)
-			{
-				case VarType.Float:
-					foreach (var v in entries)
-						FloatArrayElems.Add(float.Parse(v));
-					count = FloatArrayElems.Count - start;
-					break;
-				case VarType.Int:
-					foreach (var v in entries)
-						IntArrayElems.Add(int.Parse(v));
-					count = IntArrayElems.Count - start;
-					break;
-				case VarType.DunDefPlayer:
-					foreach (var v in entries)
-						IntArrayElems.Add(GetDunDefPlayerIndex(v));
-					count = IntArrayElems.Count - start;
-					break;
-				case VarType.DunDefWeapon:
-					foreach (var v in entries)
-						IntArrayElems.Add(GetDunDefWeaponIndex(v));
-					count = IntArrayElems.Count - start;
-					break;
-				case VarType.HeroEquipment:
-					foreach (var v in entries)
-						IntArrayElems.Add(GetHeroEquipmentIndex(v));
-					count = IntArrayElems.Count - start;
-					break;
-				case VarType.DunDefDamageType:
-					foreach (var v in entries)
-						IntArrayElems.Add(GetDunDefDamageTypeIndex(v));
-					count = IntArrayElems.Count - start;
-					break;
-				case VarType.DunDefProjectile:
-					foreach (var v in entries)
-						IntArrayElems.Add(GetDunDefProjectileIndex(v));
-					count = IntArrayElems.Count - start;
-					break;
-				default:
-					break;
-			}
-
-			return new Array_Data(start, count, type);
-		}
 
 		public static class ArrayPropertyParser
 		{
@@ -842,6 +791,7 @@ namespace DDUP
 
 		public int GetDunDefDamageTypeIndex(string s)
 		{
+			s = ExtractQuotedString(s);
 			if (DunDefDamageType_IndexMap.ContainsKey(s))
 			{
 				return DunDefDamageType_IndexMap[s];
@@ -852,6 +802,7 @@ namespace DDUP
 
 		public int GetHeroEquipmentIndex(string s)
 		{
+			s = ExtractQuotedString(s);
 			if (HeroEquipment_IndexMap.ContainsKey(s))
 			{
 				return HeroEquipment_IndexMap[s];
@@ -860,8 +811,21 @@ namespace DDUP
 				return -1;
 		}
 
+		public int GetDunDefHeroIndex(string s)
+		{
+			s = ExtractQuotedString(s);
+			if (DunDefHero_IndexMap.ContainsKey(s))
+			{
+				return DunDefHero_IndexMap[s];
+			}
+			else
+				return -1;
+		}
+
+
 		public int GetDunDefWeaponIndex(string s)
 		{
+			s = ExtractQuotedString(s);
 			if (DunDefWeapon_IndexMap.ContainsKey(s))
 			{
 				return DunDefWeapon_IndexMap[s];
@@ -872,6 +836,7 @@ namespace DDUP
 
 		public int GetDunDefProjectileIndex(string s)
 		{
+			s = ExtractQuotedString(s);
 			if (DunDefProjectile_IndexMap.ContainsKey(s))
 			{
 				return DunDefProjectile_IndexMap[s];
@@ -881,6 +846,7 @@ namespace DDUP
 		}
 		public int GetDunDefPlayerIndex(string s)
 		{
+			s = ExtractQuotedString(s);
 			if (DunDefPlayer_IndexMap.ContainsKey(s))
 			{
 				return DunDefPlayer_IndexMap[s];
@@ -993,6 +959,21 @@ namespace DDUP
 
 			return objIdx;
 		}
+
+		public int AddDunDefHero(string path, string className, ref DunDefHero_Data heroData)
+		{
+			if (DunDefHero_IndexMap.ContainsKey(path))
+				return IndexEntries[DunDefHero_IndexMap[path]].ObjIndex;
+
+			int objIdx = DunDefHero_Datas.Count;
+			int entryIdx = AddIndexEntry(path, className, VarType.DunDefHero, objIdx);
+
+			DunDefHero_IndexMap.Add(path, entryIdx);
+			DunDefHero_Datas.Add(heroData);
+
+			return objIdx;
+		}
+
 
 		public int AddDunDefProjectile(string path, string className, ref DunDefProjectile_Data projData)
 		{

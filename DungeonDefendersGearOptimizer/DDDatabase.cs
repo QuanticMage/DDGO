@@ -186,7 +186,7 @@ public class DDEquipmentInfo
 		return FormatCompact(value);
 	}
 
-	static string FormatCompact(double value)
+	public static string FormatCompact(double value)
 	{
 		if (value == 0) return "0";
 		if (value < 0) return "-" + FormatCompact(-value);
@@ -264,7 +264,7 @@ public class DDEquipmentInfo
 			else if (this.Quality == "Ult93") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
 			else if (this.Quality == "Ult90") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
 			else if (this.Quality == "Supreme") { mult = 1.3666f; maxR = 30; maxStatLevel = 500; }
-			else if (this.Quality == "Transcendent") { mult = 1.3333f; maxR = 31; maxStatLevel = 420; }
+			else if (this.Quality == "Trans") { mult = 1.3333f; maxR = 31; maxStatLevel = 420; }
 			else if (this.Quality == "Mythical") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
 			else { mult = 1.25f; maxR = 31; maxStatLevel = 300; }
 
@@ -540,7 +540,7 @@ public class DDDatabase
 			else if (itemInfo.NameQualityIdx == 17) quality = "Ult93";
 			else if (itemInfo.NameQualityIdx == 16) quality = "Ult90";
 			else if (itemInfo.NameQualityIdx == 15) quality = "Supreme";
-			else if (itemInfo.NameQualityIdx == 14) quality = "Transcendent";
+			else if (itemInfo.NameQualityIdx == 14) quality = "Trans";
 			else if (itemInfo.NameQualityIdx == 13) quality = "Mythical";
 			else if (itemInfo.NameQualityIdx == 12) quality = "Cursed";
 			else if (itemInfo.NameQualityIdx == 11) quality = "Torn";
