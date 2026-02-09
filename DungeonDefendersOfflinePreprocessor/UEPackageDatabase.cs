@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic.Logging;
+﻿using DDUP;
+using Microsoft.VisualBasic.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,7 +32,6 @@ using UELib.Engine;
 using UELib.Services;
 using UELib.Types;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using DDUP;
 
 
 namespace DungeonDefendersOfflinePreprocessor
@@ -480,6 +480,58 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 
 		/// <summary>
+		/// Resolves an archetype object that may be import-backed into an export-backed object
+		/// from another already loaded package (or loaded on-demand via BaseDirectory).
+		/// If resolution fails, returns the original archetype.
+		/// </summary>
+		UObject? ResolveArchetype(UObject? archetype)
+		{
+			if (archetype == null) return null;
+
+			// Already export-backed.
+			if (archetype.ExportTable != null)
+			{
+				archetype.Load();
+				return archetype;
+			}
+
+			// Import-backed: resolve via PackageCache / BaseDirectory.
+			if (archetype.ImportTable != null)
+			{
+				var importPath = BuildImportPath(archetype);
+				var packageName = FindPackageNameFromImport(archetype);
+				if (!string.IsNullOrWhiteSpace(packageName))
+				{
+					var pkg = LoadPackageByName(packageName);
+					if (pkg != null)
+					{
+						// Prefer resolving by full path when available (avoids name collisions across groups).
+						UObject? resolved = null;
+						if (!string.IsNullOrWhiteSpace(importPath))
+							resolved = FindObjectByPath(pkg, importPath) as UObject;
+
+						// Fallback: name lookup.
+						resolved ??= pkg.FindObject<UObject>(archetype.Name);
+						if (resolved != null)
+						{
+							resolved.Load();
+							return resolved;
+						}
+						else
+						{
+							if (!string.IsNullOrWhiteSpace(importPath))
+								MainWindow.Log($"[ResolveArchetype] Failed to resolve import '{importPath}' in loaded package '{packageName}'.");
+							else
+								MainWindow.Log($"[ResolveArchetype] Failed to resolve import '{archetype.Name}' in loaded package '{packageName}'.");
+						}
+					}
+				}
+			}
+
+			return archetype;
+		}
+
+		/// <summary>
 		/// Gets the class default object (CDO). If UELib didn't hook up UClass.Default, attempt
 		/// to find the Default__ export by name in the owning package.
 		/// </summary>
@@ -533,7 +585,8 @@ namespace DungeonDefendersOfflinePreprocessor
 				var hit = currentObj.Properties?.Find(propertyName); // UELib's List has a Find helper
 				if (hit != null) return hit;
 
-				currentObj = currentObj.Archetype as UObject;
+				// Resolve archetype - handles both local exports and imports from other packages
+				currentObj = ResolveArchetype(currentObj.Archetype as UObject);
 			}
 
 			// Walk the Class Hierarchy (resolving imports across loaded packages)
@@ -557,7 +610,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						// Helpful hint when the superclass lives in another package but wasn't linked.
 						var pkgHint = FindPackageNameFromImport(ucl);
 						//if (!string.IsNullOrWhiteSpace(pkgHint))
-//							MainWindow.Log($"[GetProperty] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
+						//							MainWindow.Log($"[GetProperty] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
 					}
 				}
 
@@ -611,7 +664,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			while (currentObj != null && visited.Add(currentObj))
 			{
 				derivedFirst.Add(currentObj);
-				currentObj = currentObj.Archetype as UObject;
+				// Resolve archetype - handles both local exports and imports from other packages
+				currentObj = ResolveArchetype(currentObj.Archetype as UObject);
 			}
 
 			// B) Class hierarchy: CDOs from this class up to base (resolving imports across loaded packages)
@@ -628,7 +682,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					{
 						var pkgHint = FindPackageNameFromImport(ucl);
 						//if (!string.IsNullOrWhiteSpace(pkgHint))
-//							MainWindow.Log($"[BuildDefaultChain] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
+						//							MainWindow.Log($"[BuildDefaultChain] Could not locate CDO for imported class '{ucl.Name}'. Expected in package '{pkgHint}'.");
 					}
 				}
 
@@ -1032,8 +1086,8 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			var iconColorAddPrimary = GetProperty(obj, "IconColorAddPrimary");
 			var iconColorAddSecondary = GetProperty(obj, "IconColorAddSecondary");
-			var iconColorMulPrimary = GetProperty(obj, "IconColorMulPrimary");
-			var iconColorMulSecondary = GetProperty(obj, "IconColorMulSecondary");
+			var iconColorMulPrimary = GetProperty(obj, "IconColorMultPrimary");
+			var iconColorMulSecondary = GetProperty(obj, "IconColorMultSecondary");
 			var useColorSets = GetProperty(obj, "UseColorSets");
 
 			csString += $", IconX = {x}, IconY = {y}, IconX1 = {x1}, IconY1 = {y1}, IconX2 = {x2}, IconY2 = {y2}";
@@ -1147,13 +1201,13 @@ namespace DungeonDefendersOfflinePreprocessor
 			foreach (var item in PackageCache.Values)
 			{
 				foreach (var obj in item.Objects)
-				{			
-					if (DoesObjectInheritFromClass(obj, "DunDefDamageType"))
+				{
+					if (obj.GetReferencePath().StartsWith("DunDefDamageType"))
 					{
 						MainWindow.Log($"Adding DunDefDamageType {obj.GetPath()}");
 						AddDunDefDamageTypeToDB(obj, db);
 						await Task.Yield();
-				
+
 					}
 				}
 			}
@@ -1161,7 +1215,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach (var obj in item.Objects)
 				{
-					if (DoesObjectInheritFromClass(obj, "DunDefPlayer"))
+					if (obj.GetReferencePath().StartsWith("DunDefPlayer"))
 					{
 						MainWindow.Log($"Adding DunDefPlayer {obj.GetPath()}");
 						AddPlayerToDB(obj, db);
@@ -1174,7 +1228,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach (var obj in item.Objects)
 				{
-					if (DoesObjectInheritFromClass(obj, "DunDefProjectile"))
+					if (obj.GetReferencePath().StartsWith("DunDefProjectile"))
 					{
 						MainWindow.Log($"Adding DunDefProjectile {obj.GetPath()}");
 						AddProjectileToDB(obj, db);
@@ -1187,7 +1241,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach (var obj in item.Objects)
 				{
-					if (DoesObjectInheritFromClass(obj, "DunDefWeapon"))
+					if (obj.GetReferencePath().StartsWith("DunDefWeapon"))
 					{
 						MainWindow.Log($"Adding DunDefWeapon {obj.GetPath()}");
 						AddWeaponToDB(obj, db);
@@ -1200,7 +1254,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			{
 				foreach (var obj in item.Objects)
 				{
-					if (DoesObjectInheritFromClass(obj, "HeroEquipment"))
+					if (obj.GetReferencePath().StartsWith("HeroEquipment"))
 					{
 						MainWindow.Log($"Adding HeroEquipment {obj.GetPath()}");
 						AddEquipmentToDB(obj, db);
@@ -1339,7 +1393,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "MaxHeroStatValue", propertyMap, "0");
 			AddPropertyToMap(obj, "MaxLevel", propertyMap, "0");
 			AddPropertyToMap(obj, "MaxNonTranscendentStatRollValue", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxUpgradeableSpeedProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxUpgradeableSpeedOfProjectilesBonus", propertyMap, "0");
 			AddPropertyToMap(obj, "MinDamageBonus", propertyMap, "0");
 			AddPropertyToMap(obj, "MinLevel", propertyMap, "0");
 			AddPropertyToMap(obj, "MinSupremeLevel", propertyMap, "0");
@@ -1489,8 +1543,8 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			AddPropertyToMap(obj, "IconColorAddPrimary", propertyMap, "0");
 			AddPropertyToMap(obj, "IconColorAddSecondary", propertyMap, "0");
-			AddPropertyToMap(obj, "IconColorMulPrimary", propertyMap, "0.0");
-			AddPropertyToMap(obj, "IconColorMulSecondary", propertyMap, "0.0");
+			AddPropertyToMap(obj, "IconColorMultPrimary", propertyMap, "0.0");
+			AddPropertyToMap(obj, "IconColorMultSecondary", propertyMap, "0.0");
 
 
 
@@ -1565,21 +1619,22 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Finally store it in your DB (adapt to your actual DB API)
 			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
 
-			if (DoesObjectInheritFromClass(obj, "HereEquipment_Familiar"))
+			if (obj.GetReferencePath().StartsWith("HeroEquipment_Familiar"))
 				propertyMap["FamiliarDataIndex"] = AddFamiliarToDB(obj, db).ToString();
 			else
 				propertyMap["FamiliarDataIndex"] = "-1";
 
-			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);			
+			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);
 		}
 
-		public int AddDunDefDamageTypeToDB( UObject obj, ExportedTemplateDatabase db )
+		public int AddDunDefDamageTypeToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
 			AddPropertyToMap(obj, "AdjectiveName", propertyMap, "Default");
 			AddPropertyToMap(obj, "FriendlyName", propertyMap, "Default");
 			AddPropertyToMap(obj, "UseForNotPoisonElementalDamage", propertyMap, "false");
 			AddPropertyToMap(obj, "UseForRandomElementalDamage", propertyMap, "false");
+			AddPropertyToMap(obj, "DamageTypeArrayIndex", propertyMap, "-1");
 
 			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
 			DunDefDamageType_Data dmgType = new DunDefDamageType_Data(propertyMap, db);
@@ -1941,4 +1996,3 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 	}
 }
-

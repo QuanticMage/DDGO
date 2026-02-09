@@ -61,12 +61,20 @@ public struct DDLinearColor
 		B *= amt;
 		A *= amt;
 	}
-	public void Add(DDLinearColor o)
+	public void Add(ULinearColor_Data o)
 	{
 		R += o.R;
 		G += o.G;
 		B += o.B;
 		A += o.A;
+	}
+
+	public void Set(ULinearColor_Data o)
+	{
+		R = o.R;
+		G = o.G;
+		B = o.B;
+		A = o.A;
 	}
 
 	public override string ToString()
@@ -170,7 +178,7 @@ public class DDEquipmentInfo
 	public string FunHashString = "";
 
 	public ItemViewRow? cachedItemRow = null;
-
+	
 	
 	static string FormatAmount(long xBillions, long remainder)
 	{
@@ -352,6 +360,7 @@ public class DDDatabase
 	public Dictionary<int, DDFolder> ItemBoxFolders = [];
 	public Dictionary<int, DDFolder> ShopFolders = [];
 	public Dictionary<string, int> SubfolderCount = [];
+	public ExportedTemplateDatabase? TemplateDB;
 
 	private const uint UE3_COMPRESSED_TAG = 0x9E2A83C1;
 	
@@ -370,7 +379,7 @@ public class DDDatabase
 
 
 
-	public async Task LoadFromDun(byte[] byteArray)
+	public async Task LoadFromDun(byte[] byteArray, ExportedTemplateDatabase db)
 	{
 		IsReady = false;
 		Status = "Unloaded";
@@ -379,6 +388,7 @@ public class DDDatabase
 		ItemBoxFolders.Clear();
 		ShopFolders.Clear();
 		SubfolderCount.Clear();
+		TemplateDB = db;
 
 		MemoryStream? outputMemoryStream = UnpackUE3Archive(byteArray);
 
@@ -551,23 +561,25 @@ public class DDDatabase
 
 			// these are swapped
 			DDLinearColor IconColorPrimary = Items[i].Color1;
-			DDLinearColor IconColorSecondary = Items[i].Color2;			
+			DDLinearColor IconColorSecondary = Items[i].Color2;
 
-			if (ItemTemplateInfo.Map.ContainsKey(itemInfo.Template))
+			IndexEntry? entry = TemplateDB?.GetTemplateByName(itemInfo.Template);
+
+			if ((TemplateDB != null) && (entry != null))
 			{
-				ItemEntry entry = ItemTemplateInfo.Map[itemInfo.Template];
-		
-				if (entry.EquipmentType == EquipmentType.Weapon) { type = "Weapon"; }
-				else if (entry.EquipmentType == EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
-				else if (entry.EquipmentType == EquipmentType.Torso) { type = "Torso"; isArmor = true; }
-				else if (entry.EquipmentType == EquipmentType.Gloves) { type = "Gauntlet"; isArmor = true; }
-				else if (entry.EquipmentType == EquipmentType.Boots) { type = "Boots"; isArmor = true; }
-				else if (entry.EquipmentType == EquipmentType.Bracers) { type = "Bracers"; }
-				else if (entry.EquipmentType == EquipmentType.Brooch) { type = "Brooch"; }
-				else if (entry.EquipmentType == EquipmentType.Mask) { type = "Mask"; }
-				else if (entry.EquipmentType == EquipmentType.Shield) { type = "Shield"; }
-				else if (entry.EquipmentType == EquipmentType.Familiar) { type = "Pet"; }
-				else if (entry.EquipmentType == EquipmentType.Currency) { type = "Currency"; }				
+				var equip = TemplateDB.GetHeroEquipment(entry.Value.ObjIndex);									
+				
+				if      (equip.EquipmentType == (int)EquipmentType.Weapon) { type = "Weapon"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
+				else if (equip.EquipmentType == (int)EquipmentType.Torso) { type = "Torso"; isArmor = true; }
+				else if (equip.EquipmentType == (int)EquipmentType.Gloves) { type = "Gauntlet"; isArmor = true; }
+				else if (equip.EquipmentType == (int)EquipmentType.Boots) { type = "Boots"; isArmor = true; }
+				else if (equip.EquipmentType == (int)EquipmentType.Bracers) { type = "Bracers"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Brooch) { type = "Brooch"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Mask) { type = "Mask"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Shield) { type = "Shield"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Familiar) { type = "Pet"; }
+				else if (equip.EquipmentType == (int)EquipmentType.Currency) { type = "Currency"; }				
 
 				if ((Items[i].Level == 1) && (Items[i].MaxLevel == 1) &&
 					(Items[i].Stats[1] == 0) && (Items[i].Stats[2] == 0) &&
@@ -579,74 +591,90 @@ public class DDDatabase
 					type = "Currency";
 				}
 				Items[i].bIsArmor = isArmor;
+				
+				if      (equip.EquipmentSetID == 0) { set = "Any"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Leather) { set = "Leather"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Pristine) { set = "Pristine"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Plate) { set = "Plate"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Mail) { set = "Mail"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Chain) { set = "Chain"; }
+				else if (equip.EquipmentSetID == (int)EquipmentSet.Zamira) { set = "Zamira"; }
+				else if (equip.EquipmentSetID == 255) { set = "Any"; }
 
+				if (equip.CountsForAllArmorSets == 1) set = "Any";
 
-				if (entry.EquipmentSet == EquipmentSet.None) { set = ""; }
-				else if (entry.EquipmentSet == EquipmentSet.Leather) { set = "Leather"; }
-				else if (entry.EquipmentSet == EquipmentSet.Pristine) { set = "Pristine"; }
-				else if (entry.EquipmentSet == EquipmentSet.Plate) { set = "Plate"; }
-				else if (entry.EquipmentSet == EquipmentSet.Mail) { set = "Mail"; }
-				else if (entry.EquipmentSet == EquipmentSet.Chain) { set = "Chain"; }
-				else if (entry.EquipmentSet == EquipmentSet.Zamira) { set = "Zamira"; }
-				else if (entry.EquipmentSet == EquipmentSet.Any) { set = "Any"; }
-
-				if (entry.WeaponType == WeaponType.Squire) { set = "Squire"; }
-				else if (entry.WeaponType == WeaponType.Huntress) { set = "Huntress"; }
-				else if (entry.WeaponType == WeaponType.Apprentice) { set = "Apprentice"; }
-				else if (entry.WeaponType == WeaponType.Monk) { set = "Monk"; }
+				if      (equip.weaponType == (int)WeaponType.Squire) { set = "Squire"; }
+				else if (equip.weaponType == (int)WeaponType.Huntress) { set = "Huntress"; }
+				else if (equip.weaponType == (int)WeaponType.Apprentice) { set = "Apprentice"; }
+				else if (equip.weaponType == (int)WeaponType.Monk) { set = "Monk"; }
 
 
 				if (Items[i].Description.Trim() == "")
-					Items[i].Description = entry.Description;
-				if ((entry.Names.Count > 0) && (Items[i].NameVariantIdx < entry.Names.Count))
-				{
-					Items[i].GeneratedName = entry.Names[Items[i].NameVariantIdx];
-					if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
-				}
+					Items[i].Description = TemplateDB.GetString(equip.Description);
 
-				Items[i].IconX = entry.IconX;
-				Items[i].IconY = entry.IconY;
-				Items[i].IconX1 = entry.IconX1;
-				Items[i].IconY1 = entry.IconY1;
-				Items[i].IconX2 = entry.IconX2;
-				Items[i].IconY2 = entry.IconY2;
+
+				//string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");
+				//if (SkipNames.Contains(objPath))
+				//	return "";
+
+				Items[i].GeneratedName = TemplateDB.GetString(equip.EquipmentName);
+				
+				if (equip.AllowNameRandomization == 1)
+				{
+					byte nameVariantIndex = Items[i].NameVariantIdx;
+					Array_Data array = equip.RandomBaseNames;
+					if (Items[i].NameVariantIdx < array.Count)
+					{
+						Items[i].GeneratedName = TemplateDB.GetString(TemplateDB.GetEG_StatMatchingString(array.Start + Items[i].NameVariantIdx).StringValue);
+					}					
+				}
+				if (Items[i].GeneratedName == "") Items[i].GeneratedName = Items[i].Template;
+				
+				Items[i].IconX =  equip.IconX;
+				Items[i].IconY =  equip.IconY;
+				Items[i].IconX1 = equip.IconX1;
+				Items[i].IconY1 = equip.IconY1;
+				Items[i].IconX2 = equip.IconX2;
+				Items[i].IconY2 = equip.IconY2;
 				
 				
 				if ((IconColorSecondary.R == 0) && (IconColorSecondary.G == 0) && (IconColorSecondary.B == 0))
 				{
 					// use color set
 					int colorSet = Items[i].SecondaryColorSet;
-					if ((entry.SecondaryColorSets != null) && (entry.SecondaryColorSets.Count > 0))
+					if (equip.SecondaryColorSets.Count > 0)
 					{
-						if ((colorSet < 0) || (colorSet >= entry.SecondaryColorSets.Count)) colorSet = 0;
-
-						IconColorSecondary = entry.SecondaryColorSets[colorSet];
-						IconColorSecondary.Scale(entry.IconColorMulSecondary);
-						IconColorSecondary.Add(entry.IconColorAddSecondary);
+						if ((colorSet < 0) || (colorSet >= equip.SecondaryColorSets.Count)) colorSet = 0;			
+						var color = TemplateDB.GetULinearColor(equip.SecondaryColorSets.Start + colorSet);
+						IconColorSecondary.Set(color);
+						IconColorSecondary.Scale(equip.IconColorMultSecondary);
+						IconColorSecondary.Add(TemplateDB.GetULinearColor(equip.IconColorAddSecondary));					
 					}					
 				}
 				else // override
 				{					
-					IconColorSecondary.Add(entry.IconColorAddSecondary);
+					IconColorSecondary.Add(TemplateDB.GetULinearColor(equip.IconColorAddSecondary));
 				}
+
 
 				if ((IconColorPrimary.R == 0) && (IconColorPrimary.G == 0) && (IconColorPrimary.B == 0))
 				{
 					// use color set
 					int colorSet = Items[i].PrimaryColorSet;
-					if ((entry.PrimaryColorSets != null) && (entry.PrimaryColorSets.Count > 0))
+					if (equip.PrimaryColorSets.Count > 0)
 					{
-						if ((colorSet < 0) || (colorSet >= entry.PrimaryColorSets.Count)) colorSet = 0;
+						if ((colorSet < 0) || (colorSet >= equip.PrimaryColorSets.Count)) colorSet = 0;
 
-						IconColorPrimary = entry.PrimaryColorSets[colorSet];
-						IconColorPrimary.Scale(entry.IconColorMulPrimary);
-						IconColorPrimary.Add(entry.IconColorAddPrimary);
+						var color = TemplateDB.GetULinearColor(equip.PrimaryColorSets.Start + colorSet);
+						IconColorPrimary.Set(color);
+						IconColorPrimary.Scale(equip.IconColorMultPrimary);
+						IconColorPrimary.Add(TemplateDB.GetULinearColor(equip.IconColorAddPrimary));
 					}
 				}
 				else // override
 				{
-					IconColorPrimary.Add(entry.IconColorAddPrimary);
-				}			
+					IconColorPrimary.Add(TemplateDB.GetULinearColor(equip.IconColorAddPrimary));
+				}
 			}
 			Items[i].IconColorSecondary = IconColorSecondary;
 			Items[i].IconColorPrimary = IconColorPrimary;

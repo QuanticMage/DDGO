@@ -2253,6 +2253,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+#if DEBUG
+    await Task.Delay(3000); // try 3–10s if needed
+#endif
         if (_dotNetRef == null)
             _dotNetRef = DotNetObjectReference.Create(this);
         // 1) UI state
@@ -2272,11 +2275,6 @@
         await LoadSearchHistoryAsync();
 
 
-        if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
-        {
-            var ok = await JS.InvokeAsync<bool>("dropzone.tryLoadLastHandleAndRead", _dotNetRef); // returns true if it loaded bytes & called into .NET or returned bytes
-            if (ok) return;
-        }
 
         // read the template database
         using var responseStream = await Http.GetStreamAsync("DunDefTemplates.dbz");
@@ -2287,11 +2285,18 @@
         byte[] tdb = output.ToArray();
         TemplateDB.LoadFromRaw(tdb);
 
+        
+        if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
+        {
+            var ok = await JS.InvokeAsync<bool>("dropzone.tryLoadLastHandleAndRead", _dotNetRef); // returns true if it loaded bytes & called into .NET or returned bytes
+            if (ok) return;
+        }
+
         var oldFileName = await JS.InvokeAsync<string?>("dropzone.tryLoadCachedFilename"); // from IndexedDB
         var cachedList = await JS.InvokeAsync<int[]?>("dropzone.tryLoadCachedDunBytes");
         var cached = cachedList?.Select(i => (byte)i).ToArray();
         if (cached is { Length: > 0 })
-            await LoadDunBytesAsync(oldFileName ?? "", cached);
+            await LoadDunBytesAsync(oldFileName ?? "", cached, TemplateDB);
     }
 
 
@@ -2395,14 +2400,14 @@
     }
 
 
-    public async Task LoadDunBytesAsync(string fileName, byte[] bytes)
+    public async Task LoadDunBytesAsync(string fileName, byte[] bytes, ExportedTemplateDatabase tdb)
     {
         _loadedFileName = fileName;
         _lastLoadedAt = DateTime.Now;
         _error = null;
         _isLoading = true;
         _status = $"Reading {fileName}…";
-        await db.LoadFromDun(bytes);
+        await db.LoadFromDun(bytes, tdb);
         if (!db.IsReady)
         {
             _error = db.Status;
@@ -2466,7 +2471,7 @@
         {
             _status = $"Parsing {fileName} ({bytes.Length:N0} bytes)";
             StateHasChanged();
-            await LoadDunBytesAsync(fileName, bytes);
+            await LoadDunBytesAsync(fileName, bytes, TemplateDB);
         }
         catch (Exception ex)
         {
