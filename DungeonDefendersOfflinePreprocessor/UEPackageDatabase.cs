@@ -49,11 +49,8 @@ namespace DungeonDefendersOfflinePreprocessor
 	{
 		public int IconX;
 		public int IconY;
-		public byte[] TransparentMask;
+		public byte[] TransparentMask = new byte[1];
 	}
-
-
-
 
 	public class UEPackageDatabase
 	{
@@ -1495,12 +1492,75 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "IconColorMulPrimary", propertyMap, "0.0");
 			AddPropertyToMap(obj, "IconColorMulSecondary", propertyMap, "0.0");
 
-			AddPropertyToMap(obj, "IconX", propertyMap, "0");
-			AddPropertyToMap(obj, "IconY", propertyMap, "0");
-			AddPropertyToMap(obj, "IconX1", propertyMap, "0");
-			AddPropertyToMap(obj, "IconY1", propertyMap, "0");
-			AddPropertyToMap(obj, "IconX2", propertyMap, "0");
-			AddPropertyToMap(obj, "IconY2", propertyMap, "0");
+
+
+			// Calculate icon coordinates from the IconLocs/IconRefs dictionaries
+			int iconX = 0, iconY = 0, iconX1 = 0, iconY1 = 0, iconX2 = 0, iconY2 = 0;
+			string objPath = obj.GetReferencePath();
+
+			if (IconRefs.ContainsKey(objPath))
+			{
+				string iconBase = IconRefs[objPath].IconBase;
+				string iconMask1 = IconRefs[objPath].IconMask1;
+				string iconMask2 = IconRefs[objPath].IconMask2;
+
+				byte[]? colorAlpha = null;
+				byte[]? maskRAlpha = null;
+				byte[]? maskGAlpha = null;
+
+				if (iconBase != null && IconLocs.ContainsKey(iconBase))
+				{
+					IconLocation loc = IconLocs[iconBase];
+					iconX = loc.IconX;
+					iconY = loc.IconY;
+					colorAlpha = loc.TransparentMask;
+				}
+
+				if (iconMask1 != null && IconLocs.ContainsKey(iconMask1))
+				{
+					IconLocation loc = IconLocs[iconMask1];
+					iconX1 = loc.IconX;
+					iconY1 = loc.IconY;
+					maskRAlpha = loc.TransparentMask;
+				}
+
+				if (iconMask2 != null && IconLocs.ContainsKey(iconMask2))
+				{
+					IconLocation loc = IconLocs[iconMask2];
+					iconX2 = loc.IconX;
+					iconY2 = loc.IconY;
+					maskGAlpha = loc.TransparentMask;
+				}
+
+				// Verify the masks make sense (same logic as GetObjectCSLine)
+				if (colorAlpha != null && maskRAlpha != null && maskGAlpha != null)
+				{
+					int error = 0;
+					for (int i = 0; i < IconSize * IconSize; i++)
+					{
+						if ((colorAlpha[i] < 2) && ((maskRAlpha[i] >= 32) || (maskGAlpha[i] >= 32)))
+							error++;
+					}
+
+					// Handle exceptions for false positives/negatives
+					if (((error > 0) && (!objPath.EndsWith("Equipment_familiar_NaviFairy'"))) ||
+						(objPath.EndsWith("Spoon.HeroEquipment_Spoon'")) ||
+						(objPath.EndsWith("Equipment_Familiar_AnimorphicEmber'")))
+					{
+						iconX1 = 0;
+						iconY1 = 0;
+						iconX2 = 0;
+						iconY2 = 0;
+					}
+				}
+			}
+
+			propertyMap["IconX"] = iconX.ToString();
+			propertyMap["IconY"] = iconY.ToString();
+			propertyMap["IconX1"] = iconX1.ToString();
+			propertyMap["IconY1"] = iconY1.ToString();
+			propertyMap["IconX2"] = iconX2.ToString();
+			propertyMap["IconY2"] = iconY2.ToString();
 
 			// Finally store it in your DB (adapt to your actual DB API)
 			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
@@ -1510,7 +1570,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			else
 				propertyMap["FamiliarDataIndex"] = "-1";
 
-			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);
+			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);			
 		}
 
 		public int AddDunDefDamageTypeToDB( UObject obj, ExportedTemplateDatabase db )

@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -75,9 +76,6 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["ScalarParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.ScalarParameterValues", PropertyType.FloatProperty);
 			UnrealConfig.VariableTypes["VectorParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.VectorParameterValues", PropertyType.Vector4);
 			UnrealConfig.VariableTypes["TextureParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.TextureParameterValues", PropertyType.StructProperty);
-			//};
-			
-			
 		}
 
 		private readonly StringBuilder _logBuilder = new();
@@ -220,12 +218,32 @@ namespace DungeonDefendersOfflinePreprocessor
 					db.AddToDatabase(workingDir, fileName);
 				}
 
+				// export the texture atlas
+				db.ExportAllHeroEquipmentToAtlas();
+
 				// 2) Your async method can run here too
 				var tdb = new DDUP.ExportedTemplateDatabase();
 				await db.AddObjectsToDatabase(tdb).ConfigureAwait(false);
 				foreach (var kvp in Parse.UniqueFailedKeys)
 				{
 					MainWindow.Log($"Parse Error on [{kvp.Key}]: {kvp.Value}");
+				}
+				try
+				{
+					MainWindow.Log("Saving template database...");
+					byte[] rawData = tdb.SaveToRaw();
+					string dbPath = Path.Combine(workingDir, "DunDefTemplates.dbz");
+					using (FileStream fileStream = File.Create(dbPath))
+					using (GZipStream compressionStream = new GZipStream(fileStream, CompressionMode.Compress))
+					{
+						compressionStream.Write(rawData, 0, rawData.Length);
+					}
+					
+					MainWindow.Log($"Template database saved to {dbPath} ({rawData.Length:N0} bytes)");
+				}
+				catch (Exception ex)
+				{
+					MainWindow.Log($"Error saving template database: {ex.Message}");
 				}
 
 			}).ConfigureAwait(true);			

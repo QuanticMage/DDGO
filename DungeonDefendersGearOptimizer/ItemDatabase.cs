@@ -131,8 +131,8 @@ namespace DDUP
 		public string ProjectileTemplate = "";
 		public float ProjDamage;
 		public int AdditionalDamageAmount;
-		public string ProjDamageType;
-		public string AdditionalDamageType;
+		public string ProjDamageType = "";
+		public string AdditionalDamageType = "";
 		public float ProjDamageRadius;
 		public float DamageRadiusFallOffExponent;
 
@@ -312,8 +312,8 @@ namespace DDUP
 		public string WeaponTemplate = ""; // DunDefWeapon or derived
 		public float ScaleDamageStatExponent;
 		public float MythicalScaleDamageStatExponent;
-		public string ProjectileTemplate;
-		public List<string> ExtraProjectileTemplate;
+		public string ProjectileTemplate = "";
+		public List<string> ExtraProjectileTemplate = new();
 		public float ProjectileSpeedBonusMultiplier;
 		
 		public bool bUseExtraQualityDamage;		
