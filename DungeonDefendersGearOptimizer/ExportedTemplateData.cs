@@ -153,6 +153,12 @@ namespace DDUP
 	{
 		public uint ID;
 		public uint Version;
+
+		public FileHeader(Dictionary<string, string> propertyMap)
+		{
+			ID = Parse.UInt(propertyMap, "ID");
+			Version = Parse.UInt(propertyMap, "Version");
+		}
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
