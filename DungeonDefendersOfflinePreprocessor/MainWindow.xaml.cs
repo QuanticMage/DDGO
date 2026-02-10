@@ -69,6 +69,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["ProjectileDelays"] = Tuple.Create("UDKGame.HeroEquipment_Familiar_WithProjectileAI.ProjectileDelays", PropertyType.FloatProperty);
 
 
+			UnrealConfig.VariableTypes["MeleeSwingInfos"] = Tuple.Create("UDKGame.DunDefWeapon.MeleeSwingInfos", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MeleeSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MeleeSwingInfoMultipliers", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MainHandSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MainHandSwingInfoMultipliers", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["OffHandSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.OffHandSwingInfoMultipliers", PropertyType.StructProperty);
@@ -77,6 +78,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["ScalarParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.ScalarParameterValues", PropertyType.FloatProperty);
 			UnrealConfig.VariableTypes["VectorParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.VectorParameterValues", PropertyType.Vector4);
 			UnrealConfig.VariableTypes["TextureParameterValues"] = Tuple.Create("Engine.MaterialInstanceConstant.TextureParameterValues", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["Sequences"] = Tuple.Create("Engine.AnimSet.Sequences", PropertyType.ObjectProperty);
+			UnrealConfig.VariableTypes["Children"] = Tuple.Create("Engine.AnimTreeTemplate.Children", PropertyType.ObjectProperty);
 		}
 
 		private readonly StringBuilder _logBuilder = new();
@@ -202,7 +205,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		private async void Process_Click(object sender, RoutedEventArgs e)
 		{
 			var workingDir = @"E:\Temp\DunDef";
-			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
 			string[] files = Directory.GetFiles(packageDir);
 			System.IO.Directory.CreateDirectory(workingDir);
@@ -219,11 +222,11 @@ namespace DungeonDefendersOfflinePreprocessor
 					//await RunDecompressAsync(workingDir, packageDir + fileName);
 					//await RunExtractorAsync(workingDir, fileName); -- this locks up sometimes, needs debugging
 					db.AddToDatabase(workingDir, fileName);
+					db.LoadAnimationsFromPackage(fileName.Replace(".upk",""));
 				}
-
 				
 				// export the texture atlas
-				db.ExportAllHeroEquipmentToAtlas();
+				//db.ExportAllHeroEquipmentToAtlas();
 
 				// 2) Your async method can run here too
 				var tdb = new DDUP.ExportedTemplateDatabase();

@@ -22,6 +22,8 @@ table.grid {
     overflow-wrap: anywhere;
 }
 
+
+
 table.grid td.cell-quality-default {
 }
 
@@ -63,6 +65,12 @@ table.grid td.cell-quality-ultplusplus {
 }
 
 td.cell-type {
+    font-size: 0.8em;
+}
+
+
+
+table.grid td.cell-dps {
     font-size: 0.8em;
 }
 
