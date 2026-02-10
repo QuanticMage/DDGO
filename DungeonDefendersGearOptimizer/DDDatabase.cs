@@ -140,6 +140,18 @@ public class DDEquipmentInfo
 	public int WeaponAdditionalDamageAmount;
 	public float WeaponDrawScaleMultiplier;
 	public float WeaponSwingSpeedMultiplier;
+
+
+	public float SpawnQuality;
+	public float SpawnRandomizerMultiplier;
+	public byte WeaponBlockingBonus;
+	public int WeaponAltDamageBonus;
+	public int WeaponClipAmmoBonus;
+	public byte WeaponReloadSpeedBonus;
+	public byte WeaponKnockbackBonus;
+	public byte WeaponChargeSpeedBonus;
+	public byte WeaponShotsPerSecondBonus;
+
 	public int Level, MaxLevel;
 	public int StoredMana;
 	public byte[] WeaponBonuses = new byte[7];
@@ -902,12 +914,16 @@ public class DDDatabase
 
 		e.StoredMana = reader.ReadInt32(); // 0xbde
 
-		for (int i = 0; i < 7; i++)
-		{
-			e.WeaponBonuses[i] = reader.ReadByte();
-		}
-		for (int i = 0; i < 14; i++)
-			_ = reader.ReadByte();
+
+		e.SpawnQuality = reader.ReadSingle();
+		e.SpawnRandomizerMultiplier = reader.ReadSingle();
+		e.WeaponBlockingBonus = reader.ReadByte();
+		e.WeaponAltDamageBonus = reader.ReadInt32();
+		e.WeaponClipAmmoBonus = reader.ReadInt32();
+		e.WeaponReloadSpeedBonus = reader.ReadByte();
+		e.WeaponKnockbackBonus = reader.ReadByte();
+		e.WeaponChargeSpeedBonus = reader.ReadByte();
+		e.WeaponShotsPerSecondBonus = reader.ReadByte();
 
 
 		e.NameVariantIdx = reader.ReadByte();

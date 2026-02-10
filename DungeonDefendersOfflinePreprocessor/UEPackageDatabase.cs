@@ -1865,7 +1865,11 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Arrays
 			AddArrayPropertyToMap(obj, "RandomDamageTypes", propertyMap);
 
-			// Ints
+
+			AddPropertyToMap(obj, "bSecondScaleDamageStatOnAdditionalDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bSecondScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(obj, "SecondScaleDamageStatType", propertyMap, "0");
+		// Ints
 			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
 			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
 			AddPropertyToMap(obj, "ScaleDamageStatType", propertyMap, "0");
@@ -1917,15 +1921,15 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddArrayPropertyToMap(obj, "ExtraProjectileTemplates", propertyMap);
 			AddArrayPropertyToMap(obj, "MeleeSwingInfos", propertyMap);
 			AddArrayPropertyToMap(obj, "RainbowDamageTypeArrays", propertyMap);
-
+			AddArrayPropertyToMap(obj, "RandomizedProjectileTemplate", propertyMap);
+			
 			// Ints (core)
 			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
 			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
 			AddPropertyToMap(obj, "BaseAltDamage", propertyMap, "0");
 			AddPropertyToMap(obj, "BaseDamage", propertyMap, "0");
 			AddPropertyToMap(obj, "BaseShotsPerSecond", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseTotalAmmo", propertyMap, "0");
-			AddPropertyToMap(obj, "RandomizedProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(obj, "BaseTotalAmmo", propertyMap, "0");			
 			AddPropertyToMap(obj, "ProjectileTemplate", propertyMap, "0");
 
 			// Floats (core)
@@ -1940,6 +1944,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "bRandomizeProjectileTemplate", propertyMap, "0");
 			AddPropertyToMap(obj, "bUseAdditionalProjectileDamage", propertyMap, "0");
 			AddPropertyToMap(obj, "bUseAltDamageForProjectileBaseDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseDamageReductionForAbilities", propertyMap, "0");
 
 			// DunDefWeapon_Crossbow
 			AddPropertyToMap(obj, "BaseNumProjectiles", propertyMap, "0");

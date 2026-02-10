@@ -420,6 +420,7 @@ namespace DDUP
 		public byte ScaleHeroDamage;
 		public int ScaleDamageStatType;
 		public float ScaleDamageStatExponent;
+	
 		public float ProjDamage;
 		public float ProjDamageRadius;
 		public int ProjDamageType;                                      // DunDefDamageType_Data
@@ -434,6 +435,10 @@ namespace DDUP
 		public byte bReplicateWeaponProjectile;
 		public byte bUseProjectilePerDistanceScaling;
 		public byte bUseProjectilePerDistanceSizeScaling;
+		
+		public byte bSecondScaleDamageStatOnAdditionalDamage;
+		public byte bSecondScaleDamageStatType;
+		public int SecondScaleDamageStatType;
 
 		// Homing Projectile
 		public byte bPierceEnemies;
@@ -456,6 +461,9 @@ namespace DDUP
 			ScaleDamageStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap["ScaleDamageStatType"])
 				? (int)ImportMaps._LevelUpValueTypes[propertyMap["ScaleDamageStatType"]]
 				: Parse.Int(propertyMap, "ScaleDamageStatType");
+			SecondScaleDamageStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap["SecondScaleDamageStatType"])
+				? (int)ImportMaps._LevelUpValueTypes[propertyMap["SecondScaleDamageStatType"]]
+				: Parse.Int(propertyMap, "SecondScaleDamageStatType");
 
 			ScaleDamageStatExponent = Parse.Float(propertyMap, "ScaleDamageStatExponent");
 			ProjDamage = Parse.Float(propertyMap, "ProjDamage");
@@ -472,6 +480,8 @@ namespace DDUP
 			bReplicateWeaponProjectile = Parse.BoolByte(propertyMap, "bReplicateWeaponProjectile");
 			bUseProjectilePerDistanceScaling = Parse.BoolByte(propertyMap, "bUseProjectilePerDistanceScaling");
 			bUseProjectilePerDistanceSizeScaling = Parse.BoolByte(propertyMap, "bUseProjectilePerDistanceSizeScaling");
+			bSecondScaleDamageStatOnAdditionalDamage = Parse.BoolByte(propertyMap, "bSecondScaleDamageStatOnAdditionalDamage");
+			bSecondScaleDamageStatType = Parse.BoolByte(propertyMap, "bSecondScaleDamageStatType");
 
 			bPierceEnemies = Parse.BoolByte(propertyMap, "bPierceEnemies");
 			NumAllowedPassThrough = Parse.Int(propertyMap, "NumAllowedPassThrough");
@@ -501,9 +511,9 @@ namespace DDUP
 		public float MinimumProjectileSpeed;
 		public float ProjectileSpeedAddition;
 		public float ProjectileSpeedBonusMultiplier;
-		public int RandomizedProjectileTemplate; // DunDefProjectile
-
+		public Array_Data RandomizedProjectileTemplate; // DunDefProjectile
 		public int ProjectileTemplate; // DunDefProjectile
+		public byte bUseDamageReductionForAbilities;
 
 		//  DunDefWeapon_Crossbow
 		public int BaseNumProjectiles;
@@ -589,7 +599,7 @@ namespace DDUP
 			MinimumProjectileSpeed = Parse.Float(propertyMap, "MinimumProjectileSpeed");
 			ProjectileSpeedAddition = Parse.Float(propertyMap, "ProjectileSpeedAddition");
 			ProjectileSpeedBonusMultiplier = Parse.Float(propertyMap, "ProjectileSpeedBonusMultiplier");
-			RandomizedProjectileTemplate = db.GetDunDefProjectileIndex(propertyMap["RandomizedProjectileTemplate"]);
+			RandomizedProjectileTemplate = db.BuildArray( propertyMap["RandomizedProjectileTemplate"], VarType.DunDefProjectile);
 
 			ProjectileTemplate = db.GetDunDefProjectileIndex(propertyMap["ProjectileTemplate"]);
 
@@ -613,6 +623,7 @@ namespace DDUP
 			bEmberorMoon = Parse.BoolByte(propertyMap, "bEmberorMoon");
 			bUseAttackCD = Parse.BoolByte(propertyMap, "bUseAttackCD");
 			bUseElementalScallingForRightClick = Parse.BoolByte(propertyMap, "bUseElementalScallingForRightClick");
+			bUseDamageReductionForAbilities = Parse.BoolByte(propertyMap, "bUseDamageReductionForAbilities");
 
 			ChannelingProjectileDamageMultiplier = Parse.Float(propertyMap, "ChannelingProjectileDamageMultiplier");
 			ChannelingProjectileFireSpeed = Parse.Float(propertyMap, "ChannelingProjectileFireSpeed");

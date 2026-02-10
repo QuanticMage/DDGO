@@ -2579,8 +2579,6 @@
         {
             if (v.Type != "Weapon")
                 continue;
-            if (v.Set != "Squire")
-                continue;
 
             if (!TemplateDB.TryGetTemplateIndex(db.Items[v.Idx].Template, out int weaponTemplateIdx ))
             {
@@ -2590,8 +2588,11 @@
 
 
             var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
-            v.DPS = (int)(_damageCalculator.GetWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-
+            v.DPS = 0;
+            if (v.Set == "Squire")
+                v.DPS = (int)(_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            else if (v.Set == "Huntress")
+                v.DPS = (int)(_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
 
 
             v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
