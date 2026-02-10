@@ -76,7 +76,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			package.InitializePackage();
 			PackageCache[package.PackageName] = package;
 
-			MainWindow.Log($"Loaded {package.PackageName}");
+			MainWindow.Log($"Loaded {package.PackageName}");			
 		}
 
 		Dictionary<string, string> ParseDictionary(UDefaultProperty property)
@@ -931,6 +931,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			return colors;
 		}
 
+
+
 		public string GetObjectCSLine(UObject? obj)
 		{
 			if (obj == null) return "";
@@ -1262,6 +1264,7 @@ namespace DungeonDefendersOfflinePreprocessor
 					}
 				}
 			}
+
 
 			foreach (var item in PackageCache.Values)
 			{
@@ -1823,7 +1826,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddPlayerToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
-
+			AddAnimationPropertiesToMap(obj, propertyMap);
 			// Floats
 			AddPropertyToMap(obj, "AdditionalSpeedMultiplier", propertyMap, "0.0");
 			AddPropertyToMap(obj, "ExtraPlayerDamageMultiplier", propertyMap, "0.0");
@@ -2085,6 +2088,190 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
 			return db.AddDunDefHero(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hero);
+		}
+
+		// Cache for animation durations
+		private Dictionary<string, Dictionary<string, float>> AnimationDurations = new(StringComparer.OrdinalIgnoreCase);
+
+		public class AnimSequenceData
+		{
+			public string AnimName { get; set; }
+			public float SequenceLength { get; set; }
+			public int NumFrames { get; set; }
+			public float RateScale { get; set; }
+
+			public AnimSequenceData(string name, float length, int frames, float rate)
+			{
+				AnimName = name;
+				SequenceLength = length;
+				NumFrames = frames;
+				RateScale = rate;
+			}
+		}
+		string RemoveAfterLastDot(string input)
+		{
+			int lastDot = input.LastIndexOf('.');
+			return lastDot >= 0 ? input.Substring(0, lastDot) : input;
+		}
+
+		public void LoadAnimationsFromPackage(string upkName)
+		{
+			if (!PackageCache.TryGetValue(upkName, out var package))
+			{
+				MainWindow.Log($"Package {upkName} not found in cache");
+				return;
+			}
+
+			foreach (var export in package.Exports)
+			{
+				// Check if this export is an AnimSequence
+				if (export.Class?.ObjectName.Name == "AnimSequence")
+				{
+					var animObj = export.Object;
+					animObj?.Load();
+
+					if (animObj != null)
+					{
+						var props = GetMergedProperties(animObj);
+
+						//string animName = export.GetPath();
+						float sequenceLength = 0.0f;
+						int numFrames = 0;
+						float rateScale = 30.0f; // Default FPS
+
+						props.TryGetValue("SequenceName", out var sequenceName);
+						string animName = sequenceName?.Value ?? "";
+
+						// Extract properties
+						if (props.TryGetValue("SequenceLength", out var lengthProp))
+						{
+							float.TryParse(lengthProp.Value?.ToString() ?? "0", out sequenceLength);
+						}
+
+						if (props.TryGetValue("NumFrames", out var framesProp))
+						{
+							int.TryParse(framesProp.Value?.ToString() ?? "0", out numFrames);
+						}
+
+						if (props.TryGetValue("RateScale", out var rateProp))
+						{
+							float.TryParse(rateProp.Value?.ToString() ?? "30", out rateScale);
+						}
+
+						// Calculate duration if SequenceLength isn't set
+						if (sequenceLength == 0.0f && numFrames > 0 && rateScale > 0)
+						{
+							sequenceLength = numFrames / rateScale;
+						}
+
+						string animObjName = RemoveAfterLastDot(export.GetPath());
+						// Store in cache
+						if (!AnimationDurations.ContainsKey(animObjName))
+						{
+							AnimationDurations.Add(animObjName, new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase));
+						}
+						AnimationDurations[animObjName][animName.Replace("\"", "")] = sequenceLength;
+
+						//MainWindow.Log($"{export.GetPath()}\t{animName}\t{sequenceLength}\t{numFrames}\t{rateScale}");
+					}
+				}
+			}
+		}
+/*		public float GetAnimationDuration(string animName)
+		{
+			if (AnimationDurations.TryGetValue(animName, out float duration))
+			{
+				return duration;
+			}
+
+			// Fallback: return default duration
+			MainWindow.Log($"Warning: Animation '{animName}' not found, using default 0.8s");
+			return 0.8f;
+		}*/
+		public float GetAnimationDurationByPath(string packageName, string animPath)
+		{
+			if (!PackageCache.TryGetValue(packageName, out var package))
+				return 0.8f;
+
+			var obj = FindObjectByPath(package, animPath);
+			if (obj == null)
+				return 0.8f;
+
+			var props = GetMergedProperties(obj);
+
+			if (props.TryGetValue("SequenceLength", out var lengthProp))
+			{
+				if (float.TryParse(lengthProp.Value?.ToString() ?? "0", out float length))
+				{
+					return length;
+				}
+			}
+
+			// Try calculating from frames
+			if (props.TryGetValue("NumFrames", out var framesProp) &&
+				props.TryGetValue("RateScale", out var rateProp))
+			{
+				if (int.TryParse(framesProp.Value?.ToString() ?? "0", out int frames) &&
+					float.TryParse(rateProp.Value?.ToString() ?? "30", out float rate) &&
+					rate > 0)
+				{
+					return frames / rate;
+				}
+			}
+
+			return 0.8f;
+		}
+
+
+		public void AddAnimationPropertiesToMap(UObject playerTemplate, Dictionary<string,string> propertyMap)
+		{
+			playerTemplate.Load();
+			float meleeAttack1_large = 1.0f;
+			float meleeAttack2_large = 1.0f;
+			float meleeAttack3_large = 0.5f;
+			
+			float meleeAttack1_medium = 0.7f;
+			float meleeAttack2_medium = 0.533f;
+			float meleeAttack3_medium = 1.033f;
+
+
+			var meshProp = GetProperty(playerTemplate, "Mesh");
+
+			if (meshProp != null)
+			{
+
+				var meshComp = FindObjectByPath(playerTemplate.Package, playerTemplate.GetPath() + "." + meshProp.Value);
+				if (meshComp != null)
+				{
+
+					var props = GetMergedProperties(meshComp);
+
+					if (props.ContainsKey("AnimSets"))
+					{
+						var animSet = props["AnimSets"];
+
+						int start = animSet.Value.IndexOf('\'') + 1;
+						int end = animSet.Value.IndexOf('\'', start);
+						string path = animSet.Value.Substring(start, end - start);
+
+
+						if (AnimationDurations[path].ContainsKey("meleeattack1_large")) meleeAttack1_large = AnimationDurations[path]["meleeattack1_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_large")) meleeAttack2_large = AnimationDurations[path]["meleeattack2_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_large")) meleeAttack3_large = AnimationDurations[path]["meleeattack3_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_medium")) meleeAttack1_medium = AnimationDurations[path]["meleeattack1_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_medium")) meleeAttack2_medium = AnimationDurations[path]["meleeattack2_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_medium")) meleeAttack3_medium = AnimationDurations[path]["meleeattack3_medium"];
+					}
+				}
+			}
+
+			propertyMap.Add("MeleeAttack1LargeAnimDuration", meleeAttack1_large.ToString());
+			propertyMap.Add("MeleeAttack2LargeAnimDuration", meleeAttack2_large.ToString());
+			propertyMap.Add("MeleeAttack3LargeAnimDuration", meleeAttack3_large.ToString());
+			propertyMap.Add("MeleeAttack1MediumAnimDuration", meleeAttack1_medium.ToString());
+			propertyMap.Add("MeleeAttack2MediumAnimDuration", meleeAttack2_medium.ToString());
+			propertyMap.Add("MeleeAttack3MediumAnimDuration", meleeAttack3_medium.ToString());
+
 		}
 
 	}

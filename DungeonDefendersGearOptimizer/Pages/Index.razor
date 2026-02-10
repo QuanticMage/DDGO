@@ -6,7 +6,6 @@
 @using System.Text.RegularExpressions
 @using System.Globalization
 @using System.IO.Compression
-@using System.Net.Http
 @inject HttpClient Http
 
 <div class="top-pane">
@@ -961,7 +960,7 @@
 
                             <td class="num">@r.MaxLevel</td>
                             <td class="num">@r.Level</td>                            
-                            <td class="num" data-tooltip="@r.DPSTooltip">@r.CachedDPSString</td>
+                            <td class="cell-dps" data-tooltip="@r.DPSTooltip">@r.CachedDPSString</td>
                             <td class="num cell-health @CachedStatShadingStyles[(int)DDStat.HeroHealth]">@r.CachedStatValues[(int)DDStat.HeroHealth]</td>
                             <td class="num cell-damage @CachedStatShadingStyles[(int)DDStat.HeroDamage]">@r.CachedStatValues[(int)DDStat.HeroDamage]</td>
                             <td class="num cell-range @CachedStatShadingStyles[(int)DDStat.HeroSpeed]">@r.CachedStatValues[(int)DDStat.HeroSpeed]</td>
@@ -1028,9 +1027,10 @@
     private bool _compactDisplay = true;
     public bool _sidesAreImportant = false;
     public string[] CachedStatShadingStyles = new string[11];
-    public ExportedTemplateDatabase TemplateDB = new ExportedTemplateDatabase();
+
     public bool _templateDBIsLoaded = false;
-    public DamageCalculator damageCalculator = new DamageCalculator();
+    public TemplateDatabase TemplateDB = new TemplateDatabase();
+    public DamageCalculator? _damageCalculator = null;
 
 
     // Current sorting criteria
@@ -2309,19 +2309,12 @@
         await LoadSearchHistoryAsync();
 
 
-
         // read the template database
         if (!_templateDBIsLoaded)
         {
-            using var responseStream = await Http.GetStreamAsync("DunDefTemplates.dbz");
-            using var gzip = new GZipStream(responseStream, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-
-            await gzip.CopyToAsync(output);
-            byte[] tdb = output.ToArray();        
-            TemplateDB.LoadFromRaw(tdb);
+            await TemplateDB.Load(Http, "DunDefTemplates.dbz");
             _templateDBIsLoaded = true;
-            damageCalculator.Initialize(TemplateDB);
+            _damageCalculator = new DamageCalculator(TemplateDB);
         }
 
         if (await JS.InvokeAsync<bool>("dropzone.supportsHandles"))
@@ -2564,12 +2557,18 @@
             return;
         if (_characterPanel == null)
             return;
+        if (_damageCalculator == null)
+            return;
 
-        var heroEntry = TemplateDB.GetTemplateByName(_characterPanel?.SelectedHeroInfo?.Template ?? "");
+        string heroTemplate = _characterPanel?.SelectedHeroInfo?.Template ?? "";
+        if (!TemplateDB.TryGetTemplateIndex(heroTemplate, out int entry))
+        {
+            Console.WriteLine($"Couldn't find hero template {heroTemplate}");
+            return;
+        }
 
         // need to remake this so failure isn't a throw
-
-        info.TemplateData = TemplateDB.GetDunDefHero(heroEntry.ObjIndex);
+        info.TemplateData = TemplateDB.GetDunDefHero(entry);        
         info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(info.TemplateData.PlayerTemplate);
 
         for (int i = 0; i < 11; i++)
@@ -2582,11 +2581,16 @@
                 continue;
             if (v.Set != "Squire")
                 continue;
-            IndexEntry? entry = TemplateDB.GetTemplateByName(db.Items[v.Idx].Template);
-            if (entry == null)
+
+            if (!TemplateDB.TryGetTemplateIndex(db.Items[v.Idx].Template, out int weaponTemplateIdx ))
+            {
+                Console.WriteLine($"Expected known weapon template {db.Items[v.Idx].Template}");
                 continue;
-            var weaponTemplate = TemplateDB.GetHeroEquipment(entry.Value.ObjIndex);
-            v.DPS = (int)(damageCalculator.GetWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }
+
+
+            var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
+            v.DPS = (int)(_damageCalculator.GetWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
 
 
 

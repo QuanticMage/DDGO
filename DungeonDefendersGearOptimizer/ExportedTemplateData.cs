@@ -237,17 +237,18 @@ namespace DDUP
 		public float NegativeThresholdQualityPercentMultiplier;
 		public float MinimumPercentageValue;
 		public float NegativeMinimumPercentageValue;
+		
 
 		public EG_StatRandomizer_Data(string propertyString)
 		{
 			var propertyMap = PropertyParser.Parse(propertyString);
 
-			MaxRandomValue = Parse.Float(propertyMap, "MaxRandomValue");
-			MaxRandomValueNegative = Parse.Float(propertyMap, "MaxRandomValueNegative");
-			RandomPower = Parse.Float(propertyMap, "RandomPower");
+			MaxRandomValue = Parse.Float(propertyMap, "MaxRandomValue", 15.0f);
+			MaxRandomValueNegative = Parse.Float(propertyMap, "MaxRandomValueNegative", 0.0f);
+			RandomPower = Parse.Float(propertyMap, "RandomPower", 8.0f);
 			RandomPowerOverrideIfNegative = Parse.Float(propertyMap, "RandomPowerOverrideIfNegative");
-			RandomNegativeThreshold = Parse.Float(propertyMap, "RandomNegativeThreshold");
-			RandomInclusionThreshold = Parse.Float(propertyMap, "RandomInclusionThreshold");
+			RandomNegativeThreshold = Parse.Float(propertyMap, "RandomNegativeThreshold", 0.93f);
+			RandomInclusionThreshold = Parse.Float(propertyMap, "RandomInclusionThreshold", 0.6f);
 			InclusionThresholdOverrideIfNegative = Parse.Float(propertyMap, "InclusionThresholdOverrideIfNegative");
 			NegativeThresholdQualityPercentMultiplier = Parse.Float(propertyMap, "NegativeThresholdQualityPercentMultiplier");
 			MinimumPercentageValue = Parse.Float(propertyMap, "MinimumPercentageValue");
@@ -298,6 +299,7 @@ namespace DDUP
 		}
 	}
 
+	
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct MeleeSwingInfo_Data
 	{
@@ -305,15 +307,20 @@ namespace DDUP
 		public float MomentumMultiplier;
 		public float SwingAnimationDuration;
 		public float AnimSpeed;
+		public float TimeBeforeEndToAllowNextCombo;
+		public float TimeAfterEndToAllowNextCombo;
+		   
 
 		public MeleeSwingInfo_Data(string propertyString)
 		{
 			var propertyMap = PropertyParser.Parse(propertyString);
 
-			DamageMultiplier = Parse.Float(propertyMap, "DamageMultiplier");
-			MomentumMultiplier = Parse.Float(propertyMap, "MomentumMultiplier");
-			SwingAnimationDuration = Parse.Float(propertyMap, "SwingAnimationDuration");
+			DamageMultiplier = Parse.Float(propertyMap, "DamageMultiplier", 1.0f);
+			MomentumMultiplier = Parse.Float(propertyMap, "MomentumMultiplier", 1.0f);
+			SwingAnimationDuration = Parse.Float(propertyMap, "SwingAnimationDuration", 0.0f);
 			AnimSpeed = Parse.Float(propertyMap, "AnimSpeed");
+			TimeBeforeEndToAllowNextCombo = Parse.Float(propertyMap, "TimeBeforeEndToAllowNextCombo", 0.15f);
+			TimeAfterEndToAllowNextCombo = Parse.Float(propertyMap, "TimeAfterEndToAllowNextCombo", 0.2f);	
 		}
 	}
 
@@ -361,6 +368,13 @@ namespace DDUP
 		public Array_Data MainHandSwingInfoMultipliers;     // MeleeSwingInfo[]
 		public Array_Data OffHandSwingInfoMultipliers;      // MeleeSwingInfo[]
 
+		public float MeleeAttack1LargeAnimDuration;
+		public float MeleeAttack2LargeAnimDuration;
+		public float MeleeAttack3LargeAnimDuration;
+		public float MeleeAttack1MediumAnimDuration;
+		public float MeleeAttack2MediumAnimDuration;
+		public float MeleeAttack3MediumAnimDuration;
+
 		public DunDefPlayer_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			AdditionalSpeedMultiplier = Parse.Float(propertyMap, "AdditionalSpeedMultiplier");
@@ -375,6 +389,15 @@ namespace DDUP
 			StatMultFull_HeroCastingRate = Parse.Float(propertyMap, "StatMultFull_HeroCastingRate");
 			StatMultInitial_HeroCastingRate = Parse.Float(propertyMap, "StatMultInitial_HeroCastingRate");
 			AnimSpeedMultiplier = Parse.Float(propertyMap, "AnimSpeedMultiplier");
+			
+			MeleeAttack1LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack1LargeAnimDuration", 1.0f);
+			
+			MeleeAttack2LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack2LargeAnimDuration", 1.0f);
+			MeleeAttack3LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack3LargeAnimDuration", 0.5f);
+			MeleeAttack1MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack1MediumAnimDuration", 0.7f);
+			MeleeAttack2MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack2MediumAnimDuration", 0.533f);
+			MeleeAttack3MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack3MediumAnimDuration", 1.033f);
+		
 
 			MeleeSwingInfoMultipliers = db.BuildArray(propertyMap["MeleeSwingInfoMultipliers"], VarType.MeleeSwingInfo);
 
@@ -546,6 +569,7 @@ namespace DDUP
 		// DunDefWeapon_NessieLauncher
 		public float Multiplier;
 		public float NessieCooldown;
+
 
 		public DunDefWeapon_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{

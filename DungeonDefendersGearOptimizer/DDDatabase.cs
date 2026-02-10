@@ -130,11 +130,16 @@ public class DDEquipmentInfo
 	public bool IsInitialized;
 	public int[] ResistIdx = new int[4];
 	public int[] ResistAmt = new int[4];
-	public int[] Stats = new int[24];
-	public int WeaponDamageBonus;
-	public int WeaponProjectiles;
-	public int WeaponSpeedType;
-	public float DrawScale, SwingSpeed;
+	public int[] Stats = new int[11];
+	public int[] SpawnStats = new int[11];
+
+	public int WeaponDamageBonus;	
+	public byte WeaponNumberOfProjectilesBonus;
+	public int WeaponSpeedOfProjectilesBonus;
+	public byte WeaponAdditionalDamageTypeIndex;
+	public int WeaponAdditionalDamageAmount;
+	public float WeaponDrawScaleMultiplier;
+	public float WeaponSwingSpeedMultiplier;
 	public int Level, MaxLevel;
 	public int StoredMana;
 	public byte[] WeaponBonuses = new byte[7];
@@ -563,11 +568,11 @@ public class DDDatabase
 			DDLinearColor IconColorPrimary = Items[i].Color1;
 			DDLinearColor IconColorSecondary = Items[i].Color2;
 
-			IndexEntry? entry = TemplateDB?.GetTemplateByName(itemInfo.Template);
-
-			if ((TemplateDB != null) && (entry != null))
+				
+			if ((TemplateDB != null) && (TemplateDB.TryGetTemplateIndex(itemInfo.Template, out int index)))
 			{
-				var equip = TemplateDB.GetHeroEquipment(entry.Value.ObjIndex);									
+
+				var equip = TemplateDB.GetHeroEquipment(index);
 				
 				if      (equip.EquipmentType == (int)EquipmentType.Weapon) { type = "Weapon"; }
 				else if (equip.EquipmentType == (int)EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
@@ -880,20 +885,19 @@ public class DDDatabase
 		for (int i = 0; i < 4; i++)
 			e.ResistAmt[i] = reader.ReadByte() - 127;
 
-		// is this resists?
 		
-		for (int i = 0; i < 24; i++) e.Stats[i] = reader.ReadInt32() - 127; // 0xb6c- 0xbcb, +127
+		for (int i = 0; i < 11; i++) e.Stats[i] = reader.ReadInt32() - 127; // 0xb6c- 0xbcb, +127
+		for (int i = 0; i < 11; i++) e.SpawnStats[i] = reader.ReadInt32() - 127; // 0xb6c- 0xbcb, +127
 
+	
 		e.WeaponDamageBonus = reader.ReadInt32(); // 0xbcc 			 
-		e.WeaponProjectiles = reader.ReadByte(); //
-		e.WeaponSpeedType = reader.ReadByte(); // 
+		e.WeaponNumberOfProjectilesBonus = reader.ReadByte(); //
+		e.WeaponSpeedOfProjectilesBonus = reader.ReadInt32();
+		e.WeaponAdditionalDamageTypeIndex = reader.ReadByte();
+		e.WeaponAdditionalDamageAmount = reader.ReadInt32();
+		e.WeaponDrawScaleMultiplier = reader.ReadSingle(); // 0xbd2
+		e.WeaponSwingSpeedMultiplier = reader.ReadSingle(); // 0xbd6
 
-		//e.WeaponAdditionalDamage = reader.ReadInt32(); // where does this live?
-
-		e.DrawScale = reader.ReadSingle(); // 0xbd2
-		e.SwingSpeed = reader.ReadSingle(); // 0xbd6
-
-		// Many DD files store Level as int32.
 		e.Level = reader.ReadInt32(); // 0xbda
 
 		e.StoredMana = reader.ReadInt32(); // 0xbde

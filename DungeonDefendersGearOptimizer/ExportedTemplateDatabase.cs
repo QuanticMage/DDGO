@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 
 namespace DDUP
 {
@@ -75,6 +76,7 @@ namespace DDUP
 		private int HeroEquipment_DatasCount;
 		private int HeroEquipment_Familiar_DatasCount;
 		private int DunDefHero_DatasCount;
+
 
 		// String data for loaded database
 		private List<string> LoadedStrings = new();
@@ -392,32 +394,67 @@ namespace DDUP
 
 		// ============== READONLY REF GETTERS FOR LOADED DATA ==============
 		// These methods return ref readonly to avoid copying large structs
+		public ReadOnlySpan<DunDefDamageType_Data> DunDefDamageTypesSpan
+	=> MemoryMarshal.Cast<byte, DunDefDamageType_Data>(
+		AllData.AsSpan(
+			DunDefDamageType_DatasOffset,
+			DunDefDamageType_DatasCount * Unsafe.SizeOf<DunDefDamageType_Data>()));
+
+		public ReadOnlySpan<DunDefPlayer_Data> DunDefPlayersSpan
+			=> MemoryMarshal.Cast<byte, DunDefPlayer_Data>(
+				AllData.AsSpan(
+					DunDefPlayer_DatasOffset,
+					DunDefPlayer_DatasCount * Unsafe.SizeOf<DunDefPlayer_Data>()));
+
+		public ReadOnlySpan<DunDefWeapon_Data> DunDefWeaponsSpan
+			=> MemoryMarshal.Cast<byte, DunDefWeapon_Data>(
+				AllData.AsSpan(
+					DunDefWeapon_DatasOffset,
+					DunDefWeapon_DatasCount * Unsafe.SizeOf<DunDefWeapon_Data>()));
+
+		public ReadOnlySpan<DunDefProjectile_Data> DunDefProjectilesSpan
+			=> MemoryMarshal.Cast<byte, DunDefProjectile_Data>(
+				AllData.AsSpan(
+					DunDefProjectile_DatasOffset,
+					DunDefProjectile_DatasCount * Unsafe.SizeOf<DunDefProjectile_Data>()));
+
+		public ReadOnlySpan<HeroEquipment_Data> HeroEquipmentsSpan
+			=> MemoryMarshal.Cast<byte, HeroEquipment_Data>(
+				AllData.AsSpan(
+					HeroEquipment_DatasOffset,
+					HeroEquipment_DatasCount * Unsafe.SizeOf<HeroEquipment_Data>()));
+
+		public ReadOnlySpan<HeroEquipment_Familiar_Data> HeroEquipmentFamiliarsSpan
+			=> MemoryMarshal.Cast<byte, HeroEquipment_Familiar_Data>(
+				AllData.AsSpan(
+					HeroEquipment_Familiar_DatasOffset,
+					HeroEquipment_Familiar_DatasCount * Unsafe.SizeOf<HeroEquipment_Familiar_Data>()));
+
+		public ReadOnlySpan<DunDefHero_Data> DunDefHeroesSpan
+			=> MemoryMarshal.Cast<byte, DunDefHero_Data>(
+				AllData.AsSpan(
+					DunDefHero_DatasOffset,
+					DunDefHero_DatasCount * Unsafe.SizeOf<DunDefHero_Data>()));
+
+
+
 
 		public ref readonly IndexEntry GetIndexEntry(int index)
-		{
-			if (index < 0 || index >= IndexEntriesCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+		{			
 			return ref MemoryMarshal.Cast<byte, IndexEntry>(
 				new ReadOnlySpan<byte>(AllData, IndexEntriesOffset, IndexEntriesCount * Marshal.SizeOf<IndexEntry>())
 			)[index];
 		}
 
 		public ref readonly ULinearColor_Data GetULinearColor(int index)
-		{
-			if (index < 0 || index >= ULinearColorsCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+		{		
 			var span = new ReadOnlySpan<byte>(AllData, ULinearColorsOffset, ULinearColorsCount * Marshal.SizeOf<ULinearColor_Data>());
 
 			return ref MemoryMarshal.Cast<byte, ULinearColor_Data>(span)[index];				
 		}
 
 		public ref readonly EG_StatRandomizer_Data GetEG_StatRandomizer(int index)
-		{
-			if (index < 0 || index >= EG_StatRandomizersCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+		{		
 			return ref MemoryMarshal.Cast<byte, EG_StatRandomizer_Data>(
 				new ReadOnlySpan<byte>(AllData, EG_StatRandomizersOffset, EG_StatRandomizersCount * Marshal.SizeOf<EG_StatRandomizer_Data>())
 			)[index];
@@ -425,9 +462,6 @@ namespace DDUP
 
 		public ref readonly EG_StatMatchingString_Data GetEG_StatMatchingString(int index)
 		{
-			if (index < 0 || index >= EG_StatMatchingStringsCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
 			return ref MemoryMarshal.Cast<byte, EG_StatMatchingString_Data>(
 				new ReadOnlySpan<byte>(AllData, EG_StatMatchingStringsOffset, EG_StatMatchingStringsCount * Marshal.SizeOf<EG_StatMatchingString_Data>())
 			)[index];
@@ -435,9 +469,6 @@ namespace DDUP
 
 		public ref readonly DamageReduction_Data GetDamageReduction(int index)
 		{
-			if (index < 0 || index >= DamageReductionsCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
 			return ref MemoryMarshal.Cast<byte, DamageReduction_Data>(
 				new ReadOnlySpan<byte>(AllData, DamageReductionsOffset, DamageReductionsCount * Marshal.SizeOf<DamageReduction_Data>())
 			)[index];
@@ -445,110 +476,79 @@ namespace DDUP
 
 		public ref readonly MeleeSwingInfo_Data GetMeleeSwingInfo(int index)
 		{
-			if (index < 0 || index >= MeleeSwingInfosCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+	
 			return ref MemoryMarshal.Cast<byte, MeleeSwingInfo_Data>(
 				new ReadOnlySpan<byte>(AllData, MeleeSwingInfosOffset, MeleeSwingInfosCount * Marshal.SizeOf<MeleeSwingInfo_Data>())
 			)[index];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefDamageType_Data GetDunDefDamageType(int index)
 		{
-			if (index < 0 || index >= DunDefDamageType_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, DunDefDamageType_Data>(
-				new ReadOnlySpan<byte>(AllData, DunDefDamageType_DatasOffset, DunDefDamageType_DatasCount * Marshal.SizeOf<DunDefDamageType_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefDamageTypesSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefPlayer_Data GetDunDefPlayer(int index)
 		{
-			if (index < 0 || index >= DunDefPlayer_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, DunDefPlayer_Data>(
-				new ReadOnlySpan<byte>(AllData, DunDefPlayer_DatasOffset, DunDefPlayer_DatasCount * Marshal.SizeOf<DunDefPlayer_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefPlayersSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefWeapon_Data GetDunDefWeapon(int index)
 		{
-			if (index < 0 || index >= DunDefWeapon_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, DunDefWeapon_Data>(
-				new ReadOnlySpan<byte>(AllData, DunDefWeapon_DatasOffset, DunDefWeapon_DatasCount * Marshal.SizeOf<DunDefWeapon_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefWeaponsSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefProjectile_Data GetDunDefProjectile(int index)
 		{
-			if (index < 0 || index >= DunDefProjectile_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, DunDefProjectile_Data>(
-				new ReadOnlySpan<byte>(AllData, DunDefProjectile_DatasOffset, DunDefProjectile_DatasCount * Marshal.SizeOf<DunDefProjectile_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefProjectilesSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly HeroEquipment_Data GetHeroEquipment(int index)
 		{
-			if (index < 0 || index >= HeroEquipment_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, HeroEquipment_Data>(
-				new ReadOnlySpan<byte>(AllData, HeroEquipment_DatasOffset, HeroEquipment_DatasCount * Marshal.SizeOf<HeroEquipment_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref HeroEquipmentsSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly HeroEquipment_Familiar_Data GetHeroEquipment_Familiar(int index)
 		{
-			if (index < 0 || index >= HeroEquipment_Familiar_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, HeroEquipment_Familiar_Data>(
-				new ReadOnlySpan<byte>(AllData, HeroEquipment_Familiar_DatasOffset, HeroEquipment_Familiar_DatasCount * Marshal.SizeOf<HeroEquipment_Familiar_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref HeroEquipmentFamiliarsSpan[entry.ObjIndex];
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefHero_Data GetDunDefHero(int index)
 		{
-			if (index < 0 || index >= DunDefHero_DatasCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
-			return ref MemoryMarshal.Cast<byte, DunDefHero_Data>(
-				new ReadOnlySpan<byte>(AllData, DunDefHero_DatasOffset, DunDefHero_DatasCount * Marshal.SizeOf<DunDefHero_Data>())
-			)[index];
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefHeroesSpan[entry.ObjIndex];
 		}
 
 
 		// Array element accessors with bounds checking
 		public int GetIntArrayElem(int index)
 		{
-			if (index < 0 || index >= IntArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+		
 			return MemoryMarshal.Read<int>(new ReadOnlySpan<byte>(AllData, IntArrayElemsOffset + index * sizeof(int), sizeof(int)));
 		}
 
 		public float GetFloatArrayElem(int index)
 		{
-			if (index < 0 || index >= FloatArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(index));
-
+		
 			return MemoryMarshal.Read<float>(new ReadOnlySpan<byte>(AllData, FloatArrayElemsOffset + index * sizeof(float), sizeof(float)));
 		}
 
 		// Get array elements as ReadOnlySpan for efficient iteration
 		public ReadOnlySpan<int> GetIntArrayElemsSpan(int start, int count)
 		{
-			if (start < 0 || start >= IntArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(start));
-			if (count < 0 || start + count > IntArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(count));
-
+		
 			return MemoryMarshal.Cast<byte, int>(
 				new ReadOnlySpan<byte>(AllData, IntArrayElemsOffset + start * sizeof(int), count * sizeof(int))
 			);
@@ -556,11 +556,6 @@ namespace DDUP
 
 		public ReadOnlySpan<float> GetFloatArrayElemsSpan(int start, int count)
 		{
-			if (start < 0 || start >= FloatArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(start));
-			if (count < 0 || start + count > FloatArrayElemsCount)
-				throw new ArgumentOutOfRangeException(nameof(count));
-
 			return MemoryMarshal.Cast<byte, float>(
 				new ReadOnlySpan<byte>(AllData, FloatArrayElemsOffset + start * sizeof(float), count * sizeof(float))
 			);
@@ -616,13 +611,12 @@ namespace DDUP
 		{
 			return LoadedTemplateIndexMap.TryGetValue(templateName, out index);
 		}
-
-		public ref readonly IndexEntry GetTemplateByName(string templateName)
+		public int FindTemplateIndex(string templateName)
 		{
 			if (!LoadedTemplateIndexMap.TryGetValue(templateName, out int index))
 				throw new KeyNotFoundException($"Template '{templateName}' not found");
 
-			return ref GetIndexEntry(index);
+			return index;
 		}
 
 		// Array helper - returns ref readonly to avoid copying Array_Data struct
@@ -639,6 +633,12 @@ namespace DDUP
 		{
 			if ((value == null) || (value == ""))
 				return new Array_Data(0, 0, type);
+
+			if (!value.Contains("["))
+			{
+			//	MainWindow.Log($"Error: Array type not found : {type.ToString()} {value}");
+				return new Array_Data(0, 0, type);
+			}
 
 			List<string> entries = ArrayPropertyParser.Parse(value);
 			if (entries.Count == 0)
@@ -942,7 +942,7 @@ namespace DDUP
 			HeroEquipment_IndexMap.Add(path, entryIdx);
 			HeroEquipment_Datas.Add(heroEquip);
 
-			return objIdx;
+			return entryIdx;
 		}
 
 
@@ -957,7 +957,7 @@ namespace DDUP
 			DunDefWeapon_IndexMap.Add(path, entryIdx);
 			DunDefWeapon_Datas.Add(weaponData);
 
-			return objIdx;
+			return entryIdx;
 		}
 
 		public int AddDunDefHero(string path, string className, ref DunDefHero_Data heroData)
@@ -971,7 +971,7 @@ namespace DDUP
 			DunDefHero_IndexMap.Add(path, entryIdx);
 			DunDefHero_Datas.Add(heroData);
 
-			return objIdx;
+			return entryIdx;
 		}
 
 
@@ -986,7 +986,7 @@ namespace DDUP
 			DunDefProjectile_IndexMap.Add(path, entryIdx);
 			DunDefProjectile_Datas.Add(projData);
 
-			return objIdx;
+			return entryIdx;
 		}
 
 		public int AddDunDefPlayer(string path, string className, ref DunDefPlayer_Data playerData)
@@ -1000,7 +1000,7 @@ namespace DDUP
 			DunDefPlayer_IndexMap.Add(path, entryIdx);
 			DunDefPlayer_Datas.Add(playerData);
 
-			return objIdx;
+			return entryIdx;
 		}
 		public int AddDunDefDamageType(string path, string className, ref DunDefDamageType_Data damageTypeData)
 		{
@@ -1013,7 +1013,7 @@ namespace DDUP
 			DunDefDamageType_IndexMap.Add(path, entryIdx);
 			DunDefDamageType_Datas.Add(damageTypeData);
 
-			return objIdx;
+			return entryIdx;
 		}
 	}
 }
