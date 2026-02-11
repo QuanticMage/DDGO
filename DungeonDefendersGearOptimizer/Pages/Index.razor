@@ -603,7 +603,7 @@
 
                     <col style="width:55px" />   @* MaxLvl *@
                     <col style="width:55px" />   @* Lvl *@
-                    <col style="width:65px" />   @* Damage *@                    
+                    <col style="width:70px" />   @* Damage *@                    
                     <col style="width:60px" />   @* HHP *@
                     <col style="width:60px" />   @* HDmg *@
                     <col style="width:60px" />   @* HSpd *@
@@ -806,7 +806,7 @@
                         </th>
                         <th class="sortable">
                             <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))">
-                               <span class="hdr-text">Actual Damage</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
+                               <span class="hdr-text">Estimated DPS</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
                             </button>
                             <div class="col-resizer"></div>
                         </th>

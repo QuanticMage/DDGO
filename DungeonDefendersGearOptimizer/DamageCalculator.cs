@@ -17,10 +17,10 @@ namespace DDUP
 	public class HeroInfo
 	{
 		public int[] TotalStats = new int[11];     // regular stats
-		public float PlayerWeaponDamageMultiplier = 0.8f;
+		public float PlayerWeaponDamageMultiplier = 0.8f ;
 		public DunDefHero_Data TemplateData;
 		public DunDefPlayer_Data PlayerTemplateData;
-		public float GlobalDamageMultiplier = 0.155f; 		 // nightmare mode
+		public float GlobalDamageMultiplier = 0.155f; 		 // nightmare mode, unclear but definitely there modifier
 	}
 
 
@@ -32,23 +32,24 @@ namespace DDUP
 			tdb = _tdb;
 		}
 
-		public float GetHeroDamageMult(ref HeroInfo heroInfo, bool Debug)
+		public float GetHeroDamageMult(ref HeroInfo heroInfo)
 		{
-			float damageStat = heroInfo.TotalStats[(int)DDStat.HeroDamage]+ 1;
+			float damageStat = heroInfo.TotalStats[(int)DDStat.HeroDamage] + 1;
 
-			float initialComponent = heroInfo.TemplateData.StatMultInitial_HeroDamage *
-				(MathF.Pow(MathF.Min(damageStat, heroInfo.TemplateData.StatBoostCapInitial_HeroDamage),
-						   (heroInfo.TemplateData.StatExpInitial_HeroDamage * 1.1f)) - 1.0f);
+			// note: the parenthesis are missing in this part, and that's important!
+			float initialComponent = heroInfo.TemplateData.StatMultInitial_HeroDamage_Competitive *
+				MathF.Pow(4,  (heroInfo.TemplateData.StatExpInitial_HeroDamage_Competitive * 1.1f)) - 1.0f;
 
-			float fullComponent = heroInfo.TemplateData.StatMultFull_HeroDamage *
-				(MathF.Pow(damageStat, (heroInfo.TemplateData.StatExpFull_HeroDamage * 1.1f)) - 1.0f);
+			float fullComponent = heroInfo.TemplateData.StatMultFull_HeroDamage_Competitive *
+				(MathF.Pow(damageStat, (heroInfo.TemplateData.StatExpFull_HeroDamage_Competitive * 1.1f)) - 1.0f);
 
-			if (Debug)
-			{
-				Console.WriteLine($"Hero Damage Init: {initialComponent} {heroInfo.TemplateData.StatMultInitial_HeroDamage} {damageStat} {heroInfo.TemplateData.StatBoostCapInitial_HeroDamage} {heroInfo.TemplateData.StatExpInitial_HeroDamage}");
-				Console.WriteLine($"Hero Damage Full: {fullComponent} {heroInfo.TemplateData.StatMultFull_HeroDamage} {heroInfo.TemplateData.StatExpFull_HeroDamage}");
-			}
-			return 1.0f + initialComponent + fullComponent;
+			//if (Debug)
+			//{	
+			//	Console.WriteLine($"Hero Damage Init: {initialComponent} {heroInfo.TemplateData.StatMultInitial_HeroDamage_Competitive} {damageStat} {heroInfo.TemplateData.StatBoostCapInitial_HeroDamage_Competitive} {heroInfo.TemplateData.StatExpInitial_HeroDamage_Competitive}");
+			//	Console.WriteLine($"Hero Damage Full: {fullComponent} {heroInfo.TemplateData.StatMultFull_HeroDamage_Competitive} {heroInfo.TemplateData.StatExpFull_HeroDamage_Competitive}");
+			//}
+			
+			return (1.0f + initialComponent + fullComponent);
 		}
 
 		public float GetPawnDamageMult(ref HeroInfo heroInfo)
@@ -78,7 +79,7 @@ namespace DDUP
 			if (p.MultiplyProjectileDamageByWeaponDamage == 1)
 			{
 				float weaponDamageNormalized = (float)Math.Pow(equipDamage, p.ProjectileDamageByWeaponDamageDivider) *
-					GetHeroDamageMult(ref heroInfo, false) * GetPawnDamageMult(ref heroInfo);
+					GetHeroDamageMult(ref heroInfo) * GetPawnDamageMult(ref heroInfo);
 				float damageMult = weaponDamageNormalized;
 
 				if (weaponTemplate.bUseDamageReductionForAbilities == 1)
@@ -112,7 +113,7 @@ namespace DDUP
 
 			float EquipDamage = ((float)weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier +
 									   instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
-			float HeroDamageMult = GetHeroDamageMult(ref heroInfo, false);
+			float HeroDamageMult = GetHeroDamageMult(ref heroInfo);
 			float PawnDamageMult = GetPawnDamageMult(ref heroInfo);
 
 			float DamagePerProjectile = EquipDamage * PawnDamageMult;
@@ -168,18 +169,19 @@ namespace DDUP
 			return ((TotalDamage + AdditionalDamagePerProjectile) * NumProjectiles) * FireRate;
 		}
 
-
+		//====================================================================================================
+		// MELEE DAMAGE CALCULATIONS
+		//======================================================================================================
 		public float GetMeleeWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
 			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 
 			int BaseDamage = weaponTemplate.BaseDamage;
-		
-			// equipTemplate.WeaponDamageMultiplier is cast to an int in a function call.  PAINFUL
+					
 			float EquipmentBaseDamage = MathF.Max((float)BaseDamage * weaponTemplate.WeaponProjectileDamageMultiplier * ((int)equipTemplate.WeaponDamageMultiplier) + 
 												  GetEquipmentDamageBonus(instance, ref weaponTemplate, ref equipTemplate), 1.0f);			
 			float SwingAdjustment = MathF.Max((float)MathF.Pow(weaponTemplate.DamageIncreaseForSwingSpeedFactor / (weaponTemplate.SpeedMultiplier * instance.WeaponSwingSpeedMultiplier), weaponTemplate.SpeedMultiplierDamageExponent),1.0f);
-			float HeroDamageMult = GetHeroDamageMult(ref heroInfo, ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446)));
+			float HeroDamageMult = GetHeroDamageMult(ref heroInfo);
 			float PawnDamageMult = GetPawnDamageMult(ref heroInfo);
 
 			float AdditionalDamage = instance.WeaponAdditionalDamageAmount * PawnDamageMult * equipTemplate.ElementalDamageMultiplier;			
@@ -232,10 +234,10 @@ namespace DDUP
 				swingInfoIndex[2] = mainHandSwingInfoRef.Start + 1;
 				swingInfoIndex[3] = offHandSwingInfoRef.Start + 1;
 			}
-			if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
-			{
-				Console.WriteLine($"----- {instance.GeneratedName} {instance.Template}-----");
-			}
+			//if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
+			//{
+			//	Console.WriteLine($"----- {instance.GeneratedName} {instance.Template}-----");
+			//}
 
 			for (int i = 0; i < numSwings; i++)
 			{				
@@ -249,11 +251,11 @@ namespace DDUP
 				float SwingDamage = MainDamage * swingInfo.DamageMultiplier * weaponTemplate.DamageMultiplier * playerMultiplier;
 				float SwingExtraDamage = AdditionalDamage * swingInfo.DamageMultiplier;
 
-				if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
-					Console.WriteLine($"Swing {i}: {SwingDamage} + {SwingExtraDamage} in {SwingTime} seconds");
+				//if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
+				//	Console.WriteLine($"Swing {i}: {SwingDamage} + {SwingExtraDamage} in {SwingTime} seconds");
 
 				swingTimeSum += SwingTime;
-				swingDamageSum += SwingDamage;
+				swingDamageSum += SwingDamage + SwingExtraDamage;
 			}
 
 			DunDefWeapon_Data weapon = weaponTemplate;
@@ -261,23 +263,23 @@ namespace DDUP
 			HeroEquipment_Data he = equipTemplate;
 
 
-			if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
-			{
-				Console.WriteLine($"Swing Adjustment: {weaponTemplate.DamageIncreaseForSwingSpeedFactor} / ({weaponTemplate.SpeedMultiplier} * {instance.WeaponSwingSpeedMultiplier}) ^ {weaponTemplate.SpeedMultiplierDamageExponent}");
+			//if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496) || (instance.MaxLevel == 446))
+			//{
+			//	Console.WriteLine($"Swing Adjustment: {weaponTemplate.DamageIncreaseForSwingSpeedFactor} / ({weaponTemplate.SpeedMultiplier} * {instance.WeaponSwingSpeedMultiplier}) ^ {weaponTemplate.SpeedMultiplierDamageExponent}");
 
-				Console.WriteLine($"Damage {BaseDamage} {weaponTemplate.WeaponProjectileDamageMultiplier} * {equipTemplate.WeaponDamageMultiplier} + {instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier}");
-				Console.WriteLine($"Damage {MainDamage} = {EquipmentBaseDamage} * {SwingAdjustment} * {HeroDamageMult} * {PawnDamageMult} ");
-				Console.WriteLine($"Additional Damage {AdditionalDamage}");
-				Console.WriteLine($"Weapon Template DamageMult {weaponTemplate.DamageMultiplier} {weaponTemplate.WeaponDamageMultiplier} { instance.WeaponDamageBonus}");
-				Console.WriteLine($"Anim Speed {weaponTemplate.WeaponSpeedMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).AnimSpeed}");
-				Console.WriteLine($"Speed {totalSpeedMult} = {instance.WeaponSwingSpeedMultiplier} * {weaponTemplate.SpeedMultiplier} * {weaponTemplate.ExtraSpeedMultiplier}");
-				Console.WriteLine($"Durations {swingDurations[0]} {swingDurations[1]} {swingDurations[2]} {swingDurations[3]}");
-				Console.WriteLine($"Anim Speed {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).AnimSpeed}");
-				Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).DamageMultiplier}");
-				Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).TimeBeforeEndToAllowNextCombo}");
-				Console.WriteLine($"DamageMult Player {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start).DamageMultiplier} {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start+1).DamageMultiplier} {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start+2).DamageMultiplier}");
-				Console.WriteLine($"Swings {swingInfoRef.Count}: {swingTimeSum} {swingDamageSum}");
-			}
+			//	Console.WriteLine($"Damage {BaseDamage} {weaponTemplate.WeaponProjectileDamageMultiplier} * {equipTemplate.WeaponDamageMultiplier} + {instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier}");
+			//	Console.WriteLine($"Damage {MainDamage} = {EquipmentBaseDamage} * {SwingAdjustment} * {HeroDamageMult} * {PawnDamageMult} ");
+			//	Console.WriteLine($"Additional Damage {AdditionalDamage}");
+			//	Console.WriteLine($"Weapon Template DamageMult {weaponTemplate.DamageMultiplier} {weaponTemplate.WeaponDamageMultiplier} { instance.WeaponDamageBonus}");
+			//	Console.WriteLine($"Anim Speed {weaponTemplate.WeaponSpeedMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).AnimSpeed}");
+			//	Console.WriteLine($"Speed {totalSpeedMult} = {instance.WeaponSwingSpeedMultiplier} * {weaponTemplate.SpeedMultiplier} * {weaponTemplate.ExtraSpeedMultiplier}");
+			//	Console.WriteLine($"Durations {swingDurations[0]} {swingDurations[1]} {swingDurations[2]} {swingDurations[3]}");
+			//	Console.WriteLine($"Anim Speed {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).AnimSpeed}");
+			//	Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).DamageMultiplier}");
+			//	Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).TimeBeforeEndToAllowNextCombo}");
+			//	Console.WriteLine($"DamageMult Player {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start).DamageMultiplier} {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start+1).DamageMultiplier} {tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start+2).DamageMultiplier}");
+			//	Console.WriteLine($"Swings {swingInfoRef.Count}: {swingTimeSum} {swingDamageSum}");
+			//}
 			return (swingTimeSum == 0.0f) ? MainDamage + AdditionalDamage : (swingDamageSum / swingTimeSum);			
 		}
 	}
