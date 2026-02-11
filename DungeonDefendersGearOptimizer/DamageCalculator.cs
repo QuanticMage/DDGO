@@ -43,8 +43,8 @@ namespace DDUP
 			float fullComponent = heroInfo.TemplateData.StatMultFull_HeroDamage *
 				(MathF.Pow(damageStat, (heroInfo.TemplateData.StatExpFull_HeroDamage * 1.1f)) - 1.0f);
 
-			Console.WriteLine($"Hero Damage Mult: {heroInfo.TemplateData.StatMultInitial_HeroDamage} {damageStat} {heroInfo.TemplateData.StatBoostCapInitial_HeroDamage} {heroInfo.TemplateData.StatExpInitial_HeroDamage}");
-			Console.WriteLine($"Hero Damage MultX: {damageStat} {heroInfo.TemplateData.StatMultFull_HeroDamage} {heroInfo.TemplateData.StatExpFull_HeroDamage}");
+			//Console.WriteLine($"Hero Damage Mult: {heroInfo.TemplateData.StatMultInitial_HeroDamage} {damageStat} {heroInfo.TemplateData.StatBoostCapInitial_HeroDamage} {heroInfo.TemplateData.StatExpInitial_HeroDamage}");
+			//Console.WriteLine($"Hero Damage MultX: {damageStat} {heroInfo.TemplateData.StatMultFull_HeroDamage} {heroInfo.TemplateData.StatExpFull_HeroDamage}");
 
 			return 1.0f + initialComponent + fullComponent;
 		}
@@ -54,6 +54,18 @@ namespace DDUP
 			return heroInfo.PlayerTemplateData.ExtraPlayerDamageMultiplier *
 				   heroInfo.PlayerTemplateData.PlayerWeaponDamageMultiplier *
 				   heroInfo.GlobalDamageMultiplier;
+		}
+
+		float GetEquipmentDamageBonus(DDEquipmentInfo instance, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
+		{
+			// Step 1: Apply multipliers to bonus
+			float floatValue = (equipTemplate.WeaponDamageMultiplier *  weaponTemplate.WeaponDamageMultiplier) *
+							   (float)instance.WeaponDamageBonus;
+
+			// Step 2: Convert to int (or ceiling if < 1)
+			int value = (floatValue >= 1.0f) ? (int)floatValue : (int)MathF.Ceiling(floatValue);
+
+			return MathF.Ceiling((float)value);
 		}
 
 		// TODO : melee weapons that fire projectiles
@@ -103,9 +115,10 @@ namespace DDUP
 
 			float DamagePerProjectile = EquipDamage * PawnDamageMult;
 
-			float FireRate = (weaponTemplate.BaseShotsPerSecond + instance.WeaponShotsPerSecondBonus) / weaponTemplate.FireIntervalMultiplier;
+			float FireRate = (weaponTemplate.BaseShotsPerSecond + (instance.WeaponShotsPerSecondBonus-127)) / weaponTemplate.FireIntervalMultiplier;
 
-			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + instance.WeaponNumberOfProjectilesBonus);
+			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + (instance.WeaponNumberOfProjectilesBonus-127));
+
 
 			float TotalDamage = 0.0f;
 			if (weaponTemplate.ProjectileTemplate == -1)
@@ -114,8 +127,11 @@ namespace DDUP
 			}
 			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? weaponTemplate.AdditionalDamageAmount * PawnDamageMult: 0.0f;
 
+			
 			var projectile = tdb.GetDunDefProjectile(weaponTemplate.ProjectileTemplate);
 			float baseProjDamage = GetProjectileDamage(DamagePerProjectile, EquipDamage, ref projectile, ref heroInfo, ref equipTemplate);
+
+			Console.WriteLine($"{instance.GeneratedName} {instance.Template}: {baseProjDamage} {AdditionalDamagePerProjectile} {HeroDamageMult} {PawnDamageMult}");
 
 			float SumDamage = 0.0f;
 
@@ -145,20 +161,25 @@ namespace DDUP
 				}
 				TotalDamage = SumDamage;
 			}
+			Console.WriteLine($"{instance.GeneratedName} {instance.Template}: {TotalDamage} {AdditionalDamagePerProjectile} {NumProjectiles} {FireRate}");
 			
-			return (TotalDamage + AdditionalDamagePerProjectile * NumProjectiles) * FireRate;
+			return ((TotalDamage + AdditionalDamagePerProjectile) * NumProjectiles) * FireRate;
 		}
 
 
-		//public double GetAverageDamage( ExportedTemplateDatabase tdb, DDDatabase db, DunDefWeapon_Info weaponInfo, DDHeroInfo currentHero)
 		public float GetMeleeWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
+			if (instance.MaxLevel == 446)
+			{
+				int xx = 1;
+			}
 			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 
 			int BaseDamage = weaponTemplate.BaseDamage;
 		
-			float EquipmentBaseDamage = MathF.Max((float)BaseDamage * weaponTemplate.WeaponProjectileDamageMultiplier * equipTemplate.WeaponDamageMultiplier + 
-												  instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier, 1.0f);			
+			// equipTemplate.WeaponDamageMultiplier is cast to an int in a function call.  PAINFUL
+			float EquipmentBaseDamage = MathF.Max((float)BaseDamage * weaponTemplate.WeaponProjectileDamageMultiplier * ((int)equipTemplate.WeaponDamageMultiplier) + 
+												  GetEquipmentDamageBonus(instance, ref weaponTemplate, ref equipTemplate), 1.0f);			
 			float SwingAdjustment = MathF.Max((float)MathF.Pow(weaponTemplate.DamageIncreaseForSwingSpeedFactor / (weaponTemplate.SpeedMultiplier * instance.WeaponSwingSpeedMultiplier), weaponTemplate.SpeedMultiplierDamageExponent),1.0f);
 			float HeroDamageMult = GetHeroDamageMult(ref heroInfo);
 			float PawnDamageMult = GetPawnDamageMult(ref heroInfo);
@@ -175,7 +196,7 @@ namespace DDUP
 			Array_Data offHandSwingInfoRef = heroInfo.PlayerTemplateData.OffHandSwingInfoMultipliers;
 			float swingTimeSum = 0.0f;
 			float swingDamageSum = 0.0f;
-			float totalSpeedMult = instance.WeaponSwingSpeedMultiplier * weaponTemplate.SpeedMultiplier * weaponTemplate.ExtraSpeedMultiplier;
+			float totalSpeedMult = instance.WeaponSwingSpeedMultiplier * weaponTemplate.SpeedMultiplier * weaponTemplate.ExtraSpeedMultiplier * weaponTemplate.WeaponSpeedMultiplier;
 
 			int numSwings = 3;
 			if (heroInfo.PlayerTemplateData.OffHandSwingInfoMultipliers.Count > 0)
@@ -225,7 +246,7 @@ namespace DDUP
 				if (playerSwingInfoRef.Count > i)
 					playerMultiplier = tdb.GetMeleeSwingInfo(playerSwingInfoRef.Start + i).DamageMultiplier;
 
-				float AnimSpeed = swingInfo.AnimSpeed * weaponTemplate.WeaponSpeedMultiplier * totalSpeedMult;
+				float AnimSpeed = swingInfo.AnimSpeed  * totalSpeedMult;
 				float SwingTime = (swingDurations[i] - swingInfo.TimeBeforeEndToAllowNextCombo) / AnimSpeed;
 				float SwingDamage = MainDamage * swingInfo.DamageMultiplier * weaponTemplate.DamageMultiplier * playerMultiplier;
 				float SwingExtraDamage = AdditionalDamage * swingInfo.DamageMultiplier;
@@ -236,7 +257,12 @@ namespace DDUP
 				swingTimeSum += SwingTime;
 				swingDamageSum += SwingDamage;
 			}
-			
+
+			DunDefWeapon_Data weapon = weaponTemplate;
+			HeroInfo hero = heroInfo;
+			HeroEquipment_Data he = equipTemplate;
+
+
 			if ((instance.MaxLevel == 435) || (instance.MaxLevel == 496))
 			{
 				Console.WriteLine($"Swing Adjustment: {weaponTemplate.DamageIncreaseForSwingSpeedFactor} / ({weaponTemplate.SpeedMultiplier} * {instance.WeaponSwingSpeedMultiplier}) ^ {weaponTemplate.SpeedMultiplierDamageExponent}");
@@ -244,9 +270,9 @@ namespace DDUP
 				Console.WriteLine($"Damage {BaseDamage} {weaponTemplate.WeaponProjectileDamageMultiplier} * {equipTemplate.WeaponDamageMultiplier} + {instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier}");
 				Console.WriteLine($"Damage {MainDamage} = {EquipmentBaseDamage} * {SwingAdjustment} * {HeroDamageMult} * {PawnDamageMult} ");
 				Console.WriteLine($"Additional Damage {AdditionalDamage}");
-				Console.WriteLine($"Weapon Template DamageMult {weaponTemplate.DamageMultiplier}");
+				Console.WriteLine($"Weapon Template DamageMult {weaponTemplate.DamageMultiplier} {weaponTemplate.WeaponDamageMultiplier} { instance.WeaponDamageBonus}");
 				Console.WriteLine($"Anim Speed {weaponTemplate.WeaponSpeedMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).AnimSpeed} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).AnimSpeed}");
-				Console.WriteLine($"Speed {totalSpeedMult} = {instance.WeaponSwingSpeedMultiplier} * {weaponTemplate.SpeedMultiplier} * {weaponTemplate.ExtraSpeedMultiplier}");
+				Console.WriteLine($"Speed {totalSpeedMult} = {equipTemplate.WeaponSwingSpeedMultiplier} * {weaponTemplate.SpeedMultiplier} * {weaponTemplate.ExtraSpeedMultiplier}");
 				Console.WriteLine($"Durations {swingDurations[0]} {swingDurations[1]} {swingDurations[2]} {swingDurations[3]}");
 				Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).DamageMultiplier} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).DamageMultiplier}");
 				Console.WriteLine($"DamageMult Weapon {tdb.GetMeleeSwingInfo(swingInfoIndex[0]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[1]).TimeBeforeEndToAllowNextCombo} {tdb.GetMeleeSwingInfo(swingInfoIndex[2]).TimeBeforeEndToAllowNextCombo}");
