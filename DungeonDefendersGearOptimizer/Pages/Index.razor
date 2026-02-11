@@ -1256,8 +1256,7 @@
     // Equipping!
 
     private Task HandleChangedHero()
-    {
-        UpdateDPS();
+    {        
         // if hero changes, we need to rerun the filters because some are dependent
         ApplyChipFilters();
         return Task.CompletedTask;
@@ -1274,7 +1273,7 @@
     }
 
     private Task HandleEquipmentClick(ItemViewRow row)
-    {
+    {        
         JS.InvokeVoidAsync("scrollRowIntoView", row.Idx);
         return Task.CompletedTask;
     }
@@ -1282,6 +1281,7 @@
 
     private Task HandleEquipmentRightClick(ItemViewRow row)
     {
+      
         // deselect this row
         DeselectRow(row);
         return Task.CompletedTask;
@@ -1303,8 +1303,7 @@
         {
             if (v.cachedItemRow != null)
                 SelectRow(v.cachedItemRow);
-        }
-
+        }        
         return Task.CompletedTask;
     }
 
@@ -1999,6 +1998,7 @@
         EquippedArmorSet = foundSet;
         if (_characterPanel != null)
             _characterPanel.UpdateCharacterTotalStats();
+        UpdateDPS();
     }
 
     private void RecalculateRatings()
