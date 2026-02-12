@@ -327,6 +327,8 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct DunDefDamageType_Data
 	{
+		public int Template;
+		public int Class;
 		public int AdjectiveName; // localized string
 		public int FriendlyName;  // localized string
 		public byte UseForNotPoisonElementalDamage; // bool
@@ -335,6 +337,8 @@ namespace DDUP
 
 		public DunDefDamageType_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
 			AdjectiveName = db.AddString(propertyMap["AdjectiveName"]);
 			FriendlyName = db.AddString(propertyMap["FriendlyName"]);
 			UseForNotPoisonElementalDamage = Parse.BoolByte(propertyMap, "UseForNotPoisonElementalDamage");
@@ -346,6 +350,9 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct DunDefPlayer_Data
 	{
+		public int Template;
+		public int Class;
+
 		public float AdditionalSpeedMultiplier;
 		public float ExtraPlayerDamageMultiplier;
 		public float HeroBonusPetDamageMultiplier;
@@ -377,6 +384,9 @@ namespace DDUP
 
 		public DunDefPlayer_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+
 			AdditionalSpeedMultiplier = Parse.Float(propertyMap, "AdditionalSpeedMultiplier");
 			ExtraPlayerDamageMultiplier = Parse.Float(propertyMap, "ExtraPlayerDamageMultiplier");
 			HeroBonusPetDamageMultiplier = Parse.Float(propertyMap, "HeroBonusPetDamageMultiplier");
@@ -411,6 +421,9 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct DunDefProjectile_Data
 	{
+		public int Template;
+		public int Class;
+
 		public int AdditionalDamageAmount;
 		public int AdditionalDamageType;                                // DunDefDamageType_Data
 		public float DamageRadiusFallOffExponent;
@@ -420,7 +433,6 @@ namespace DDUP
 		public byte ScaleHeroDamage;
 		public int ScaleDamageStatType;
 		public float ScaleDamageStatExponent;
-	
 		public float ProjDamage;
 		public float ProjDamageRadius;
 		public int ProjDamageType;                                      // DunDefDamageType_Data
@@ -440,6 +452,9 @@ namespace DDUP
 		public byte bSecondScaleDamageStatType;
 		public int SecondScaleDamageStatType;
 
+		public float bScaleDamagePerLevel;
+
+
 		// Homing Projectile
 		public byte bPierceEnemies;
 		public int NumAllowedPassThrough;
@@ -450,6 +465,9 @@ namespace DDUP
 
 		public DunDefProjectile_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+
 			AdditionalDamageAmount = Parse.Int(propertyMap, "AdditionalDamageAmount");
 			AdditionalDamageType = db.GetDunDefDamageTypeIndex(propertyMap["AdditionalDamageType"]);
 			DamageRadiusFallOffExponent = Parse.Float(propertyMap, "DamageRadiusFallOffExponent");
@@ -484,6 +502,7 @@ namespace DDUP
 			bSecondScaleDamageStatType = Parse.BoolByte(propertyMap, "bSecondScaleDamageStatType");
 
 			bPierceEnemies = Parse.BoolByte(propertyMap, "bPierceEnemies");
+			bScaleDamagePerLevel = Parse.BoolByte(propertyMap, "bScaleDamagePerLevel"); 
 			NumAllowedPassThrough = Parse.Int(propertyMap, "NumAllowedPassThrough");
 
 			TowerDamageMultiplier = Parse.Float(propertyMap, "TowerDamageMultiplier");
@@ -495,6 +514,9 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct DunDefWeapon_Data
 	{
+		public int Template;
+		public int Class;
+
 		public int AdditionalDamageAmount;
 		public int AdditionalDamageType;                // DunDefDamageType
 		public int BaseAltDamage;
@@ -583,6 +605,9 @@ namespace DDUP
 
 		public DunDefWeapon_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+
 			AdditionalDamageAmount = Parse.Int(propertyMap, "AdditionalDamageAmount");
 			AdditionalDamageType = db.GetDunDefDamageTypeIndex(propertyMap["AdditionalDamageType"]);
 			BaseAltDamage = Parse.Int(propertyMap, "BaseAltDamage");
@@ -667,11 +692,13 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct HeroEquipment_Data
 	{
+		public int Template;
+		public int Class;
+
 		public Array_Data StatModifiers;  // int array
 		public Array_Data DamageReductions; // DamageReduction
 		public Array_Data DamageReductionRandomizers; // Randomizers for damage reduction
-
-
+		
 		public int AdditionalDescription;       // localized string
 		public float AdditionalWeaponDamageBonusRandomizerMultiplier;
 		public byte AllowNameRandomization;
@@ -790,6 +817,7 @@ namespace DDUP
 		public int WeaponChargeSpeedBonusRandomizer; // EG_StatRandomizer
 		public int WeaponClipAmmoBonus;
 		public int WeaponClipAmmoBonusRandomizer; // EG_StatRandomizer
+		public float WeaponDamageDisplayValueScale;
 		public int WeaponDamageBonus;
 		public int WeaponDamageBonusRandomizer; // EG_StatRandomizer
 		public float WeaponDamageBonusRandomizerMultiplier;
@@ -870,6 +898,9 @@ namespace DDUP
 
 		public HeroEquipment_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+
 			StatModifiers = db.BuildArray(propertyMap["StatModifiers"], VarType.Int);
 			DamageReductions = db.BuildArray(propertyMap["DamageReductions"], VarType.DamageReduction);
 			DamageReductionRandomizers = db.BuildArray(propertyMap["DamageReductionRandomizers"], VarType.EG_StatRandomizer);
@@ -995,6 +1026,8 @@ namespace DDUP
 			WeaponDamageBonus = Parse.Int(propertyMap, "WeaponDamageBonus");
 			WeaponDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponDamageBonusRandomizer"]));
 			WeaponDamageBonusRandomizerMultiplier = Parse.Float(propertyMap, "WeaponDamageBonusRandomizerMultiplier");
+			WeaponDamageDisplayValueScale = Parse.Float(propertyMap, "WeaponDamageDisplayValueScale");
+
 			WeaponDamageMultiplier = Parse.Float(propertyMap, "WeaponDamageMultiplier");
 			WeaponEquipmentRatingPercentBase = Parse.Float(propertyMap, "WeaponEquipmentRatingPercentBase");
 			WeaponKnockbackBonus = (byte)Parse.Int(propertyMap, "WeaponKnockbackBonus");
@@ -1315,6 +1348,9 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct DunDefHero_Data
 	{
+		public int Template;
+		public int Class;
+
 		public byte bIsMeleeHero; // bool
 		public int MyHeroType; // heroType
 		public int GivenCostumeString; // string
@@ -1359,7 +1395,10 @@ namespace DDUP
 		public float StatBoostCapInitial_HeroDamage_Competitive;
 
 		public DunDefHero_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
-		{			
+		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+
 			bIsMeleeHero = Parse.BoolByte(propertyMap, "bIsMeleeHero");
 			
 			MyHeroType = ImportMaps._heroType.ContainsKey(propertyMap["MyHeroType"])

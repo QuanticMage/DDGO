@@ -1430,6 +1430,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "WeaponClipAmmoBonusRandomizer", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponDamageBonus", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponDamageBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponDamageDisplayValueScale", propertyMap, "0");
+			
 			AddPropertyToMap(obj, "WeaponKnockbackBonusRandomizer", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponKnockbackMax", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonusRandomizer", propertyMap, "0");
@@ -1632,6 +1634,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			propertyMap["IconX2"] = iconX2.ToString();
 			propertyMap["IconY2"] = iconY2.ToString();
 
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Finally store it in your DB (adapt to your actual DB API)
 			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
 
@@ -1652,6 +1656,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "UseForRandomElementalDamage", propertyMap, "false");
 			AddPropertyToMap(obj, "DamageTypeArrayIndex", propertyMap, "-1");
 
+
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");           
 			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
 			DunDefDamageType_Data dmgType = new DunDefDamageType_Data(propertyMap, db);
 
@@ -1851,6 +1858,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Ints
 			AddPropertyToMap(obj, "HeroBoostHealAmount", propertyMap, "0");
 
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Build data + store
 			DunDefPlayer_Data ddp = new DunDefPlayer_Data(propertyMap, db);
 
@@ -1904,8 +1913,11 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			// Homing projectile flags
 			AddPropertyToMap(obj, "bPierceEnemies", propertyMap, "0");
+			AddPropertyToMap(obj, "bScaleDamagePerLevel", propertyMap, "0");			
 			AddPropertyToMap(obj, "bDamageOnTouch", propertyMap, "0");
 
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Build data + store
 			DunDefProjectile_Data proj = new DunDefProjectile_Data(propertyMap, db);
 
@@ -2009,6 +2021,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "Multiplier", propertyMap, "0.0");
 			AddPropertyToMap(obj, "NessieCooldown", propertyMap, "0.0");
 
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
+
 			// Build data + store
 			DunDefWeapon_Data weap = new DunDefWeapon_Data(propertyMap, db);
 
@@ -2087,7 +2102,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "StatMultFull_DefenseAOE", propertyMap, "0.0");
 			AddPropertyToMap(obj, "StatExptFull_DefenseAOE", propertyMap, "0.0"); 
 			AddPropertyToMap(obj, "StatBoostCapInitial_HeroDamage", propertyMap, "0.0");
-			
+
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Build data + store
 			DunDefHero_Data hero = new DunDefHero_Data(propertyMap, db);
 
