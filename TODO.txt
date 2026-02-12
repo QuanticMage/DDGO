@@ -34,6 +34,7 @@
 		public float AltWeaponDamageMultiplier;
 
 TODO:
+Coal / Frags no longer show count (compact display related)
 Use GetMergedProperties instead of my walking manually?
 Make equip always show fully upgraded
 

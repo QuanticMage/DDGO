@@ -15,6 +15,14 @@ namespace DDUP
 	// How good this item is vs. a max drop on weapon damage.  How many drops I would need before I got something better.
 	// Piercing, AOE, Heal, Mana, Wall info
 
+	// Display of stats is (e.WDamageMult * e.WDamageDisplayValueScale * 0.8) * et.(w.Base + i.Bonus)
+	// for additional stats it's same without e.WDamageMult
+
+	// crystal tracker showing up as 424874 dmg + 1060 extra
+	// 1060 appears to be 4.8 times higher than (7131 * 0.8 * 0.25) - the predicted amount w/ global elemental scaling
+
+
+
 	public class HeroInfo
 	{
 		public int[] TotalStats = new int[11];     // regular stats
@@ -22,7 +30,7 @@ namespace DDUP
 		public DunDefHero_Data TemplateData;
 		public DunDefPlayer_Data PlayerTemplateData;
 		public float GlobalDamageMultiplier = 0.155f;        // nightmare mode, unclear but definitely there modifier
-		public float PlayerElementalWeaponDamageMultiplier = 0.25f;
+		public float PlayerElementalWeaponDamageMultiplier = 1.0f;
 	}
 
 
@@ -94,8 +102,8 @@ namespace DDUP
         }
 
 		float GetEquipmentAdditionalDamageAmount(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
-		{
-			return equipTemplate.ElementalDamageMultiplier * heroInfo.PlayerElementalWeaponDamageMultiplier * instance.WeaponAdditionalDamageAmount;			
+		{			
+			return equipTemplate.ElementalDamageMultiplier  * heroInfo.PlayerElementalWeaponDamageMultiplier * instance.WeaponAdditionalDamageAmount;			
 		}
 
 		float GetProjectileArrayDamage(int nProjectiles, float ProjectileMainDamage, float ProjectileAdditionalDamage, float scaleDamageExponentMultiplier, DDEquipmentInfo instance, ref HeroInfo heroInfo, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
@@ -179,9 +187,13 @@ namespace DDUP
 						baseDamage *= scalingFactor;
 					}
 				}
-				if ((instance.MaxLevel == 325) || (instance.MaxLevel == 370))
+				if ((instance.MaxLevel == 351))
 				{
-					Console.WriteLine($"{instance.GeneratedName} {instance.Template}:{baseDamage} {additionalDamage} {scalingFactor}");
+					DunDefWeapon_Data wdata = weaponTemplate;
+					DunDefProjectile_Data pdata = projTemplate;
+					HeroEquipment_Data edata = equipTemplate;
+					Console.WriteLine($"{instance.GeneratedName}: {pdata.ScaleDamageStatType} {projTemplate.ScaleDamageStatExponent} {projTemplate.MultiplyProjectileDamageByWeaponDamage} {projTemplate.ScaleHeroDamage} {GetHeroStatMult(projTemplate.ScaleDamageStatType, ref heroInfo)}");
+					Console.WriteLine($"{instance.GeneratedName}: {baseDamage} {additionalDamage} {projTemplate.bScaleDamagePerLevel} {scalingFactor} {projTemplate.bSecondScaleDamageStatType} {projTemplate.ScaleDamageStatExponent} { wdata.SpeedMultiplier}");
 				}
 			}
 			return baseDamage + additionalDamage;
@@ -192,35 +204,33 @@ namespace DDUP
 		// RANGED DAMAGE CALCULATIONS
 		//======================================================================================================
 		public float GetCrossbowWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
-		{
-			// tODO: pass in AdditionalDamage instead of EquipDamage
-		
+		{			
 			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
-
-
 			
 			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
-			float EquipmentDamage = equipTemplate.WeaponDamageMultiplier * instance.WeaponDamageBonus + EquipmentBaseDamage;
+			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
 
 			float PawnDamageMult = GetPawnDamageMult(ref heroInfo);
 
-			float DamagePerProjectile = EquipmentDamage * PawnDamageMult;
+			float DamagePerProjectile = EquipmentDamage  * PawnDamageMult;
 
-			float FireRate = (weaponTemplate.BaseShotsPerSecond + (instance.WeaponShotsPerSecondBonus-127)) / weaponTemplate.FireIntervalMultiplier;
+			float FireRate = (weaponTemplate.BaseShotsPerSecond + (instance.WeaponShotsPerSecondBonus - 127)) / (weaponTemplate.FireIntervalMultiplier * weaponTemplate.WeaponSpeedMultiplier);
 
 			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + (instance.WeaponNumberOfProjectilesBonus-127));
 
-			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ?
-											instance.WeaponAdditionalDamageAmount * heroInfo.PlayerElementalWeaponDamageMultiplier * PawnDamageMult *  equipTemplate.ElementalDamageMultiplier : 0.0f;
-				 
-			
+			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
+
 
 			float damage = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
-
-			if ((instance.MaxLevel == 325) || (instance.MaxLevel == 370))
+			 
+			if ((instance.MaxLevel ==351))
 			{
-					Console.WriteLine($"{instance.GeneratedName} {instance.Template}: {damage} {NumProjectiles} {DamagePerProjectile} {AdditionalDamagePerProjectile} {FireRate}");
+					Console.WriteLine($"{ instance.GeneratedName}C: {damage} {NumProjectiles} {FireRate} {DamagePerProjectile} {AdditionalDamagePerProjectile}");
+				Console.WriteLine($"{instance.GeneratedName}S: {weaponTemplate.FireIntervalMultiplier} {NumProjectiles} {FireRate} {DamagePerProjectile} {AdditionalDamagePerProjectile}");
+				Console.WriteLine($"{instance.GeneratedName}A: {instance.WeaponAdditionalDamageAmount} {heroInfo.PlayerElementalWeaponDamageMultiplier} {PawnDamageMult} {equipTemplate.ElementalDamageMultiplier}");				
 			}
+
+			
 
 
 			return damage * FireRate;
