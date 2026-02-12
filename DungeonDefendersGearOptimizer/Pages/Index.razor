@@ -2591,9 +2591,9 @@
             v.DPS = 0;
             if (v.Set == "Squire")
                 v.DPS = (int)(_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            /*else if (v.Set == "Huntress")
+            else if (v.Set == "Huntress")
                 v.DPS = (int)(_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-                */
+                
 
             v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
         }                 

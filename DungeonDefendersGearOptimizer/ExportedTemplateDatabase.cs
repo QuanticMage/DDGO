@@ -440,7 +440,7 @@ namespace DDUP
 
 
 		public ref readonly IndexEntry GetIndexEntry(int index)
-		{			
+		{		
 			return ref MemoryMarshal.Cast<byte, IndexEntry>(
 				new ReadOnlySpan<byte>(AllData, IndexEntriesOffset, IndexEntriesCount * Marshal.SizeOf<IndexEntry>())
 			)[index];
