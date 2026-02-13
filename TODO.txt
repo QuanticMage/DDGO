@@ -37,6 +37,8 @@ TODO:
 
 Add in : ProtonChargeBlastDamageMultiplier to Equipment
 
+Add in x1.2 for costume bonus
+
 Coal / Frags no longer show count (compact display related)
 Use GetMergedProperties instead of my walking manually?
 Make equip always show fully upgraded

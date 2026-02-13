@@ -275,7 +275,36 @@ namespace DDUP
 			}
 			return (baseDamage, additionalDamage);
 		}
+		
 
+
+		//====================================================================================================
+		// SPEAR DAMAGE CALCULATIONS
+		//======================================================================================================
+		public (float, string) GetSpearWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
+		{
+			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+
+			(float meleeAmount, string meleeTip) = GetMeleeWeaponDamage(instance, ref heroInfo, ref equipTemplate);
+			
+			// calculate ranged version
+			float spearShootInterval = QuantizeToAnimFrameTime(  weaponTemplate.ShootInterval / weaponTemplate.WeaponSpeedMultiplier);
+			
+			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
+			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
+			float PawnDamageMult = Player_GetPawnDamageMult(ref heroInfo);
+			float DamagePerProjectile = EquipmentDamage * PawnDamageMult;
+			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + (instance.WeaponNumberOfProjectilesBonus - 127));
+			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
+			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
+
+			float rangedAmount = damage / spearShootInterval;
+
+			if (rangedAmount > meleeAmount)
+				return (rangedAmount, $"Ranged DPS: {rangedAmount} {perHitDamage} {perHitAdditionalDamage}\nMelee DPS: {meleeAmount} {meleeTip}");
+			else
+				return (meleeAmount, $"Ranged DPS: {rangedAmount} {perHitDamage} {perHitAdditionalDamage}\nMelee DPS: {meleeAmount} {meleeTip}");
+		}
 
 		//====================================================================================================
 		// RANGED DAMAGE CALCULATIONS
@@ -291,7 +320,8 @@ namespace DDUP
 
 			float DamagePerProjectile = EquipmentDamage  * PawnDamageMult;
 
-			float FireRate = (weaponTemplate.BaseShotsPerSecond + (instance.WeaponShotsPerSecondBonus - 127)) / (weaponTemplate.FireIntervalMultiplier * weaponTemplate.WeaponSpeedMultiplier);
+			float ShotsPerSec = (weaponTemplate.BaseShotsPerSecond + (instance.WeaponShotsPerSecondBonus - 127)) / (weaponTemplate.FireIntervalMultiplier * weaponTemplate.WeaponSpeedMultiplier);
+			float quantizeShotsPerSec = 1.0f / QuantizeToAnimFrameTime(1.0f / ShotsPerSec);
 
 			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + (instance.WeaponNumberOfProjectilesBonus-127));
 
@@ -300,7 +330,7 @@ namespace DDUP
 
 			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 
-			return (damage * FireRate, $"{damage} {FireRate} {perHitDamage} {perHitAdditionalDamage}");
+			return (damage * quantizeShotsPerSec, $"{damage} {quantizeShotsPerSec} {perHitDamage} {perHitAdditionalDamage}");
 		}		
 
 		//====================================================================================================
@@ -381,11 +411,7 @@ namespace DDUP
 				float SwingExtraDamage = AdditionalDamage * swingInfo.DamageMultiplier;
 
 				swingTimeSum += QuantizeToAnimFrameTime(SwingTime);  // quantize up to 30th of a second
-				swingDamageSum += SwingDamage + SwingExtraDamage;	
-				if (instance.MaxLevel == 358)
-				{
-					int y = 1;
-				}
+				swingDamageSum += SwingDamage + SwingExtraDamage;			
 			}
 
 			float totalProjectileDamage = 0.0f;

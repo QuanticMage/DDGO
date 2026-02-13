@@ -2599,6 +2599,10 @@
             {
                 (v.DPS, v.DPSTooltip) = (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
             }                
+            else if (v.Set == "Monk")
+            {
+                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetSpearWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }
             v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
         }                 
     }
