@@ -108,7 +108,7 @@ namespace DDUP
 		public string PlainName = "";
 		public string CachedDPSString = "";
 		public string DPSTooltip = "";
-		public int DPS = 0;
+		public float DPS = 0;
 		
 		public int UpgradesRequiredForResists { get; set; }
 		public bool BrokenResists = false;
