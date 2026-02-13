@@ -1281,7 +1281,7 @@
 
     private Task HandleEquipmentRightClick(ItemViewRow row)
     {
-      
+
         // deselect this row
         DeselectRow(row);
         return Task.CompletedTask;
@@ -2137,7 +2137,7 @@
                 nameof(ItemViewRow.Set) => CmpStr(a.Set, b.Set),
 
                 nameof(ItemViewRow.Quality) => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
-                nameof(ItemViewRow.DPS) => Cmp(a.DPS, b.DPS),
+                nameof(ItemViewRow.DPS) => Cmp((int)a.DPS, (int)b.DPS),
                 _ => Cmp(a.Rating, b.Rating),
             };
 
@@ -2588,13 +2588,17 @@
 
 
             var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
-            v.DPS = 0;
-            if (v.Set == "Squire")
-                v.DPS = (int)(_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            else if (v.Set == "Huntress")
-                v.DPS = (int)(_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-                
+            v.DPS = 0.0f;
+            v.DPSTooltip = "";
 
+            if (v.Set == "Squire")
+            {
+                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }
+            else if (v.Set == "Huntress")
+            {
+                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }                
             v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
         }                 
     }

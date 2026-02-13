@@ -2059,42 +2059,42 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "HeroHealthLinearFactor", propertyMap, "0.0");
 
 			// HeroDamage
-			AddPropertyToMap(obj, "StatExpFull_HeroDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultInitial_HeroDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroDamage_Competitive", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpFull_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroDamage", propertyMap, "0.0");
 
 			// HeroSpeed
-			AddPropertyToMap(obj, "StatMultInitial_HeroSpeed_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroSpeed_Competitive", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_HeroSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroSpeed", propertyMap, "0.0");
 
 			// HeroAbilityOne
-			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityOne_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityOne_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroAbilityOne_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_HeroAbilityOne_Competitive", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_HeroAbilityOne", propertyMap, "0.0");
 
 			// HeroAbilityTwo
-			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityTwo_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityTwo_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroAbilityTwo_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_HeroAbilityTwo_Competitive", propertyMap, "0.0"); 
+			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_HeroAbilityTwo", propertyMap, "0.0"); 
 
 			// DefenseHealth
-			AddPropertyToMap(obj, "StatMultInitial_DefenseHealth_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseHealth_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_DefenseHealth_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_DefenseHealth_Competitive", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_DefenseHealth", propertyMap, "0.0");
 
 			// DefenseDamage
-			AddPropertyToMap(obj, "StatMultInitial_DefenseDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_DefenseDamage_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_DefenseDamage_Competitive", propertyMap, "0.0"); 
+			AddPropertyToMap(obj, "StatMultInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultFull_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExptFull_DefenseDamage", propertyMap, "0.0"); 
 
 			// DefenseAttackRate
-			AddPropertyToMap(obj, "StatMultInitial_DefenseAttackRate_Competitive", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseAttackRate_Competitive", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatMultInitial_DefenseAttackRate", propertyMap, "0.0");
+			AddPropertyToMap(obj, "StatExpInitial_DefenseAttackRate", propertyMap, "0.0");
 
 			// DefenseAOE
 			AddPropertyToMap(obj, "StatMultInitial_DefenseAOE", propertyMap, "0.0");

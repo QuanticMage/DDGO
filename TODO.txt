@@ -34,9 +34,13 @@
 		public float AltWeaponDamageMultiplier;
 
 TODO:
+
+Add in : ProtonChargeBlastDamageMultiplier to Equipment
+
 Coal / Frags no longer show count (compact display related)
 Use GetMergedProperties instead of my walking manually?
 Make equip always show fully upgraded
+ExtraEquipmentColorMultiplier=> passed in to shader for santa hat?  EquipmentRating is also used, but unsure why.  Size?
 
 Remove non-compact, make hover show template
 Add maxhp / etc for testing in DDGO ("all things that can reach a maxhp of..")

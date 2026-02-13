@@ -1364,35 +1364,35 @@ namespace DDUP
 		public float HeroDefenseAttackRateExponentialFactor;
 		public float HeroHealthExponentialFactor;
 		public float HeroHealthLinearFactor;
-		public float StatExpFull_HeroDamage_Competitive;
-		public float StatExpInitial_HeroDamage_Competitive;
-		public float StatMultInitial_HeroDamage_Competitive;
-		public float StatMultFull_HeroDamage_Competitive;
-		public float StatMultInitial_HeroSpeed_Competitive;
-		public float StatMultFull_HeroSpeed_Competitive;
-		public float StatMultInitial_HeroAbilityOne_Competitive;
-		public float StatExpInitial_HeroAbilityOne_Competitive;
-		public float StatMultFull_HeroAbilityOne_Competitive;
-		public float StatExptFull_HeroAbilityOne_Competitive;
-		public float StatMultInitial_HeroAbilityTwo_Competitive;
-		public float StatExpInitial_HeroAbilityTwo_Competitive;
-		public float StatMultFull_HeroAbilityTwo_Competitive;
-		public float StatExptFull_HeroAbilityTwo_Competitive;
-		public float StatMultInitial_DefenseHealth_Competitive;
-		public float StatExpInitial_DefenseHealth_Competitive;
-		public float StatMultFull_DefenseHealth_Competitive;
-		public float StatExptFull_DefenseHealth_Competitive;
-		public float StatMultInitial_DefenseDamage_Competitive;
-		public float StatExpInitial_DefenseDamage_Competitive;
-		public float StatMultFull_DefenseDamage_Competitive;
-		public float StatExptFull_DefenseDamage_Competitive;
-		public float StatMultInitial_DefenseAttackRate_Competitive;
-		public float StatExpInitial_DefenseAttackRate_Competitive;
-		public float StatMultInitial_DefenseAOE_Competitive;
-		public float StatExpInitial_DefenseAOE_Competitive;
-		public float StatMultFull_DefenseAOE_Competitive;
-		public float StatExptFull_DefenseAOE_Competitive;
-		public float StatBoostCapInitial_HeroDamage_Competitive;
+		public float StatExpFull_HeroDamage;
+		public float StatExpInitial_HeroDamage;
+		public float StatMultInitial_HeroDamage;
+		public float StatMultFull_HeroDamage;
+		public float StatMultInitial_HeroSpeed;
+		public float StatMultFull_HeroSpeed;
+		public float StatMultInitial_HeroAbilityOne;
+		public float StatExpInitial_HeroAbilityOne;
+		public float StatMultFull_HeroAbilityOne;
+		public float StatExptFull_HeroAbilityOne;
+		public float StatMultInitial_HeroAbilityTwo;
+		public float StatExpInitial_HeroAbilityTwo;
+		public float StatMultFull_HeroAbilityTwo;
+		public float StatExptFull_HeroAbilityTwo;
+		public float StatMultInitial_DefenseHealth;
+		public float StatExpInitial_DefenseHealth;
+		public float StatMultFull_DefenseHealth;
+		public float StatExptFull_DefenseHealth;
+		public float StatMultInitial_DefenseDamage;
+		public float StatExpInitial_DefenseDamage;
+		public float StatMultFull_DefenseDamage;
+		public float StatExptFull_DefenseDamage;
+		public float StatMultInitial_DefenseAttackRate;
+		public float StatExpInitial_DefenseAttackRate;
+		public float StatMultInitial_DefenseAOE;
+		public float StatExpInitial_DefenseAOE;
+		public float StatMultFull_DefenseAOE;
+		public float StatExptFull_DefenseAOE;
+		public float StatBoostCapInitial_HeroDamage;
 
 		public DunDefHero_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -1418,43 +1418,43 @@ namespace DDUP
 			HeroHealthExponentialFactor = Parse.Float(propertyMap, "HeroHealthExponentialFactor");
 			HeroHealthLinearFactor = Parse.Float(propertyMap, "HeroHealthLinearFactor");
 			
-			StatExpFull_HeroDamage_Competitive = Parse.Float(propertyMap, "StatExpFull_HeroDamage_Competitive");
-			StatExpInitial_HeroDamage_Competitive = Parse.Float(propertyMap, "StatExpInitial_HeroDamage_Competitive");
-			StatMultInitial_HeroDamage_Competitive = Parse.Float(propertyMap, "StatMultInitial_HeroDamage_Competitive");
-			StatMultFull_HeroDamage_Competitive = Parse.Float(propertyMap, "StatMultFull_HeroDamage_Competitive");
+			StatExpFull_HeroDamage = Parse.Float(propertyMap, "StatExpFull_HeroDamage");
+			StatExpInitial_HeroDamage = Parse.Float(propertyMap, "StatExpInitial_HeroDamage");
+			StatMultInitial_HeroDamage = Parse.Float(propertyMap, "StatMultInitial_HeroDamage");
+			StatMultFull_HeroDamage = Parse.Float(propertyMap, "StatMultFull_HeroDamage");
 
-			StatMultInitial_HeroSpeed_Competitive = Parse.Float(propertyMap, "StatMultInitial_HeroSpeed_Competitive");
-			StatMultFull_HeroSpeed_Competitive = Parse.Float(propertyMap, "StatMultFull_HeroSpeed_Competitive");
+			StatMultInitial_HeroSpeed = Parse.Float(propertyMap, "StatMultInitial_HeroSpeed");
+			StatMultFull_HeroSpeed = Parse.Float(propertyMap, "StatMultFull_HeroSpeed");
 
-			StatMultInitial_HeroAbilityOne_Competitive = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityOne_Competitive");
-			StatExpInitial_HeroAbilityOne_Competitive = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityOne_Competitive");
-			StatMultFull_HeroAbilityOne_Competitive = Parse.Float(propertyMap, "StatMultFull_HeroAbilityOne_Competitive");
-			StatExptFull_HeroAbilityOne_Competitive = Parse.Float(propertyMap, "StatExptFull_HeroAbilityOne_Competitive");
+			StatMultInitial_HeroAbilityOne = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityOne");
+			StatExpInitial_HeroAbilityOne = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityOne");
+			StatMultFull_HeroAbilityOne = Parse.Float(propertyMap, "StatMultFull_HeroAbilityOne");
+			StatExptFull_HeroAbilityOne = Parse.Float(propertyMap, "StatExptFull_HeroAbilityOne");
 
-			StatMultInitial_HeroAbilityTwo_Competitive = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityTwo_Competitive");
-			StatExpInitial_HeroAbilityTwo_Competitive = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityTwo_Competitive");
-			StatMultFull_HeroAbilityTwo_Competitive = Parse.Float(propertyMap, "StatMultFull_HeroAbilityTwo_Competitive");
-			StatExptFull_HeroAbilityTwo_Competitive = Parse.Float(propertyMap, "StatExptFull_HeroAbilityTwo_Competitive");
+			StatMultInitial_HeroAbilityTwo = Parse.Float(propertyMap, "StatMultInitial_HeroAbilityTwo");
+			StatExpInitial_HeroAbilityTwo = Parse.Float(propertyMap, "StatExpInitial_HeroAbilityTwo");
+			StatMultFull_HeroAbilityTwo = Parse.Float(propertyMap, "StatMultFull_HeroAbilityTwo");
+			StatExptFull_HeroAbilityTwo = Parse.Float(propertyMap, "StatExptFull_HeroAbilityTwo");
 
-			StatMultInitial_DefenseHealth_Competitive = Parse.Float(propertyMap, "StatMultInitial_DefenseHealth_Competitive");
-			StatExpInitial_DefenseHealth_Competitive = Parse.Float(propertyMap, "StatExpInitial_DefenseHealth_Competitive");
-			StatMultFull_DefenseHealth_Competitive = Parse.Float(propertyMap, "StatMultFull_DefenseHealth_Competitive");
-			StatExptFull_DefenseHealth_Competitive = Parse.Float(propertyMap, "StatExptFull_DefenseHealth_Competitive");
+			StatMultInitial_DefenseHealth = Parse.Float(propertyMap, "StatMultInitial_DefenseHealth");
+			StatExpInitial_DefenseHealth = Parse.Float(propertyMap, "StatExpInitial_DefenseHealth");
+			StatMultFull_DefenseHealth = Parse.Float(propertyMap, "StatMultFull_DefenseHealth");
+			StatExptFull_DefenseHealth = Parse.Float(propertyMap, "StatExptFull_DefenseHealth");
 
-			StatMultInitial_DefenseDamage_Competitive = Parse.Float(propertyMap, "StatMultInitial_DefenseDamage_Competitive");
-			StatExpInitial_DefenseDamage_Competitive = Parse.Float(propertyMap, "StatExpInitial_DefenseDamage_Competitive");
-			StatMultFull_DefenseDamage_Competitive = Parse.Float(propertyMap, "StatMultFull_DefenseDamage_Competitive");
-			StatExptFull_DefenseDamage_Competitive = Parse.Float(propertyMap, "StatExptFull_DefenseDamage_Competitive");
+			StatMultInitial_DefenseDamage = Parse.Float(propertyMap, "StatMultInitial_DefenseDamage");
+			StatExpInitial_DefenseDamage = Parse.Float(propertyMap, "StatExpInitial_DefenseDamage");
+			StatMultFull_DefenseDamage = Parse.Float(propertyMap, "StatMultFull_DefenseDamage");
+			StatExptFull_DefenseDamage = Parse.Float(propertyMap, "StatExptFull_DefenseDamage");
 
-			StatMultInitial_DefenseAttackRate_Competitive = Parse.Float(propertyMap, "StatMultInitial_DefenseAttackRate_Competitive");
-			StatExpInitial_DefenseAttackRate_Competitive = Parse.Float(propertyMap, "StatExpInitial_DefenseAttackRate_Competitive");
+			StatMultInitial_DefenseAttackRate = Parse.Float(propertyMap, "StatMultInitial_DefenseAttackRate");
+			StatExpInitial_DefenseAttackRate = Parse.Float(propertyMap, "StatExpInitial_DefenseAttackRate");
 
-			StatMultInitial_DefenseAOE_Competitive = Parse.Float(propertyMap, "StatMultInitial_DefenseAOE_Competitive");
-			StatExpInitial_DefenseAOE_Competitive = Parse.Float(propertyMap, "StatExpInitial_DefenseAOE_Competitive");
-			StatMultFull_DefenseAOE_Competitive = Parse.Float(propertyMap, "StatMultFull_DefenseAOE_Competitive");
-			StatExptFull_DefenseAOE_Competitive = Parse.Float(propertyMap, "StatExptFull_DefenseAOE_Competitive");
+			StatMultInitial_DefenseAOE = Parse.Float(propertyMap, "StatMultInitial_DefenseAOE");
+			StatExpInitial_DefenseAOE = Parse.Float(propertyMap, "StatExpInitial_DefenseAOE");
+			StatMultFull_DefenseAOE = Parse.Float(propertyMap, "StatMultFull_DefenseAOE");
+			StatExptFull_DefenseAOE = Parse.Float(propertyMap, "StatExptFull_DefenseAOE");
 
-			StatBoostCapInitial_HeroDamage_Competitive = Parse.Float(propertyMap, "StatBoostCapInitial_HeroDamage_Competitive");
+			StatBoostCapInitial_HeroDamage = Parse.Float(propertyMap, "StatBoostCapInitial_HeroDamage");
 		}
 
 	}
