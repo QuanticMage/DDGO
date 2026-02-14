@@ -21,6 +21,7 @@ namespace DDUP
 		private List<EG_StatMatchingString_Data> EG_StatMatchingStrings = new();
 		private List<DamageReduction_Data> DamageReductions = new();
 		private List<MeleeSwingInfo_Data> MeleeSwingInfos = new();
+		private List<HeroCostumeTemplate_Data> HeroCostumeTemplates = new();
 
 		private List<DunDefDamageType_Data> DunDefDamageType_Datas = new();
 		private List<DunDefPlayer_Data> DunDefPlayer_Datas = new();
@@ -58,6 +59,7 @@ namespace DDUP
 		private int HeroEquipment_DatasOffset;
 		private int HeroEquipment_Familiar_DatasOffset;
 		private int DunDefHero_DatasOffset;
+		private int HeroCostumeTemplatesOffset;
 
 		// Counts for loaded data
 		private int IndexEntriesCount;
@@ -76,6 +78,7 @@ namespace DDUP
 		private int HeroEquipment_DatasCount;
 		private int HeroEquipment_Familiar_DatasCount;
 		private int DunDefHero_DatasCount;
+		private int HeroCostumeTemplatesCount;
 
 
 		// String data for loaded database
@@ -152,6 +155,13 @@ namespace DDUP
 				// Write MeleeSwingInfos
 				writer.Write(MeleeSwingInfos.Count);
 				foreach (var elem in MeleeSwingInfos)
+				{
+					WriteStruct(writer, elem);
+				}
+
+				// Write HeroCostumeTemplates
+				writer.Write(HeroCostumeTemplates.Count);
+				foreach (var elem in HeroCostumeTemplates)
 				{
 					WriteStruct(writer, elem);
 				}
@@ -289,6 +299,10 @@ namespace DDUP
 			MeleeSwingInfosCount = ReadInt(span, ref offset);
 			MeleeSwingInfosOffset = offset;
 			offset += MeleeSwingInfosCount * Marshal.SizeOf<MeleeSwingInfo_Data>();
+
+			HeroCostumeTemplatesCount = ReadInt(span, ref offset);
+			HeroCostumeTemplatesOffset = offset;
+			offset += HeroCostumeTemplatesCount * Marshal.SizeOf<HeroCostumeTemplate_Data>();
 
 			// Read DunDefDamageType_Datas
 			DunDefDamageType_DatasCount = ReadInt(span, ref offset);
@@ -482,7 +496,14 @@ namespace DDUP
 			)[index];
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ref readonly HeroCostumeTemplate_Data GetHeroCostumeTemplate(int index)
+		{
+			return ref MemoryMarshal.Cast<byte, HeroCostumeTemplate_Data>(
+					new ReadOnlySpan<byte>(AllData, HeroCostumeTemplatesOffset, HeroCostumeTemplatesCount * Marshal.SizeOf<HeroCostumeTemplate_Data>())
+				)[index];
+		}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly DunDefDamageType_Data GetDunDefDamageType(int index)
 		{
 			ref readonly var entry = ref GetIndexEntry(index);
@@ -628,8 +649,9 @@ namespace DDUP
 		}
 
 		// ============== METHODS FOR BUILDING DATABASE ==============
+		
 
-		public Array_Data BuildArray(string value, VarType type)
+		public Array_Data BuildArray(string value, VarType type,  Dictionary<string, Dictionary<string, float>>? AnimationDurations = null)
 		{
 			if ((value == null) || (value == ""))
 				return new Array_Data(0, 0, type);
@@ -709,7 +731,13 @@ namespace DDUP
 					foreach (var v in entries)
 						IntArrayElems.Add(AddString(v));
 					count = IntArrayElems.Count - start;
-					break;	
+					break;
+				case VarType.HeroCostumeTemplate:
+					start = HeroCostumeTemplates.Count;
+					foreach (var v in entries)
+						HeroCostumeTemplates.Add(new HeroCostumeTemplate_Data(v, this, AnimationDurations));
+					count = HeroCostumeTemplates.Count - start;
+					break;
 				default:
 					break;
 			}

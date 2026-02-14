@@ -68,7 +68,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["LevelRequirementOverrides"] = Tuple.Create("UDKGame.HeroEquipment.LevelRequirementOverrides", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["ProjectileDelays"] = Tuple.Create("UDKGame.HeroEquipment_Familiar_WithProjectileAI.ProjectileDelays", PropertyType.FloatProperty);
 
-
+			UnrealConfig.VariableTypes["HeroCostumes"] = Tuple.Create("UDKGame.DunDefHero.HeroCostumes", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MeleeSwingInfos"] = Tuple.Create("UDKGame.DunDefWeapon.MeleeSwingInfos", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MeleeSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MeleeSwingInfoMultipliers", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["MainHandSwingInfoMultipliers"] = Tuple.Create("UDKGame.DunDefPlayer.MainHandSwingInfoMultipliers", PropertyType.StructProperty);
@@ -205,7 +205,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		private async void Process_Click(object sender, RoutedEventArgs e)
 		{
 			var workingDir = @"E:\Temp\DunDef";
-			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
 			string[] files = Directory.GetFiles(packageDir);
 			System.IO.Directory.CreateDirectory(workingDir);

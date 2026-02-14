@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic;
 using System.ComponentModel;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -32,6 +33,13 @@ namespace DDUP
 		public DunDefPlayer_Data PlayerTemplateData;
 		public float GlobalDamageMultiplier = 0.155f;        // nightmare mode, unclear but definitely there modifier
 		public float PlayerElementalWeaponDamageMultiplier = 1.0f;
+
+		public float MeleeAttack1LargeAnimDuration = 1.0f;
+		public float MeleeAttack2LargeAnimDuration = 1.0f;
+		public float MeleeAttack3LargeAnimDuration = 0.5f;
+		public float MeleeAttack1MediumAnimDuration = 0.7f;
+		public float MeleeAttack2MediumAnimDuration = 0.533f;
+		public float MeleeAttack3MediumAnimDuration = 1.033f;
 	}
 
 
@@ -289,12 +297,11 @@ namespace DDUP
 			
 			// calculate ranged version
 			float spearShootInterval = QuantizeToAnimFrameTime(  weaponTemplate.ShootInterval / weaponTemplate.WeaponSpeedMultiplier);
-			
-			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
-			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
+
+			float DamagePerProjectile = (weaponTemplate.BaseAltDamage + GetEquipmentAltDamageBonus(instance, ref equipTemplate)) * Player_GetPawnDamageMult(ref heroInfo);
 			float PawnDamageMult = Player_GetPawnDamageMult(ref heroInfo);
-			float DamagePerProjectile = EquipmentDamage * PawnDamageMult;
-			int NumProjectiles = (weaponTemplate.BaseNumProjectiles + (instance.WeaponNumberOfProjectilesBonus - 127));
+
+			int NumProjectiles = (1 + (instance.WeaponNumberOfProjectilesBonus - 127));
 			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
 			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 
@@ -364,19 +371,23 @@ namespace DDUP
 			int numSwings = 3;
 			if (heroInfo.PlayerTemplateData.OffHandSwingInfoMultipliers.Count > 0)
 				numSwings = 4;
-			Span<float> swingDurations = stackalloc float[4];
-			Span<int> swingInfoIndex = stackalloc int[4];
+			//Span<float> swingDurations = stackalloc float[4];
+			//Span<float> swingFinalTimes = stackalloc float[4];
+			//Span<int> swingInfoIndex = stackalloc int[4];
+			float[] swingDurations = new float[4];
+			float[] swingFinalTimes = new float[4];
+			int[] swingInfoIndex = new int[4];
 
 
-			swingDurations[0] = (heroInfo.TemplateData.MyHeroType == (int)HeroType.Squire) ?
-				heroInfo.PlayerTemplateData.MeleeAttack1MediumAnimDuration:
-				heroInfo.PlayerTemplateData.MeleeAttack1LargeAnimDuration;
-			swingDurations[1] = (heroInfo.TemplateData.MyHeroType == (int)HeroType.Squire) ?
-				heroInfo.PlayerTemplateData.MeleeAttack2MediumAnimDuration :
-				heroInfo.PlayerTemplateData.MeleeAttack2LargeAnimDuration;
-			swingDurations[2] = (heroInfo.TemplateData.MyHeroType == (int)HeroType.Squire) ?
-				heroInfo.PlayerTemplateData.MeleeAttack3MediumAnimDuration :
-				heroInfo.PlayerTemplateData.MeleeAttack3LargeAnimDuration;
+			swingDurations[0] = (instance.Set == "Squire") ? 
+				heroInfo.MeleeAttack1MediumAnimDuration:
+				heroInfo.MeleeAttack1LargeAnimDuration;
+			swingDurations[1] = (instance.Set == "Squire") ?
+				heroInfo.MeleeAttack2MediumAnimDuration :
+				heroInfo.MeleeAttack2LargeAnimDuration;
+			swingDurations[2] = (instance.Set == "Squire") ?
+				heroInfo.MeleeAttack3MediumAnimDuration :
+				heroInfo.MeleeAttack3LargeAnimDuration;
 			swingDurations[3] = 0.0f;
 
 
@@ -409,8 +420,21 @@ namespace DDUP
 				float SwingTime = (swingDurations[i] - swingInfo.TimeBeforeEndToAllowNextCombo) / AnimSpeed;
 				float SwingDamage = MainDamage * swingInfo.DamageMultiplier * weaponTemplate.DamageMultiplier * playerMultiplier;
 				float SwingExtraDamage = AdditionalDamage * swingInfo.DamageMultiplier;
+				if (SwingTime < 0.28f)// weaponTemplate.MinimumSwingTime; - need to account for minimum damage time too
+					SwingTime = 0.28f; // weaponTemplate.MinimumSwingTime;
+
+				// TODO: AnimNotify list - need ot keep track of when that is for each animation :O probably alongside the attack durations
+				swingFinalTimes[i] = SwingTime;
 
 				swingTimeSum += QuantizeToAnimFrameTime(SwingTime);  // quantize up to 30th of a second
+				if ((instance.MaxLevel == 268 ) && (instance.Stats[(int)DDStat.HeroDamage] == 353))
+				{
+					MeleeSwingInfo_Data sw = swingInfo;
+					float play = playerMultiplier;
+					float dur = swingDurations[i];
+
+					int y = 1;
+				}
 				swingDamageSum += SwingDamage + SwingExtraDamage;			
 			}
 
@@ -438,7 +462,7 @@ namespace DDUP
 			}
 
 			float totalMeleeDamage = (swingTimeSum == 0.0f) ? MainDamage + AdditionalDamage : (swingDamageSum + totalProjectileDamage) / swingTimeSum;
-			return (totalMeleeDamage, $"{MainDamage} + {AdditionalDamage}" + projectileDPSTooltip);
+			return (totalMeleeDamage, $"{MainDamage} + {AdditionalDamage}" + projectileDPSTooltip +$"=> {swingTimeSum} {swingFinalTimes[0]} {swingFinalTimes[1]} {swingFinalTimes[2]}");
 		}
 	}
 }
