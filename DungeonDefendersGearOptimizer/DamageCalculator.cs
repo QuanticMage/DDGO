@@ -194,7 +194,7 @@ namespace DDUP
 			return equipTemplate.ElementalDamageMultiplier  * heroInfo.PlayerElementalWeaponDamageMultiplier * instance.WeaponAdditionalDamageAmount;			
 		}
 
-		(float,float,float) GetProjectileArrayDamage(int nProjectiles, float ProjectileMainDamage, float ProjectileAdditionalDamage, float scaleDamageExponentMultiplier, DDEquipmentInfo instance, ref HeroInfo heroInfo, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
+		(float,float,float) GetProjectileArrayDamage(int nProjectiles, float ProjectileMainDamage, float ProjectileAdditionalDamage, float scaleDamageExponentMultiplier, float chargeAmount, DDEquipmentInfo instance, ref HeroInfo heroInfo, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
 		{
 			float totalDamage = 0.0f;
 			float standardProjDamage = 0.0f;
@@ -202,7 +202,7 @@ namespace DDUP
 			if (weaponTemplate.ProjectileTemplate != -1)
 			{
 				var projectileTemplate = tdb.GetDunDefProjectile(weaponTemplate.ProjectileTemplate);
-				(standardProjDamage, standardAdditionalDamage) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, instance, ref heroInfo, ref projectileTemplate, ref weaponTemplate, ref equipTemplate);
+				(standardProjDamage, standardAdditionalDamage) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref projectileTemplate, ref weaponTemplate, ref equipTemplate);
 			}
 					
 			if ((weaponTemplate.bRandomizeProjectileTemplate == 1) && weaponTemplate.RandomizedProjectileTemplate.Count > 0)
@@ -211,7 +211,7 @@ namespace DDUP
 				for (int i = 0; i < weaponTemplate.RandomizedProjectileTemplate.Count; i++)
 				{
 					var randomProjectile = tdb.GetDunDefProjectile(weaponTemplate.RandomizedProjectileTemplate.Start + i);
-					(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, instance, ref heroInfo, ref randomProjectile, ref weaponTemplate, ref equipTemplate);
+					(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref randomProjectile, ref weaponTemplate, ref equipTemplate);
 					totalDamage += main + extra;
 				}
 				totalDamage = totalDamage / (float)weaponTemplate.RandomizedProjectileTemplate.Count * nProjectiles;
@@ -223,7 +223,7 @@ namespace DDUP
 					if (weaponTemplate.ExtraProjectileTemplates.Count > i)
 					{
 						var extraProjectile = tdb.GetDunDefProjectile(weaponTemplate.ExtraProjectileTemplates.Start + i);
-						(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, instance, ref heroInfo, ref extraProjectile, ref weaponTemplate, ref equipTemplate);
+						(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref extraProjectile, ref weaponTemplate, ref equipTemplate);
 						totalDamage += main + extra;
 					}
 					else
@@ -236,7 +236,7 @@ namespace DDUP
 		}
 
 
-		(float, float) GetProjectileDamage(float ProjectileMainDamage, float ProjectileAdditionalDamage, float scaleDamageExponentMultiplier, DDEquipmentInfo instance, ref HeroInfo heroInfo, ref DunDefProjectile_Data projTemplate, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
+		(float, float) GetProjectileDamage(float ProjectileMainDamage, float ProjectileAdditionalDamage, float scaleDamageExponentMultiplier, float chargeAmount, DDEquipmentInfo instance, ref HeroInfo heroInfo, ref DunDefProjectile_Data projTemplate, ref DunDefWeapon_Data weaponTemplate, ref HeroEquipment_Data equipTemplate)
 		{
 			float baseDamage = ProjectileMainDamage;
 			float additionalDamage = ProjectileAdditionalDamage;
@@ -281,6 +281,14 @@ namespace DDUP
 					}
 				}
 
+				if (chargeAmount != -1)
+				{
+
+					float damageChargeScale = (projTemplate.TheDamageMinScale + (chargeAmount * ((projTemplate.ExtraDamageMaxScale * projTemplate.TheDamageMaxScale) - projTemplate.TheDamageMinScale)));
+					baseDamage *= damageChargeScale;
+					additionalDamage *= damageChargeScale;
+				}
+
 				if (projTemplate.FireDamageScale > 0 )
 				{
 					// hardcoded because it would be a lot to thread this through.  Someday maybe
@@ -291,10 +299,51 @@ namespace DDUP
 					// this leaves fire, like MM or Phantom Destroyer
 					baseDamage += fireDamage * numTicks;
 				}
+
 			}
 			return (baseDamage, additionalDamage);
 		}
-		
+
+		//====================================================================================================
+		// STAFF DAMAGE CALCULATIONS
+		//======================================================================================================
+		public (float, string) GetStaffWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
+		{
+			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+
+			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
+			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
+
+			float PawnDamageMult = Player_GetPawnDamageMult(ref heroInfo);
+
+			float DamagePerProjectile = EquipmentDamage * PawnDamageMult;
+
+			if (weaponTemplate.bEmberorMoon == 0)
+				DamagePerProjectile *= weaponTemplate.BonusDamageMulti;
+
+			int NumProjectiles = (weaponTemplate.NumProjectiles + (instance.WeaponNumberOfProjectilesBonus - 127));
+
+			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
+
+			float minimumRechargeTime = tdb.GetFloatArray(weaponTemplate.FireInterval)[0] * weaponTemplate.WeaponSpeedMultiplier;
+			float chargeTarget = 0.7f;
+			float timeToChargeTarget = weaponTemplate.FullChargeTime;
+
+			float chargeSpeed = MathF.Max(weaponTemplate.BaseChargeSpeed + (weaponTemplate.ChargeSpeedBonusLinearScale * MathF.Pow(instance.WeaponChargeSpeedBonus-127, weaponTemplate.ChargeSpeedBonusExpScale)), 0.1f);
+
+			float fireInterval = tdb.GetFloatArray(weaponTemplate.FireInterval)[0] * weaponTemplate.WeaponSpeedMultiplier + QuantizeToAnimFrameTime(timeToChargeTarget / chargeSpeed * chargeTarget);
+
+			float shotsPerSecond = 1.0f / fireInterval;
+			
+			if ( instance.MaxLevel == 418)
+			{
+				int x = 1;
+			}
+			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, chargeTarget, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);			
+			
+			
+			return (damage * shotsPerSecond, $"{damage} {shotsPerSecond} {perHitDamage} {perHitAdditionalDamage}");
+		}
 
 
 		//====================================================================================================
@@ -314,7 +363,7 @@ namespace DDUP
 
 			int NumProjectiles = (1 + (instance.WeaponNumberOfProjectilesBonus - 127));
 			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
-			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
+			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, -1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 
 			float rangedAmount = damage / spearShootInterval;
 
@@ -346,7 +395,7 @@ namespace DDUP
 			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
 
 
-			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
+			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, -1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 
 			return (damage * quantizeShotsPerSec, $"{damage} {quantizeShotsPerSec} {perHitDamage} {perHitAdditionalDamage}");
 		}		
@@ -462,7 +511,7 @@ namespace DDUP
 				}
 				float scaleDamageExponentMultiplier = weaponTemplate.ProjectileDamageHeroStatExponentMultiplier;
 
-				(float projDamage, float hitDamage, float hitAdditionalDamage) = GetProjectileArrayDamage(numProjectiles, ProjectileMeleeDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
+				(float projDamage, float hitDamage, float hitAdditionalDamage) = GetProjectileArrayDamage(numProjectiles, ProjectileMeleeDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, -1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 				totalProjectileDamage = projDamage * numSwings;
 				projectileDPSTooltip = $" + {hitDamage} {hitAdditionalDamage}";
 			}

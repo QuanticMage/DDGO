@@ -526,8 +526,7 @@ namespace DDUP
 		public byte bSecondScaleDamageStatType;
 		public int SecondScaleDamageStatType;
 
-		public float bScaleDamagePerLevel;
-
+		public float bScaleDamagePerLevel;		
 
 		// Homing Projectile
 		public byte bPierceEnemies;
@@ -537,7 +536,12 @@ namespace DDUP
 		public float HomingInterpSpeed;
 		public byte bDamageOnTouch;
 
-		public float FireDamageScale;		
+		public float FireDamageScale;
+
+		public float TheDamageMinScale;
+		public float TheDamageMaxScale;
+		public float ExtraDamageMaxScale;
+
 
 		public DunDefProjectile_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -585,6 +589,10 @@ namespace DDUP
 			HomingInterpSpeed = Parse.Float(propertyMap, "HomingInterpSpeed");
 			bDamageOnTouch = Parse.BoolByte(propertyMap, "bDamageOnTouch");
 			FireDamageScale = Parse.Float(propertyMap, "FireDamageScale");
+
+			TheDamageMinScale = Parse.Float(propertyMap, "TheDamageMinScale");
+			TheDamageMaxScale = Parse.Float(propertyMap, "TheDamageMaxScale");
+			ExtraDamageMaxScale = Parse.Float(propertyMap, "ExtraDamageMaxScale");
 		}
 	}
 
@@ -667,6 +675,7 @@ namespace DDUP
 		public byte bUseWeaponDamageForProjectileDamage;
 		public float BlockingMomentumExponent;
 		public float AdditionalMomentumExponent;
+		public Array_Data FireInterval;
 
 		// DunDefWeapon_Minigun
 		public float MinigunProjectileDamageMultiplier;
@@ -679,6 +688,9 @@ namespace DDUP
 		public float Multiplier;
 		public float NessieCooldown;
 
+		// magic staff
+		public float ChargeSpeedBonusLinearScale;
+		public float ChargeSpeedBonusExpScale;
 
 		public DunDefWeapon_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -763,6 +775,10 @@ namespace DDUP
 
 			Multiplier = Parse.Float(propertyMap, "Multiplier");
 			NessieCooldown = Parse.Float(propertyMap, "NessieCooldown");
+			FireInterval = db.BuildArray(propertyMap["FireInterval"], VarType.Float);
+
+			ChargeSpeedBonusLinearScale = Parse.Float(propertyMap, "ChargeSpeedBonusLinearScale");
+			ChargeSpeedBonusExpScale = Parse.Float(propertyMap, "ChargeSpeedBonusExpScale");
 		}
 	}
 
