@@ -1916,6 +1916,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "bScaleDamagePerLevel", propertyMap, "0");			
 			AddPropertyToMap(obj, "bDamageOnTouch", propertyMap, "0");
 
+			AddPropertyToMap(obj, "FireDamageScale", propertyMap, "0.0");
+
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Build data + store
@@ -2045,7 +2047,14 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Ints (core)
 			AddPropertyToMap(obj, "MyHeroType", propertyMap, "0");
 			AddPropertyToMap(obj, "GivenCostumeString", propertyMap, "0");     // (string ref / id)
+
+			
+			AddArrayPropertyToMap(obj, "HeroCostumes", propertyMap);
+
 			AddPropertyToMap(obj, "PlayerTemplate", propertyMap, "0");         // DunDefPlayer ref/id
+			
+			
+			
 			AddPropertyToMap(obj, "HeroClassDisplayName", propertyMap, "0");   // (string ref / id)
 			AddPropertyToMap(obj, "HeroClassDescription", propertyMap, "0");   // (string ref / id)
 
@@ -2106,7 +2115,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 			// Build data + store
-			DunDefHero_Data hero = new DunDefHero_Data(propertyMap, db);
+			DunDefHero_Data hero = new DunDefHero_Data(propertyMap, db, AnimationDurations);
 
 			// Adapt this to your DB API (mirrors your AddHeroEquipment pattern)
 			return db.AddDunDefHero(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hero);
@@ -2152,6 +2161,8 @@ namespace DungeonDefendersOfflinePreprocessor
 					var animObj = export.Object;
 					animObj?.Load();
 
+
+
 					if (animObj != null)
 					{
 						var props = GetMergedProperties(animObj);
@@ -2175,24 +2186,24 @@ namespace DungeonDefendersOfflinePreprocessor
 							int.TryParse(framesProp.Value?.ToString() ?? "0", out numFrames);
 						}
 
+						float rate = 1.0f;
+
 						if (props.TryGetValue("RateScale", out var rateProp))
 						{
-							float.TryParse(rateProp.Value?.ToString() ?? "30", out rateScale);
-						}
+							if (float.TryParse(rateProp.Value?.ToString() ?? "1.0", out rateScale))
+							{
+								rate = rateScale;
+							}
 
-						// Calculate duration if SequenceLength isn't set
-						if (sequenceLength == 0.0f && numFrames > 0 && rateScale > 0)
-						{
-							sequenceLength = numFrames / rateScale;
 						}
-
+						
 						string animObjName = RemoveAfterLastDot(export.GetPath());
 						// Store in cache
 						if (!AnimationDurations.ContainsKey(animObjName))
 						{
 							AnimationDurations.Add(animObjName, new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase));
 						}
-						AnimationDurations[animObjName][animName.Replace("\"", "")] = sequenceLength;
+						AnimationDurations[animObjName][animName.Replace("\"", "")] = sequenceLength / rateScale;
 
 						//MainWindow.Log($"{export.GetPath()}\t{animName}\t{sequenceLength}\t{numFrames}\t{rateScale}");
 					}
@@ -2210,40 +2221,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			MainWindow.Log($"Warning: Animation '{animName}' not found, using default 0.8s");
 			return 0.8f;
 		}*/
-		public float GetAnimationDurationByPath(string packageName, string animPath)
-		{
-			if (!PackageCache.TryGetValue(packageName, out var package))
-				return 0.8f;
-
-			var obj = FindObjectByPath(package, animPath);
-			if (obj == null)
-				return 0.8f;
-
-			var props = GetMergedProperties(obj);
-
-			if (props.TryGetValue("SequenceLength", out var lengthProp))
-			{
-				if (float.TryParse(lengthProp.Value?.ToString() ?? "0", out float length))
-				{
-					return length;
-				}
-			}
-
-			// Try calculating from frames
-			if (props.TryGetValue("NumFrames", out var framesProp) &&
-				props.TryGetValue("RateScale", out var rateProp))
-			{
-				if (int.TryParse(framesProp.Value?.ToString() ?? "0", out int frames) &&
-					float.TryParse(rateProp.Value?.ToString() ?? "30", out float rate) &&
-					rate > 0)
-				{
-					return frames / rate;
-				}
-			}
-
-			return 0.8f;
-		}
-
+	
 
 		public void AddAnimationPropertiesToMap(UObject playerTemplate, Dictionary<string,string> propertyMap)
 		{
@@ -2276,7 +2254,6 @@ namespace DungeonDefendersOfflinePreprocessor
 						int end = animSet.Value.IndexOf('\'', start);
 						string path = animSet.Value.Substring(start, end - start);
 
-
 						if (AnimationDurations[path].ContainsKey("meleeattack1_large")) meleeAttack1_large = AnimationDurations[path]["meleeattack1_large"];
 						if (AnimationDurations[path].ContainsKey("meleeattack2_large")) meleeAttack2_large = AnimationDurations[path]["meleeattack2_large"];
 						if (AnimationDurations[path].ContainsKey("meleeattack3_large")) meleeAttack3_large = AnimationDurations[path]["meleeattack3_large"];
@@ -2294,7 +2271,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			propertyMap.Add("MeleeAttack2MediumAnimDuration", meleeAttack2_medium.ToString());
 			propertyMap.Add("MeleeAttack3MediumAnimDuration", meleeAttack3_medium.ToString());
 
-		}
+		}		
 
 	}
 }

@@ -164,9 +164,13 @@ namespace DDUP
 		DunDefWeapon,
 		DunDefHero,
 		HeroEquipment,
-		HeroEquipment_Familiar,
+		HeroEquipment_Familiar,		
+		HeroCostumeTemplate,
 		Max
+	
 	}
+
+
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct FileHeader
@@ -189,6 +193,52 @@ namespace DDUP
 		public VarType Type;
 		public int ObjIndex;
 	}
+
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct HeroCostumeTemplate_Data
+	{
+		public int CostumeName;
+		public int PlayerTemplateOverride;
+
+		public float MeleeAttack1LargeAnimDuration = -1.0f;
+		public float MeleeAttack2LargeAnimDuration = -1.0f;
+		public float MeleeAttack3LargeAnimDuration = -1.0f;
+		public float MeleeAttack1MediumAnimDuration = -1.0f;
+		public float MeleeAttack2MediumAnimDuration = -1.0f;
+		public float MeleeAttack3MediumAnimDuration = -1.0f;
+
+		public HeroCostumeTemplate_Data(string propertyString, ExportedTemplateDatabase db, Dictionary<string, Dictionary<string, float>>? AnimationDurations)
+		{
+			
+			var propertyMap = PropertyParser.Parse(propertyString);
+			
+			CostumeName = db.AddString(propertyMap["CostumeName"]);
+			PlayerTemplateOverride = db.GetDunDefPlayerIndex(propertyMap["PlayerTemplateOverride"]);
+
+			if ((AnimationDurations != null) && propertyMap.ContainsKey("CostumeAnimSet"))
+			{
+				string cpath = propertyMap["CostumeAnimSet"];
+				if (cpath != "none")
+				{
+					int start = cpath.IndexOf('\'') + 1;
+					int end = cpath.IndexOf('\'', start);
+					string path = cpath.Substring(start, end - start);
+
+					if (AnimationDurations.ContainsKey(path))
+					{
+						if (AnimationDurations[path].ContainsKey("meleeattack1_large")) MeleeAttack1LargeAnimDuration = AnimationDurations[path]["meleeattack1_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_large")) MeleeAttack2LargeAnimDuration = AnimationDurations[path]["meleeattack2_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_large")) MeleeAttack3LargeAnimDuration = AnimationDurations[path]["meleeattack3_large"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_medium")) MeleeAttack1MediumAnimDuration = AnimationDurations[path]["meleeattack1_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_medium")) MeleeAttack2MediumAnimDuration = AnimationDurations[path]["meleeattack2_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_medium")) MeleeAttack3MediumAnimDuration = AnimationDurations[path]["meleeattack3_medium"];
+					}
+				}
+			}
+		}
+	}
+
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct ULinearColor_Data
@@ -400,8 +450,7 @@ namespace DDUP
 			StatMultInitial_HeroCastingRate = Parse.Float(propertyMap, "StatMultInitial_HeroCastingRate");
 			AnimSpeedMultiplier = Parse.Float(propertyMap, "AnimSpeedMultiplier");
 			
-			MeleeAttack1LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack1LargeAnimDuration", 1.0f);
-			
+			MeleeAttack1LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack1LargeAnimDuration", 1.0f);			
 			MeleeAttack2LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack2LargeAnimDuration", 1.0f);
 			MeleeAttack3LargeAnimDuration  = Parse.Float(propertyMap, "MeleeAttack3LargeAnimDuration", 0.5f);
 			MeleeAttack1MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack1MediumAnimDuration", 0.7f);
@@ -463,6 +512,8 @@ namespace DDUP
 		public float HomingInterpSpeed;
 		public byte bDamageOnTouch;
 
+		public float FireDamageScale;
+
 		public DunDefProjectile_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			Template = db.AddString(propertyMap["Template"]);
@@ -508,6 +559,7 @@ namespace DDUP
 			TowerDamageMultiplier = Parse.Float(propertyMap, "TowerDamageMultiplier");
 			HomingInterpSpeed = Parse.Float(propertyMap, "HomingInterpSpeed");
 			bDamageOnTouch = Parse.BoolByte(propertyMap, "bDamageOnTouch");
+			FireDamageScale = Parse.Float(propertyMap, "FireDamageScale");
 		}
 	}
 
@@ -1357,6 +1409,7 @@ namespace DDUP
 		public Array_Data StatNames; // string[]
 		public Array_Data StatDescriptions; // string[]
 		public int PlayerTemplate;        // DunDefPlayer
+		public Array_Data HeroCostumes; // Costume Templates
 		public int HeroClassDisplayName;  // string
 		public int HeroClassDescription;  // string
 		public int ClassNameColor;  // ULinear_Color
@@ -1394,7 +1447,7 @@ namespace DDUP
 		public float StatExptFull_DefenseAOE;
 		public float StatBoostCapInitial_HeroDamage;
 
-		public DunDefHero_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
+		public DunDefHero_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db, Dictionary<string, Dictionary<string, float>>? AnimationDurations = null)
 		{
 			Template = db.AddString(propertyMap["Template"]);
 			Class = db.AddString(propertyMap["Class"]);
@@ -1405,10 +1458,12 @@ namespace DDUP
 				? (int)ImportMaps._heroType[propertyMap["MyHeroType"]]
 				: Parse.Int(propertyMap, "MyHeroType");
 
+			HeroCostumes = db.BuildArray(propertyMap["HeroCostumes"], VarType.HeroCostumeTemplate, AnimationDurations);
+			
 			GivenCostumeString = db.AddString(propertyMap["GivenCostumeString"]);
 			StatNames = db.BuildArray(propertyMap["StatNames"], VarType.String);
-			StatDescriptions = db.BuildArray(propertyMap["StatDescriptions"], VarType.String);
-			PlayerTemplate = db.GetDunDefPlayerIndex(propertyMap["PlayerTemplate"]); 
+			StatDescriptions = db.BuildArray(propertyMap["StatDescriptions"], VarType.String);						
+			PlayerTemplate = db.GetDunDefPlayerIndex(propertyMap["PlayerTemplate"]); 					
 			HeroClassDisplayName = db.AddString(propertyMap["HeroClassDisplayName"]);
 			HeroClassDescription = db.AddString(propertyMap["HeroClassDescription"]);
 			ClassNameColor = db.AddULinearColor(new ULinearColor_Data(propertyMap["ClassNameColor"]));			

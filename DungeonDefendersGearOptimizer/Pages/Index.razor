@@ -2560,6 +2560,7 @@
         if (_damageCalculator == null)
             return;
 
+        var heroInstance = _characterPanel?.SelectedHeroInfo;
         string heroTemplate = _characterPanel?.SelectedHeroInfo?.Template ?? "";
         if (!TemplateDB.TryGetTemplateIndex(heroTemplate, out int entry))
         {
@@ -2571,6 +2572,29 @@
         info.TemplateData = TemplateDB.GetDunDefHero(entry);        
         info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(info.TemplateData.PlayerTemplate);
 
+        info.MeleeAttack1LargeAnimDuration = info.PlayerTemplateData.MeleeAttack1LargeAnimDuration;
+        info.MeleeAttack2LargeAnimDuration = info.PlayerTemplateData.MeleeAttack2LargeAnimDuration;
+        info.MeleeAttack3LargeAnimDuration = info.PlayerTemplateData.MeleeAttack3LargeAnimDuration;
+        info.MeleeAttack1MediumAnimDuration = info.PlayerTemplateData.MeleeAttack1MediumAnimDuration;
+        info.MeleeAttack2MediumAnimDuration = info.PlayerTemplateData.MeleeAttack2MediumAnimDuration;
+        info.MeleeAttack3MediumAnimDuration = info.PlayerTemplateData.MeleeAttack3MediumAnimDuration;
+
+        if ((heroInstance != null) && (heroInstance.CostumeIndex >= 0) && (heroInstance.CostumeIndex < info.TemplateData.HeroCostumes.Count))
+        {
+            var HeroCostumeTemplate = TemplateDB.GetHeroCostumeTemplate(info.TemplateData.HeroCostumes.Start + heroInstance.CostumeIndex);
+            if (HeroCostumeTemplate.PlayerTemplateOverride != -1)
+            {
+                info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(HeroCostumeTemplate.PlayerTemplateOverride);
+            }
+            if (HeroCostumeTemplate.MeleeAttack1MediumAnimDuration != -1) info.MeleeAttack1MediumAnimDuration = HeroCostumeTemplate.MeleeAttack1MediumAnimDuration;
+            if (HeroCostumeTemplate.MeleeAttack2MediumAnimDuration != -1) info.MeleeAttack2MediumAnimDuration = HeroCostumeTemplate.MeleeAttack2MediumAnimDuration;
+            if (HeroCostumeTemplate.MeleeAttack3MediumAnimDuration != -1) info.MeleeAttack3MediumAnimDuration = HeroCostumeTemplate.MeleeAttack3MediumAnimDuration;
+            if (HeroCostumeTemplate.MeleeAttack1LargeAnimDuration != -1) info.MeleeAttack1LargeAnimDuration = HeroCostumeTemplate.MeleeAttack1LargeAnimDuration;
+            if (HeroCostumeTemplate.MeleeAttack2LargeAnimDuration != -1) info.MeleeAttack2LargeAnimDuration = HeroCostumeTemplate.MeleeAttack2LargeAnimDuration;
+            if (HeroCostumeTemplate.MeleeAttack3LargeAnimDuration != -1) info.MeleeAttack3LargeAnimDuration = HeroCostumeTemplate.MeleeAttack3LargeAnimDuration;
+
+        }
+        
         for (int i = 0; i < 11; i++)
         {
             info.TotalStats[i] = _characterPanel.ShownStat[i];
@@ -2585,7 +2609,6 @@
                 Console.WriteLine($"Expected known weapon template {db.Items[v.Idx].Template}");
                 continue;
             }
-
 
             var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
             v.DPS = 0.0f;
