@@ -40,6 +40,14 @@ namespace DDUP
 		public float MeleeAttack1MediumAnimDuration = 0.7f;
 		public float MeleeAttack2MediumAnimDuration = 0.533f;
 		public float MeleeAttack3MediumAnimDuration = 1.033f;
+
+
+		public float MeleeAttack1LargeAnimDamageStart = 0.0f;
+		public float MeleeAttack2LargeAnimDamageStart = 0.0f;
+		public float MeleeAttack3LargeAnimDamageStart = 0.0f;
+		public float MeleeAttack1MediumAnimDamageStart = 0.0f;
+		public float MeleeAttack2MediumAnimDamageStart = 0.0f;
+		public float MeleeAttack3MediumAnimDamageStart = 0.0f;
 	}
 
 
@@ -232,7 +240,7 @@ namespace DDUP
 		{
 			float baseDamage = ProjectileMainDamage;
 			float additionalDamage = ProjectileAdditionalDamage;
-
+	
 			// TODO - base damage based on level override
 			if (projTemplate.ScaleHeroDamage == 1)
 			{
@@ -272,14 +280,17 @@ namespace DDUP
 						baseDamage *= scalingFactor;
 					}
 				}
-				//if ((instance.MaxLevel == 351))
-				//{
-				//	DunDefWeapon_Data wdata = weaponTemplate;
-				//	DunDefProjectile_Data pdata = projTemplate;
-				//	HeroEquipment_Data edata = equipTemplate;
-				//	Console.WriteLine($"{instance.GeneratedName}: {pdata.ScaleDamageStatType} {projTemplate.ScaleDamageStatExponent} {projTemplate.MultiplyProjectileDamageByWeaponDamage} {projTemplate.ScaleHeroDamage} {Hero_GetHeroStatMult(projTemplate.ScaleDamageStatType, ref heroInfo)}");
-				//	Console.WriteLine($"{instance.GeneratedName}: {baseDamage} {additionalDamage} {projTemplate.bScaleDamagePerLevel} {scalingFactor} {projTemplate.bSecondScaleDamageStatType} {projTemplate.ScaleDamageStatExponent} { wdata.SpeedMultiplier}");
-				//}
+
+				if (projTemplate.FireDamageScale > 0 )
+				{
+					// hardcoded because it would be a lot to thread this through.  Someday maybe
+					float baseFireDamage = 10.0f;
+					int numTicks = 24;
+
+					float fireDamage = baseFireDamage * projTemplate.FireDamageScale * baseDamage;
+					// this leaves fire, like MM or Phantom Destroyer
+					baseDamage += fireDamage * numTicks;
+				}
 			}
 			return (baseDamage, additionalDamage);
 		}
@@ -375,20 +386,20 @@ namespace DDUP
 			//Span<float> swingFinalTimes = stackalloc float[4];
 			//Span<int> swingInfoIndex = stackalloc int[4];
 			float[] swingDurations = new float[4];
+			float[] swingDamageStartTimes = new float[4];
 			float[] swingFinalTimes = new float[4];
 			int[] swingInfoIndex = new int[4];
 
 
-			swingDurations[0] = (instance.Set == "Squire") ? 
-				heroInfo.MeleeAttack1MediumAnimDuration:
-				heroInfo.MeleeAttack1LargeAnimDuration;
-			swingDurations[1] = (instance.Set == "Squire") ?
-				heroInfo.MeleeAttack2MediumAnimDuration :
-				heroInfo.MeleeAttack2LargeAnimDuration;
-			swingDurations[2] = (instance.Set == "Squire") ?
-				heroInfo.MeleeAttack3MediumAnimDuration :
-				heroInfo.MeleeAttack3LargeAnimDuration;
+			swingDurations[0] = (instance.Set == "Squire") ? heroInfo.MeleeAttack1MediumAnimDuration : heroInfo.MeleeAttack1LargeAnimDuration;
+			swingDurations[1] = (instance.Set == "Squire") ? heroInfo.MeleeAttack2MediumAnimDuration : heroInfo.MeleeAttack2LargeAnimDuration;
+			swingDurations[2] = (instance.Set == "Squire") ? heroInfo.MeleeAttack3MediumAnimDuration : heroInfo.MeleeAttack3LargeAnimDuration;			
 			swingDurations[3] = 0.0f;
+
+			swingDamageStartTimes[0] = (instance.Set == "Squire") ? heroInfo.MeleeAttack1MediumAnimDamageStart : heroInfo.MeleeAttack1LargeAnimDamageStart;
+			swingDamageStartTimes[1] = (instance.Set == "Squire") ? heroInfo.MeleeAttack2MediumAnimDamageStart : heroInfo.MeleeAttack2LargeAnimDamageStart;
+			swingDamageStartTimes[2] = (instance.Set == "Squire") ? heroInfo.MeleeAttack3MediumAnimDamageStart : heroInfo.MeleeAttack3LargeAnimDamageStart;
+			swingDamageStartTimes[3] = 0.0f;
 
 
 			swingInfoIndex[0] = swingInfoRef.Start;
@@ -418,23 +429,18 @@ namespace DDUP
 
 				float AnimSpeed = swingInfo.AnimSpeed * totalSpeedMult;
 				float SwingTime = (swingDurations[i] - swingInfo.TimeBeforeEndToAllowNextCombo) / AnimSpeed;
+				float DamageStartTime = swingDamageStartTimes[i] / AnimSpeed;
 				float SwingDamage = MainDamage * swingInfo.DamageMultiplier * weaponTemplate.DamageMultiplier * playerMultiplier;
 				float SwingExtraDamage = AdditionalDamage * swingInfo.DamageMultiplier;
-				if (SwingTime < 0.28f)// weaponTemplate.MinimumSwingTime; - need to account for minimum damage time too
-					SwingTime = 0.28f; // weaponTemplate.MinimumSwingTime;
+			/*	if (SwingTime < weaponTemplate.MinimumSwingTime)
+					SwingTime = weaponTemplate.MinimumSwingTime;
+				if (SwingTime < DamageStartTime + weaponTemplate.MinimumSwingDamageTime)
+					SwingTime = DamageStartTime + weaponTemplate.MinimumSwingDamageTime;*/
 
-				// TODO: AnimNotify list - need ot keep track of when that is for each animation :O probably alongside the attack durations
 				swingFinalTimes[i] = SwingTime;
 
 				swingTimeSum += QuantizeToAnimFrameTime(SwingTime);  // quantize up to 30th of a second
-				if ((instance.MaxLevel == 268 ) && (instance.Stats[(int)DDStat.HeroDamage] == 353))
-				{
-					MeleeSwingInfo_Data sw = swingInfo;
-					float play = playerMultiplier;
-					float dur = swingDurations[i];
-
-					int y = 1;
-				}
+		
 				swingDamageSum += SwingDamage + SwingExtraDamage;			
 			}
 

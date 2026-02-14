@@ -208,6 +208,13 @@ namespace DDUP
 		public float MeleeAttack2MediumAnimDuration = -1.0f;
 		public float MeleeAttack3MediumAnimDuration = -1.0f;
 
+		public float MeleeAttack1LargeAnimDamageStart=  0.0f;
+		public float MeleeAttack2LargeAnimDamageStart=  0.0f;
+		public float MeleeAttack3LargeAnimDamageStart=  0.0f;
+		public float MeleeAttack1MediumAnimDamageStart = 0.0f;
+		public float MeleeAttack2MediumAnimDamageStart = 0.0f;
+		public float MeleeAttack3MediumAnimDamageStart = 0.0f;
+
 		public HeroCostumeTemplate_Data(string propertyString, ExportedTemplateDatabase db, Dictionary<string, Dictionary<string, float>>? AnimationDurations)
 		{
 			
@@ -233,6 +240,12 @@ namespace DDUP
 						if (AnimationDurations[path].ContainsKey("meleeattack1_medium")) MeleeAttack1MediumAnimDuration = AnimationDurations[path]["meleeattack1_medium"];
 						if (AnimationDurations[path].ContainsKey("meleeattack2_medium")) MeleeAttack2MediumAnimDuration = AnimationDurations[path]["meleeattack2_medium"];
 						if (AnimationDurations[path].ContainsKey("meleeattack3_medium")) MeleeAttack3MediumAnimDuration = AnimationDurations[path]["meleeattack3_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_large_StartWeaponSwingDamage"))  MeleeAttack1LargeAnimDamageStart= AnimationDurations[path]["meleeattack1_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_large_StartWeaponSwingDamage"))  MeleeAttack2LargeAnimDamageStart= AnimationDurations[path]["meleeattack2_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_large_StartWeaponSwingDamage"))  MeleeAttack3LargeAnimDamageStart= AnimationDurations[path]["meleeattack3_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_medium_StartWeaponSwingDamage")) MeleeAttack1MediumAnimDamageStart = AnimationDurations[path]["meleeattack1_medium_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_medium_StartWeaponSwingDamage")) MeleeAttack2MediumAnimDamageStart = AnimationDurations[path]["meleeattack2_medium_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_medium_StartWeaponSwingDamage")) MeleeAttack3MediumAnimDamageStart = AnimationDurations[path]["meleeattack3_medium_StartWeaponSwingDamage"];						
 					}
 				}
 			}
@@ -431,6 +444,12 @@ namespace DDUP
 		public float MeleeAttack1MediumAnimDuration;
 		public float MeleeAttack2MediumAnimDuration;
 		public float MeleeAttack3MediumAnimDuration;
+		public float MeleeAttack1LargeAnimDamageStart;
+		public float MeleeAttack2LargeAnimDamageStart;
+		public float MeleeAttack3LargeAnimDamageStart;
+		public float MeleeAttack1MediumAnimDamageStart;
+		public float MeleeAttack2MediumAnimDamageStart;
+		public float MeleeAttack3MediumAnimDamageStart;
 
 		public DunDefPlayer_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -456,7 +475,13 @@ namespace DDUP
 			MeleeAttack1MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack1MediumAnimDuration", 0.7f);
 			MeleeAttack2MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack2MediumAnimDuration", 0.533f);
 			MeleeAttack3MediumAnimDuration = Parse.Float(propertyMap, "MeleeAttack3MediumAnimDuration", 1.033f);
-		
+
+			MeleeAttack1LargeAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack1LargeAnimDamageStart", 0.0f);
+			MeleeAttack2LargeAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack2LargeAnimDamageStart", 0.0f);
+			MeleeAttack3LargeAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack3LargeAnimDamageStart", 0.0f);
+			MeleeAttack1MediumAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack1MediumAnimDamageStart", 0.0f);
+			MeleeAttack2MediumAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack2MediumAnimDamageStart", 0.0f);
+			MeleeAttack3MediumAnimDamageStart = Parse.Float(propertyMap, "MeleeAttack3MediumAnimDamageStart", 0.0f);
 
 			MeleeSwingInfoMultipliers = db.BuildArray(propertyMap["MeleeSwingInfoMultipliers"], VarType.MeleeSwingInfo);
 
@@ -512,7 +537,7 @@ namespace DDUP
 		public float HomingInterpSpeed;
 		public byte bDamageOnTouch;
 
-		public float FireDamageScale;
+		public float FireDamageScale;		
 
 		public DunDefProjectile_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
