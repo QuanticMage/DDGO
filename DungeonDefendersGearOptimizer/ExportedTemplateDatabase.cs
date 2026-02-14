@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
 
 namespace DDUP
 {
@@ -865,6 +865,16 @@ namespace DDUP
 		public int GetDunDefProjectileIndex(string s)
 		{
 			s = ExtractQuotedString(s);
+
+			if ((s == "BossPets.Krakenpet.Projectile_BlobDot") ||
+				(s == "DunDef_CDT_SkyOLove.Equipment.FluffyFire") ||
+				(s ==  "DunDef_CDT_Update3.WaterChakram.ChakProj") ||
+				(s == "IslandAssets.Equipment.IslandSpear.Island_Proj"))
+			{
+				int y = 1;
+			}
+			
+
 			if (DunDefProjectile_IndexMap.ContainsKey(s))
 			{
 				return DunDefProjectile_IndexMap[s];

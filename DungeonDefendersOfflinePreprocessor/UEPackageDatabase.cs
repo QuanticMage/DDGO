@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms.Design;
 using System.Windows.Forms.Integration;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
@@ -32,6 +33,7 @@ using UELib.Engine;
 using UELib.Services;
 using UELib.Types;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 
 namespace DungeonDefendersOfflinePreprocessor
@@ -1920,6 +1922,7 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
+
 			// Build data + store
 			DunDefProjectile_Data proj = new DunDefProjectile_Data(propertyMap, db);
 
@@ -2170,7 +2173,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						//string animName = export.GetPath();
 						float sequenceLength = 0.0f;
 						int numFrames = 0;
-						float rateScale = 30.0f; // Default FPS
+						float rateScale = 1.0f; // Default FPS
 
 						props.TryGetValue("SequenceName", out var sequenceName);
 						string animName = sequenceName?.Value ?? "";
@@ -2194,16 +2197,33 @@ namespace DungeonDefendersOfflinePreprocessor
 							{
 								rate = rateScale;
 							}
-
 						}
-						
+						float startweapondamageTime = -1.0f;
+						if (props.TryGetValue("Notifies", out var notifyProp))
+						{
+							// for barbrians, this might need to include StartMainHand / StartOffHand, but I hope not
+
+							var pattern = @"Time=(\d+\.\d+).*?NotifyName=""AnimNotify_StartWeaponSwingDamage""";
+							var matches = Regex.Matches(notifyProp.Value, pattern, RegexOptions.Singleline);
+
+							if ( matches.Count > 0)
+							{
+								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));								
+							}							
+						}
+
+
 						string animObjName = RemoveAfterLastDot(export.GetPath());
+				
 						// Store in cache
 						if (!AnimationDurations.ContainsKey(animObjName))
 						{
 							AnimationDurations.Add(animObjName, new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase));
 						}
 						AnimationDurations[animObjName][animName.Replace("\"", "")] = sequenceLength / rateScale;
+						
+						if (startweapondamageTime > 0.0f)
+							AnimationDurations[animObjName][animName.Replace("\"", "") + "_StartWeaponSwingDamage"] = (float)startweapondamageTime / rateScale;
 
 						//MainWindow.Log($"{export.GetPath()}\t{animName}\t{sequenceLength}\t{numFrames}\t{rateScale}");
 					}
@@ -2233,7 +2253,13 @@ namespace DungeonDefendersOfflinePreprocessor
 			float meleeAttack1_medium = 0.7f;
 			float meleeAttack2_medium = 0.533f;
 			float meleeAttack3_medium = 1.033f;
-
+			
+			float meleeAttack1_large_startweaponswingdamage = 0.0f;
+			float meleeAttack2_large_startweaponswingdamage = 0.0f;
+			float meleeAttack3_large_startweaponswingdamage = 0.0f;
+			float meleeAttack1_medium_startweaponswingdamage = 0.0f;
+			float meleeAttack2_medium_startweaponswingdamage = 0.0f;
+			float meleeAttack3_medium_startweaponswingdamage = 0.0f;
 
 			var meshProp = GetProperty(playerTemplate, "Mesh");
 
@@ -2253,13 +2279,19 @@ namespace DungeonDefendersOfflinePreprocessor
 						int start = animSet.Value.IndexOf('\'') + 1;
 						int end = animSet.Value.IndexOf('\'', start);
 						string path = animSet.Value.Substring(start, end - start);
-
+				
 						if (AnimationDurations[path].ContainsKey("meleeattack1_large")) meleeAttack1_large = AnimationDurations[path]["meleeattack1_large"];
 						if (AnimationDurations[path].ContainsKey("meleeattack2_large")) meleeAttack2_large = AnimationDurations[path]["meleeattack2_large"];
 						if (AnimationDurations[path].ContainsKey("meleeattack3_large")) meleeAttack3_large = AnimationDurations[path]["meleeattack3_large"];
 						if (AnimationDurations[path].ContainsKey("meleeattack1_medium")) meleeAttack1_medium = AnimationDurations[path]["meleeattack1_medium"];
 						if (AnimationDurations[path].ContainsKey("meleeattack2_medium")) meleeAttack2_medium = AnimationDurations[path]["meleeattack2_medium"];
 						if (AnimationDurations[path].ContainsKey("meleeattack3_medium")) meleeAttack3_medium = AnimationDurations[path]["meleeattack3_medium"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_large_StartWeaponSwingDamage")) meleeAttack1_large_startweaponswingdamage = AnimationDurations[path]["meleeattack1_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_large_StartWeaponSwingDamage")) meleeAttack2_large_startweaponswingdamage = AnimationDurations[path]["meleeattack2_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_large_StartWeaponSwingDamage")) meleeAttack3_large_startweaponswingdamage = AnimationDurations[path]["meleeattack3_large_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack1_medium_StartWeaponSwingDamage")) meleeAttack1_medium_startweaponswingdamage = AnimationDurations[path]["meleeattack1_medium_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack2_medium_StartWeaponSwingDamage")) meleeAttack2_medium_startweaponswingdamage = AnimationDurations[path]["meleeattack2_medium_StartWeaponSwingDamage"];
+						if (AnimationDurations[path].ContainsKey("meleeattack3_medium_StartWeaponSwingDamage")) meleeAttack3_medium_startweaponswingdamage = AnimationDurations[path]["meleeattack3_medium_StartWeaponSwingDamage"];
 					}
 				}
 			}
@@ -2270,6 +2302,13 @@ namespace DungeonDefendersOfflinePreprocessor
 			propertyMap.Add("MeleeAttack1MediumAnimDuration", meleeAttack1_medium.ToString());
 			propertyMap.Add("MeleeAttack2MediumAnimDuration", meleeAttack2_medium.ToString());
 			propertyMap.Add("MeleeAttack3MediumAnimDuration", meleeAttack3_medium.ToString());
+
+			propertyMap.Add("MeleeAttack1LargeAnimDamageStart",  meleeAttack1_large_startweaponswingdamage.ToString());
+			propertyMap.Add("MeleeAttack2LargeAnimDamageStart",  meleeAttack2_large_startweaponswingdamage.ToString());
+			propertyMap.Add("MeleeAttack3LargeAnimDamageStart",  meleeAttack3_large_startweaponswingdamage.ToString());
+			propertyMap.Add("MeleeAttack1MediumAnimDamageStart", meleeAttack1_medium_startweaponswingdamage.ToString());
+			propertyMap.Add("MeleeAttack2MediumAnimDamageStart", meleeAttack2_medium_startweaponswingdamage.ToString());
+			propertyMap.Add("MeleeAttack3MediumAnimDamageStart", meleeAttack3_medium_startweaponswingdamage.ToString());
 
 		}		
 
