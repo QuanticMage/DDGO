@@ -1920,6 +1920,11 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			AddPropertyToMap(obj, "FireDamageScale", propertyMap, "0.0");
 
+			AddPropertyToMap(obj, "TheDamageMinScale", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TheDamageMaxScale", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraDamageMaxScale", propertyMap, "0.0");
+
+
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
 
@@ -1939,7 +1944,8 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddArrayPropertyToMap(obj, "MeleeSwingInfos", propertyMap);
 			AddArrayPropertyToMap(obj, "RainbowDamageTypeArrays", propertyMap);
 			AddArrayPropertyToMap(obj, "RandomizedProjectileTemplate", propertyMap);
-			
+			AddArrayPropertyToMap(obj, "FireInterval", propertyMap);
+
 			// Ints (core)
 			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
 			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
@@ -2025,6 +2031,9 @@ namespace DungeonDefendersOfflinePreprocessor
 			// DunDefWeapon_NessieLauncher
 			AddPropertyToMap(obj, "Multiplier", propertyMap, "0.0");
 			AddPropertyToMap(obj, "NessieCooldown", propertyMap, "0.0");
+
+			AddPropertyToMap(obj, "ChargeSpeedBonusLinearScale", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ChargeSpeedBonusExpScale", propertyMap, "0.0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");

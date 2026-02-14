@@ -81,6 +81,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["Sequences"] = Tuple.Create("Engine.AnimSet.Sequences", PropertyType.ObjectProperty);
 			UnrealConfig.VariableTypes["Children"] = Tuple.Create("Engine.AnimTreeTemplate.Children", PropertyType.ObjectProperty);
 			UnrealConfig.VariableTypes["Notifies"] = Tuple.Create("Engine.AnimSequence.Notifies", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["FireInterval"] = Tuple.Create("UDKGame.DunDefWeapon.FireInterval", PropertyType.FloatProperty);
 		}
 
 		private readonly StringBuilder _logBuilder = new();
