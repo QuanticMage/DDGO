@@ -35,6 +35,10 @@
 
 TODO:
 
+Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
+
+Broken Ability 2 
+Weapon + Pets in equip best
 Add in : ProtonChargeBlastDamageMultiplier to Equipment
 
 Add in x1.2 for costume bonus
