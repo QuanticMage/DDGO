@@ -318,30 +318,30 @@ namespace DDUP
 
 			float DamagePerProjectile = EquipmentDamage * PawnDamageMult;
 
-			if (weaponTemplate.bEmberorMoon == 0)
-				DamagePerProjectile *= weaponTemplate.BonusDamageMulti;
-
 			int NumProjectiles = (weaponTemplate.NumProjectiles + (instance.WeaponNumberOfProjectilesBonus - 127));
 
 			float AdditionalDamagePerProjectile = (weaponTemplate.bUseAdditionalProjectileDamage == 1) ? GetEquipmentAdditionalDamageAmount(instance, ref heroInfo, ref equipTemplate) * PawnDamageMult : 0;
 
-			float minimumRechargeTime = tdb.GetFloatArray(weaponTemplate.FireInterval)[0] * weaponTemplate.WeaponSpeedMultiplier;
+			if (weaponTemplate.bEmberorMoon == 0)
+			{
+				DamagePerProjectile *= weaponTemplate.BonusDamageMulti;
+				AdditionalDamagePerProjectile *= weaponTemplate.BonusDamageMulti;
+			}
+
+
 			float chargeTarget = 0.7f;
-			float timeToChargeTarget = weaponTemplate.FullChargeTime;
-
 			float chargeSpeed = MathF.Max(weaponTemplate.BaseChargeSpeed + (weaponTemplate.ChargeSpeedBonusLinearScale * MathF.Pow(instance.WeaponChargeSpeedBonus-127, weaponTemplate.ChargeSpeedBonusExpScale)), 0.1f);
+			float chargeTime = QuantizeToAnimFrameTime((weaponTemplate.FullChargeTime * chargeTarget * weaponTemplate.WeaponSpeedMultiplier) / chargeSpeed);
+			float actualChargeTarget = chargeTime * chargeSpeed / weaponTemplate.FullChargeTime / weaponTemplate.WeaponSpeedMultiplier;
 
-			float fireInterval = tdb.GetFloatArray(weaponTemplate.FireInterval)[0] * weaponTemplate.WeaponSpeedMultiplier + QuantizeToAnimFrameTime(timeToChargeTarget / chargeSpeed * chargeTarget);
+			float minimumRefireDelay = tdb.GetFloatArray(weaponTemplate.FireInterval)[0] * weaponTemplate.WeaponSpeedMultiplier;
+
+			float fireInterval = chargeTime +  minimumRefireDelay;
 
 			float shotsPerSecond = 1.0f / fireInterval;
 			
-			if ( instance.MaxLevel == 418)
-			{
-				int x = 1;
-			}
-			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, chargeTarget, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);			
-			
-			
+			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, actualChargeTarget, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
+		
 			return (damage * shotsPerSecond, $"{damage} {shotsPerSecond} {perHitDamage} {perHitAdditionalDamage}");
 		}
 
