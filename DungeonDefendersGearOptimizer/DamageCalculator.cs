@@ -12,18 +12,8 @@ namespace DDUP
 
 	// Outputs:
 	// Theoretical DPS vs. training dummy
-	// Ideal upgrade path 
 	// How good this item is vs. a max drop on weapon damage.  How many drops I would need before I got something better.
 	// Piercing, AOE, Heal, Mana, Wall info
-
-	// Display of stats is (e.WDamageMult * e.WDamageDisplayValueScale * 0.8) * et.(w.Base + i.Bonus)
-	// for additional stats it's same without e.WDamageMult
-
-	// crystal tracker showing up as 424874 dmg + 1060 extra
-	// 1060 appears to be 4.8 times higher than (7131 * 0.8 * 0.25) - the predicted amount w/ global elemental scaling - 1.2x ev!
-
-	// 1.2x skin multiplier (EV 1.85)!!!! x weapon damage modifier (4)
-	// TODO: need a calculation for health - See GetHeroStatMult
 
 
 	public class HeroInfo
@@ -341,8 +331,10 @@ namespace DDUP
 			float shotsPerSecond = 1.0f / fireInterval;
 			
 			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, actualChargeTarget, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
-		
-			return (damage * shotsPerSecond, $"{damage} {shotsPerSecond} {perHitDamage} {perHitAdditionalDamage}");
+
+			string damageStr = DDEquipmentInfo.FormatCompact(damage);
+
+			return (damage * shotsPerSecond, $"{damageStr} " + ((NumProjectiles > 1) ? $"x {NumProjectiles} projectiles " : "") + $"every {(1.0f / shotsPerSecond):F2} seconds");			
 		}
 
 
@@ -367,10 +359,14 @@ namespace DDUP
 
 			float rangedAmount = damage / spearShootInterval;
 
-			if (rangedAmount > meleeAmount)
-				return (rangedAmount, $"Ranged DPS: {rangedAmount} {perHitDamage} {perHitAdditionalDamage}\nMelee DPS: {meleeAmount} {meleeTip}");
-			else
-				return (meleeAmount, $"Ranged DPS: {rangedAmount} {perHitDamage} {perHitAdditionalDamage}\nMelee DPS: {meleeAmount} {meleeTip}");
+			float bestDPS = (rangedAmount > meleeAmount) ? rangedAmount : meleeAmount;
+
+			string rangedStr = DDEquipmentInfo.FormatCompact(rangedAmount);
+			string damageStr = DDEquipmentInfo.FormatCompact(damage);
+			string meleeStr = DDEquipmentInfo.FormatCompact(meleeAmount);
+			string projStr = $"{damageStr} " + ((NumProjectiles > 1) ? $"x {NumProjectiles} projectiles " : "") + $"every {(spearShootInterval):F2} seconds";
+
+			return (bestDPS, $"{rangedStr} Ranged DPS\r\n{projStr}\r\n\r\n{meleeStr} Melee DPS\r\n{meleeTip}");
 		}
 
 		//====================================================================================================
@@ -397,8 +393,10 @@ namespace DDUP
 
 			(float damage, float perHitDamage, float perHitAdditionalDamage) = GetProjectileArrayDamage(NumProjectiles, DamagePerProjectile, AdditionalDamagePerProjectile, 1.0f, -1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 
-			return (damage * quantizeShotsPerSec, $"{damage} {quantizeShotsPerSec} {perHitDamage} {perHitAdditionalDamage}");
-		}		
+			string damageStr = DDEquipmentInfo.FormatCompact(damage);
+			
+			return (damage * quantizeShotsPerSec, $"{damageStr} " + ((NumProjectiles > 1) ? $"x {NumProjectiles} projectiles ":"") + $"every {(1.0f/quantizeShotsPerSec):F2} seconds");
+		}
 
 		//====================================================================================================
 		// MELEE DAMAGE CALCULATIONS
@@ -426,19 +424,17 @@ namespace DDUP
 			Array_Data offHandSwingInfoRef = heroInfo.PlayerTemplateData.OffHandSwingInfoMultipliers;
 			float swingTimeSum = 0.0f;
 			float swingDamageSum = 0.0f;
+			float swingDamageExtraSum = 0.0f;
 			float totalSpeedMult = instance.WeaponSwingSpeedMultiplier * weaponTemplate.SpeedMultiplier * weaponTemplate.ExtraSpeedMultiplier * weaponTemplate.WeaponSpeedMultiplier;
 
 			int numSwings = 3;
 			if (heroInfo.PlayerTemplateData.OffHandSwingInfoMultipliers.Count > 0)
 				numSwings = 4;
-			//Span<float> swingDurations = stackalloc float[4];
-			//Span<float> swingFinalTimes = stackalloc float[4];
-			//Span<int> swingInfoIndex = stackalloc int[4];
-			float[] swingDurations = new float[4];
-			float[] swingDamageStartTimes = new float[4];
-			float[] swingFinalTimes = new float[4];
-			int[] swingInfoIndex = new int[4];
-
+			Span<float> swingDurations = stackalloc float[4];
+			Span<float> swingFinalTimes = stackalloc float[4];
+			Span<float> swingDamageStartTimes = stackalloc float[4];
+			Span<int> swingInfoIndex = stackalloc int[4];
+			
 
 			swingDurations[0] = (instance.Set == "Squire") ? heroInfo.MeleeAttack1MediumAnimDuration : heroInfo.MeleeAttack1LargeAnimDuration;
 			swingDurations[1] = (instance.Set == "Squire") ? heroInfo.MeleeAttack2MediumAnimDuration : heroInfo.MeleeAttack2LargeAnimDuration;
@@ -490,7 +486,8 @@ namespace DDUP
 
 				swingTimeSum += QuantizeToAnimFrameTime(SwingTime);  // quantize up to 30th of a second
 		
-				swingDamageSum += SwingDamage + SwingExtraDamage;			
+				swingDamageSum += SwingDamage;
+				swingDamageExtraSum += SwingExtraDamage;
 			}
 
 			float totalProjectileDamage = 0.0f;
@@ -513,11 +510,16 @@ namespace DDUP
 
 				(float projDamage, float hitDamage, float hitAdditionalDamage) = GetProjectileArrayDamage(numProjectiles, ProjectileMeleeDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, -1.0f, instance, ref heroInfo, ref weaponTemplate, ref equipTemplate);
 				totalProjectileDamage = projDamage * numSwings;
-				projectileDPSTooltip = $" + {hitDamage} {hitAdditionalDamage}";
+				string hitDamageStr = DDEquipmentInfo.FormatCompact(hitDamage + hitAdditionalDamage);				
+
+				projectileDPSTooltip = $"{hitDamageStr} x {numSwings} from projectiles\r\n";
 			}
 
-			float totalMeleeDamage = (swingTimeSum == 0.0f) ? MainDamage + AdditionalDamage : (swingDamageSum + totalProjectileDamage) / swingTimeSum;
-			return (totalMeleeDamage, $"{MainDamage} + {AdditionalDamage}" + projectileDPSTooltip +$"=> {swingTimeSum} {swingFinalTimes[0]} {swingFinalTimes[1]} {swingFinalTimes[2]}");
+			string swingDamageSumStr = DDEquipmentInfo.FormatCompact(swingDamageSum);
+			string swingDamageExtraSumStr = DDEquipmentInfo.FormatCompact(swingDamageExtraSum);
+
+			float totalMeleeDamage = (swingTimeSum == 0.0f) ? MainDamage + AdditionalDamage : (swingDamageSum + swingDamageExtraSum + totalProjectileDamage) / swingTimeSum;
+			return (totalMeleeDamage, $"{swingDamageSumStr} + {swingDamageExtraSumStr} over {numSwings} swings in {swingTimeSum:F1} seconds\r\n" + projectileDPSTooltip);
 		}
 	}
 }

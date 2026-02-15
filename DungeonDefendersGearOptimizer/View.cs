@@ -246,13 +246,13 @@ namespace DDUP
 		{
 			if (IsEvent && (Value == 0))
 			{
-				return ("💎", "???", "");
+				return ("💰", "?", "");
 			}
 
 			if (Value > 0)
 			{
 				if (Value > 300)
-					return ("💰", "Auction", "Estimated " + Value.ToString() + "cv");
+					return ("💰", "?", "Estimated " + Value.ToString() + "cv");
 				else
 					return ("💎", Value.ToString() + "cv", "");
 			}

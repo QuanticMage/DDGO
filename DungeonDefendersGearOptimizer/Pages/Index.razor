@@ -591,7 +591,7 @@
             </div>
             <table class="grid @(_compactDisplay?"compact-table":"")" @ref="_tableRef">
                 <colgroup>
-                    <col style="width:85px" />   @* Rating *@
+                    <col style="width:80px" />   @* Rating *@
                     <col style="width:80px" />   @* Value *@
                     <col style="width:65px" />   @* BestFor *@
                     <col style="width:70px" />   @* Type *@
@@ -603,19 +603,19 @@
 
                     <col style="width:55px" />   @* MaxLvl *@
                     <col style="width:55px" />   @* Lvl *@
-                    <col style="width:70px" />   @* Damage *@                    
-                    <col style="width:60px" />   @* HHP *@
-                    <col style="width:60px" />   @* HDmg *@
-                    <col style="width:60px" />   @* HSpd *@
-                    <col style="width:60px" />   @* HRate *@
-                    <col style="width:60px" />   @* Ab1 *@
-                    <col style="width:60px" />   @* Ab2 *@
-                    <col style="width:60px" />   @* THP *@
-                    <col style="width:60px" />   @* TDmg *@
-                    <col style="width:60px" />   @* TRange *@
-                    <col style="width:60px" />   @* TRate *@
+                    <col style="width:65px" />   @* Damage *@                    
+                    <col style="width:55px" />   @* HHP *@
+                    <col style="width:55px" />   @* HDmg *@
+                    <col style="width:55px" />   @* HSpd *@
+                    <col style="width:55px" />   @* HRate *@
+                    <col style="width:55px" />   @* Ab1 *@
+                    <col style="width:55px" />   @* Ab2 *@
+                    <col style="width:55px" />   @* THP *@
+                    <col style="width:55px" />   @* TDmg *@
+                    <col style="width:55px" />   @* TRange *@
+                    <col style="width:55px" />   @* TRate *@
 
-                    <col style="width:60px" />   @* RG *@
+                    <col style="width:66px" />   @* RG *@
                 </colgroup>
 
                 <thead>
@@ -840,7 +840,7 @@
                         <th class="sortable icon-header @HeaderShadingStyle(DDStat.HeroCastRate)">
                             <button type="button" class="th-btn th-icon" title="Hero Casting Rate" @onclick="() => SortBy(nameof(DDStat.HeroCastRate))">
                                 <img src="png/Cast Rate.png" alt="HRate" />
-                                <span class="hdr-text">Hero<br />Cast Rate</span>
+                                <span class="hdr-text">Hero<br />Rate</span>
                                 <span class="sort-glyph">@SortGlyph(nameof(DDStat.HeroCastRate))</span>
                             </button>
                             <div class="col-resizer"></div>
@@ -2169,7 +2169,7 @@
             "Ult90" => 4,
             "Supreme" => 3,
             "Trans" => 2,
-            "Mythical" => 1,
+            "Mythic" => 1,
             _ => 0
         };
     }
@@ -2183,7 +2183,7 @@
         else if (quality == "Ult90") return "cell-quality-ult90";
         else if (quality == "Supreme") return "cell-quality-supreme";
         else if (quality == "Trans") return "cell-quality-transcendent";
-        else if (quality == "Mythical") return "cell-quality-mythical";
+        else if (quality == "Mythic") return "cell-quality-mythical";
         else return "cell-quality-default";
     }
     const string UiStateKey = "ddgo.uiState.v1";
@@ -2644,23 +2644,27 @@
             v.DPS = 0.0f;
             v.DPSTooltip = "";
 
-            if (v.Set == "Squire")
+            if ((v.Set == "Squire") && IsWeaponSetValid(v.Set))
             {
                 (v.DPS, v.DPSTooltip) = (_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
             }
-            else if (v.Set == "Huntress")
+            else if ((v.Set == "Huntress")&& IsWeaponSetValid(v.Set))
             {
                 (v.DPS, v.DPSTooltip) = (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
             }                
-            else if (v.Set == "Monk")
+            else if ((v.Set == "Monk")&& IsWeaponSetValid(v.Set))
             {
                 (v.DPS, v.DPSTooltip) = (_damageCalculator.GetSpearWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
             }
-             else if (v.Set == "Apprentice")
+             else if ((v.Set == "Apprentice")&& IsWeaponSetValid(v.Set))
             {
                 (v.DPS, v.DPSTooltip) = (_damageCalculator.GetStaffWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
             }
-            v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
+            
+            if (v.DPS == 0.0f)
+                v.CachedDPSString = "";
+            else
+                v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
         }                 
     }
 

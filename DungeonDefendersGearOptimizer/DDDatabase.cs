@@ -211,15 +211,15 @@ public class DDEquipmentInfo
 		string suffix;
 		double scaled;
 
-		if (value >= 1e12) { suffix = "T"; scaled = value / 1e12; }
-		else if (value >= 1e9) { suffix = "B"; scaled = value / 1e9; }
-		else if (value >= 1e6) { suffix = "M"; scaled = value / 1e6; }
-		else if (value >= 1e3) { suffix = "K"; scaled = value / 1e3; }
+		if (value >= 1e12) { suffix = "t"; scaled = value / 1e12; }
+		else if (value >= 1e9) { suffix = "b"; scaled = value / 1e9; }
+		else if (value >= 1e6) { suffix = "m"; scaled = value / 1e6; }
+		else if (value >= 1e3) { suffix = "k"; scaled = value / 1e3; }
 		else { suffix = ""; scaled = value; }
 
 		// 4 significant digits
 		int digits = (int)Math.Floor(Math.Log10(scaled)) + 1;
-		int decimals = Math.Max(0, 4 - digits);
+		int decimals = Math.Max(0, 3 - digits);
 
 		return scaled
 			.ToString("F" + decimals)
@@ -282,7 +282,7 @@ public class DDEquipmentInfo
 			else if (this.Quality == "Ult90") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
 			else if (this.Quality == "Supreme") { mult = 1.3666f; maxR = 30; maxStatLevel = 500; }
 			else if (this.Quality == "Trans") { mult = 1.3333f; maxR = 31; maxStatLevel = 420; }
-			else if (this.Quality == "Mythical") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
+			else if (this.Quality == "Mythic") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
 			else { mult = 1.25f; maxR = 31; maxStatLevel = 300; }
 
 			if (!this.bIsArmor)
@@ -558,7 +558,7 @@ public class DDDatabase
 			else if (itemInfo.NameQualityIdx == 16) quality = "Ult90";
 			else if (itemInfo.NameQualityIdx == 15) quality = "Supreme";
 			else if (itemInfo.NameQualityIdx == 14) quality = "Trans";
-			else if (itemInfo.NameQualityIdx == 13) quality = "Mythical";
+			else if (itemInfo.NameQualityIdx == 13) quality = "Mythic";
 			else if (itemInfo.NameQualityIdx == 12) quality = "Cursed";
 			else if (itemInfo.NameQualityIdx == 11) quality = "Torn";
 			else if (itemInfo.NameQualityIdx == 10) quality = "Worn";
