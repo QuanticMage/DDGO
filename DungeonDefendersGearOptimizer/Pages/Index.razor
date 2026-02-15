@@ -805,7 +805,7 @@
                             <div class="col-resizer"></div>
                         </th>
                         <th class="sortable">
-                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))">
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))" data-tooltip="Estimated DPS in Nightmare">
                                <span class="hdr-text">Estimated DPS</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
                             </button>
                             <div class="col-resizer"></div>
