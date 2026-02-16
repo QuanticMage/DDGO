@@ -36,7 +36,8 @@
 TODO:
 
 Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
-
+Resists>Tdmg>Hhp>>>AB2>Hdmg - JitB barb
+Anything labeled as 5,10 or 15cv gets added so you can see your net RAW CV
 Broken Ability 2 
 Weapon + Pets in equip best
 Add in : ProtonChargeBlastDamageMultiplier to Equipment
