@@ -12,7 +12,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Feb 3 2026 - Version 1.7b</i></div>
+        <div class="build"><i>Feb 16 2026 - Version 1.8 beta</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -232,7 +232,7 @@
                              Presets="@(new[]
                                                   {
                                                   new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),
-                                                  new FilterChips.Preset("Accessories", new [] { "Brooch", "Mask", "Bracers" }),                                                                                             
+                                                  new FilterChips.Preset("Accessories", new [] { "Brooch", "Mask", "Bracers", "Shield" }),                                                                                             
                                             })" />
 
             <FilterChips Title="Set" Theme="set"
@@ -517,15 +517,15 @@
                     <col style="width:80px" />   @* Rating *@
                     <col style="width:80px" />   @* Value *@
                     <col style="width:65px" />   @* BestFor *@
-                    <col style="width:70px" />   @* Type *@
+                    <col style="width:65px" />   @* Type *@
                     <col style="width:70px" />   @* Position *@
 
                     <col style="width:15%" />    @* Name (2*) *@
                     <col style="width:10%" />    @* Location (2*) *@
                     <col style="width:60px" />   @* Quality *@
 
-                    <col style="width:55px" />   @* MaxLvl *@
-                    <col style="width:55px" />   @* Lvl *@
+                    <col style="width:50px" />   @* MaxLvl *@
+                    <col style="width:50px" />   @* Lvl *@
                     <col style="width:65px" />   @* Damage *@                    
                     <col style="width:55px" />   @* HHP *@
                     <col style="width:55px" />   @* HDmg *@
@@ -952,6 +952,7 @@
 
     // Current sorting criteria
     private bool _bRequireResists = false;
+    private bool _bUpgradeWeaponStats = false;
     private List<DDStat> _RatingStatsPriority = new();
     private List<DDStat> _SidesStatsPriority = new();
     private bool _showFilterHelp = false;
@@ -1489,11 +1490,6 @@
             .SequenceEqual(b.OrderBy(x => x, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 
-    private void ApplyUi( bool updateCalculatedValues, bool updateDPS, bool updateFilters)
-    {
-        _ = UpdateCalculatedValues(true, true);       
-
-    }
 
     private void SetUi(UiState newState)
     {
@@ -1517,7 +1513,7 @@
         if (prev.Censor != _ui.Censor) { bNeedUpdateCache = true; }
         if (prev.RatingMode != _ui.RatingMode) { bNeedUpdateMode = true; bNeedUpdateRating = true; bNeedUpdateDPS = true; }
         if (prev.ItemBoxLayout != _ui.ItemBoxLayout) {bNeedUpdateCache = true; }
-        if (prev.ShowUpgradedStats != _ui.ShowUpgradedStats) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
+        if (prev.ShowUpgradedStats != _ui.ShowUpgradedStats) { bNeedUpdateDPS = true; }
         if (prev.AssumeSetBonuses != _ui.AssumeSetBonuses) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
         if (prev.SidesAreImportant != _ui.SidesAreImportant) { bNeedUpdateRating = true; }        
         if (!SameSet(prev.SelectedTypes, _ui.SelectedTypes)) { bNeedUpdateFilters = true; }
@@ -1751,7 +1747,7 @@
         bool excludeMissingResists = _ui.SelectedOther.Contains("Exclude Missing Resists");
 
         bool updateCustomSearch = false;
-        bool customSearchIsError = true;
+        bool customSearchIsError = false;
         ExpressionParser.BoolNode? root = null;
 
 
@@ -1896,7 +1892,8 @@
                 _RatingStatsPriority.AddRange(v.RatingStatsPriority);
                 _SidesStatsPriority.Clear();
                 _SidesStatsPriority.AddRange(v.SidesStatsPriority);
-                _bRequireResists = v.RequireResists;                
+                _bRequireResists = v.RequireResists;
+                _bUpgradeWeaponStats = v.UpgradeWeaponStats;
                 break;
             }
         }                
@@ -2116,7 +2113,7 @@
         for (int i = 0; i < n; i++)
         {            
             var r = _rows[i];
-            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
+            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists, _bUpgradeWeaponStats);
 
             if (((i & 127) == 0) && (i!=0))
             {
@@ -2257,29 +2254,64 @@
             if (!IsWeaponSetValid(v.Set))
                 continue;
 
+            _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
+
             if (v.Set == "Squire") 
             {
-                (dps[i], tips[i]) = (_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+                (dps[i], tips[i]) = (_damageCalculator.GetMeleeWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
             }
             else if (v.Set == "Huntress")
             {
-                (dps[i], tips[i]) =  (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+                (dps[i], tips[i]) = (_damageCalculator.GetCrossbowWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
             }                
             else if (v.Set == "Monk")
             {
-                (dps[i], tips[i]) = (_damageCalculator.GetSpearWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+                (float meleeDamage, string meleeTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, false, ref info, ref weaponTemplate));                                
+                _damageCalculator.CalculateUpgradedWeaponStats(v, true, ref weaponTemplate);
+                (float rangedDamage, string rangedTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, true, ref info, ref weaponTemplate));
+
+                string rangedStr = DDEquipmentInfo.FormatCompact(rangedDamage);
+                string meleeStr = DDEquipmentInfo.FormatCompact(meleeDamage);		
+
+                dps[i] = (meleeDamage > rangedDamage) ? meleeDamage : rangedDamage;
+                tips[i] = $"{rangedStr} Ranged DPS (upgrading as Ranged)\r\n{rangedTip}\r\n\r\n{meleeStr} Melee DPS (upgrading as Melee)\r\n{meleeTip}\r\n";
+                
+                if (_ui.ShowUpgradedStats)
+                    tips[i] += "Stats below are upgrading for " + ((meleeDamage > rangedDamage) ? "Melee:" : "Ranged:");
+
+                if ( meleeDamage > rangedDamage )
+                {
+                    // if melee wins, make sure we go with those upgrades
+                    _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
+                }
             }
             else if (v.Set == "Apprentice")
             {
-                (dps[i], tips[i]) = (_damageCalculator.GetStaffWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+                (dps[i], tips[i]) = (_damageCalculator.GetStaffWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
             }             
+
+
+            int viewWeaponDamage = _damageCalculator.GetDisplayWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+            int viewWeaponAltDamage = _damageCalculator.GetDisplayAltDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+            int viewWeaponAdditionalDamage = _damageCalculator.GetDisplayAdditionalDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+            int viewShotsPerSec = _damageCalculator.GetDisplayShotsPerSecond(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+            int viewNumProjectiles = _damageCalculator.GetDisplayNumProjectiles(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+
+            tips[i] +=  
+               ((v.UpgradedWeaponDamageBonus == 0) ? "" : $"\r\n[Weapon Damage]: {viewWeaponDamage}") + 
+               ((v.UpgradedWeaponAltDamageBonus== 0) ? "" : $"\r\n[Weapon Alt Damage]: {viewWeaponAltDamage}") + 
+               ((v.UpgradedWeaponAdditionalDamageAmount == 0) ? "" : $"\r\n[Weapon Elemental Damage]: {viewWeaponAdditionalDamage}") +
+               ((v.UpgradedWeaponNumberOfProjectilesBonus == 0) ? "" : $"\r\n[Num Projectiles]: {viewNumProjectiles}") +
+               ((v.UpgradedWeaponShotsPerSecondBonus == 0) ? "" : $"\r\n[Shots Per Second]: {viewShotsPerSec}");
+
 
             if ((++count & 127) == 0)
             {
-                if (calcGen != Volatile.Read(ref _calcGeneration)) return;                
+                if (calcGen != Volatile.Read(ref _calcGeneration)) return;
                 await Task.Yield();
             }
         }    
+
         token.ThrowIfCancellationRequested();
         if (calcGen != Volatile.Read(ref _calcGeneration)) return;
 
@@ -2293,7 +2325,7 @@
                 continue;
 
             _rows[i].DPS = dps[i];
-            _rows[i].DPSTooltip = tips[i];
+            _rows[i].DPSTooltip = tips[i];                                         
         }
 
         UpdateEquipmentRatingAndType();
@@ -2411,7 +2443,7 @@
                 nameof(ItemViewRow.Type) => CmpStr(a.Type, b.Type),
                 nameof(ItemViewRow.Set) => CmpStr(a.Set, b.Set),
 
-                nameof(ItemViewRow.Quality) => Cmp(QualityRank(a.Quality), QualityRank(b.Quality)),
+                nameof(ItemViewRow.Quality) => Cmp(a.QualityRank, b.QualityRank),
                 nameof(ItemViewRow.DPS) => Cmp((int)a.DPS, (int)b.DPS),
                 _ => Cmp(a.Rating, b.Rating),
             };
@@ -2429,24 +2461,6 @@
         }
 
         _rows.Sort(Compare);
-    }
-
-    private static int QualityRank(string? q)
-    {
-        q = (q ?? "").Trim();
-
-
-        return q switch
-        {
-            "Ult++" => 7,
-            "Ult+" => 6,
-            "Ult93" => 5,
-            "Ult90" => 4,
-            "Supreme" => 3,
-            "Trans" => 2,
-            "Mythic" => 1,
-            _ => 0
-        };
     }
 
 

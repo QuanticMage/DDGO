@@ -835,6 +835,7 @@ namespace DDUP
 		public int MaxUpgradeableSpeedOfProjectilesBonus;
 		public int MinDamageBonus;
 		public float MinElementalDamageIncreasePerLevel;
+		public float MaxElementalDamageIncreasePerLevel;
 		public float MinEquipmentLevels;
 		public int MinLevel;
 		public int MinSupremeLevel;
@@ -911,6 +912,7 @@ namespace DDUP
 		public int WeaponClipAmmoBonus;
 		public int WeaponClipAmmoBonusRandomizer; // EG_StatRandomizer
 		public float WeaponDamageDisplayValueScale;
+		public float WeaponAltDamageDisplayValueScale;
 		public int WeaponDamageBonus;
 		public int WeaponDamageBonusRandomizer; // EG_StatRandomizer
 		public float WeaponDamageBonusRandomizerMultiplier;
@@ -1041,6 +1043,7 @@ namespace DDUP
 			MaxUpgradeableSpeedOfProjectilesBonus = Parse.Int(propertyMap, "MaxUpgradeableSpeedOfProjectilesBonus");
 			MinDamageBonus = Parse.Int(propertyMap, "MinDamageBonus");
 			MinElementalDamageIncreasePerLevel = Parse.Float(propertyMap, "MinElementalDamageIncreasePerLevel");
+			MaxElementalDamageIncreasePerLevel = Parse.Float(propertyMap, "MaxElementalDamageIncreasePerLevel");
 			MinEquipmentLevels = Parse.Float(propertyMap, "MinEquipmentLevels");
 			MinLevel = Parse.Int(propertyMap, "MinLevel");
 			MinSupremeLevel = Parse.Int(propertyMap, "MinSupremeLevel");
@@ -1120,7 +1123,7 @@ namespace DDUP
 			WeaponDamageBonusRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap["WeaponDamageBonusRandomizer"]));
 			WeaponDamageBonusRandomizerMultiplier = Parse.Float(propertyMap, "WeaponDamageBonusRandomizerMultiplier");
 			WeaponDamageDisplayValueScale = Parse.Float(propertyMap, "WeaponDamageDisplayValueScale");
-
+			WeaponAltDamageDisplayValueScale = Parse.Float(propertyMap, "WeaponAltDamageDisplayValueScale");
 			WeaponDamageMultiplier = Parse.Float(propertyMap, "WeaponDamageMultiplier");
 			WeaponEquipmentRatingPercentBase = Parse.Float(propertyMap, "WeaponEquipmentRatingPercentBase");
 			WeaponKnockbackBonus = (byte)Parse.Int(propertyMap, "WeaponKnockbackBonus");

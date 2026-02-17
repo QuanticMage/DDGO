@@ -269,7 +269,8 @@ public class DDEquipmentInfo
 				(this.Type == "Gauntlet") ||
 				(this.Type == "Bracers") ||
 				(this.Type == "Brooch") ||
-				(this.Type == "Mask");
+				(this.Type == "Mask") ||
+				(this.Type == "Shield");
 
 			float mult = 1.0f;
 			int maxR = 0;
@@ -318,7 +319,7 @@ public class DDEquipmentInfo
 				RP: Resist(this, 1),
 				RF: Resist(this, 2),
 				RL: Resist(this, 3),
-				Idx: this.Idx,				
+				Idx: this.Idx,
 				Value: EventItemValue,
 				BestFor: "",
 
@@ -339,11 +340,19 @@ public class DDEquipmentInfo
 				IconX: IconX,
 				IconY: IconY,
 				IconX1: IconX1,
-				IconY1: IconY1, 
+				IconY1: IconY1,
 				IconX2: IconX2,
 				IconY2: IconY2,
 
-				GeneratedName: this.GeneratedName
+				GeneratedName: this.GeneratedName,
+				WeaponDamageBonus: this.WeaponDamageBonus,
+				WeaponShotsPerSecondBonus: (int)this.WeaponShotsPerSecondBonus - 127,
+				WeaponNumberOfProjectilesBonus: (int)this.WeaponNumberOfProjectilesBonus - 127,
+				WeaponChargeSpeedBonus: (int)this.WeaponChargeSpeedBonus - 127,
+				WeaponSpeedOfProjectilesBonus: (int)this.WeaponSpeedOfProjectilesBonus,
+				WeaponSwingSpeedMultiplier: this.WeaponSwingSpeedMultiplier,
+				WeaponAdditionalDamageAmount: this.WeaponAdditionalDamageAmount,
+				WeaponAltDamageBonus: this.WeaponAltDamageBonus
 			);
 		}
 		return cachedItemRow;

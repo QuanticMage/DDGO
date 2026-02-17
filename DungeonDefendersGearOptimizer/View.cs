@@ -55,6 +55,27 @@ namespace DDUP
 		public int[] Resists = new int[4];
 		public int[] UpgradedResists = new int[4];
 
+		public int WeaponDamageBonus = 0;
+		public int WeaponShotsPerSecondBonus = 0;
+		public int WeaponNumberOfProjectilesBonus = 0;
+		public int WeaponChargeSpeedBonus = 0;
+		public int WeaponSpeedOfProjectilesBonus = 0;
+		public float WeaponSwingSpeedMultiplier = 1.0f;
+		public int WeaponAdditionalDamageAmount = 0;
+		public int WeaponAltDamageBonus = 0;
+
+
+		public int UpgradedWeaponDamageBonus = 0;
+		public int UpgradedWeaponShotsPerSecondBonus = 0;
+		public int UpgradedWeaponNumberOfProjectilesBonus = 0;
+		public int UpgradedWeaponChargeSpeedBonus = 0;
+		public int UpgradedWeaponSpeedOfProjectilesBonus = 0;
+		public int UpgradedWeaponAdditionalDamageAmount = 0;
+		public int UpgradedWeaponAltDamageBonus = 0;
+
+
+		public int UpgradesLeftForWeaponStats = 0;		
+
 		// IMPORTANT: keep this stable/unique for @key
 		public int Idx { get; set; }
 
@@ -111,6 +132,7 @@ namespace DDUP
 		public string CachedDPSString = "";
 		public string DPSTooltip = "";
 		public float DPS = 0;
+		public int QualityRank = 0;
 		
 		public int UpgradesRequiredForResists { get; set; }
 		public bool BrokenResists = false;
@@ -171,7 +193,18 @@ namespace DDUP
 
 				int IconX, int IconY, int IconX1, int IconY1, int IconX2, int IconY2,
 				
-				string GeneratedName)
+				string GeneratedName,
+
+				int WeaponDamageBonus,
+				int WeaponShotsPerSecondBonus,
+				int WeaponNumberOfProjectilesBonus,
+				int WeaponChargeSpeedBonus ,
+				int WeaponSpeedOfProjectilesBonus,
+				float WeaponSwingSpeedMultiplier,
+				int WeaponAdditionalDamageAmount,
+				int WeaponAltDamageBonus
+
+				)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -179,6 +212,7 @@ namespace DDUP
 			this.Name = Name;
 			this.Location = Location;
 			this.Quality = Quality;
+			this.QualityRank = GetQualityRank(this.Quality);
 			this.Type = Type;
 			this.Set = Set;
 
@@ -240,6 +274,15 @@ namespace DDUP
 
 			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();
 			this.GeneratedName = GeneratedName;
+
+			this.WeaponDamageBonus = WeaponDamageBonus;
+			this.WeaponShotsPerSecondBonus = WeaponShotsPerSecondBonus;
+			this.WeaponNumberOfProjectilesBonus = WeaponNumberOfProjectilesBonus;
+			this.WeaponChargeSpeedBonus = WeaponChargeSpeedBonus;
+			this.WeaponSpeedOfProjectilesBonus = WeaponSpeedOfProjectilesBonus;
+			this.WeaponSwingSpeedMultiplier = WeaponSwingSpeedMultiplier;
+			this.WeaponAdditionalDamageAmount = WeaponAdditionalDamageAmount;
+			this.WeaponAltDamageBonus = WeaponAltDamageBonus;
 		}
 
 		public void UpdateValueDisplay()
@@ -355,6 +398,22 @@ namespace DDUP
 				return s.Substring(0, s.Length - 1) + "x";
 			else
 				return s;
+		}
+
+		public static int GetQualityRank(string? q)
+		{
+			return q switch
+			{
+				"Ult++" => 19,
+				"Ult+" => 18,
+				"Ult93" => 17,
+				"Ult90" => 16,
+				"Supreme" => 15,
+				"Trans" => 14,
+				"Mythic" => 13,
+				// TODO: fill this in some day
+				_ => 0
+			};
 		}
 	}
 }
