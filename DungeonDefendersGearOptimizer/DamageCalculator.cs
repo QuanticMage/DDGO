@@ -590,8 +590,6 @@ namespace DDUP
 
 			// TODO: Deal with partial upgrades 
 
-
-
 			// you can only upgrade when (level + 1) % 5 == 0. This is not perfect, but it's an approximation.
 			maxNumberOfProjectilesBonus = (int)MathF.Min(maxNumberOfProjectilesBonus, viewRow.UpgradedWeaponNumberOfProjectilesBonus + (numUpgradesAvailable / 5));
 			
