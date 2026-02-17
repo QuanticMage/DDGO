@@ -29,15 +29,15 @@ TODO:
 (DONE) Highlight Best -> remove
 (DONE) More tooltips
 (DONE) Compare Ult and other qualities
+(DONE) Allow <> with quality if it doesn't support it already- look at column sorting code
+(DONE) Upgrade weapon
 
 Test shield auto equip
 
 Next:
 * Add in new events if I can get a copy of them
 * Update auto-event identification code.  include bCantBesold
-* Allow <> with quality if it doesn't support it already- look at column sorting code
-* Upgrade weapon
-
+* Shots-per-second needs to not be upgradeable for staves-- why is it doing that?
 
 
 Setting to not force level limits
