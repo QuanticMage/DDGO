@@ -38,7 +38,16 @@ Next:
 * Add in new events if I can get a copy of them
 * Update auto-event identification code.  include bCantBesold
 * Shots-per-second needs to not be upgradeable for staves-- why is it doing that?
-
+* Zooming messes up selection (Firefox)
+* Character text behind character pane
+* Update icons - defender's party hat is broken
+* more layout and icon work
+** FIX clicking on the "?" of the custom field DELETES whatever is entered in the field
+** Dropdown also erases
+** if you input text into the field WITHOUT hitting <enter> the text WILL get deleted
+** if you DO hit <enter> then the text will remain
+** Save text between runs
+** The custom field has priority or is ignoring the "other" filters (other equipped characters)
 
 Setting to not force level limits
 Verify test characters

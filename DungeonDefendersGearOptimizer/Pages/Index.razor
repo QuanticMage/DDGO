@@ -515,7 +515,7 @@
             <table class="grid @(_compactDisplay?"compact-table":"")" @ref="_tableRef">
                 <colgroup>
                     <col style="width:80px" />   @* Rating *@
-                    <col style="width:80px" />   @* Value *@
+                    <col style="width:70px" />   @* Value *@
                     <col style="width:65px" />   @* BestFor *@
                     <col style="width:65px" />   @* Type *@
                     <col style="width:70px" />   @* Position *@
@@ -1135,7 +1135,7 @@
 
         _characterPanel?.ChangeEquipment(itemType, row);
         row.CurrentEquippedSlot = itemType;
-       _ = UpdateCalculatedValues(false, true);
+        _ = UpdateCalculatedValues(false, true);
     }
 
     private bool IsSelected(ItemViewRow row)
@@ -1201,7 +1201,7 @@
     {
         if (string.IsNullOrWhiteSpace(mode))
             return Task.CompletedTask;
-        
+
         SetUi(u => u with { RatingMode = mode });
         return Task.CompletedTask;
     }
@@ -1472,6 +1472,9 @@
         public bool SidesAreImportant { get; init; } = false;
 
         public string DPSMode { get; init; } = "Damage per Second";
+        
+        // bump this when baking new items
+        public int IconVersion = 1;
 
         public ImmutableArray<string> SelectedTypes { get; init; } = ["Helmet", "Torso", "Gauntlet", "Boots"];
         public ImmutableArray<string> SelectedSets { get; init; } = ["Chain", "Mail", "Pristine", "Leather", "Plate"];
@@ -1534,6 +1537,11 @@
 
         if (bNeedUpdateCache)
             UpdateCachedDisplayValues();
+
+        if (prev.IconVersion != _ui.IconVersion)
+        {
+            JS.InvokeVoidAsync("atlasIcons.clearCache");
+        }
 
         QueueSaveUiState();
     }    
