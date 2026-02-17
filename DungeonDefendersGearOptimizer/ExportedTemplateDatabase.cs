@@ -866,13 +866,13 @@ namespace DDUP
 		{
 			s = ExtractQuotedString(s);
 
-			if ((s == "BossPets.Krakenpet.Projectile_BlobDot") ||
-				(s == "DunDef_CDT_SkyOLove.Equipment.FluffyFire") ||
-				(s ==  "DunDef_CDT_Update3.WaterChakram.ChakProj") ||
-				(s == "IslandAssets.Equipment.IslandSpear.Island_Proj"))
-			{
-				int y = 1;
-			}
+			//if ((s == "BossPets.Krakenpet.Projectile_BlobDot") ||
+			//	(s == "DunDef_CDT_SkyOLove.Equipment.FluffyFire") ||
+			//	(s ==  "DunDef_CDT_Update3.WaterChakram.ChakProj") ||
+			//	(s == "IslandAssets.Equipment.IslandSpear.Island_Proj"))
+			//{
+			//	int y = 1;
+			//}
 			
 
 			if (DunDefProjectile_IndexMap.ContainsKey(s))

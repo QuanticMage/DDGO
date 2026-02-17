@@ -1,63 +1,55 @@
 ﻿
-		// Fields for Damage Calculations;
-		public string WeaponTemplate = ""; // DunDefWeapon or derived
-		public float ScaleDamageStatExponent;
-		public float MythicalScaleDamageStatExponent;
-		public string ProjectileTemplate;
-		public List<string> ExtraProjectileTemplate;
-		public float ProjectileSpeedBonusMultiplier;
-
-		public bool bUseExtraQualityDamage;
-		public bool bUseSecondExtraQualityDamage;
-		public bool bWeaponAdditionalDamageTypeNotPoison;
-		public float TranscendentLevelBoostAmount;
-		public float SupremeLevelBoostAmount;
-		public float UltimateLevelBoostAmount;
-		public float ElementalDamageMultiplier;
-		public float ElementalDamageIncreasePerLevelMultiplier;
-		public float DamageIncreasePerLevelMultiplier;
-		public float UltimateDamageIncreasePerLevelMultiplier;
-		public float ExtraQualityDamageIncreasePerLevelMultiplier;
-		public float SecondExtraQualityDamageIncreasePerLevelMultiplier;
-		public float SecondExtraQualityMaxDamageIncreasePerLevel;
-
-		public float MaxElementalDamageIncreasePerLevel;
-		public float MinElementalDamageIncreasePerLevel;
-		public float MaxDamageIncreasePerLevel;
-		public float UltimateMaxDamageIncreasePerLevel;
-		public float ExtraQualityMaxDamageIncreasePerLevel;
-		public float AltDamageIncreasePerLevelMultiplier;
-		public float WeaponDamageDisplayValueScale;
-		public float WeaponAltDamageDisplayValueScale;
-		public float PlayerSpeedMultiplier;
-		public float WeaponDamageMultiplier;
-		public float AltWeaponDamageMultiplier;
-
 TODO:
+(DONE) Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
+(DONE) Make equip always show fully upgraded
+(DONE) Auto-detect mode is broken
+(DONE) Fully upgrade doesn't upgrade resist view
+(DONE) Fully upgrade needs to recalculate when you change rating
 
-Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
+(DONE) use null forgiving operator !. to fix warnings
+
+(DONE) Remove non-compact, make hover show template
+(DONE) Add accessories/weapons to type selection.  Actually add quick selection buttons above that in the filters
+(DONE) Broken Ability 2 
+(DONE) Add in x1.2 for costume bonus
+(DONE) Coal / Frags no longer show count (compact display related)
+
+(DONE) Remove cache clear of icons every load
+(DONE) Remove stat icons that aren't used on hover
+(DONE) also i have to like tick and untick get live prices for it to change the listed price
+
+(DONE) Rating mode doesn't automatically select?
+(DONE) Hover tips should show up on builder app stuff but not on equipment pieces after.
+(DONE) Hover over "App Builder" etc shows build order for primary stats
+(DONE) Make sure when you switch order it refreshes the upgrade stuff
+(DONE) Rework save option system- Save text filter state, selected character, etc?
+
+(DONE) Optimizations
+
+(DONE) Highlight Best -> remove
+(DONE) More tooltips
+
+
+Next:
+* Compare Ult and other qualities
+* Add in new events if I can get a copy of them
+* Update auto-event identification code.  include bCantBesold
+* Allow <> with quality if it doesn't support it already- look at column sorting code
+* Upgrade weapon
+
+
+
+
+
+Consider redoing filters
+Add Pride of the Kraken and Sword of Valor (yellow) events
 Resists>Tdmg>Hhp>>>AB2>Hdmg - JitB barb
 Anything labeled as 5,10 or 15cv gets added so you can see your net RAW CV
-Broken Ability 2 
 Weapon + Pets in equip best
 Add in : ProtonChargeBlastDamageMultiplier to Equipment
-
-Add in x1.2 for costume bonus
-
-Coal / Frags no longer show count (compact display related)
-Use GetMergedProperties instead of my walking manually?
-Make equip always show fully upgraded
 ExtraEquipmentColorMultiplier=> passed in to shader for santa hat?  EquipmentRating is also used, but unsure why.  Size?
-
-Remove non-compact, make hover show template
 Add maxhp / etc for testing in DDGO ("all things that can reach a maxhp of..")
-Remove cache clear of icons every load
-Remove stat icons that aren't used on hover
-Auto-detect mode is broken
-Add accessories/weapons to type selection.  Actually add quick selection buttons above that in the filters
-also i have to like tick and untick get live prices for it to change the listed price
 
-Allow < > ult++ and other qualities
 
 // use this to check for events
 function bool AllowSelling()
@@ -77,18 +69,10 @@ function bool AllowSelling()
 bCantBeSold
 
 
-** Tower rate seems to never be grey, or columns aren't refreshed when you change stars (Theoran's video)
-** Fully upgrade doesn't upgrade resist view
-** Fully upgrade needs to recalculate when you change rating
-
-Rating mode doesn't automatically select?
-Hover tips should show up on builder app stuff but not on equipment pieces after.
-
 //Upper jester is just Cast Rate+Res w/ HHP as a side?
 //yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
 
-Hover over "App Builder" etc shows build order for primary stats
-Make sure when you switch order it refreshes the upgrade stuff
+
 Damage simulator
 
 Add weapons and pets to auto-equip.
@@ -106,14 +90,11 @@ Optimize!!!
 
 New event items, new gun, beta characters
 "Why is this not updating"? help 
-(DONE) Optimizations
 
 PRI
 Fix hover highlight- different color than selected?
 
 * Adobe color
-
-* Rework save option system- Save text filter state, selected character, etc?
 * Update for new class / beta
 * Equip best should equip pets and weapons
 * Add new events to hash - maybe change hashes then too
@@ -130,8 +111,6 @@ Allow respec?
 
 
 UI
-* Highlight Best -> remove
-* More tooltips
 * Dark mode
 * Currency badge
 * Right click menu to "Exclude from search" (Extra filter tile w/ hover?) for location and individual items
@@ -180,6 +159,7 @@ COMPAT
 CLEANUP
 * Use loops for rows
 * Clean up .css (probably good for night mode)
+* Use GetMergedProperties instead of my walking manually?
 
  
 NOTES:

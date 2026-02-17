@@ -94,6 +94,8 @@ namespace DDUP
 		public double CachedY { get; set; }
 		public double CachedHeight { get; set; }
 
+		public string GeneratedName { get; set; }
+
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
 
@@ -167,7 +169,9 @@ namespace DDUP
 				bool IsEligibleForBest,
 				int IndexInFolder,
 
-				int IconX, int IconY, int IconX1, int IconY1, int IconX2, int IconY2)
+				int IconX, int IconY, int IconX1, int IconY1, int IconX2, int IconY2,
+				
+				string GeneratedName)
 		{
 			this.Rating = Rating;
 			this.Sides = Sides;
@@ -234,7 +238,8 @@ namespace DDUP
 			this.HasCustomColor = !IsBlack(Color1) || !IsBlack(Color2);
 			this.PlainName = RemoveParenthesizedName(this.Name);
 
-			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();	
+			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();
+			this.GeneratedName = GeneratedName;
 		}
 
 		public void UpdateValueDisplay()
@@ -246,7 +251,7 @@ namespace DDUP
 		{
 			if (IsEvent && (Value == 0))
 			{
-				return ("💰", "?", "");
+				return ("💰", "?", "Unknown Event Value");
 			}
 
 			if (Value > 0)
@@ -276,7 +281,7 @@ namespace DDUP
 				return s;
 
 			// Remove anything inside parentheses including the parentheses
-			var result = Regex.Replace(s, @"\s*\(.*?\)", "");
+			var result = Regex.Replace(s, @"\s*\((?![+\-]?\d+(\.\d+)?\)$).*?\)", "");
 
 			return result.Trim();
 		}
@@ -310,7 +315,7 @@ namespace DDUP
 			else if ((Resists[0] == 0) || (Resists[1] == 0) || (Resists[2] == 0) || (Resists[3] == 0))
 				return "Missing resist type";
 			else if ((overcappedUpgradesLeft < overcappedUpgradesNeeded) || (upgradesRequiredForResists > (MaxLevel - Level)))
-				return "Can't cap with remaining levels";
+				return "Can't cap resistance with remaining levels";
 			else if (upgradesRequiredForResists == 0)
 				return "";
 			return $"{upgradesRequiredForResists} levels required for cap";

@@ -150,7 +150,7 @@
 					"png/Hero Damage.png",
 					"png/Cast Rate.png",
 					"png/AB1/Countess AB1.png",
-					"png/AB2/Jouse Countess AB2.png",
+					"png/AB2/Joust Countess AB2.png",
 					"png/Tower Health.png",
 					"png/Tower Rate.png",
 					"png/Tower Damage.png",
