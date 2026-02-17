@@ -191,7 +191,7 @@ namespace DDUP
 			float standardAdditionalDamage = 0.0f;
 			if (weaponTemplate.ProjectileTemplate != -1)
 			{
-				var projectileTemplate = tdb.GetDunDefProjectile(weaponTemplate.ProjectileTemplate);
+				var projectileTemplate = tdb!.GetDunDefProjectile(weaponTemplate.ProjectileTemplate);
 				(standardProjDamage, standardAdditionalDamage) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref projectileTemplate, ref weaponTemplate, ref equipTemplate);
 			}
 					
@@ -200,7 +200,7 @@ namespace DDUP
 				totalDamage = 0.0f;
 				for (int i = 0; i < weaponTemplate.RandomizedProjectileTemplate.Count; i++)
 				{
-					var randomProjectile = tdb.GetDunDefProjectile(weaponTemplate.RandomizedProjectileTemplate.Start + i);
+					var randomProjectile = tdb!.GetDunDefProjectile(weaponTemplate.RandomizedProjectileTemplate.Start + i);
 					(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref randomProjectile, ref weaponTemplate, ref equipTemplate);
 					totalDamage += main + extra;
 				}
@@ -212,7 +212,7 @@ namespace DDUP
 				{
 					if (weaponTemplate.ExtraProjectileTemplates.Count > i)
 					{
-						var extraProjectile = tdb.GetDunDefProjectile(weaponTemplate.ExtraProjectileTemplates.Start + i);
+						var extraProjectile = tdb!.GetDunDefProjectile(weaponTemplate.ExtraProjectileTemplates.Start + i);
 						(float main, float extra) = GetProjectileDamage(ProjectileMainDamage, ProjectileAdditionalDamage, scaleDamageExponentMultiplier, chargeAmount, instance, ref heroInfo, ref extraProjectile, ref weaponTemplate, ref equipTemplate);
 						totalDamage += main + extra;
 					}
@@ -299,7 +299,7 @@ namespace DDUP
 		//======================================================================================================
 		public (float, string) GetStaffWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
-			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 
 			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
 			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
@@ -343,7 +343,7 @@ namespace DDUP
 		//======================================================================================================
 		public (float, string) GetSpearWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
-			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 
 			(float meleeAmount, string meleeTip) = GetMeleeWeaponDamage(instance, ref heroInfo, ref equipTemplate);
 			
@@ -374,7 +374,7 @@ namespace DDUP
 		//======================================================================================================
 		public (float, string) GetCrossbowWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{			
-			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 			
 			float EquipmentBaseDamage = (weaponTemplate.BaseDamage * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier);
 			float EquipmentDamage = instance.WeaponDamageBonus * weaponTemplate.WeaponDamageMultiplier * equipTemplate.WeaponDamageMultiplier + EquipmentBaseDamage;
@@ -403,7 +403,7 @@ namespace DDUP
 		//======================================================================================================
 		public (float, string) GetMeleeWeaponDamage(DDEquipmentInfo instance, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
-			var weaponTemplate = tdb.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
+			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 
 			int BaseDamage = weaponTemplate.BaseDamage;
 

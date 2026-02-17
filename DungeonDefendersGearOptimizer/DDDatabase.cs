@@ -341,7 +341,9 @@ public class DDEquipmentInfo
 				IconX1: IconX1,
 				IconY1: IconY1, 
 				IconX2: IconX2,
-				IconY2: IconY2
+				IconY2: IconY2,
+
+				GeneratedName: this.GeneratedName
 			);
 		}
 		return cachedItemRow;

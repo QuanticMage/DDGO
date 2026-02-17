@@ -1521,7 +1521,7 @@ live-btn {
 /* Secondary stats (Silver/Empty Star or partial match) */
 .cell-stat-side {
     color: #888;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* Irrelevant stats for this build */
@@ -1999,4 +1999,9 @@ table.grid.compact-table td.cell-name
 {
     font-size:18px;
     font-weight: 400;
+}
+
+.grid-hidden { 
+    visibility:hidden;
+    pointer-events: none;
 }

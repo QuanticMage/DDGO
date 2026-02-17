@@ -259,75 +259,75 @@ namespace DDUP
 
 		private static readonly HttpClient _http = new HttpClient();
 
-		public static async Task AsyncShiroPriceAPICall(DDUP.Pages.Index index)
-		{
-			// skip this for now
+		//public static async Task AsyncShiroPriceAPICall(DDUP.Pages.Index index)
+		//{
+		//	// skip this for now
 
-			if (ValuableItemList.Count == 0)
-				return;
-			string json = JsonSerializer.Serialize(ValuableItemList);
-			string encoded = Uri.EscapeDataString(json);
+		//	if (ValuableItemList.Count == 0)
+		//		return;
+		//	string json = JsonSerializer.Serialize(ValuableItemList);
+		//	string encoded = Uri.EscapeDataString(json);
 
-			var url = $"https://est.overflow.fun/estimate?mass={encoded}";
-			Console.WriteLine("Sending " + url);
+		//	var url = $"https://est.overflow.fun/estimate?mass={encoded}";
+		//	Console.WriteLine("Sending " + url);
 
-			// Force a timeout so "hang" becomes an error you can see
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+		//	// Force a timeout so "hang" becomes an error you can see
+		//	using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-			try
-			{
-				using var req = new HttpRequestMessage(HttpMethod.Get, url);
-				req.Headers.UserAgent.ParseAdd("DDGO/1.0"); // sometimes helps with picky servers
+		//	try
+		//	{
+		//		using var req = new HttpRequestMessage(HttpMethod.Get, url);
+		//		req.Headers.UserAgent.ParseAdd("DDGO/1.0"); // sometimes helps with picky servers
 
-				using var resp = await _http.SendAsync(
-					req,
-					HttpCompletionOption.ResponseHeadersRead,
-					cts.Token);
+		//		using var resp = await _http.SendAsync(
+		//			req,
+		//			HttpCompletionOption.ResponseHeadersRead,
+		//			cts.Token);
 
-				Console.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+		//		Console.WriteLine($"Status: {(int)resp.StatusCode} {resp.ReasonPhrase}");
 
-				var body = await resp.Content.ReadAsStringAsync(cts.Token);
-				Console.WriteLine(body);
-				var prices = JsonSerializer
-					.Deserialize<List<PriceEntry>>(body)!
-					.Select(x => x.estimatedPrice)
-					.ToList();
+		//		var body = await resp.Content.ReadAsStringAsync(cts.Token);
+		//		Console.WriteLine(body);
+		//		var prices = JsonSerializer
+		//			.Deserialize<List<PriceEntry>>(body)!
+		//			.Select(x => x.estimatedPrice)
+		//			.ToList();
 
-				if (prices.Count == JsonQueries.Count)
-				{
-					for (int i = 0; i < prices.Count; i++)
-					{
-						Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value + "=>" + prices[i]);
-						// update price estimates
-						JsonQueries[i].Value = prices[i];
-						JsonQueries[i].UpdateValueDisplay();
-					}
-				}
-				else
-				{
-					Console.WriteLine("Query Count Mismatch!");
-				}
+		//		if (prices.Count == JsonQueries.Count)
+		//		{
+		//			for (int i = 0; i < prices.Count; i++)
+		//			{
+		//				Console.WriteLine(JsonQueries[i].Name + ": " + JsonQueries[i].Value + "=>" + prices[i]);
+		//				// update price estimates
+		//				JsonQueries[i].Value = prices[i];
+		//				JsonQueries[i].UpdateValueDisplay();
+		//			}
+		//		}
+		//		else
+		//		{
+		//			Console.WriteLine("Query Count Mismatch!");
+		//		}
 		
-			}
-			catch (TaskCanceledException ex)
-			{
-				Console.WriteLine("Timed out (or cancelled): " + ex.Message);
-			}
-			catch (HttpRequestException ex)
-			{
-				Console.WriteLine("HttpRequestException: " + ex.Message);
-				if (ex.InnerException != null)
-					Console.WriteLine("Inner: " + ex.InnerException.Message);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Other exception: " + ex);
-			}
+		//	}
+		//	catch (TaskCanceledException ex)
+		//	{
+		//		Console.WriteLine("Timed out (or cancelled): " + ex.Message);
+		//	}
+		//	catch (HttpRequestException ex)
+		//	{
+		//		Console.WriteLine("HttpRequestException: " + ex.Message);
+		//		if (ex.InnerException != null)
+		//			Console.WriteLine("Inner: " + ex.InnerException.Message);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Console.WriteLine("Other exception: " + ex);
+		//	}
 
-			index.CalculateVanityTotals();
-			index.SetPriceStatus("Armor prices live using Shiro's API", false);
+		//	index.CalculateVanityTotals();
+		//	index.SetPriceStatus("Armor prices live using Shiro's API", false);
 
-		}
+		//}
 
 		// always measure CV first to also get the BestRatings populated
 		public static (int, string) GetBestValue(bool measureCV, ItemViewRow vr)

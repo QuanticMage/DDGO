@@ -5,6 +5,7 @@
 @using System.Text.Json
 @using System.Text.RegularExpressions
 @using System.Globalization
+@using System.Collections.Immutable
 @using System.IO.Compression
 @inject HttpClient Http
 
@@ -154,24 +155,24 @@
                 <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
                     <input type="checkbox"
                            class="tool-filter"
-                           checked="@_censor"
-                           @onchange="@((e) => { _censor = (bool)e.Value!; QueueSaveUiState(); UpdateStatValues();})" />
+                           checked="@_ui.Censor"
+                           @onchange="@((e) => SetUi(u => u with { Censor = (bool)e.Value!}))" />
                     <span>Censor Ult++</span>
                 </label>
 
                 <label class="utility-toggle" data-tooltip=@Tips["ShowUpgraded"]>
                     <input type="checkbox"
                            class="tool-filter"
-                           checked="@_showUpgradedStats"
-                           @onchange="@((e) => { _showUpgradedStats = e.Value is bool b && b; QueueSaveUiState(); UpdateStatValues();  })" />
-                    <span>Fully upgrade items</span>
+                           checked="@_ui.ShowUpgradedStats"
+                           @onchange="@((e) => SetUi(u => u with { ShowUpgradedStats = (bool)e.Value!}))" />
+                    <span>Show as upgraded</span>
                 </label>
                 <label class="utility-toggle" data-tooltip=@Tips["AssumeSetBonuses"]>
                     <input type="checkbox"
                            class="tool-filter"
-                           checked="@_assumeSetBonuses"
-                           @onchange="@((e) => { _assumeSetBonuses = e.Value is bool b && b; QueueSaveUiState(); UpdateStatValues();  })" />
-                    <span>Assume set bonuses</span>
+                           checked="@_ui.AssumeSetBonuses"
+                           @onchange="@((e) => SetUi(u => u with { AssumeSetBonuses = (bool)e.Value!}))" />
+                    <span>Show with set bonus</span>
                 </label>
                 
                 @* <label class="utility-toggle" data-tooltip=@Tips["CompactDisplay"]>
@@ -184,15 +185,15 @@
                 <label class="utility-toggle" data-tooltip=@Tips["SidesAreImportant"]>
                     <input type="checkbox"
                            class="tool-filter"
-                           checked="@_sidesAreImportant"
-                           @onchange="@((e) => { _sidesAreImportant = (bool)e.Value!; QueueSaveUiState(); StateHasChanged(); })" />
-                    <span>Best includes Sides</span>
+                           checked="@_ui.SidesAreImportant"
+                           @onchange="@((e) => SetUi(u => u with { SidesAreImportant = (bool)e.Value!}))" />
+                    <span>Best includes sides</span>
                 </label>
 
 
                 <label class="utility-select" data-tooltip=@Tips["ItemBoxSize"]>
                     <span>Itembox size</span>
-                    <select value="@_itemboxSize" @onchange="OnItemboxSizeChanged" font="inherit">
+                    <select value="@_ui.ItemBoxLayout" @onchange="@((e)=>SetUi(u => u with { ItemBoxLayout = e.Value?.ToString() ?? u.ItemBoxLayout}))" font="inherit">
                         <option value="5x3">5x3</option>
                         <option value="4x3">4x3</option>
                         <option value="6x4">6x4</option>
@@ -231,7 +232,8 @@
                              Presets="@(new[]
                                                   {
                                                   new FilterChips.Preset("Armor", new [] { "Helmet", "Gauntlet", "Boots", "Torso"}),
-                                              })" />
+                                                  new FilterChips.Preset("Accessories", new [] { "Brooch", "Mask", "Bracers" }),                                                                                             
+                                            })" />
 
             <FilterChips Title="Set" Theme="set"
                          Options="_setOptions"
@@ -401,175 +403,96 @@
         </div>
 
 
-        @code {
-            private List<string> _selectedTypes = new();
-            private List<string> _selectedSets = new();
-            private List<string> _selectedOther = new();
-
-            // Bind targets
-            private List<string> SelectedTypes
-            {
-                get => _selectedTypes;
-                set
-                {
-                    _selectedTypes = value ?? new();
-                    ApplyChipFilters();
-                }
-            }
-
-            private List<string> SelectedSets
-            {
-                get => _selectedSets;
-                set
-                {
-                    _selectedSets = value ?? new();
-                    ApplyChipFilters();
-                }
-            }
-
-            private List<string> SelectedOther
-            {
-                get => _selectedOther;
-                set
-                {
-                    _selectedOther = value ?? new();
-                    ApplyChipFilters();
-                }
-            }
-
-
-
-            private readonly List<FilterChips.Option> _typeOptions = new()
-                {
-
-                new("Helmet"),
-                new("Gauntlet"),
-                new("Torso"),
-                new("Boots"),
-                new("Brooch"),
-                new("Mask"),
-                new("Bracers"),
-                new("Shield"),
-                new("Pets"),
-                new("Weapons"),
-                new("Currency"),
-                };
-
-            private readonly List<FilterChips.Option> _setOptions = new()
-                {
-                new("Pristine"),
-                new("Plate"),
-                new("Chain"),
-                new("Mail"),
-                new("Leather"),
-                new("Zamira"),
-                new("Squire"),
-                new("Apprentice"),
-                new("Monk"),
-                new("Huntress"),
-                };
-
-            private readonly List<FilterChips.Option> _otherOptions = new()
-                {
-
-                new("Only Events",    MutexGroup: "eventMode"),
-                new("Exclude Events", MutexGroup: "eventMode"),
-
-                new("Exclude Other Characters Equipment"),
-
-                new("Exclude Missing Resists"),
-                };
-        }
-
-        <div class="summary">@_summary</div>
-        <div class="stats-row">
-            <div class="metric-card highlighted-card">
-                <span class="metric-label">Equipped Armor Rating</span>
-                <div class="metric-main">
-                    <span class="metric-number">@EquippedArmorRating</span>
-                    <span class="metric-type  highlighted-card-type">@EquippedArmorSet</span>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <span class="metric-label">Vanity Account Armor Total</span>
-                <div class="metric-main">
-                    <span class="metric-number">@ArmorTotalValue</span>
-                    <span class="metric-type">CV</span>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <span class="metric-label">Vanity Account Event Total</span>
-                <div class="metric-main">
-                    <span class="metric-number">@EventTotalValue</span>
-                    <span class="metric-type">CV</span>
-
-                    <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
-                        @CollectedEventCount / @TotalEventCount
-                    </button>
+            <div class="summary">@_summary</div>
+            <div class="stats-row">
+                <div class="metric-card highlighted-card">
+                    <span class="metric-label">Equipped Armor Rating</span>
+                    <div class="metric-main">
+                        <span class="metric-number">@EquippedArmorRating</span>
+                        <span class="metric-type  highlighted-card-type">@EquippedArmorSet</span>
+                    </div>
                 </div>
 
-            </div>
-        </div>
+                <div class="metric-card">
+                    <span class="metric-label">Vanity Account Armor Total</span>
+                    <div class="metric-main">
+                        <span class="metric-number">@ArmorTotalValue</span>
+                        <span class="metric-type">CV</span>
+                    </div>
+                </div>
 
-        @if (_showEventCollection)
-        {
-            <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
-                <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
-                    <div class="event-overlay-header">
-                        <div class="event-overlay-titlewrap">
-                            <div class="event-overlay-title">Event Collection</div>
-                            <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
-                        </div>
-                        <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
-                        <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+                <div class="metric-card">
+                    <span class="metric-label">Vanity Account Event Total</span>
+                    <div class="metric-main">
+                        <span class="metric-number">@EventTotalValue</span>
+                        <span class="metric-type">CV</span>
+
+                        <button type="button" class="metric-mini-pill" @onclick="ShowEventCollection">
+                            @CollectedEventCount / @TotalEventCount
+                        </button>
                     </div>
 
-                    <div class="event-overlay-tools">
-                        <input class="event-search"
-                               placeholder="Search categories…"
-                               @onchange="OnEventSearchChanged" />
-                    </div>
+                </div>
+            </div>
 
-                    <div class="event-overlay-body">
-                        @foreach (var group in VisibleEventCollection
-                                            .GroupBy(x => x.Category)
-                                            .OrderBy(g => GetCategoryOrderKey(g.Key))
-                                            .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
-                        {
-                            var cat = SplitCategory(group.Key);
-                            <div class="event-cat">
-                                <div class="event-cat-hdr">
-                                    <span class="event-cat-page">@cat.Page</span>
-                                    <span class="event-cat-sep">›</span>
-                                    <span class="event-cat-section">@cat.Section</span>
-                                </div>
-
-                                <div class="event-list">
-                                    @foreach (var item in group
-                                                                .OrderByDescending(x => x.Price)
-                                                                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                                                                )
-                                    {
-                                        <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
-                                            <div class="event-line">
-                                                <div class="event-name">@item.Name</div>
-                                                <div class="event-price">@(item.Price != 0 ? @item.Price : "Unknown") CVx</div>
-                                                <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
+            @if (_showEventCollection)
+            {
+                <div class="event-overlay-backdrop" @onclick="CloseEventCollection" role="presentation">
+                    <div class="event-overlay-panel" role="dialog" aria-modal="true" aria-label="Event collection" @onclick:stopPropagation="true">
+                        <div class="event-overlay-header">
+                            <div class="event-overlay-titlewrap">
+                                <div class="event-overlay-title">Event Collection</div>
+                                <div class="event-overlay-sub">@CollectedEventCount / @TotalEventCount collected</div>
                             </div>
-                        }
+                            <button type="button" class="event-overlay-export" title="Export" @onclick="ExportEventCollection">Copy To Clipboard</button>
+                            <button type="button" class="event-overlay-close" title="Close" @onclick="CloseEventCollection">×</button>
+                        </div>
+
+                        <div class="event-overlay-tools">
+                            <input class="event-search"
+                                   placeholder="Search categories…"
+                                   @onchange="OnEventSearchChanged" />
+                        </div>
+
+                        <div class="event-overlay-body">
+                            @foreach (var group in VisibleEventCollection
+                                                .GroupBy(x => x.Category)
+                                                .OrderBy(g => GetCategoryOrderKey(g.Key))
+                                                .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+                            {
+                            var cat = SplitCategory(group.Key);
+                                <div class="event-cat">
+                                    <div class="event-cat-hdr">
+                                        <span class="event-cat-page">@cat.Page</span>
+                                        <span class="event-cat-sep">›</span>
+                                        <span class="event-cat-section">@cat.Section</span>
+                                    </div>
+
+                                    <div class="event-list">
+                                        @foreach (var item in group
+                                                                    .OrderByDescending(x => x.Price)
+                                                                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                                                                    )
+                                        {
+                                            <div class="event-row @(item.OwnedCount > 0 ? "owned" : "missing")">
+                                                <div class="event-line">
+                                                    <div class="event-name">@item.Name</div>
+                                                    <div class="event-price">@(item.Price != 0 ? @item.Price : "Unknown") CVx</div>
+                                                    <span class="event-owned-badge" title="How many of this item you have">@item.OwnedCount</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
     </div>
 
-</div> @* Middle pane *@
+</div> 
+            @* Middle pane *@
 <div class="bottom-pane">
 
     @if (_rows.Count == 0)
@@ -577,7 +500,7 @@
     }
     else
     {
-        <div class="grid-wrap" @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
+        <div class='grid-wrap @(_gridReady ? "" : "grid-hidden")' @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
             <div class="overlay-layer" aria-hidden="true">
                 @if (_characterPanel is not null)
                 {
@@ -614,8 +537,7 @@
                     <col style="width:55px" />   @* TDmg *@
                     <col style="width:55px" />   @* TRange *@
                     <col style="width:55px" />   @* TRate *@
-
-                    <col style="width:66px" />   @* RG *@
+                    <col style="width:55px" />   @* RG *@
                 </colgroup>
 
                 <thead>
@@ -935,7 +857,7 @@
                             <td class="text bestfor">@r.BestFor</td>
                             <td class="text cell-type">@r.Type</td>
                             <td class="text cell-type">@r.Set</td>
-                            <td class="text cell-name" h-tooltip="@r.FunHashString">
+                            <td class="text cell-name" data-tooltip='@(r.PlainName != r.GeneratedName ? "[" + r.GeneratedName + "]" : "")' h-tooltip="@r.FunHashString">
                                 <span class="name-row">
                                     <img class="atlas-icon"
                                          alt=""
@@ -970,7 +892,7 @@
                             <td class="num cell-health @CachedStatShadingStyles[(int)DDStat.TowerHealth]">@r.CachedStatValues[(int)DDStat.TowerHealth]</td>
                             <td class="num cell-damage @CachedStatShadingStyles[(int)DDStat.TowerDamage]">@r.CachedStatValues[(int)DDStat.TowerDamage]</td>
                             <td class="num cell-range @CachedStatShadingStyles[(int)DDStat.TowerRange]">@r.CachedStatValues[(int)DDStat.TowerRange]</td>
-                            <td class="num cell-rate @CachedStatShadingStyles[(int)DDStat.TowerRate])">@r.CachedStatValues[(int)DDStat.TowerRate]</td>
+                            <td class="num cell-rate @CachedStatShadingStyles[(int)DDStat.TowerRate]">@r.CachedStatValues[(int)DDStat.TowerRate]</td>
                             <td class="resist @CachedStatShadingStyles[(int)DDStat.HeroResistance]" data-tooltip="@r.CachedResistanceTooltip">@r.CachedResistDisplayValue</td>
                 </tr>
                 }
@@ -995,38 +917,33 @@
     private string _summary = "";
     private string _status = "";
     private string _status2 = "";
-    private bool _showLivePrices = true;
     private string? _error;
     private DDDatabase db = new();
     private List<ItemViewRow> _rows = new();
     private record ModeOption(string Value, string Label);
     private string _sortColumn = nameof(ItemViewRow.Rating);
     private bool _sortDesc = true;
-    private bool _censor = true;
-    private bool _livePrices = false;
-    private string _itemboxSize = "5x3";
-    private string _dpsMode = "Damage per Second";
     private bool _showContent = false;
     private bool _canLoadLast = false;
     private ElementReference _tableRef;
     private string? _loadedFileName;
     private DateTime? _lastLoadedAt;
-    private UiState _ui = DefaultState();
+    private UiState _ui = new();
     private string _searchText = "";
+    private string _lastAppliedSearchText = "";
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
     private CharacterPanel? _characterPanel;
     private bool _showEventCollection = false;
-    private bool _showUpgradedStats = false;
-    private bool _assumeSetBonuses = false;
     private string _eventSearch = "";
     private double _overlayHeightPx = 0;
     private ElementReference _scrollRef;
     private bool _overlayObserversStarted;
     private string _customFilterError = "";
     private bool _compactDisplay = true;
-    public bool _sidesAreImportant = false;
     public string[] CachedStatShadingStyles = new string[11];
+    private bool _gridReady = false;
+
 
     public bool _templateDBIsLoaded = false;
     public TemplateDatabase TemplateDB = new TemplateDatabase();
@@ -1059,6 +976,66 @@
         public double y { get; set; }
         public double h { get; set; }
     }
+
+    // Bind targets
+    private List<string> SelectedTypes
+    {
+        get => _ui.SelectedTypes.ToList();
+        set => SetUi(u => u with { SelectedTypes = value.ToImmutableArray() });                                
+    }
+
+    private List<string> SelectedSets
+    {
+        get => _ui.SelectedSets.ToList();
+        set => SetUi(u => u with { SelectedSets = value.ToImmutableArray() });                    
+    }
+
+    private List<string> SelectedOther
+    {
+        get => _ui.SelectedOther.ToList();
+        set => SetUi(u => u with { SelectedOther = value.ToImmutableArray() });                    
+    }
+
+    private readonly List<FilterChips.Option> _typeOptions = new()
+        {
+
+        new("Helmet"),
+        new("Gauntlet"),
+        new("Torso"),
+        new("Boots"),
+        new("Brooch"),
+        new("Mask"),
+        new("Bracers"),
+        new("Shield"),
+        new("Pets"),
+        new("Weapons"),
+        new("Currency"),
+        };
+
+    private readonly List<FilterChips.Option> _setOptions = new()
+        {
+        new("Pristine"),
+        new("Plate"),
+        new("Chain"),
+        new("Mail"),
+        new("Leather"),
+        new("Zamira"),
+        new("Squire"),
+        new("Apprentice"),
+        new("Monk"),
+        new("Huntress"),
+        };
+
+    private readonly List<FilterChips.Option> _otherOptions = new()
+        {
+
+        new("Only Events",    MutexGroup: "eventMode"),
+        new("Exclude Events", MutexGroup: "eventMode"),
+
+        new("Exclude Other Characters Equipment"),
+
+        new("Exclude Missing Resists"),
+        };
 
 
     [JSInvokable]
@@ -1128,7 +1105,7 @@
 
         _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
         row.CurrentEquippedSlot = "";
-        UpdateEquipmentRatingAndType();
+        _ = UpdateCalculatedValues(false, true);
     }
 
     private void SelectRow(ItemViewRow row)
@@ -1157,7 +1134,7 @@
 
         _characterPanel?.ChangeEquipment(itemType, row);
         row.CurrentEquippedSlot = itemType;
-        UpdateEquipmentRatingAndType();
+       _ = UpdateCalculatedValues(false, true);
     }
 
     private bool IsSelected(ItemViewRow row)
@@ -1209,66 +1186,22 @@
         return "";
     }
 
-    private async Task ApplySearch(string s)
-    {
-        _searchText = s ?? "";
-        _customFilterError = "";
-
-        if (string.IsNullOrWhiteSpace(_searchText))
-        {
-            foreach (var r in _rows) r.IsHiddenDueToSearch = false;
-            ApplyChipFilters();
-            return;
-        }
-        try
-        {
-            var parser = new ExpressionParser.Parser(_searchText, NormalizeTag);
-            ExpressionParser.BoolNode root = parser.ParseAll();
-
-            if (!string.IsNullOrEmpty(parser.Error))
-            {
-                _customFilterError = parser.Error;
-
-                foreach (var r in _rows) r.IsHiddenDueToSearch = false;
-
-                ApplyChipFilters();
-                return;
-            }
-
-            foreach (var r in _rows)
-            {
-                bool show = root.Eval(r);
-                r.IsHiddenDueToSearch = !show;
-            }
-
-            await AddToSearchHistoryAsync(_searchText);
-        }
-        catch (Exception ex)
-        {
-            _customFilterError = $"Invalid filter: {ex.Message}";
-            foreach (var r in _rows) r.IsHiddenDueToSearch = false;
-        }
-
-        ApplyChipFilters();
-    }
-
 
     // Equipping!
 
     private Task HandleChangedHero()
     {        
-        // if hero changes, we need to rerun the filters because some are dependent
-        ApplyChipFilters();
+        ApplyFilters();
+
         return Task.CompletedTask;
     }
 
-    private Task HandleChangedRatingMode()
+    private Task HandleChangedRatingMode(string? mode)
     {
-        string? mode = _characterPanel?.GetRatingMode();
-        if ((mode == null) || (mode == ""))
+        if (string.IsNullOrWhiteSpace(mode))
             return Task.CompletedTask;
-
-        SetMode(mode);
+        
+        SetUi(u => u with { RatingMode = mode });
         return Task.CompletedTask;
     }
 
@@ -1518,88 +1451,158 @@
     CollectedEventCount = _eventCollection.Count(x => x.OwnedCount > 0);
     }
 
-    public sealed record UiState(
-        int Version = 1,
-        string RatingMode = "Builder App",
-        string Layout = "5x3",
-        bool Censor = true,
-        bool ShowLivePrices = false,
-        bool ShowUpgradedStats = false,
-        bool AssumeSetBonuses = false,
-        bool CompactDisplay = false,
-        bool SidesAreImportant = false,
-        string DPSMode = "Damage per Second",
-        List<string>? SelectedTypes = null,
-        List<string>? SelectedSets = null,
-        List<string>? SelectedOther = null)
+    //==========================================
+    // UiState 
+    //==========================================
+
+    public sealed record UiState
     {
-        public List<string> SelectedTypesSafe => SelectedTypes ?? new();
-        public List<string> SelectedSetsSafe => SelectedSets ?? new();
-        public List<string> SelectedOtherSafe => SelectedOther ?? new();
+        public const int CurrentUIOptionsVersion = 1;
+
+        public int Version { get; init; } = CurrentUIOptionsVersion;
+        public bool Censor { get; init; } = true;
+        public string RatingMode { get; init; } = "Builder App";
+        public string ItemBoxLayout { get; init; } = "5x3";
+
+        public bool ShowLivePrices { get; init; } = false;
+        public bool ShowUpgradedStats { get; init; } = false;
+        public bool AssumeSetBonuses { get; init; } = false;
+        public bool CompactDisplay { get; init; } = false;
+        public bool SidesAreImportant { get; init; } = false;
+
+        public string DPSMode { get; init; } = "Damage per Second";
+
+        public ImmutableArray<string> SelectedTypes { get; init; } = ["Helmet", "Torso", "Gauntlet", "Boots"];
+        public ImmutableArray<string> SelectedSets { get; init; } = ["Chain", "Mail", "Pristine", "Leather", "Plate"];
+        public ImmutableArray<string> SelectedOther { get; init; } = ["Exclude Events"];            
     }
 
-    static UiState DefaultState() => new(
-        Version: 1,
-        Censor: true,
-        RatingMode: "Builder App",
-        Layout: "5x3",
-        ShowLivePrices: false,
-        ShowUpgradedStats: false,
-        AssumeSetBonuses: false,
-        CompactDisplay: false,
-        SidesAreImportant: false,
-        DPSMode: "Damage per Second",
-        SelectedSets: new() { "Chain", "Mail", "Pristine", "Leather", "Plate" },
-        SelectedTypes: new() { "Helmet", "Torso", "Gauntlet", "Boots" },
-        SelectedOther: new() { "Exclude Events" }
-    );
-
-    private void ApplyUiToFields()
+    private static bool DifferentSelection(List<string>? a, List<string>? b)
     {
-        _selectedMode = _ui.RatingMode;
-        _itemboxSize = _ui.Layout;
-        _dpsMode = _ui.DPSMode;
-        //_livePrices = _ui.ShowLivePrices;
-        _censor = _ui.Censor;
-        //_compactDisplay = _ui.CompactDisplay;
+        if (ReferenceEquals(a, b)) return false;
+        if (a is null || b is null) return a != b;
+        if (a.Count != b.Count) return true;
 
-        _selectedTypes = _ui.SelectedTypesSafe.ToList();
-        _selectedSets = _ui.SelectedSetsSafe.ToList();
-        _selectedOther = _ui.SelectedOtherSafe.ToList();
-        _showUpgradedStats = _ui.ShowUpgradedStats;
-        _assumeSetBonuses = _ui.AssumeSetBonuses;
-        _sidesAreImportant = _ui.SidesAreImportant;
-
-        // update stat values with the new UI values
-        UpdateStatValues();
-
-        SetMode(_selectedMode);
-        ApplyChipFilters();
+        // order-insensitive compare
+        return !a
+            .OrderBy(x => x, StringComparer.Ordinal)
+            .SequenceEqual(b.OrderBy(x => x, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 
-    private void SyncFieldsToUi()
+    private void ApplyUi( bool updateCalculatedValues, bool updateDPS, bool updateFilters)
     {
-        _ui = _ui with
-            {
-                Version = CurrentUIOptionsVersion,
-                RatingMode = _selectedMode,
-                Layout = _itemboxSize,
-            //ShowLivePrices = _livePrices,
-                SelectedTypes = _selectedTypes.ToList(),
-                SelectedSets = _selectedSets.ToList(),
-                SelectedOther = _selectedOther.ToList(),
-                ShowUpgradedStats = _showUpgradedStats,
-                AssumeSetBonuses = _assumeSetBonuses,
-            //CompactDisplay = _compactDisplay,
-                SidesAreImportant = _sidesAreImportant,
-                DPSMode = _dpsMode
-                };
+        _ = UpdateCalculatedValues(true, true);       
 
-        if (_characterPanel != null)
+    }
+
+    private void SetUi(UiState newState)
+    {
+        SetUi(_ => newState);
+    }
+
+    static bool SameSet(ImmutableArray<string> a, ImmutableArray<string> b)=> a.Length == b.Length && a.ToHashSet().SetEquals(b);
+
+    private  void SetUi(Func<UiState, UiState> mutate)
+    {
+        UiState prev = _ui;
+
+        _ui = mutate(_ui) with { Version = UiState.CurrentUIOptionsVersion };
+
+        bool bNeedUpdateCache = false;
+        bool bNeedUpdateDPS = false;
+        bool bNeedUpdateRating = false;
+        bool bNeedUpdateFilters = false;
+        bool bNeedUpdateMode = false;
+
+        if (prev.Censor != _ui.Censor) { bNeedUpdateCache = true; }
+        if (prev.RatingMode != _ui.RatingMode) { bNeedUpdateMode = true; bNeedUpdateRating = true; bNeedUpdateDPS = true; }
+        if (prev.ItemBoxLayout != _ui.ItemBoxLayout) {bNeedUpdateCache = true; }
+        if (prev.ShowUpgradedStats != _ui.ShowUpgradedStats) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
+        if (prev.AssumeSetBonuses != _ui.AssumeSetBonuses) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
+        if (prev.SidesAreImportant != _ui.SidesAreImportant) { bNeedUpdateRating = true; }        
+        if (!SameSet(prev.SelectedTypes, _ui.SelectedTypes)) { bNeedUpdateFilters = true; }
+        if (!SameSet(prev.SelectedSets, _ui.SelectedSets))  { bNeedUpdateFilters = true; }
+        if (!SameSet(prev.SelectedOther, _ui.SelectedOther)) { bNeedUpdateFilters = true; }
+
+        bNeedUpdateCache |= bNeedUpdateDPS | bNeedUpdateFilters;
+
+        if (bNeedUpdateDPS) bNeedUpdateCache = false; // update dps will handle this for us
+
+        _characterPanel?.SetUIFlags(_ui.Censor);
+
+        if (bNeedUpdateMode) SetDisplayedMode(_ui.RatingMode);
+        if (bNeedUpdateFilters) ApplyFilters();
+
+        if (bNeedUpdateRating || bNeedUpdateDPS)
+            _ = UpdateCalculatedValues(bNeedUpdateRating, bNeedUpdateDPS);
+
+        if (bNeedUpdateCache)
+            UpdateCachedDisplayValues();
+
+        QueueSaveUiState();
+    }    
+
+
+    static UiState MigrateAndNormalize(string json)
+    {
+        UiState? state;
+
+        try
         {
-            _characterPanel.SetUIFlags(_showUpgradedStats, _censor);
+            state = JsonSerializer.Deserialize<UiState>(json);
         }
+        catch
+        {
+            return new UiState() with { Version = UiState.CurrentUIOptionsVersion };
+        }
+
+        if (state is null)
+            return new UiState() with { Version = UiState.CurrentUIOptionsVersion };
+
+        // Version-specific migrations (only when you introduce schema changes)
+        var migrated = state.Version switch
+        {
+            1 => state,          // no special v1 migration needed anymore
+            _ => new UiState()   // unknown future version (conservative)
+        };
+
+        return NormalizeCommon(migrated) with { Version = UiState.CurrentUIOptionsVersion };
     }
+    static UiState NormalizeCommon(UiState s)
+    {
+        var d = new UiState();
+
+        // Strings: fall back to defaults if empty/whitespace
+        var ratingMode = string.IsNullOrWhiteSpace(s.RatingMode)     ? d.RatingMode     : s.RatingMode;
+        var layout     = string.IsNullOrWhiteSpace(s.ItemBoxLayout)  ? d.ItemBoxLayout  : s.ItemBoxLayout;
+        var dpsMode    = string.IsNullOrWhiteSpace(s.DPSMode)        ? d.DPSMode        : s.DPSMode;
+
+        static ImmutableArray<string> Clean(ImmutableArray<string> items)
+        {
+            // If items is default (can happen via bad JSON or missing init), treat as empty
+            if (items.IsDefault) items = ImmutableArray<string>.Empty;
+
+            return items
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToImmutableArray();
+        }
+
+        return s with
+        {
+            RatingMode    = ratingMode,
+            ItemBoxLayout = layout,
+            DPSMode       = dpsMode,
+
+            SelectedSets  = Clean(s.SelectedSets),
+            SelectedTypes = Clean(s.SelectedTypes),
+            SelectedOther = Clean(s.SelectedOther),
+        };
+    }
+
+      //==========================================
+    //==========================================
 
     private string LastLoadedText =>
     _lastLoadedAt is null ? "just now" : Humanize(_lastLoadedAt.Value);
@@ -1617,20 +1620,6 @@
     private void TogglePrepHelp() => _hideDropzoneHelp = !_hideDropzoneHelp;
 
 
-    private void OnItemboxSizeChanged(ChangeEventArgs e)
-    {
-        _itemboxSize = e.Value?.ToString() ?? "5x3";
-        QueueSaveUiState();
-        StateHasChanged(); // This forces the GetLocation() method to re-run for all rows
-    }
-
-    private void OnDPSModeChanged(ChangeEventArgs e)
-    {
-        _dpsMode = e.Value?.ToString() ?? "Nightmare";
-        QueueSaveUiState();
-        StateHasChanged();
-    }
-
 
     public string GetLocation(ItemViewRow viewRow)
     {
@@ -1640,9 +1629,15 @@
 
         int idx = viewRow.IndexInFolder;
         int itemsPerPage = 15;
-        if (_itemboxSize == "5x3") itemsPerPage = 15;
-        if (_itemboxSize == "4x3") itemsPerPage = 12;
-        if (_itemboxSize == "6x4") itemsPerPage = 24;
+        if (_ui.ItemBoxLayout == "4x3") itemsPerPage = 12;
+        else if (_ui.ItemBoxLayout == "6x4") itemsPerPage = 24;
+        else if (_ui.ItemBoxLayout == "5x3") itemsPerPage = 15;
+        else 
+        {
+            // revert to 5x3, since the value is bad
+            SetUi(u => u with { ItemBoxLayout = "5x3" });
+            itemsPerPage = 15;
+        }
 
         int subFolderItems = (db.SubfolderCount.ContainsKey(viewRow.Location)) ? db.SubfolderCount[viewRow.Location] : 0;
 
@@ -1653,13 +1648,13 @@
     }
 
 
-    public void SetPriceStatus(string stat, bool showLivePrices)
+@*     public void SetPriceStatus(string stat, bool showLivePrices)
     {
         _status2 = stat;
         _showLivePrices = showLivePrices;
         StateHasChanged();
 
-    }
+    } *@
 
     // TOOLTIPS GO HERE
 
@@ -1669,12 +1664,12 @@
         ["Value"] = "Stars show how good this item is at what it does best,\ncompared to the rest of your equipment.\nCV is estimated trade value.",
         ["Location"] = "Location (and page) of item\nwhen sorting by Level.",
         ["Censor"] = "Censors Ult++ and other special items\nfor sharing screenshots on DDRnG.",
-        ["ShowUpgraded"] = "Shows items as if fully upgraded\naccording to current priority.",
-        ["AssumeSetBonuses"] = "Shows items as if they have\na set bonus in the table.",
+        ["ShowUpgraded"] = "Shows inventory items as fully upgraded\naccording to current priority.\n\nEquipped items are always upgraded.",
+        ["AssumeSetBonuses"] = "Shows inventory items as if they\nhave a set bonus.\n\nEquipped items always assume set bonuses.",
         ["LivePrices"] = "Sends valuable item ratings\nto Shiro's API for price data.",
         ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
         ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
-        ["SidesAreImportant"] = "Makes Sides count for best\ngear (half as important as Rating).",
+        ["SidesAreImportant"] = "Makes 'Equip best' includes sides at half value.\n",
         ["DPSMode"] = "Set DPS Display Mode"
     };
 
@@ -1699,26 +1694,27 @@
         //new("Best Rating", "Best Rating")
     };
 
-    private string _selectedMode = "";
 
-    private bool IsCensorEnabled => _censor;
+    private bool IsCensorEnabled => _ui.Censor;
 
     private static readonly HashSet<string> ArmorSetNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Pristine", "Plate", "Chain", "Mail", "Leather", "Zamira"
     };
 
-
-
-    private void UpdateStatValues()
+    private void UpdateCachedDisplayValues()
     {
         foreach (var r in _rows)
         {
             for (int i = 1; i < 11; i ++)
-                r.CachedStatValues[i] = r.GetStringStatValue((DDStat)i, _showUpgradedStats, _assumeSetBonuses, _censor);
-            r.CachedResistDisplayValue = r.GetStringResistValue(_showUpgradedStats, _assumeSetBonuses);
+                r.CachedStatValues[i] = r.GetStringStatValue((DDStat)i, _ui.ShowUpgradedStats, _ui.AssumeSetBonuses, _ui.Censor);
+            r.CachedResistDisplayValue = r.GetStringResistValue(_ui.ShowUpgradedStats, _ui.AssumeSetBonuses);
 
-        }           
+            if (r.DPS == 0.0f)
+                r.CachedDPSString = "";
+            else
+                r.CachedDPSString = DDEquipmentInfo.FormatCompact(r.DPS);       
+        }                   
     }
 
     private void UpdateStatShadingStyles()
@@ -1743,23 +1739,52 @@
     int VisibleCount => _rows.Count(r => !r.IsHidden);
     int TotalCount => _rows.Count;
 
-    private void ApplyChipFilters()
+
+    private void ApplyFilters()
     {
         if (_rows.Count == 0)
             return;
 
-        bool onlyEvents = _selectedOther.Contains("Only Events");
-        bool excludeEvents = _selectedOther.Contains("Exclude Events");
+        bool onlyEvents = _ui.SelectedOther.Contains("Only Events");
+        bool excludeEvents = _ui.SelectedOther.Contains("Exclude Events");
+        bool excludeEquipped = _ui.SelectedOther.Contains("Exclude Other Characters Equipment");
+        bool excludeMissingResists = _ui.SelectedOther.Contains("Exclude Missing Resists");
 
-        bool excludeEquipped = _selectedOther.Contains("Exclude Other Characters Equipment");
+        bool updateCustomSearch = false;
+        bool customSearchIsError = true;
+        ExpressionParser.BoolNode? root = null;
 
-        bool excludeMissingResists = _selectedOther.Contains("Exclude Missing Resists");
+
+        if (_searchText != _lastAppliedSearchText)
+        {
+            _lastAppliedSearchText = _searchText;
+            updateCustomSearch = true;
+            if (!string.IsNullOrWhiteSpace(_searchText))
+            {
+                _customFilterError = "";
+                var parser = new ExpressionParser.Parser(_searchText, NormalizeTag);
+                try
+                {
+                    root = parser.ParseAll();
+                    if (!string.IsNullOrEmpty(parser.Error))
+                    {
+                        _customFilterError = parser.Error;
+                        customSearchIsError = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _customFilterError = $"Invalid filter: {ex.Message}";
+                    customSearchIsError = true;
+                }
+            }
+        }
 
         foreach (var v in _rows)
         {
             // ---- Type filtering (OR within the chip group) ----
             bool typeOk;
-            if (_selectedTypes.Count == 0)
+            if ( _ui.SelectedTypes.Length == 0)
             {
                 typeOk = true; // no selection => include all
             }
@@ -1772,31 +1797,30 @@
                     _ => v.Type
                 };
 
-                typeOk = _selectedTypes.Contains(typeLabel);
+                typeOk = _ui.SelectedTypes.Contains(typeLabel);
             }
 
             // ---- Set filtering (OR within the chip group) ----
             bool setOk;
-            if (_selectedSets.Count == 0)
+            if (_ui.SelectedSets.Length == 0)
             {
                 setOk = true;
             }
             else if (v.IsArmor)
-            {
-                // Armor: treat Set="Any" as matching any *armor* set selection.
+            {                
                 if (string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase))
                 {
-                    setOk = _selectedSets.Any(s => ArmorSetNames.Contains(s));
+                    setOk = true;//_ui.SelectedSets.Any(s => ArmorSetNames.Contains(s));
                 }
                 else
                 {
-                    setOk = _selectedSets.Contains(v.Set);
+                    setOk = _ui.SelectedSets.Contains(v.Set);
                 }
             }
             else
             {
                 // Non-armor: Set is usually the weapon archetype (Squire/Monk/etc.)
-                setOk = _selectedSets.Contains(v.Set) || string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase);
+                setOk = _ui.SelectedSets.Contains(v.Set) || string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase);
             }
 
             bool includeItem = typeOk && setOk;
@@ -1813,13 +1837,32 @@
             if (excludeMissingResists)
                 includeItem &= !v.IsMissingResists;
 
+            if (updateCustomSearch)
+            {
+                if (customSearchIsError == false)
+                    v.IsHiddenDueToSearch = (root == null) ? false : !(root.Eval(v));
+                else
+                    v.IsHiddenDueToSearch = false;
+            }
+
             if (v.IsHiddenDueToSearch)
                 includeItem = false;
 
             v.IsHidden = !includeItem;
         }
-        QueueSaveUiState();
-        RecalculateRatings();
+    }
+
+    private async Task ApplySearch(string s)
+    {
+        _searchText = s ?? "";
+        _customFilterError = "";
+
+        if (!string.IsNullOrWhiteSpace(_searchText))
+        {        
+            await AddToSearchHistoryAsync(_searchText);
+        }
+
+        ApplyFilters();
     }
 
     private string HeaderShadingStyle(DDStat stat)
@@ -1835,9 +1878,13 @@
         return "table-header-none";
     }
 
+    string _currentSetMode = "";
 
-    private void SetMode(string mode)
+    private void SetDisplayedMode(string mode)
     {
+        if (_currentSetMode == mode )
+            return;
+
         if ((mode == null) || (mode == ""))
             return;
 
@@ -1845,16 +1892,14 @@
         {
             if (mode.StartsWith(v.Name))
             {
-                _selectedMode = mode;
                 _RatingStatsPriority.Clear();
                 _RatingStatsPriority.AddRange(v.RatingStatsPriority);
                 _SidesStatsPriority.Clear();
                 _SidesStatsPriority.AddRange(v.SidesStatsPriority);
-                _bRequireResists = v.RequireResists;
+                _bRequireResists = v.RequireResists;                
+                break;
             }
-        }        
-        QueueSaveUiState();
-        RecalculateRatings();
+        }                
     }
 
     private void TestForBestPiece(string type, string set, int rating, Dictionary<string, int> BestPieces)
@@ -1909,7 +1954,7 @@
             var r = _rows[i];
             if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality))
             {
-                TestForBestPiece(r.Type, r.Set, r.Rating + (_sidesAreImportant ? r.Sides/2:0), BestPieces);
+                TestForBestPiece(r.Type, r.Set, r.Rating + (_ui.SidesAreImportant ? r.Sides/2:0), BestPieces);
             }
         }
 
@@ -1952,7 +1997,7 @@
                 if (BestPieces.ContainsKey(typeString))
                 {
                     int rating = BestPieces[typeString];
-                    if ((r.Rating + (_sidesAreImportant ? r.Sides / 2 : 0)) == rating)
+                    if ((r.Rating + (_ui.SidesAreImportant ?  r.Sides / 2 : 0)) == rating)
                     {
                         highlight = true;
                         BestPieces[typeString] = -99999;
@@ -1967,7 +2012,7 @@
                 DeselectRow(_rows[i]);
 
         }
-        UpdateEquipmentRatingAndType();
+        _ = UpdateCalculatedValues(false, true);
     }
 
     private void UpdateEquipmentRatingAndType()
@@ -1996,36 +2041,267 @@
         EquippedArmorRating = totalRating;
         EquippedArmorSides = totalSides;
         EquippedArmorSet = foundSet;
-        if (_characterPanel != null)
-            _characterPanel.UpdateCharacterTotalStats();
-        UpdateDPS();
     }
 
-    private void RecalculateRatings()
+
+    //=============================================
+    // Derived value recalculation - Ratings + DPS
+    //=============================================
+
+
+    CancellationTokenSource? _calculatedValuesCts;
+    bool _bNeedsRatingUpdate = false;
+    bool _bNeedsDPSUpdate = false;
+    int _calcGeneration = 0;
+
+    private async Task UpdateCalculatedValues( bool bUpdateRatings, bool bUpdateDPS )
     {
+        if (bUpdateRatings) _bNeedsRatingUpdate = true;
+        if (bUpdateDPS) _bNeedsDPSUpdate = true;
 
-        for (int i = 0; i < _rows.Count; i++)
+        int myGen = Interlocked.Increment(ref _calcGeneration);
+        var newCts = new CancellationTokenSource();
+        var previous = Interlocked.Exchange(ref _calculatedValuesCts, newCts);
+        previous?.Cancel();
+        previous?.Dispose();
+
+        if (_characterPanel != null)
+            _characterPanel.UpdateCharacterTotalStats();        
+
+        var token = newCts.Token;
+        try
+        {                        
+            if (myGen != Volatile.Read(ref _calcGeneration))
+                return;
+
+            await Task.Delay(120, token);
+
+            bool doRatingCalc = _bNeedsRatingUpdate;
+            bool doDpsCalc = _bNeedsDPSUpdate;
+            _bNeedsRatingUpdate = false;
+            _bNeedsDPSUpdate = false;
+
+
+            // Do expensive Work
+            if (doRatingCalc)
+            {
+                await RecalculateRatings(token, myGen);
+                token.ThrowIfCancellationRequested();                
+            }
+
+            if (doDpsCalc)
+            {
+                await RecalculateDPS(token, myGen);
+                token.ThrowIfCancellationRequested();                
+            }
+
+            if (myGen != Volatile.Read(ref _calcGeneration))  return;
+
+            UpdateCachedDisplayValues();      
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
         {
-            var r = _rows[i];
-            float mult = r.SetBonus;
-            int maxR = r.ResistanceTarget;
-            int maxStatLevel = r.MaxStat;
-            (int rating, int sides) = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
 
-            _rows[i].Rating = rating;
-            _rows[i].Sides = sides;
+        }
+    }    
+
+
+
+    private async Task RecalculateRatings(CancellationToken token, int myCalcGeneration)
+    {
+        int n = _rows.Count;
+        var newRatings = new (int rating, int sides)[n];
+
+        for (int i = 0; i < n; i++)
+        {            
+            var r = _rows[i];
+            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists);
+
+            if (((i & 127) == 0) && (i!=0))
+            {
+                token.ThrowIfCancellationRequested();
+                await Task.Yield();                                
+            }
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            _rows[i].Rating = newRatings[i].rating;
+            _rows[i].Sides = newRatings[i].sides;                    
         }
 
 
-        //_summary = $"Best Armor Set: {bestSet} ({bestScore})";
-        //-------------------------
+        token.ThrowIfCancellationRequested();
+        if (myCalcGeneration != Volatile.Read(ref _calcGeneration))
+            return;
+
+
         _sortDesc = true;
         _sortColumn = "";
         SortBy("Rating");
         UpdateStatShadingStyles();
+    }
+
+
+    public async Task RecalculateDPS(CancellationToken token, int calcGen )
+    {
+        HeroInfo info = new HeroInfo();
+        //IndexEntry
+
+        if (TemplateDB == null)
+            return;
+        if (_characterPanel == null)
+            return;
+        if (_damageCalculator == null)
+            return;
+
+        var heroInstance = _characterPanel?.SelectedHeroInfo;
+        string heroTemplate = _characterPanel?.SelectedHeroInfo?.Template ?? "";
+        if (!TemplateDB.TryGetTemplateIndex(heroTemplate, out int entry))
+        {
+            Console.WriteLine($"Couldn't find hero template {heroTemplate}");
+            return;
+        }
+
+        // need to remake this so failure isn't a throw
+        info.TemplateData = TemplateDB.GetDunDefHero(entry);        
+        info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(info.TemplateData.PlayerTemplate);
+
+        info.MeleeAttack1LargeAnimDuration = info.PlayerTemplateData.MeleeAttack1LargeAnimDuration;
+        info.MeleeAttack2LargeAnimDuration = info.PlayerTemplateData.MeleeAttack2LargeAnimDuration;
+        info.MeleeAttack3LargeAnimDuration = info.PlayerTemplateData.MeleeAttack3LargeAnimDuration;
+        info.MeleeAttack1MediumAnimDuration = info.PlayerTemplateData.MeleeAttack1MediumAnimDuration;
+        info.MeleeAttack2MediumAnimDuration = info.PlayerTemplateData.MeleeAttack2MediumAnimDuration;
+        info.MeleeAttack3MediumAnimDuration = info.PlayerTemplateData.MeleeAttack3MediumAnimDuration;
+        info.MeleeAttack1LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack1LargeAnimDamageStart;
+        info.MeleeAttack2LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack2LargeAnimDamageStart;
+        info.MeleeAttack3LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack3LargeAnimDamageStart;
+        info.MeleeAttack1MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack1MediumAnimDamageStart;
+        info.MeleeAttack2MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack2MediumAnimDamageStart;
+        info.MeleeAttack3MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack3MediumAnimDamageStart;
+
+        if ((heroInstance != null) && (heroInstance.CostumeIndex >= 0) && (heroInstance.CostumeIndex < info.TemplateData.HeroCostumes.Count))
+        {
+            var HeroCostumeTemplate = TemplateDB.GetHeroCostumeTemplate(info.TemplateData.HeroCostumes.Start + heroInstance.CostumeIndex);
+            if (HeroCostumeTemplate.PlayerTemplateOverride != -1)
+            {
+                info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(HeroCostumeTemplate.PlayerTemplateOverride);
+            }
+            if (HeroCostumeTemplate.MeleeAttack1MediumAnimDuration != -1) 
+            {
+                info.MeleeAttack1MediumAnimDuration = HeroCostumeTemplate.MeleeAttack1MediumAnimDuration;
+                info.MeleeAttack1MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack1MediumAnimDamageStart;
+            }
+            if (HeroCostumeTemplate.MeleeAttack2MediumAnimDuration != -1) 
+            {
+                info.MeleeAttack2MediumAnimDuration = HeroCostumeTemplate.MeleeAttack2MediumAnimDuration;
+                info.MeleeAttack2MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack2MediumAnimDamageStart;
+            }
+            if (HeroCostumeTemplate.MeleeAttack3MediumAnimDuration != -1) 
+            {
+                info.MeleeAttack3MediumAnimDuration = HeroCostumeTemplate.MeleeAttack3MediumAnimDuration;
+                info.MeleeAttack3MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack3MediumAnimDamageStart;
+            }
+            if (HeroCostumeTemplate.MeleeAttack1LargeAnimDuration != -1) 
+            {
+                info.MeleeAttack1LargeAnimDuration = HeroCostumeTemplate.MeleeAttack1LargeAnimDuration;
+                info.MeleeAttack1LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack1LargeAnimDamageStart;
+            }
+            if (HeroCostumeTemplate.MeleeAttack2LargeAnimDuration != -1)
+            {
+                info.MeleeAttack2LargeAnimDuration = HeroCostumeTemplate.MeleeAttack2LargeAnimDuration;
+                info.MeleeAttack2LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack2LargeAnimDamageStart;
+            }
+            if (HeroCostumeTemplate.MeleeAttack3LargeAnimDuration != -1)
+            {
+                info.MeleeAttack3LargeAnimDuration = HeroCostumeTemplate.MeleeAttack3LargeAnimDuration;
+                info.MeleeAttack3LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack3LargeAnimDamageStart;
+            }
+
+        }
+
+        for (int i = 0; i < 11; i++)
+        {
+            info.TotalStats[i] = _characterPanel!.ShownStat[i];
+        }
+        int count = 0;
+        int n = _rows.Count;
+
+        var dps = new float[n];
+        var tips = new string[n];
+
+        if (calcGen != Volatile.Read(ref _calcGeneration)) return;
+
+        for (int i = 0; i < n; i++ )
+        {
+            token.ThrowIfCancellationRequested();
+            if ( i >= _rows.Count)
+                break;
+            var v = _rows[i];
+
+            if (v.Type != "Weapon")
+                continue;
+
+
+            if (!TemplateDB.TryGetTemplateIndex(db.Items[v.Idx].Template, out int weaponTemplateIdx ))
+            {
+                Console.WriteLine($"Expected known weapon template {db.Items[v.Idx].Template}");
+                continue;
+            }
+
+            var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
+            v.DPS = 0.0f;
+            v.DPSTooltip = "";
+
+            if (!IsWeaponSetValid(v.Set))
+                continue;
+
+            if (v.Set == "Squire") 
+            {
+                (dps[i], tips[i]) = (_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }
+            else if (v.Set == "Huntress")
+            {
+                (dps[i], tips[i]) =  (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }                
+            else if (v.Set == "Monk")
+            {
+                (dps[i], tips[i]) = (_damageCalculator.GetSpearWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }
+            else if (v.Set == "Apprentice")
+            {
+                (dps[i], tips[i]) = (_damageCalculator.GetStaffWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
+            }             
+
+            if ((++count & 127) == 0)
+            {
+                if (calcGen != Volatile.Read(ref _calcGeneration)) return;                
+                await Task.Yield();
+            }
+        }    
+        token.ThrowIfCancellationRequested();
+        if (calcGen != Volatile.Read(ref _calcGeneration)) return;
+
+        for (int i = 0; i < n; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            if ( i >= _rows.Count)
+                break;
+
+            if (_rows[i].Type != "Weapon")
+                continue;
+
+            _rows[i].DPS = dps[i];
+            _rows[i].DPSTooltip = tips[i];
+        }
+
         UpdateEquipmentRatingAndType();
     }
 
+
+    //=============================================
+    //=============================================
 
 
     private void ChangeImportance(DDStat stat)
@@ -2046,8 +2322,7 @@
             _RatingStatsPriority.Add(stat);
         }
 
-        RecalculateRatings();
-
+        _ = UpdateCalculatedValues(true, true);        
     }
 
     private string ImportanceTooltip(DDStat stat)
@@ -2192,17 +2467,15 @@
     private bool _searchHistoryOpen;
     private List<string> _searchHistory = new();
 
-
-
-    CancellationTokenSource? _saveCts;
+    private CancellationTokenSource? _saveCts;
 
     void QueueSaveUiState()
-    {
+    {        
         _saveCts?.Cancel();
+        _saveCts?.Dispose();
         _saveCts = new CancellationTokenSource();
-        var token = _saveCts.Token;
 
-        _ = DebouncedSaveAsync(token);
+        _ = DebouncedSaveAsync(_saveCts.Token);
     }
 
     private async Task DebouncedSaveAsync(CancellationToken token)
@@ -2211,16 +2484,16 @@
         {
             await Task.Delay(500, token);
 
-            // Make sure _ui reflects the latest UI fields
-            SyncFieldsToUi();
+            // _ui is already the source of truth now — no SyncFieldsToUi().
+            var uiToSave = _ui with { Version = CurrentUIOptionsVersion };
 
-            var json = JsonSerializer.Serialize(_ui);
-            await InvokeAsync(() => JS.InvokeVoidAsync("appState.set", UiStateKey, json));
+            var json = JsonSerializer.Serialize(uiToSave);
+            await InvokeAsync(async () => { await JS.InvokeVoidAsync("appState.set", UiStateKey, json); });
         }
         catch (OperationCanceledException) { }
+        catch (ObjectDisposedException) { } // covers JS/runtime teardown cases
         catch (Exception ex)
         {
-            // Don’t swallow silently while debugging:
             Console.WriteLine("Save UI state failed: " + ex);
         }
     }
@@ -2287,21 +2560,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-#if DEBUG
-    await Task.Delay(3000); // try 3–10s if needed
-#endif
         if (_dotNetRef == null)
             _dotNetRef = DotNetObjectReference.Create(this);
         // 1) UI state
-        var json = await JS.InvokeAsync<string?>("appState.get", UiStateKey);
-        if (!string.IsNullOrWhiteSpace(json))
-        {
-            try { _ui = MigrateAndNormalize(json) ?? DefaultState(); }
-            catch { _ui = DefaultState(); }
-        }
-        else _ui = DefaultState();
 
-        ApplyUiToFields();
+        UiState newState = new();
+        var json = await JS.InvokeAsync<string?>("appState.get", UiStateKey);
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(json))
+                newState = MigrateAndNormalize(json);
+        }
+        catch
+        {        
+        }
+
+        // Apply side effects / cached values based on _ui
+        SetUi(newState);
+
 
         for (int i = 0; i < 11; i++)
             CachedStatShadingStyles[i] = "";
@@ -2330,46 +2606,6 @@
             await LoadDunBytesAsync(oldFileName ?? "", cached, TemplateDB);
     }
 
-
-    static UiState NormalizeV1(UiState s)
-    {
-        return s with
-        {
-            SelectedTypes = s.SelectedTypes ?? new(),
-            SelectedSets = s.SelectedSets ?? new(),
-            SelectedOther = s.SelectedOther ?? new(),
-            RatingMode = string.IsNullOrWhiteSpace(s.RatingMode)
-                ? "Builder App"
-                : s.RatingMode,
-            Layout = string.IsNullOrWhiteSpace(s.Layout)
-                ? "5x3"
-                : s.Layout
-        };
-    }
-
-    static UiState MigrateAndNormalize(string json)
-    {
-        UiState? state;
-
-        try
-        {
-            state = JsonSerializer.Deserialize<UiState>(json);
-        }
-        catch
-        {
-            return DefaultState();
-        }
-
-        if (state is null)
-            return DefaultState();
-
-        return state.Version switch
-        {
-            1 => NormalizeV1(state),
-            _ => DefaultState() // unknown future version
-        };
-    }
-
     public int _renderCount = 0;
 
 
@@ -2387,7 +2623,7 @@
 
         if (firstRender)
         {
-            _dotNetRef = DotNetObjectReference.Create(this);
+            //_dotNetRef = DotNetObjectReference.Create(this);
 
             await JS.InvokeVoidAsync("dropzone.init", _dropZoneId, _dotNetRef);
             var supports = await JS.InvokeAsync<bool>("dropzone.supportsHandles");
@@ -2413,10 +2649,24 @@
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
         }
 
+        if (_pendingHeroReload is not null && _characterPanel is not null)
+        {
+            _characterPanel.SetUIFlags(_ui.Censor);
+            _characterPanel.Reload(_pendingHeroReload);
+            _pendingHeroReload = null;
+            ApplyFilters();               
+            await UpdateCalculatedValues(true, true);
+            await Task.Delay(100);
+            _gridReady = true;
+            await InvokeAsync(StateHasChanged);
+
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _saveCts?.Cancel(); _saveCts?.Dispose(); _saveCts = null;
+        _calculatedValuesCts?.Cancel(); _calculatedValuesCts?.Dispose(); _calculatedValuesCts = null;
         try { await JS.InvokeVoidAsync("gridOverlayObservers.stop", _scrollRef); } catch { }
         _dotNetRef?.Dispose();
     }
@@ -2427,9 +2677,10 @@
     {
         if (_isDragOver == isOver) return;
         _isDragOver = isOver;
-        StateHasChanged();
+        _ = InvokeAsync(StateHasChanged);
     }
 
+    private List<DDHeroInfo>? _pendingHeroReload = null;
 
     public async Task LoadDunBytesAsync(string fileName, byte[] bytes, ExportedTemplateDatabase tdb)
     {
@@ -2437,7 +2688,9 @@
         _lastLoadedAt = DateTime.Now;
         _error = null;
         _isLoading = true;
+        _gridReady = false;
         _status = $"Reading {fileName}…";
+        await InvokeAsync(StateHasChanged);        
         await db.LoadFromDun(bytes, tdb);
         if (!db.IsReady)
         {
@@ -2473,21 +2726,14 @@
 
             // Event collection counts + overlay data (unique names in guide, plus your owned counts)
             RebuildEventCollection();
-
             CalculateVanityTotals();
-            SetPriceStatus("Prices estimated by table", true);
+
             // don't care about when it gets back
+            // SetPriceStatus("Prices estimated by table", true);
 
             _showContent = true;
             _needsAtlasRender = true;
-            await InvokeAsync(StateHasChanged);
-            if (_characterPanel != null)
-            {
-                _characterPanel.SetUIFlags(_showUpgradedStats, _censor);
-            }
-            _characterPanel?.Reload(db.Heroes);
-            ApplyChipFilters();
-            UpdateStatValues();            
+            _pendingHeroReload = db.Heroes;          
         }
     }
 
@@ -2523,13 +2769,6 @@
         return _sortDesc ? "▼" : "▲";
     }
 
-    private void OnButtonClicked()
-    {
-        // Example: you’ll replace with your own action
-        _status = $"Button clicked at {DateTime.Now:T}";
-
-    }
-
     public int ArmorTotalValue = 0;
     public int EventTotalValue = 0;
 
@@ -2548,126 +2787,6 @@
         EventTotalValue = et;
     }
 
-    public void UpdateDPS()
-    {
-        HeroInfo info = new HeroInfo();
-        //IndexEntry
-
-        if (TemplateDB == null)
-            return;
-        if (_characterPanel == null)
-            return;
-        if (_damageCalculator == null)
-            return;
-
-        var heroInstance = _characterPanel?.SelectedHeroInfo;
-        string heroTemplate = _characterPanel?.SelectedHeroInfo?.Template ?? "";
-        if (!TemplateDB.TryGetTemplateIndex(heroTemplate, out int entry))
-        {
-            Console.WriteLine($"Couldn't find hero template {heroTemplate}");
-            return;
-        }
-
-        // need to remake this so failure isn't a throw
-        info.TemplateData = TemplateDB.GetDunDefHero(entry);        
-        info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(info.TemplateData.PlayerTemplate);
-
-        info.MeleeAttack1LargeAnimDuration = info.PlayerTemplateData.MeleeAttack1LargeAnimDuration;
-        info.MeleeAttack2LargeAnimDuration = info.PlayerTemplateData.MeleeAttack2LargeAnimDuration;
-        info.MeleeAttack3LargeAnimDuration = info.PlayerTemplateData.MeleeAttack3LargeAnimDuration;
-        info.MeleeAttack1MediumAnimDuration = info.PlayerTemplateData.MeleeAttack1MediumAnimDuration;
-        info.MeleeAttack2MediumAnimDuration = info.PlayerTemplateData.MeleeAttack2MediumAnimDuration;
-        info.MeleeAttack3MediumAnimDuration = info.PlayerTemplateData.MeleeAttack3MediumAnimDuration;
-        info.MeleeAttack1LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack1LargeAnimDamageStart;
-        info.MeleeAttack2LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack2LargeAnimDamageStart;
-        info.MeleeAttack3LargeAnimDamageStart = info.PlayerTemplateData.MeleeAttack3LargeAnimDamageStart;
-        info.MeleeAttack1MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack1MediumAnimDamageStart;
-        info.MeleeAttack2MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack2MediumAnimDamageStart;
-        info.MeleeAttack3MediumAnimDamageStart = info.PlayerTemplateData.MeleeAttack3MediumAnimDamageStart;
-
-        if ((heroInstance != null) && (heroInstance.CostumeIndex >= 0) && (heroInstance.CostumeIndex < info.TemplateData.HeroCostumes.Count))
-        {
-            var HeroCostumeTemplate = TemplateDB.GetHeroCostumeTemplate(info.TemplateData.HeroCostumes.Start + heroInstance.CostumeIndex);
-            if (HeroCostumeTemplate.PlayerTemplateOverride != -1)
-            {
-                info.PlayerTemplateData = TemplateDB.GetDunDefPlayer(HeroCostumeTemplate.PlayerTemplateOverride);
-            }
-            if (HeroCostumeTemplate.MeleeAttack1MediumAnimDuration != -1) 
-            {
-                info.MeleeAttack1MediumAnimDuration = HeroCostumeTemplate.MeleeAttack1MediumAnimDuration;
-                info.MeleeAttack1MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack1MediumAnimDamageStart;
-            }
-            if (HeroCostumeTemplate.MeleeAttack2MediumAnimDuration != -1) 
-            {
-                info.MeleeAttack2MediumAnimDuration = HeroCostumeTemplate.MeleeAttack2MediumAnimDuration;
-                info.MeleeAttack2MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack2MediumAnimDamageStart;
-            }
-            if (HeroCostumeTemplate.MeleeAttack3MediumAnimDuration != -1) 
-            {
-                info.MeleeAttack3MediumAnimDuration = HeroCostumeTemplate.MeleeAttack3MediumAnimDuration;
-                info.MeleeAttack3MediumAnimDamageStart = HeroCostumeTemplate.MeleeAttack3MediumAnimDamageStart;
-            }
-            if (HeroCostumeTemplate.MeleeAttack1LargeAnimDuration != -1) 
-            {
-                info.MeleeAttack1LargeAnimDuration = HeroCostumeTemplate.MeleeAttack1LargeAnimDuration;
-                info.MeleeAttack1LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack1LargeAnimDamageStart;
-            }
-            if (HeroCostumeTemplate.MeleeAttack2LargeAnimDuration != -1)
-            {
-                info.MeleeAttack2LargeAnimDuration = HeroCostumeTemplate.MeleeAttack2LargeAnimDuration;
-                info.MeleeAttack2LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack2LargeAnimDamageStart;
-            }
-            if (HeroCostumeTemplate.MeleeAttack3LargeAnimDuration != -1)
-            {
-                info.MeleeAttack3LargeAnimDuration = HeroCostumeTemplate.MeleeAttack3LargeAnimDuration;
-                info.MeleeAttack3LargeAnimDamageStart = HeroCostumeTemplate.MeleeAttack3LargeAnimDamageStart;
-            }
-
-        }
-        
-        for (int i = 0; i < 11; i++)
-        {
-            info.TotalStats[i] = _characterPanel.ShownStat[i];
-        }
-        foreach ( var v in _rows)
-        {
-            if (v.Type != "Weapon")
-                continue;
-
-            if (!TemplateDB.TryGetTemplateIndex(db.Items[v.Idx].Template, out int weaponTemplateIdx ))
-            {
-                Console.WriteLine($"Expected known weapon template {db.Items[v.Idx].Template}");
-                continue;
-            }
-
-            var weaponTemplate = TemplateDB.GetHeroEquipment(weaponTemplateIdx);
-            v.DPS = 0.0f;
-            v.DPSTooltip = "";
-
-            if ((v.Set == "Squire") && IsWeaponSetValid(v.Set))
-            {
-                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetMeleeWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            }
-            else if ((v.Set == "Huntress")&& IsWeaponSetValid(v.Set))
-            {
-                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetCrossbowWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            }                
-            else if ((v.Set == "Monk")&& IsWeaponSetValid(v.Set))
-            {
-                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetSpearWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            }
-             else if ((v.Set == "Apprentice")&& IsWeaponSetValid(v.Set))
-            {
-                (v.DPS, v.DPSTooltip) = (_damageCalculator.GetStaffWeaponDamage(db.Items[v.Idx], ref info, ref weaponTemplate));
-            }
-            
-            if (v.DPS == 0.0f)
-                v.CachedDPSString = "";
-            else
-                v.CachedDPSString = DDEquipmentInfo.FormatCompact(v.DPS);
-        }                 
-    }
-
 
     public string GetFunHash(ItemViewRow ivr)
     {
@@ -2676,10 +2795,10 @@
     
 
 
-    private void GetLivePrices()
+    @* private void GetLivePrices()
     {
         _ = Ratings.AsyncShiroPriceAPICall(this);
-    }
+    } *@
     private async Task LoadLastFile()
     {
         _error = null;
