@@ -24,6 +24,7 @@ namespace DDUP
 			public List<DDStat> RatingStatsPriority = new();
 			public List<DDStat> SidesStatsPriority = new();
 			public bool RequireResists = false;
+			public bool UpgradeWeaponStats = false;
 			public string APIRoles = "";			
 			public bool CanBeBestFor = false;
 			public int ListIndex = -1;
@@ -57,31 +58,7 @@ namespace DDUP
 		
 
 		public static readonly List<RatingModeInfo> RatingModes = new()
-		{
-			new RatingModeInfo
-			{
-				Name = "Builder Stats",
-				Icon = "png/Tower Damage.png",
-				UpgradePriority = "",
-				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange, DDStat.TowerHealth },
-				SidesStatsPriority = new List<DDStat>() { },
-				RequireResists = false,
-				APIRoles = "",
-				CanBeBestFor = false
-			},
-
-			new RatingModeInfo
-			{
-				Name = "Hero Stats",
-				Icon = "png/Hero Damage.png",
-				UpgradePriority = "",
-				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroHealth, DDStat.HeroCastRate, DDStat.HeroSpeed },
-				SidesStatsPriority = new List<DDStat>() { },
-				RequireResists = true,
-				APIRoles = "",
-				CanBeBestFor = false
-			},
-
+		{			
 			new RatingModeInfo
 			{
 				Name = "Builder App",
@@ -90,6 +67,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
 				RequireResists = false,
+				UpgradeWeaponStats = false,
 				APIRoles = "app",
 				CanBeBestFor = true
 			},
@@ -102,6 +80,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRange, DDStat.TowerHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate },
 				RequireResists = false,
+				UpgradeWeaponStats = false,
 				APIRoles = "hermit",
 				CanBeBestFor = true
 			},
@@ -114,6 +93,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerDamage, DDStat.TowerRate },
 				RequireResists = false,
+				UpgradeWeaponStats = false,
 				APIRoles = "trange",
 				CanBeBestFor = true
 			},
@@ -126,6 +106,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange },
 				RequireResists = false,
+				UpgradeWeaponStats = false,
 				APIRoles = "builder ev",
 				CanBeBestFor = true
 			},
@@ -138,6 +119,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
 				RequireResists = false,
+				UpgradeWeaponStats = false,
 				APIRoles = "summoner",
 				CanBeBestFor = true
 			},
@@ -150,6 +132,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroAbility1 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroDamage, DDStat.HeroCastRate },
 				RequireResists = true,
+				UpgradeWeaponStats = false,
 				APIRoles = "tb",
 				CanBeBestFor = true
 			},
@@ -162,6 +145,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility1 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
 				RequireResists = true,
+				UpgradeWeaponStats = true,
 				APIRoles = "dps ab1",
 				CanBeBestFor = true
 			},
@@ -174,6 +158,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility2 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
 				RequireResists = true,
+				UpgradeWeaponStats = true,
 				APIRoles = "dps ab2",
 				CanBeBestFor = true
 			},
@@ -186,6 +171,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility1, DDStat.HeroAbility2, DDStat.HeroCastRate },
 				RequireResists = true,
+				UpgradeWeaponStats = true,
 				APIRoles = "",
 				CanBeBestFor = false
 			},
@@ -198,6 +184,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate, DDStat.HeroHealth },
 				RequireResists = true,
+				UpgradeWeaponStats = true,
 				APIRoles = "gunwitch",
 				CanBeBestFor = true
 			},
@@ -210,6 +197,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage, DDStat.TowerRate, DDStat.HeroHealth },
 				RequireResists = true,
+				UpgradeWeaponStats = false,
 				APIRoles = "",
 				CanBeBestFor = false
 			},
@@ -222,6 +210,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroAbility2 },
 				RequireResists = true,
+				UpgradeWeaponStats = false,
 				APIRoles = "",
 				CanBeBestFor = true
 			}
@@ -335,7 +324,7 @@ namespace DDUP
 			
 			for (int i = 0; i < Ratings.RatingModes.Count; i++ )
 			{
-				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists);
+				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists, RatingModes[i].UpgradeWeaponStats);
 				vr.CachedRatings.Add(rating);
 				vr.CachedSides.Add(sides);
 			}
@@ -473,7 +462,7 @@ namespace DDUP
 		
 
 
-		public static (int, int) EvalRatingAndUpgrades(ItemViewRow vr, List<DDStat> RatingStatsPriority, List<DDStat> SidesStatsPriority, bool bRequireResists)
+		public static (int, int) EvalRatingAndUpgrades(ItemViewRow vr, List<DDStat> RatingStatsPriority, List<DDStat> SidesStatsPriority, bool bRequireResists, bool bUpgradeWeaponStats)
 		{
 			int rating = 0;
 			int sides = 0;
@@ -518,8 +507,17 @@ namespace DDUP
 
 			for (int i = 1; i < 11; i++)
 				vr.UpgradedStats[i] = vr.Stats[i];
-			
-			foreach ( var v in RatingStatsPriority )
+
+			if (bUpgradeWeaponStats)
+			{
+				vr.UpgradesLeftForWeaponStats = levelsLeft;
+				levelsLeft = 0;
+			}
+			else
+				vr.UpgradesLeftForWeaponStats = 0;
+
+
+			foreach (var v in RatingStatsPriority)
 			{
 				if (vr.Stats[(int)v] == 0) continue;// skip missing stats
 				int levelToMax = vr.MaxStat - vr.Stats[(int)v];
@@ -575,7 +573,5 @@ namespace DDUP
 
 			return greq + preq + freq + lreq;
 		}
-
-
 	}
 }

@@ -51,6 +51,8 @@ namespace DDUP
 			public override string ToString() => $"{Kind} '{Text}'";
 		}
 
+	
+
 		private sealed class Lexer
 		{
 			private readonly string _s;
@@ -364,7 +366,7 @@ namespace DDUP
 						TokKind.Ne => x != y,
 						_ => false
 					};
-				}
+				}				
 
 				// Otherwise string compare (case-insensitive, trimmed)
 				string xs = a.IsNumber ? a.Num.ToString(CultureInfo.InvariantCulture) : (a.Str ?? "");
@@ -380,7 +382,12 @@ namespace DDUP
 					TokKind.Eq => xs.Equals(ys, StringComparison.InvariantCultureIgnoreCase),
 					TokKind.EqEq => xs.Equals(ys, StringComparison.InvariantCultureIgnoreCase),
 					TokKind.Ne => !xs.Equals(ys, StringComparison.InvariantCultureIgnoreCase),
-
+					
+					TokKind.Lt => ItemViewRow.GetQualityRank(xs) <  ItemViewRow.GetQualityRank(ys),
+					TokKind.Le => ItemViewRow.GetQualityRank(xs) <= ItemViewRow.GetQualityRank(ys),
+					TokKind.Gt => ItemViewRow.GetQualityRank(xs) >  ItemViewRow.GetQualityRank(ys),
+					TokKind.Ge => ItemViewRow.GetQualityRank(xs) >= ItemViewRow.GetQualityRank(ys),
+					
 					_ => true
 				};
 			}
@@ -814,39 +821,6 @@ namespace DDUP
 
 				default: return false;
 			}
-		}
-
-		// ----------------------------------------------------
-		// 5) Integration: ApplySearch
-		// ----------------------------------------------------
-		
-		static string[] Tokenize(string input)
-		{
-			var tokens = new List<string>();
-
-			var regex = new Regex(
-				@"(?<token>-?\w+(?:<=|>=|!=|==|<|>|:)=?""[^""]*"")|""[^""]*""|\S+",
-				RegexOptions.Compiled);
-
-			foreach (Match m in regex.Matches(input))
-			{
-				string token = m.Value;
-
-				// Strip quotes ONLY around the value, not the whole token
-				if (token.Contains(":\""))
-				{
-					int i = token.IndexOf(":\"", StringComparison.Ordinal);
-					token = token.Substring(0, i + 1) + token.Substring(i + 2, token.Length - i - 3);
-				}
-				else if (token.StartsWith("\"") && token.EndsWith("\""))
-				{
-					token = token.Substring(1, token.Length - 2);
-				}
-
-				tokens.Add(token);
-			}
-
-			return tokens.ToArray();
 		}
 	}
 	}

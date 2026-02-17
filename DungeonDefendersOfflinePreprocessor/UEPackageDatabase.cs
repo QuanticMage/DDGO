@@ -1433,7 +1433,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "WeaponDamageBonus", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponDamageBonusRandomizer", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponDamageDisplayValueScale", propertyMap, "0");
-			
+			AddPropertyToMap(obj, "WeaponAltDamageDisplayValueScale", propertyMap, "0"); 
 			AddPropertyToMap(obj, "WeaponKnockbackBonusRandomizer", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponKnockbackMax", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonusRandomizer", propertyMap, "0");
@@ -1443,6 +1443,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonus", propertyMap, "0");
 			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonusRandomizer", propertyMap, "0");
 			AddPropertyToMap(obj, "weaponType", propertyMap, "0");
+		
 
 			// Floats
 			AddPropertyToMap(obj, "AdditionalWeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
@@ -1463,6 +1464,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "MaxRandomValue", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MaxRandomValueNegative", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MinElementalDamageIncreasePerLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxElementalDamageIncreasePerLevel", propertyMap, "400");
 			AddPropertyToMap(obj, "MinEquipmentLevels", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MinimumPercentageValue", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MythicalFullEquipmentSetStatMultiplier", propertyMap, "0.0");
