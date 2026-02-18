@@ -661,8 +661,8 @@ td.location[b-yrayc6w7vb] {
     font-size: 0.85em; /* or 12px */
 }
 
-td.bestfor[b-yrayc6w7vb] {
-    font-size: 0.7em; /* or 12px */
+td.bestfor[b-yrayc6w7vb] {        
+    font-size: clamp( 0.5rem, 0.63vw, 1rem);
     color: #00000080;
 }
 
@@ -755,21 +755,20 @@ table.grid td.cell-rating[b-yrayc6w7vb] {
 }
 
 .rating-primary[b-yrayc6w7vb] {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: clamp( 12px, 1.2vw, 22px);
+    font-weight: 600;
     line-height: 1;
 }
 
 .rating-sides[b-yrayc6w7vb] {
-    font-size: 12px;
+    font-size: clamp( 8px, 0.75vw, 12px);    
     opacity: 0.6;
     margin-left: 0px;
     vertical-align: baseline; /* keeps it aligned nicely */
 }
 
 
-table.grid td.cell-name[b-yrayc6w7vb] {
-    font-size: 18px;
+table.grid td.cell-name[b-yrayc6w7vb] {    
     background-color: #b4b4b430;
     font-weight: 500;
     position: relative;
@@ -845,6 +844,7 @@ th.icon-header[b-yrayc6w7vb] {
     .tool-btn.active[b-yrayc6w7vb] {
         background: linear-gradient(180deg, #b8d3f3, #9ebfe8);
         color: #1f2937;
+        font-weight: 700;
         border-color: #9aa4b2;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.08);
     }
@@ -1315,13 +1315,14 @@ h1[b-yrayc6w7vb] {
 }
 
 .value-icon .value-emoji[b-yrayc6w7vb] {    
-    font-size: 16px;
+    font-size: clamp( 12px, 0.8vw ,16px);
+    font-size: clamp( 12px, 0.8vw ,16px);
     letter-spacing: -5px;
 }
 
 .value-icon .value-text[b-yrayc6w7vb] {    
     line-height: 1;
-    font-size: 15px;    
+    font-size: clamp( 12px, 0.8vw, 15px);    
 }
     
 
@@ -1707,6 +1708,7 @@ td.cell-name[b-yrayc6w7vb] {
 }
 .name-name[b-yrayc6w7vb] {
     flex: 1;
+    font-size: clamp(8px, 1vw, 18px);
     min-width: 0; /* allows wrapping */
     display: block;
     padding-right: 48px;
@@ -2630,9 +2632,6 @@ live-btn[b-yrayc6w7vb] {
 }
 
 /* Shrink the primary rating number */
-.compact-table .rating-primary[b-yrayc6w7vb] {
-    font-size: 20px;
-}
 
 /* Shrink the Stat Numbers */
 table.grid.compact-table td.num[b-yrayc6w7vb] {

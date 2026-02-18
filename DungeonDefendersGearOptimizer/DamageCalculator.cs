@@ -604,7 +604,7 @@ namespace DDUP
 			maxShotsPerSecondBonus = (int)MathF.Min(maxShotsPerSecondBonus, viewRow.UpgradedWeaponShotsPerSecondBonus + (numUpgradesAvailable / 4));
 
 			// upgrade shots per second
-			if (viewRow.UpgradedWeaponShotsPerSecondBonus < maxShotsPerSecondBonus)
+			if ((viewRow.UpgradedWeaponShotsPerSecondBonus < maxShotsPerSecondBonus) && (maxShotsPerSecondBonus > 0))
 			{
 				int upgradesToUse = Math.Min(numUpgradesAvailable, maxShotsPerSecondBonus - viewRow.UpgradedWeaponShotsPerSecondBonus);
 				viewRow.UpgradedWeaponShotsPerSecondBonus += upgradesToUse;
