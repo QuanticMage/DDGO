@@ -246,6 +246,7 @@ namespace DDUP
 			new ("Pole of the South Star", "Weapons > Apprentice", "Sweaty Buffed Barricade Clutches Shattered Berserker", 107),
 			new ("Poseidon's Shorebreaker", "Weapons > Monk", "Nerfed Tilted Guardian Shatters Tactical Fiend", 147),
 			new ("Power Gauntlets", "Accessories > Armor Pieces", "Hardened Beloved Banner Deletes Fortified Ogre", 50),
+			new ("Pride of the Kraken", "","", 0),
 			new ("Proto VPC", "Accessories > Exclusives","Brutal Beloved Spike Fortifies Corrupted Wyvern", 4000),
 			new ("Pumpkin Head Celebration", "Accessories > High End Hats", "Locked Ancient Workshop Camps Tilted Marauder", 542),
 			new ("Pumpkin Peak", "Accessories > Mid End Hats", "Luminous Locked Beacon Carries Wild Destroyer", 55),
@@ -258,6 +259,7 @@ namespace DDUP
 			new ("Rosemary", "Pets > Streamer", "Drippy Wild Spike Boosts Endless Brute", 243),
 			new ("Sahara", "Weapons > Apprentice", "Buffed Tilted Sigil Camps Tilted Destroyer", 62),
 			new ("Salem", "Pets > DPS", "Swift Fortified Squire Farms Fortified Warlock", 69),
+			new ("Sandstone Shield", "Accessories > Shields", "Fire Mythic Builder Clutches Juicy Ravager", 0), // added 2-19-2026
 			new ("Santa's Spare Hat", "Accessories > Mid End Hats", "Drippy Heroic Protector Spams Buffed Wyvern", 61),
 			new ("Sapphire", "Weapons > Squire", "Hardened Shiny Relic Explodes Fire Swarm", 52),
 			new ("Serpent of the North", "Pets > DPS", "Brutal Hardened Lightning Withstands Beloved Corruptor", 71),
@@ -310,6 +312,7 @@ namespace DDUP
 			new ("Sword of Valor (Blue)", "Weapons > Squire","Mythic Shiny Aura Locks Beloved Destroyer", 46),
 			new ("Sword of Valor (Green)", "Weapons > Squire","Goated Heroic Spike Breaches Hardened Invader", 46),
 			new ("Sword of Valor (Red)", "Weapons > Squire","Radiant Wild Obelisk Pops Swift Beast", 46),
+			new ("Sword of Valor (Yellow)", "","", 0),
 			new ("Tabula Rasa", "Accessories > Exclusive Armor Pieces", "Drippy Beloved Relic Boosts Heroic Wyvern", 300),
 			new ("Talay's Doom", "Weapons > Squire", "Tilted Wild Barricade Breaches Goated Invader", 64),
 			new ("Terra's Magicite Brooch", "Accessories > Hats", "Goated Tactical Banner Boosts Swift Spider", 40),

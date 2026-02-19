@@ -34,23 +34,22 @@ TODO:
 (DONE) Shots-per-second needs to not be upgradeable for staves-- why is it doing that?
 (DONE) Character text behind character pane
 (DONE) FIX clicking on the "?" of the custom field DELETES whatever is entered in the field
-
-Test shield auto equip
+(DONE) Update icons - defender's party hat is broken
 
 Next:
+
+* Test shield auto equip
 * Add in new events if I can get a copy of them
 * Update auto-event identification code.  include bCantBesold
 
 * Zooming messes up selection (Firefox)
 
-* Update icons - defender's party hat is broken
 * more layout and icon work
 ** Save text between runs
 ** The custom field has priority or is ignoring the "other" filters (other equipped characters)
 
 Setting to not force level limits
 Verify test characters
-
 
 Consider redoing filters
 Add Pride of the Kraken and Sword of Valor (yellow) events

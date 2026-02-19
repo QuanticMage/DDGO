@@ -18,8 +18,7 @@
     const tctx = tmp.getContext("2d", { alpha: true, willReadFrequently: true });
     tctx.imageSmoothingEnabled = false;
 
-    async function init(atlasUrl) {
-        clearCache();
+    async function init(atlasUrl) {        
         atlas = new Image();
         atlas.src = atlasUrl;
         if (!atlas.complete) {
