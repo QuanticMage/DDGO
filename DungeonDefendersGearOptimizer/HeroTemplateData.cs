@@ -361,6 +361,28 @@
 				ExtraType = "None",
 				WeaponType = "Monk"
 			},
+
+			// ============== Guardian ==============
+			["Guardian.hero.Archetypes.HeroTemplateGuardian"] = new HeroTemplateData
+			{
+				Index = 15,
+				ClassName = "Guardian",
+				StatIcons = new() {
+					"png/Hero Health.png",
+					"png/Move Speed.png",
+					"png/Hero Damage.png",
+					"png/Cast Rate.png",
+					"png/AB1/Guardian AB1.png",
+					"png/AB2/Guardian AB2.png",
+					"png/Tower Health.png",
+					"png/Tower Rate.png",
+					"png/Tower Damage.png",
+					"png/Tower Range.png",
+				},
+				ClassIcon = "png/Guardian_Tinyicon.png",
+				ExtraType = "Shield",
+				WeaponType = "Squire"
+			},
 		};
 	}
 

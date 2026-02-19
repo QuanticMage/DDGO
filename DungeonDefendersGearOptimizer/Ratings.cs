@@ -126,6 +126,19 @@ namespace DDUP
 
 			new RatingModeInfo
 			{
+				Name = "Builder Guardian",
+				Icon = "png/Guardian_Tinyicon.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange  },
+				SidesStatsPriority = new List<DDStat>() { },
+				RequireResists = false,
+				UpgradeWeaponStats = false,
+				APIRoles = "",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
 				Name = "AB1 Only",
 				Icon = "png/AB1/Monk AB1.png",
 				UpgradePriority = "",
@@ -232,6 +245,7 @@ namespace DDUP
 			["Builder TRange"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 800, 1350, 1500 }, //trange
 			["Builder EV"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 500, 1350, 1500 }, // builder ev
 			["AB1 Only"]= new int[]	 { 1000, 20, 1050, 40, 1100, 100, 1150, 250, 1200, 1500, 1250, 3000 }, // ab1 only		
+			["Builder Guardian"] = new int[] { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // use hermit values for now
 		};
 
 
