@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script>
+        // Apply saved theme before render to prevent flash
+        (function() {
+            try {
+                var saved = localStorage.getItem('ddgo.uiState.v1');
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    if (parsed && parsed.Theme === 'dark') {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dungeon Defenders Gear Optimizer</title>
+    <base href="/DDGO/beta/" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="DDUP.styles.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Belanosima:wght@400&display=swap" rel="stylesheet">
+</head>
+
+<body width="100%">
+
+    <div id="app">Loading...</div>
+
+    <script src="dropzone.js"></script>
+    <script src="gridObservers.js"></script>
+    <script src="atlasIconsCached.js"></script>
+    <script src="download.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <script>
+		window.setupGlobalTooltips = (dotNetHelper) => {
+			// Prevent double-registration if called multiple times (e.g., Blazor reconnects)
+			if (window.__globalTooltipsInstalled) return;
+			window.__globalTooltipsInstalled = true;
+
+			let helpKeyDown = false;
+			let hoveredTarget = null;
+
+			// Delay handling
+			let showTimer = null;
+			const TOOLTIP_DELAY = 250;
+
+			const hasNormal = (el) => el?.hasAttribute("data-tooltip");
+			const hasHelp = (el) => el?.hasAttribute("h-tooltip");
+
+			const getActiveTooltipText = (el) => {
+				if (!el) return null;
+
+				// Help tooltip has priority only while holding H
+				if (helpKeyDown && hasHelp(el)) return el.getAttribute("h-tooltip");
+
+				// Otherwise normal tooltip if present
+				if (hasNormal(el)) return el.getAttribute("data-tooltip");
+
+				return null;
+			};
+
+			const showNow = (el) => {
+				const text = getActiveTooltipText(el);
+				if (!text) return;
+
+				const rect = el.getBoundingClientRect();
+				dotNetHelper.invokeMethodAsync(
+					"ShowGlobalTooltip",
+					text,
+					rect.left + rect.width / 2,
+					rect.top,
+					window.innerWidth
+				);
+			};
+
+			const queueShow = (el) => {
+				clearTimeout(showTimer);
+				showTimer = setTimeout(() => {
+					// Only show if we're still hovering the same element
+					if (hoveredTarget !== el) return;
+					showNow(el);
+				}, TOOLTIP_DELAY);
+			};
+
+			const hide = () => {
+				clearTimeout(showTimer);
+				showTimer = null;
+				dotNetHelper.invokeMethodAsync("HideGlobalTooltip");
+			};
+
+			document.addEventListener(
+				"mouseover",
+				(e) => {
+					const el = e.target.closest("[data-tooltip],[h-tooltip]");
+					if (!el) return;
+
+					hoveredTarget = el;
+					queueShow(el);
+				},
+				true
+			);
+
+			document.addEventListener(
+				"mouseout",
+				(e) => {
+					const from = e.target.closest("[data-tooltip],[h-tooltip]");
+					if (!from) return;
+
+					// If still inside the same element, ignore
+					if (e.relatedTarget && from.contains(e.relatedTarget)) return;
+
+					if (hoveredTarget === from) hoveredTarget = null;
+					hide(); // hide immediately (no delay)
+				},
+				true
+			);
+
+			window.addEventListener(
+				"keydown",
+				async (e) => {
+					if (e.key !== "h" && e.key !== "H") return;
+					if (helpKeyDown) return; // ignore repeat while holding
+
+					helpKeyDown = true;
+
+					// When entering help mode, show immediately (no delay)
+					clearTimeout(showTimer);
+					if (hoveredTarget) showNow(hoveredTarget);
+
+					// Copy CURRENT active tooltip text (not cached)
+					const textToCopy = getActiveTooltipText(hoveredTarget);
+					if (!textToCopy) return;
+
+					try {
+						await navigator.clipboard.writeText(textToCopy);
+					} catch {
+						// ignore clipboard failures silently
+					}
+				},
+				true
+			);
+
+			window.addEventListener(
+				"keyup",
+				(e) => {
+					if (e.key !== "h" && e.key !== "H") return;
+
+					helpKeyDown = false;
+
+					// After releasing H, revert tooltip based on normal rules
+					if (hoveredTarget) {
+						const text = getActiveTooltipText(hoveredTarget);
+						if (text) queueShow(hoveredTarget);
+						else hide();
+					} else {
+						hide();
+					}
+				},
+				true
+			);
+		};
+
+
+        window.setTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+        };
+
+        window.appState = {
+            get: (key) => localStorage.getItem(key),
+            set: (key, value) => localStorage.setItem(key, value),
+            remove: (key) => localStorage.removeItem(key)
+        };
+
+        window.copyToClipboard = async (text) => {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+            return false;
+		};
+		window.scrollRowIntoView = (key) => {
+			const el = document.querySelector(`[data-key="${key}"]`);
+			if (el) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+		};
+
+    </script>
+
+
+
+</body>
+
+</html>
