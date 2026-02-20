@@ -35,7 +35,7 @@ namespace DDUP
 			"Squire","Monk","Huntress","Apprentice",
 			"Defender","Champion","Guardian","Builder",
 			"Tower","Aura","Trap","Barricade",
-			"Harpoon","Fireball","Lightning","Spike",
+			"Harpoon","Fireball","Lightning","Shiro",
 			"Crystal","Core","Beacon","Obelisk",
 			"Forge","Armory","Workshop","Stronghold",
 			"Banner","Sigil","Totem","Relic",

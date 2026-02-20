@@ -1,5 +1,10 @@
 ﻿
 TODO:
+
+* View optimizations
+* 
+
+
 (DONE) Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
 (DONE) Make equip always show fully upgraded
 (DONE) Auto-detect mode is broken
