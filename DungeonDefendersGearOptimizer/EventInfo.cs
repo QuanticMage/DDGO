@@ -159,7 +159,7 @@ namespace DDUP
 			new ("Honor Sword", "Weapons > Exclusive", "Drippy Tilted Champion Channels Brutal Raider", 295), // 100
 			new ("Honor Sword", "Weapons > Exclusive", "Grim Buffed Armory Repairs Fragile Fiend", 295), // 200
 			new ("Honor Sword", "Weapons > Exclusive", "Shiny Mid Guardian Throws Mythic Wretch", 295), // 300
-			new ("Honor Sword", "Weapons > Exclusive", "Tilted Beloved Builder Builds Radiant Pack", 295), // 400
+			new ("Honor Sword", "Weapons > Exclusive", "Tilted Beloved Builder Builds Radiant Pack", 295), // 400			
 			new ("Hot Air Balloon", "Pets > Exclusives", "Cracked Shattered Stronghold Burns Cooked Demon", 425),
 			new ("Howling Werewolf", "Weapons > Huntress", "Beloved Tilted Builder Pops Enchanted Pillager", 45),
 			new ("Inkzooka", "Weapons > Huntress", "Endless Heroic Defender Repairs Buffed Corruptor", 56),
@@ -334,6 +334,7 @@ namespace DDUP
 			new ("Tinkerer's Demise", "Weapons > Squire", "Goated Shiny Forge Rushes Radiant Abomination", 148),
 			new ("To Froya", "Weapons > Huntress", "Goated Fortified Armory Throws Tactical Ogre", 125),
 			new ("Toy Sword", "Weapons > Squire", "Cracked Drippy Beacon Withstands Fortified Horde", 53),
+			new ("Traffic Cone", "Accessories > Mid End Hats", "Endless Heroic Squire Shatters Cooked Assassin", 0),
 			new ("Trick or Treater", "Pets > Collectibles", "Buffed Shiny Shiro Channels Nerfed Assassin", 100),
 			new ("Ultimate Crystalline Defender", "Accessories > Shields", "Nerfed Ancient Shiro Spams Ancient Spider", 93),
 			new ("Ultimate Dungeon Defender", "Accessories > Shields", "Endless Shiny Workshop Fortifies Sweaty Wyvern", 560),
