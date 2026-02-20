@@ -43,6 +43,9 @@ TODO:
 
 Next:
 
+* "Firefox users should click the padlock and clear site cache if you are having problems" under a Firefox notes popup
+
+
 * Test shield auto equip
 * Add in new events if I can get a copy of them
 * Update auto-event identification code.  include bCantBesold
