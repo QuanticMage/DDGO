@@ -1,7 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-
+    <script>
+        // Apply saved theme before render to prevent flash
+        (function() {
+            try {
+                var saved = localStorage.getItem('ddgo.uiState.v1');
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    if (parsed && parsed.Theme === 'dark') {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dungeon Defenders Gear Optimizer</title>
@@ -152,6 +165,10 @@
 			);
 		};
 
+
+        window.setTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+        };
 
         window.appState = {
             get: (key) => localStorage.getItem(key),

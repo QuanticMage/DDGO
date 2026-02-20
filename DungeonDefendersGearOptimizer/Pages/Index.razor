@@ -116,7 +116,17 @@
     @* ============== CREDITS AND LINK PANE ============== *@     
     <aside class="info-pane">
         <div class="credits">
-            <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
+            <div class="credits-top-row">
+                <div class="credits-by">Created by <i>Mage (&#64;entangledmage)</i></div>
+                <button type="button"
+                        class="theme-toggle @(_ui.Theme == "dark" ? "theme-toggle--active" : "")"
+                        title="Toggle dark mode"
+                        @onclick="@(() => SetUi(u => u with { Theme = u.Theme == "dark" ? "light" : "dark" }))">
+                    <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+                    </svg>
+                </button>
+            </div>
             <div class="credits-thanks">Based on item DB by <i>Tbolt</i>, using price estimates by <i>Shiro and Sesar</i></div>
             <div class="credits-thanks">Special Thanks to <i>Cerium, Chiku, Favon, Renim, Scryllix, Shiro,</i></div>
             <div class="credits-thanks"><span style="margin-left:110px;"></span><i>Sesar, SteveTrevor, Tbolt, Thales, and Theoran</i></div>
@@ -135,20 +145,39 @@
 
 @if (@_showContent)
 {
-    <div class="middle-pane" style="@(_compactDisplay?"grid-template-columns: 668px 1fr;":"grid-template-columns: 835px 1fr;")">
-        <div class="middle-left" style="@(_compactDisplay?"zoom:0.8; width:668px;":"width: 835px;")">
-            <CharacterPanel @ref="_characterPanel"
-                            OnEquipFromFile="HandleEquipFromFile"
-                            OnEquipBest="HandleEquipBest"
-                            OnEquipClear="HandleEquipClear"
-                            OnClickEquipment="HandleEquipmentClick"
-                            OnRightClickEquipment="HandleEquipmentRightClick"
-                            OnChangedRatingMode="HandleChangedRatingMode"
-                            OnChangedHero="HandleChangedHero"
-                            GetLocationFunc="GetLocation" />
+    <div class="main-content">
+        <div class="character-row" style="@(_compactDisplay?"zoom:0.8;":"")">
+            @for (int _si = 0; _si < _panelSlots.Count; _si++)
+            {
+                var slot = _panelSlots[_si];
+                var slotIndex = _si;
+                <div class="panel-slot @(slotIndex == _activePanelIndex ? "panel-active" : "")" @key="slot.Id" @onclick="() => SetActivePanel(slotIndex)">
+                    <CharacterPanel @ref="slot.Panel"
+                                    OnEquipFromFile="() => HandleEquipFromFile(slot)"
+                                    OnEquipBest="() => HandleEquipBest(slot)"
+                                    OnEquipClear="() => HandleEquipClear(slot)"
+                                    OnClickEquipment="HandleEquipmentClick"
+                                    OnRightClickEquipment="HandleEquipmentRightClick"
+                                    OnChangedRatingMode="HandleChangedRatingMode"
+                                    OnChangedHero="HandleChangedHero"
+                                    GetLocationFunc="GetLocation" />
+                    <div class="panel-controls">
+                        <label class="panel-lock" @onclick:stopPropagation="true" data-tooltip="Lock: equipped items won't be reassigned by Equip Best on other panels">
+                            <input type="checkbox" checked="@slot.IsLocked"
+                                   @onchange="@((e) => { slot.IsLocked = (bool)e.Value!; StateHasChanged(); })" />
+                            <span>Lock</span>
+                        </label>
+                        @if (_panelSlots.Count > 1)
+                        {
+                            <button type="button" class="panel-remove-btn" title="Remove this hero panel" @onclick:stopPropagation="true" @onclick="() => RemoveCharacterPanel(slot.Id)">×</button>
+                        }
+                    </div>
+                </div>
+            }
+            <button type="button" class="panel-add-btn" @onclick="AddCharacterPanel">+ Add Hero</button>
         </div>
 
-        <div class="middle-right" style="@(_compactDisplay?"zoom:0.9;":"")">
+        <div class="filters-bar" style="@(_compactDisplay?"zoom:0.9;":"")">
             <div class="utility-row">
                 <span class="utility-label"><font face="Arial">⚙️</font></span>
 
@@ -216,12 +245,8 @@
                     </select>
                 </label>*@
             </div>
-            <br />
 
-            <div class="filters-menu-header">
-                Filters
-            </div>
-            <div class="filters-column">
+            <div class="filters-row">
                 <FilterChips Title="Type" Theme="type"
                              Options="_typeOptions"
                              Placeholder="Any"
@@ -490,8 +515,6 @@
             }
     </div>
 
-</div> 
-            @* Middle pane *@
 <div class="bottom-pane">
 
     @if (_rows.Count == 0)
@@ -501,13 +524,16 @@
     {
         <div class='grid-wrap @(_gridReady ? "" : "grid-hidden")' @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
             <div class="overlay-layer" aria-hidden="true">
-                @if (_characterPanel is not null)
+                @foreach (var slot in _panelSlots)
                 {
-                    @foreach (var e in _characterPanel.EquippedItems)
+                    if (slot.Panel is not null)
                     {
-                        <div class="row-highlight" @key=@($"{e.Key}")
-                             style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
-                        </div>
+                        @foreach (var e in slot.Panel.EquippedItems)
+                        {
+                            <div class="row-highlight" @key=@($"{slot.Id}_{e.Key}")
+                                 style="transform: translateY(@($"{e.Value.CachedY}px")); height: @($"{e.Value.CachedHeight}px"); opacity: 1;">
+                            </div>
+                        }
                     }
                 }
             </div>
@@ -899,6 +925,8 @@
             </table>
         </div>
     }
+
+</div>
 </div>
 }
 
@@ -932,7 +960,58 @@
     private string _lastAppliedSearchText = "";
     private int CollectedEventCount = 0;
     private int TotalEventCount = 0;
-    private CharacterPanel? _characterPanel;
+    // Multi-panel support
+    private sealed class CharacterPanelSlot
+    {
+        public int Id { get; init; }
+        public CharacterPanel? Panel { get; set; }
+        public bool IsLocked { get; set; }
+    }
+    private readonly List<CharacterPanelSlot> _panelSlots = new() { new CharacterPanelSlot { Id = 0 } };
+    private int _nextPanelId = 1;
+    private int _activePanelIndex = 0;
+
+    private CharacterPanel? _characterPanel => _panelSlots.Count > 0 ? _panelSlots[0].Panel : null;
+    private CharacterPanel? ActivePanel => _activePanelIndex < _panelSlots.Count ? _panelSlots[_activePanelIndex].Panel : _characterPanel;
+
+    private int _pendingReloadPanelId = -1;
+
+    private void AddCharacterPanel()
+    {
+        var id = _nextPanelId++;
+        _panelSlots.Add(new CharacterPanelSlot { Id = id });
+        _pendingReloadPanelId = id;
+        StateHasChanged();
+    }
+
+    private void RemoveCharacterPanel(int id)
+    {
+        if (_panelSlots.Count <= 1) return;
+
+        var slot = _panelSlots.FirstOrDefault(s => s.Id == id);
+        if (slot?.Panel is not null)
+        {
+            // Clear equipment from this panel
+            foreach (var e in slot.Panel.EquippedItems.Values.ToList())
+            {
+                e.CurrentEquippedSlot = "";
+            }
+            slot.Panel.ClearAllEquipment();
+        }
+
+        _panelSlots.RemoveAll(s => s.Id == id);
+        if (_activePanelIndex >= _panelSlots.Count)
+            _activePanelIndex = _panelSlots.Count - 1;
+
+        _ = UpdateCalculatedValues(false, true);
+        StateHasChanged();
+    }
+
+    private void SetActivePanel(int index)
+    {
+        _activePanelIndex = index;
+    }
+
     private bool _showEventCollection = false;
     private string _eventSearch = "";
     private double _overlayHeightPx = 0;
@@ -1063,10 +1142,12 @@
     }
 
 
+
     // this should be updated for new characters
-    private string GetTypeOfExtraSlot()
+    private string GetTypeOfExtraSlot(CharacterPanel? panel = null)
     {
-        string? Template = _characterPanel?.SelectedHeroInfo?.Template;
+        panel ??= ActivePanel;
+        string? Template = panel?.SelectedHeroInfo?.Template;
         if (Template != null && HeroTemplateData.Map.ContainsKey(Template))
         {
             return (HeroTemplateData.Map[Template].ExtraType);
@@ -1075,9 +1156,10 @@
         return "None";
     }
 
-    private bool IsWeaponSetValid(string set)
+    private bool IsWeaponSetValid(string set, CharacterPanel? panel = null)
     {
-        string? Template = _characterPanel?.SelectedHeroInfo?.Template;
+        panel ??= ActivePanel;
+        string? Template = panel?.SelectedHeroInfo?.Template;
 
         if (Template != null && HeroTemplateData.Map.ContainsKey(Template))
         {
@@ -1090,49 +1172,53 @@
 
     private void ClearAllSelections()
     {
-
-        List<ItemViewRow>? equippedItems = _characterPanel?.EquippedItems.Values.ToList();
-        if (equippedItems is null)
-            return;
-
-        foreach (var v in equippedItems)
-            DeselectRow(v);
+        foreach (var slot in _panelSlots)
+            ClearPanelSelections(slot.Panel);
     }
 
-    private void DeselectRow(ItemViewRow row)
+    private void ClearPanelSelections(CharacterPanel? panel)
+    {
+        if (panel is null) return;
+
+        List<ItemViewRow> equippedItems = panel.EquippedItems.Values.ToList();
+        foreach (var v in equippedItems)
+            DeselectRow(v, panel);
+    }
+
+    private void DeselectRow(ItemViewRow row, CharacterPanel? panel = null)
     {
         if (row.CurrentEquippedSlot == "") return;
 
-        _characterPanel?.ChangeEquipment(row.CurrentEquippedSlot, null);
+        panel ??= ActivePanel;
+        panel?.ChangeEquipment(row.CurrentEquippedSlot, null);
         row.CurrentEquippedSlot = "";
         _ = UpdateCalculatedValues(false, true);
     }
 
-    private void SelectRow(ItemViewRow row)
+    private void SelectRow(ItemViewRow row, CharacterPanel? panel = null)
     {
         if (row.CurrentEquippedSlot != "") return;
-        if (_characterPanel == null) return;
+        panel ??= ActivePanel;
+        if (panel == null) return;
 
-        string extra = GetTypeOfExtraSlot();
+        string extra = GetTypeOfExtraSlot(panel);
         string itemType = row.Type;
 
         // can't select weapons that you can't equip
-        if (itemType == "Weapon" && !IsWeaponSetValid(row.Set))
+        if (itemType == "Weapon" && !IsWeaponSetValid(row.Set, panel))
             return;
 
         if ((itemType == "Unknown") || (itemType == "") || (itemType == "Currency")) return;
         if ((itemType == "Shield") && (extra != "Shield")) return;
         if (itemType == "Shield") { itemType = "Extra"; }
 
-        if (_characterPanel.EquippedItems.ContainsKey(itemType) && (itemType == extra))
+        if (panel.EquippedItems.ContainsKey(itemType) && (itemType == extra))
             itemType = "Extra";
 
+        if (panel.EquippedItems.ContainsKey(itemType))
+            DeselectRow(panel.EquippedItems[itemType], panel);
 
-
-        if (_characterPanel.EquippedItems.ContainsKey(itemType))
-            DeselectRow(_characterPanel.EquippedItems[itemType]);
-
-        _characterPanel?.ChangeEquipment(itemType, row);
+        panel?.ChangeEquipment(itemType, row);
         row.CurrentEquippedSlot = itemType;
         _ = UpdateCalculatedValues(false, true);
     }
@@ -1145,9 +1231,9 @@
     private void OnRowClicked(ItemViewRow row)
     {
         if (IsSelected(row))
-            DeselectRow(row);
+            DeselectRow(row, ActivePanel);
         else
-            SelectRow(row);
+            SelectRow(row, ActivePanel);
     }
 
     private static readonly string[] ValidTags =
@@ -1220,36 +1306,35 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleEquipFromFile()
+    private Task HandleEquipFromFile(CharacterPanelSlot slot)
     {
-        if (_characterPanel == null)
+        var panel = slot.Panel;
+        if (panel == null)
             return Task.CompletedTask;
 
-
-        ClearAllSelections();
-        if (_characterPanel.SelectedHeroInfo == null)
+        ClearPanelSelections(panel);
+        if (panel.SelectedHeroInfo == null)
         {
             return Task.CompletedTask;
         }
 
-        foreach (var v in _characterPanel.SelectedHeroInfo.Equipment)
+        foreach (var v in panel.SelectedHeroInfo.Equipment)
         {
             if (v.cachedItemRow != null)
-                SelectRow(v.cachedItemRow);
-        }        
+                SelectRow(v.cachedItemRow, panel);
+        }
         return Task.CompletedTask;
     }
 
-    private Task HandleEquipBest()
+    private Task HandleEquipBest(CharacterPanelSlot slot)
     {
-        FindAndEquipBestPieces();
+        FindAndEquipBestPieces(slot.Panel);
         return Task.CompletedTask;
     }
 
-    private Task HandleEquipClear()
+    private Task HandleEquipClear(CharacterPanelSlot slot)
     {
-        ClearAllSelections();
-
+        ClearPanelSelections(slot.Panel);
         return Task.CompletedTask;
     }
 
@@ -1457,7 +1542,7 @@
 
     public sealed record UiState
     {
-        public const int CurrentUIOptionsVersion = 1;
+        public const int CurrentUIOptionsVersion = 2;
 
         public int Version { get; init; } = CurrentUIOptionsVersion;
         public bool Censor { get; init; } = true;
@@ -1469,15 +1554,16 @@
         public bool AssumeSetBonuses { get; init; } = false;
         public bool CompactDisplay { get; init; } = false;
         public bool SidesAreImportant { get; init; } = false;
+        public string Theme { get; init; } = "light";
 
         public string DPSMode { get; init; } = "Damage per Second";
-        
+
         // bump this when baking new items
         public int IconVersion = 2;
 
         public ImmutableArray<string> SelectedTypes { get; init; } = ["Helmet", "Torso", "Gauntlet", "Boots"];
         public ImmutableArray<string> SelectedSets { get; init; } = ["Chain", "Mail", "Pristine", "Leather", "Plate"];
-        public ImmutableArray<string> SelectedOther { get; init; } = ["Exclude Events"];            
+        public ImmutableArray<string> SelectedOther { get; init; } = ["Exclude Events"];
     }
 
     private static bool DifferentSelection(List<string>? a, List<string>? b)
@@ -1517,7 +1603,8 @@
         if (prev.ItemBoxLayout != _ui.ItemBoxLayout) {bNeedUpdateCache = true; }
         if (prev.ShowUpgradedStats != _ui.ShowUpgradedStats) { bNeedUpdateDPS = true; }
         if (prev.AssumeSetBonuses != _ui.AssumeSetBonuses) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
-        if (prev.SidesAreImportant != _ui.SidesAreImportant) { bNeedUpdateRating = true; }        
+        if (prev.SidesAreImportant != _ui.SidesAreImportant) { bNeedUpdateRating = true; }
+        if (prev.Theme != _ui.Theme) { JS.InvokeVoidAsync("setTheme", _ui.Theme); }
         if (!SameSet(prev.SelectedTypes, _ui.SelectedTypes)) { bNeedUpdateFilters = true; }
         if (!SameSet(prev.SelectedSets, _ui.SelectedSets))  { bNeedUpdateFilters = true; }
         if (!SameSet(prev.SelectedOther, _ui.SelectedOther)) { bNeedUpdateFilters = true; }
@@ -1526,7 +1613,8 @@
 
         if (bNeedUpdateDPS) bNeedUpdateCache = false; // update dps will handle this for us
 
-        _characterPanel?.SetUIFlags(_ui.Censor);
+        foreach (var slot in _panelSlots)
+            slot.Panel?.SetUIFlags(_ui.Censor);
 
         if (bNeedUpdateMode) SetDisplayedMode(_ui.RatingMode);
         if (bNeedUpdateFilters) ApplyFilters();
@@ -1565,7 +1653,8 @@
         // Version-specific migrations (only when you introduce schema changes)
         var migrated = state.Version switch
         {
-            1 => state,          // no special v1 migration needed anymore
+            1 => state with { Theme = "light" },
+            2 => state,
             _ => new UiState()   // unknown future version (conservative)
         };
 
@@ -1579,6 +1668,7 @@
         var ratingMode = string.IsNullOrWhiteSpace(s.RatingMode)     ? d.RatingMode     : s.RatingMode;
         var layout     = string.IsNullOrWhiteSpace(s.ItemBoxLayout)  ? d.ItemBoxLayout  : s.ItemBoxLayout;
         var dpsMode    = string.IsNullOrWhiteSpace(s.DPSMode)        ? d.DPSMode        : s.DPSMode;
+        var theme      = s.Theme is "light" or "dark" ? s.Theme : "light";
 
         static ImmutableArray<string> Clean(ImmutableArray<string> items)
         {
@@ -1597,6 +1687,7 @@
             RatingMode    = ratingMode,
             ItemBoxLayout = layout,
             DPSMode       = dpsMode,
+            Theme         = theme,
 
             SelectedSets  = Clean(s.SelectedSets),
             SelectedTypes = Clean(s.SelectedTypes),
@@ -1673,6 +1764,7 @@
         ["ItemBoxSize"] = "Sets item box in-game size \nto calculate accurate page number\nwhen sorting by Level.",
         ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
         ["SidesAreImportant"] = "Makes 'Equip best' includes sides at half value.\n",
+        ["DarkMode"] = "Toggles between light and dark themes.",
         ["DPSMode"] = "Set DPS Display Mode"
     };
 
@@ -1833,8 +1925,8 @@
             if (excludeEvents)
                 includeItem &= !v.IsEvent;
 
-            if ((excludeEquipped && (_characterPanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + _characterPanel?.SelectedHeroInfo?.Name)) ||
-                (excludeEquipped && (_characterPanel?.SelectedHeroInfo == null) && (v.Location.StartsWith("Character"))))
+            if ((excludeEquipped && (ActivePanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + ActivePanel?.SelectedHeroInfo?.Name)) ||
+                (excludeEquipped && (ActivePanel?.SelectedHeroInfo == null) && (v.Location.StartsWith("Character"))))
                 includeItem &= !v.IsEquipped;
 
             if (excludeMissingResists)
@@ -1933,10 +2025,16 @@
     public int EquippedArmorSides = 0;
     public string EquippedArmorSet = "";
 
-    private void FindAndEquipBestPieces()
+    private void FindAndEquipBestPieces(CharacterPanel? panel = null)
     {
+        panel ??= ActivePanel;
+        if (panel == null) return;
+
+        // Clear this panel's equipment first so items become available
+        ClearPanelSelections(panel);
+
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
-        var hinfo = _characterPanel?.SelectedHeroInfo;
+        var hinfo = panel.SelectedHeroInfo;
 
         List<string> ExcludedQualities = new List<string>();
 
@@ -1953,10 +2051,21 @@
             if (level < 100) ExcludedQualities.Add("Ult++");
         }
 
+        // Collect items locked on other panels
+        var lockedItems = new HashSet<int>();
+        foreach (var otherSlot in _panelSlots)
+        {
+            if (!otherSlot.IsLocked || otherSlot.Panel == panel) continue;
+            if (otherSlot.Panel is null) continue;
+            foreach (var equipped in otherSlot.Panel.EquippedItems.Values)
+                lockedItems.Add(equipped.Idx);
+        }
+
         for (int i = 0; i < _rows.Count; i++)
         {
             var r = _rows[i];
-            if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality))
+            if (r.CurrentEquippedSlot != "") continue; // equipped on another panel
+            if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality) && !lockedItems.Contains(r.Idx))
             {
                 TestForBestPiece(r.Type, r.Set, r.Rating + (_ui.SidesAreImportant ? r.Sides/2:0), BestPieces);
             }
@@ -1992,9 +2101,9 @@
 
         for (int i = 0; i < _rows.Count; i++)
         {
-            bool highlight = false;
             var r = _rows[i];
-            if (r.IsHidden || !r.IsEligibleForBest) continue;
+            if (r.CurrentEquippedSlot != "") continue; // equipped on another panel
+            if (r.IsHidden || !r.IsEligibleForBest || lockedItems.Contains(r.Idx)) continue;
             if ((r.Set == bestSet) || (r.Set == "Any"))
             {
                 string typeString = bestSet + "_" + r.Type;
@@ -2003,31 +2112,26 @@
                     int rating = BestPieces[typeString];
                     if ((r.Rating + (_ui.SidesAreImportant ?  r.Sides / 2 : 0)) == rating)
                     {
-                        highlight = true;
                         BestPieces[typeString] = -99999;
                         NameString += r.Name + " ";
+                        SelectRow(_rows[i], panel);
                     }
                 }
             }
-
-            if (highlight)
-                SelectRow(_rows[i]);
-            else
-                DeselectRow(_rows[i]);
-
         }
         _ = UpdateCalculatedValues(false, true);
     }
 
     private void UpdateEquipmentRatingAndType()
     {
-        if (_characterPanel == null) return;
+        var panel = ActivePanel;
+        if (panel == null) return;
 
         string foundSet = "None";
         int totalRating = 0;
         int totalSides = 0;
 
-        foreach (var v in _characterPanel.EquippedItems)
+        foreach (var v in panel.EquippedItems)
         {
             ItemViewRow row = v.Value;
             if (row == null) continue;
@@ -2069,8 +2173,8 @@
         previous?.Cancel();
         previous?.Dispose();
 
-        if (_characterPanel != null)
-            _characterPanel.UpdateCharacterTotalStats();        
+        foreach (var slot in _panelSlots)
+            slot.Panel?.UpdateCharacterTotalStats();
 
         var token = newCts.Token;
         try
@@ -2155,13 +2259,13 @@
 
         if (TemplateDB == null)
             return;
-        if (_characterPanel == null)
+        if (ActivePanel == null)
             return;
         if (_damageCalculator == null)
             return;
 
-        var heroInstance = _characterPanel?.SelectedHeroInfo;
-        string heroTemplate = _characterPanel?.SelectedHeroInfo?.Template ?? "";
+        var heroInstance = ActivePanel?.SelectedHeroInfo;
+        string heroTemplate = ActivePanel?.SelectedHeroInfo?.Template ?? "";
         if (!TemplateDB.TryGetTemplateIndex(heroTemplate, out int entry))
         {
             Console.WriteLine($"Couldn't find hero template {heroTemplate}");
@@ -2227,7 +2331,7 @@
 
         for (int i = 0; i < 11; i++)
         {
-            info.TotalStats[i] = _characterPanel!.ShownStat[i];
+            info.TotalStats[i] = ActivePanel!.ShownStat[i];
         }
         int count = 0;
         int n = _rows.Count;
@@ -2598,7 +2702,7 @@
 
         // Apply side effects / cached values based on _ui
         SetUi(newState);
-
+        await JS.InvokeVoidAsync("setTheme", _ui.Theme);
 
         for (int i = 0; i < 11; i++)
             CachedStatShadingStyles[i] = "";
@@ -2670,17 +2774,41 @@
             await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
         }
 
-        if (_pendingHeroReload is not null && _characterPanel is not null)
+        if (_pendingHeroReload is not null)
         {
-            _characterPanel.SetUIFlags(_ui.Censor);
-            _characterPanel.Reload(_pendingHeroReload);
-            _pendingHeroReload = null;
-            ApplyFilters();               
-            await UpdateCalculatedValues(true, true);
-            await Task.Delay(100);
-            _gridReady = true;
-            await InvokeAsync(StateHasChanged);
+            bool anyPanel = false;
+            foreach (var slot in _panelSlots)
+            {
+                if (slot.Panel is not null)
+                {
+                    slot.Panel.SetUIFlags(_ui.Censor);
+                    slot.Panel.Reload(_pendingHeroReload);
+                    anyPanel = true;
+                }
+            }
+            if (anyPanel)
+            {
+                _lastLoadedHeroes = _pendingHeroReload;
+                _pendingHeroReload = null;
+                ApplyFilters();
+                await UpdateCalculatedValues(true, true);
+                await Task.Delay(100);
+                _gridReady = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
 
+        // Reload heroes into newly added panels
+        if (_pendingReloadPanelId >= 0 && _lastLoadedHeroes is not null)
+        {
+            var newSlot = _panelSlots.FirstOrDefault(s => s.Id == _pendingReloadPanelId);
+            if (newSlot?.Panel is not null)
+            {
+                newSlot.Panel.SetUIFlags(_ui.Censor);
+                newSlot.Panel.Reload(_lastLoadedHeroes);
+                _pendingReloadPanelId = -1;
+                StateHasChanged();
+            }
         }
     }
 
@@ -2702,6 +2830,7 @@
     }
 
     private List<DDHeroInfo>? _pendingHeroReload = null;
+    private List<DDHeroInfo>? _lastLoadedHeroes = null;
 
     public async Task LoadDunBytesAsync(string fileName, byte[] bytes, ExportedTemplateDatabase tdb)
     {

@@ -1,0 +1,294 @@
+/* ===== HeroResultSheet - compact read-only character panel ===== */
+
+.hrs-panel {
+    position: relative;
+    display: block;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.12);
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    height: 550px;
+    width: 835px;
+    overflow: hidden;
+}
+
+.hrs-stat-bg {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    height: 540px;
+    filter: contrast(0.75) brightness(0.95);
+    pointer-events: none;
+}
+
+.hrs-equip-bg {
+    position: absolute;
+    left: 470px;
+    top: 5px;
+    width: 360px;
+    height: 540px;
+    filter: contrast(0.75) brightness(0.95);
+    pointer-events: none;
+}
+
+/* ===== Stats ===== */
+
+.hrs-stat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.hrs-stat-val {
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translate(-50%, 50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1;
+    padding: 2px 6px;
+    pointer-events: none;
+    z-index: 2;
+    color: #FAFAFA;
+    text-shadow: 0 2px 3px rgba(0,0,0,.9),
+                 0 0 5px rgba(80,255,120,.95);
+}
+
+.hrs-stat-val.hrs-resist {
+    bottom: -2px;
+    font-size: 20px;
+}
+
+.hrs-stat-val.hrs-negative {
+    color: #ff6060;
+    text-shadow: 0 2px 3px rgba(0,0,0,.9),
+                 0 0 5px rgba(0, 0, 0, 0.9);
+}
+
+.hrs-stat-val.hrs-hover {
+    color: #80ff80;
+}
+
+.hrs-stat-val.hrs-hover.hrs-negative {
+    color: #FF6060;
+}
+
+.hrs-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    opacity: 0.9;
+}
+
+/* ===== Equipment Slots ===== */
+
+.hrs-equip {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: var(--equip-size, 72px);
+    height: var(--equip-size, 72px);
+    border-radius: 6px;
+    cursor: default;
+}
+
+.hrs-equip:hover {
+    background: rgba(0,0,0,0.055);
+}
+
+.hrs-equip--small { --equip-size: 48px; }
+.hrs-equip--big   { --equip-size: 72px; }
+
+.hrs-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.hrs-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    filter: brightness(1.3) contrast(1.1) saturate(1.4);
+}
+
+/* ===== Item Tags (quality tier glow) ===== */
+
+.hrs-tag {
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    bottom: 0px;
+    transform: translate(-50%, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 14px 6px;
+    min-width: 60px;
+    max-width: 60px;
+    background: rgba(0,0,0,0.85);
+    border-width: 2px;
+    border-style: solid;
+    border-color: #fff8;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 10px;
+    text-align: center;
+    z-index: 5;
+}
+
+.hrs-tag-rating {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 0.9;
+    color: #f4ffff;
+}
+
+.hrs-tag-name {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.0;
+    color: #c0ffffc5;
+    letter-spacing: 0.02em;
+}
+
+.hrs-tag-rating::after {
+    content: "";
+    display: block;
+    width: 70%;
+    height: 1px;
+    margin: 3px auto 2px;
+    background: linear-gradient(to right, transparent, var(--tier-color), transparent);
+    opacity: 0.3;
+}
+
+/* Tier colors - reuse the app's CSS variables */
+.hrs-tag.tier-mythical    { border-color: var(--color-mythical);          box-shadow: 0 0 2px var(--color-mythical), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-transcendent{ border-color: var(--color-transcendent);      box-shadow: 0 0 2px var(--color-transcendent), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-supreme     { border-color: var(--color-supreme);           box-shadow: 0 0 2px var(--color-supreme), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-ult90       { border-color: var(--color-ultimate);          box-shadow: 0 0 2px var(--color-ultimate), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-ult93       { border-color: var(--color-ultimate93);        box-shadow: 0 0 2px var(--color-ultimate93), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-ultplus     { border-color: var(--color-ultimate-plus);     box-shadow: 0 0 2px var(--color-ultimate-plus), 0 0 12px rgba(0,0,0,0.6); }
+.hrs-tag.tier-ultplusplus { border-color: var(--color-ultimate-plus-plus);box-shadow: 0 0 2px var(--color-ultimate-plus-plus), 0 0 12px rgba(0,0,0,0.6); }
+
+/* ===== Hero Icon & Labels ===== */
+
+.hrs-hero-icon {
+    position: absolute;
+    width: 96px;
+    height: 96px;
+    left: 78px;
+    top: 64px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    filter: brightness(1.3) contrast(1.1) saturate(1.2);
+}
+
+.hrs-hero-label {
+    position: absolute;
+    left: 150px;
+    top: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #b0b0b0;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.hrs-rating-label {
+    position: absolute;
+    left: 150px;
+    top: 40px;
+    font-size: 13px;
+    color: #909090;
+    pointer-events: none;
+}
+
+.hrs-set-label {
+    position: absolute;
+    left: 320px;
+    top: 40px;
+    font-size: 13px;
+    color: #909090;
+    pointer-events: none;
+}
+
+.hrs-total-rating {
+    position: absolute;
+    left: 500px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 12px;
+    background: rgba(42, 82, 152, 0.12);
+    border: 1px solid rgba(42, 82, 152, 0.25);
+    border-radius: 8px;
+    z-index: 3;
+}
+
+.hrs-total-sides {
+    position: absolute;
+    left: 590px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 12px;
+    background: rgba(100, 100, 100, 0.08);
+    border: 1px solid rgba(100, 100, 100, 0.2);
+    border-radius: 8px;
+    z-index: 3;
+}
+
+.hrs-total-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2a5298;
+    line-height: 1.1;
+}
+
+.hrs-total-sides .hrs-total-num {
+    color: #666;
+}
+
+.hrs-total-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Hover info: item level & location ===== */
+
+.hrs-item-level {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 2px 6px;
+    pointer-events: none;
+    z-index: 0;
+    color: #f0f0f0c0;
+    text-shadow: 0 2px 3px rgba(0,0,0,.9),
+                 0 0 5px rgba(80,255,120,.95);
+}
+
+.hrs-item-location {
+    font-size: 14px;
+    font-weight: 400;
+    max-width: 200px;
+    white-space: normal;
+    line-height: 1;
+    padding: 2px 6px;
+    pointer-events: none;
+    z-index: 0;
+    color: #f0f0f080;
+}

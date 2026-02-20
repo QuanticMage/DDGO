@@ -2,8 +2,8 @@
 .character-panel {
     position:relative;
     display:block;
-    background: #fff;
-    border: 1.5px solid rgba(0,0,0,0.12);
+    background: var(--panel-bg);
+    border: 1.5px solid var(--border-default);
     border-radius: 1.54px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
     position: relative;

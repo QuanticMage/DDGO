@@ -503,7 +503,13 @@
         else
             EquippedItems[slot] = r;
         await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
-        UpdateCharacterTotalStats();           
+        UpdateCharacterTotalStats();
+    }
+
+    public void ClearAllEquipment()
+    {
+        EquippedItems.Clear();
+        UpdateCharacterTotalStats();
     }
 
     private CancellationTokenSource? _hoverCts;

@@ -1,0 +1,267 @@
+@using DDUP
+@using System.Text.RegularExpressions
+@inject IJSRuntime JS
+
+<div class="hrs-panel">
+    <img class="hrs-stat-bg" src="png/heroItemBG.png" />
+    <img class="hrs-equip-bg" src="png/inventoryBG.png" />
+
+    @* ===== Hero Stats ===== *@
+    <div class="hrs-stat" style="left:148px; top:155px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroHealth)' />@GetShownStat(DDStat.HeroHealth)</div>
+    <div class="hrs-stat" style="left:236px; top:155px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroDamage)' />@GetShownStat(DDStat.HeroDamage)</div>
+    <div class="hrs-stat" style="left:324px; top:155px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroSpeed)' />@GetShownStat(DDStat.HeroSpeed)</div>
+    <div class="hrs-stat" style="left:412px; top:155px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroCastRate)' />@GetShownStat(DDStat.HeroCastRate)</div>
+
+    <div class="hrs-stat" style="left:236px; top:255px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroAbility1)' />@GetShownStat(DDStat.HeroAbility1)</div>
+    <div class="hrs-stat" style="left:324px; top:255px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.HeroAbility2)' />@GetShownStat(DDStat.HeroAbility2)</div>
+
+    <div class="hrs-stat" style="left:148px; top:355px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.TowerHealth)' />@GetShownStat(DDStat.TowerHealth)</div>
+    <div class="hrs-stat" style="left:236px; top:355px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.TowerDamage)' />@GetShownStat(DDStat.TowerDamage)</div>
+    <div class="hrs-stat" style="left:324px; top:355px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.TowerRange)' />@GetShownStat(DDStat.TowerRange)</div>
+    <div class="hrs-stat" style="left:412px; top:355px;"><img class="hrs-icon" src='@GetStatIcon(DDStat.TowerRate)' />@GetShownStat(DDStat.TowerRate)</div>
+
+    @* ===== Resistances ===== *@
+    <div class="hrs-stat" style="left:148px; top:455px;"><img class="hrs-icon" src='@GetResistIcon(0)' />@GetShownResist(0)</div>
+    <div class="hrs-stat" style="left:236px; top:455px;"><img class="hrs-icon" src='@GetResistIcon(2)' />@GetShownResist(2)</div>
+    <div class="hrs-stat" style="left:324px; top:455px;"><img class="hrs-icon" src='@GetResistIcon(3)' />@GetShownResist(3)</div>
+    <div class="hrs-stat" style="left:412px; top:455px;"><img class="hrs-icon" src='@GetResistIcon(1)' />@GetShownResist(1)</div>
+
+    @* ===== Equipment Slots (with hover) ===== *@
+    <div class="hrs-equip hrs-equip--small" style="left:755px; top:185px;" @onmouseenter='() => OnHoverStart("Bracers")' @onmouseleave="OnHoverEnd">@EquipVisual("Bracers")</div>
+    <div class="hrs-equip hrs-equip--small" style="left:555px; top:100px;" @onmouseenter='() => OnHoverStart("Brooch")'  @onmouseleave="OnHoverEnd">@EquipVisual("Brooch")</div>
+    <div class="hrs-equip hrs-equip--small" style="left:755px; top:100px;" @onmouseenter='() => OnHoverStart("Mask")'    @onmouseleave="OnHoverEnd">@EquipVisual("Mask")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:656px; top:125px;" @onmouseenter='() => OnHoverStart("Helmet")'  @onmouseleave="OnHoverEnd">@EquipVisual("Helmet")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:666px; top:275px;" @onmouseenter='() => OnHoverStart("Torso")'   @onmouseleave="OnHoverEnd">@EquipVisual("Torso")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:766px; top:300px;" @onmouseenter='() => OnHoverStart("Gauntlet")' @onmouseleave="OnHoverEnd">@EquipVisual("Gauntlet")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:566px; top:225px;" @onmouseenter='() => OnHoverStart("Weapon")'  @onmouseleave="OnHoverEnd">@EquipVisual("Weapon")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:640px; top:440px;" @onmouseenter='() => OnHoverStart("Boots")'   @onmouseleave="OnHoverEnd">@EquipVisual("Boots")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:766px; top:420px;" @onmouseenter='() => OnHoverStart("Extra")'   @onmouseleave="OnHoverEnd">@EquipVisual("Extra")</div>
+    <div class="hrs-equip hrs-equip--big"   style="left:540px; top:360px;" @onmouseenter='() => OnHoverStart("Pet")'     @onmouseleave="OnHoverEnd">@EquipVisual("Pet")</div>
+
+    @* ===== Hero Icon & Info ===== *@
+    <img class="hrs-hero-icon" src="@HeroIconUrl" alt="" />
+    <div class="hrs-hero-label">@HeroLabel</div>
+    <div class="hrs-rating-label">@RatingModeLabel</div>
+    <div class="hrs-set-label">@SetName Set</div>
+    <div class="hrs-total-rating">
+        <span class="hrs-total-num">@TotalRating</span>
+        <span class="hrs-total-label">Rating</span>
+    </div>
+    <div class="hrs-total-sides">
+        <span class="hrs-total-num">@TotalSides</span>
+        <span class="hrs-total-label">Sides</span>
+    </div>
+
+    @* ===== Hover info: item level & location ===== *@
+    <div class="hrs-item-level" style="position:absolute; left:325px; top:500px;">@_itemLevelString</div>
+    <div class="hrs-item-location" style="position:absolute; left:100px; top:500px;">@_itemLocationString</div>
+</div>
+
+@code {
+    [Parameter] public DDHeroInfo? HeroInfo { get; set; }
+    [Parameter] public string HeroIconUrl { get; set; } = "png/empty.png";
+    [Parameter] public string HeroLabel { get; set; } = "";
+    [Parameter] public string RatingModeLabel { get; set; } = "";
+    [Parameter] public string SetName { get; set; } = "";
+    [Parameter] public int TotalRating { get; set; }
+    [Parameter] public int TotalSides { get; set; }
+    [Parameter] public Dictionary<string, ItemViewRow> EquippedItems { get; set; } = new();
+
+    private int[] ComputedStats = new int[11];
+    private int[] ComputedResists = new int[4];
+
+    private ItemViewRow? _hoveredItem = null;
+    private string _itemLevelString = "";
+    private string _itemLocationString = "";
+    private CancellationTokenSource? _hoverCts;
+    private const int HoverDelayMs = 120;
+
+    protected override void OnParametersSet()
+    {
+        ComputeStats();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("atlasIcons.renderAllCached");
+    }
+
+    // ========== Hover ==========
+
+    private async Task OnHoverStart(string slot)
+    {
+        _hoverCts?.Cancel();
+        _hoverCts = new CancellationTokenSource();
+        var token = _hoverCts.Token;
+
+        try
+        {
+            await Task.Delay(HoverDelayMs, token);
+            if (token.IsCancellationRequested) return;
+
+            if (EquippedItems.TryGetValue(slot, out var item))
+            {
+                _hoveredItem = item;
+                _itemLocationString = item.Location ?? "";
+                _itemLevelString = $"Lvl {item.Level} / {item.MaxLevel}";
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void OnHoverEnd()
+    {
+        _hoverCts?.Cancel();
+        _hoveredItem = null;
+        _itemLevelString = "";
+        _itemLocationString = "";
+        StateHasChanged();
+    }
+
+    // ========== Stat Computation ==========
+
+    private void ComputeStats()
+    {
+        for (int i = 1; i < 11; i++)
+            ComputedStats[i] = HeroInfo?.Stats[i] ?? 0;
+        for (int i = 0; i < 4; i++)
+            ComputedResists[i] = 0;
+
+        foreach (var kvp in EquippedItems)
+        {
+            var v = kvp.Value;
+            for (int i = 1; i < 11; i++)
+            {
+                int baseStat = v.UpgradedStats[i];
+                float multiplier = v.IsArmor ? v.SetBonus : 1.0f;
+                if (baseStat < 0) multiplier = 1.0f;
+                ComputedStats[i] += (int)Math.Ceiling(multiplier * baseStat);
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                int baseResist = v.UpgradedResists[i];
+                float multiplier = v.IsArmor ? v.SetBonus : 1.0f;
+                if (baseResist < 0) multiplier = 1.0f;
+                ComputedResists[i] += (int)Math.Ceiling(multiplier * baseResist);
+            }
+        }
+
+        for (int i = 1; i < 11; i++)
+            ComputedStats[i] = Math.Max(0, ComputedStats[i]);
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (ComputedResists[i] < 0)
+                ComputedResists[i] = Math.Min(90, (int)Math.Ceiling(ComputedResists[i] * 0.55));
+            else
+                ComputedResists[i] = Math.Min(90, (int)Math.Floor(ComputedResists[i] * 0.55));
+        }
+    }
+
+    // ========== Stat Display (mirrors CharacterPanel logic) ==========
+
+    private string GetStatIcon(DDStat statIn)
+    {
+        // When hovering, hide icon if item has 0 in that stat
+        if (_hoveredItem != null)
+        {
+            if (_hoveredItem.UpgradedStats[(int)statIn] == 0)
+                return "png/empty.png";
+        }
+
+        if (HeroInfo != null && HeroTemplateData.Map.TryGetValue(HeroInfo.Template, out var tpl))
+            return tpl.StatIcons[(int)statIn - 1];
+
+        return HeroTemplateData.Map["DunDefPlayers.HeroTemplateRecruit"].StatIcons[(int)statIn - 1];
+    }
+
+    private string GetResistIcon(int resist)
+    {
+        if (_hoveredItem != null)
+        {
+            if (_hoveredItem.UpgradedResists[resist] == 0)
+                return "png/empty.png";
+        }
+        if (resist == 0) return "png/Generic Resistance.png";
+        if (resist == 1) return "png/Fire Resistance.png";
+        if (resist == 2) return "png/Lightning Resistance.png";
+        if (resist == 3) return "png/Poison Resistance.png";
+        return "png/empty.png";
+    }
+
+    private RenderFragment GetShownStat(DDStat statIn)
+    {
+        bool hovering = _hoveredItem != null;
+
+        if (hovering)
+        {
+            // Show item's individual stat (upgraded, with set bonus)
+            var statText = _hoveredItem!.GetStringStatValue(statIn, true, true, false);
+            var isNeg = statText.StartsWith("-", StringComparison.Ordinal);
+            return MakeStatSpan(statText, isNeg, true);
+        }
+        else
+        {
+            // Show hero total
+            var val = ComputedStats[(int)statIn];
+            var text = val.ToString();
+            var isNeg = val < 0;
+            return MakeStatSpan(text, isNeg, false);
+        }
+    }
+
+    private RenderFragment GetShownResist(int r)
+    {
+        bool hovering = _hoveredItem != null;
+
+        if (hovering)
+        {
+            int baseStat = _hoveredItem!.UpgradedResists[r];
+            float multiplier = (_hoveredItem.IsArmor) ? _hoveredItem.SetBonus : 1.0f;
+            if (baseStat < 0) multiplier = 1.0f;
+
+            var text = baseStat == 0 ? "" : ((int)Math.Ceiling(multiplier * baseStat)).ToString() + "%";
+            var isNeg = text.StartsWith("-", StringComparison.Ordinal);
+            return MakeResistSpan(text, isNeg, true);
+        }
+        else
+        {
+            var val = ComputedResists[r];
+            var text = val.ToString() + "%";
+            var isNeg = val < 0;
+            return MakeResistSpan(text, isNeg, false);
+        }
+    }
+
+    private RenderFragment MakeStatSpan(string text, bool isNeg, bool hover) =>
+        @<span class='hrs-stat-val @(hover ? "hrs-hover" : "") @(isNeg ? "hrs-negative" : "")'>@text</span>;
+
+    private RenderFragment MakeResistSpan(string text, bool isNeg, bool hover) =>
+        @<span class='hrs-stat-val hrs-resist @(hover ? "hrs-hover" : "") @(isNeg ? "hrs-negative" : "")'>@text</span>;
+
+    // ========== Equipment Visual ==========
+
+    private RenderFragment EquipVisual(string slot)
+    {
+        if (EquippedItems.TryGetValue(slot, out var row))
+        {
+            string tierTag = "tier-" + row.Quality.Replace("+", "plus").ToLowerInvariant();
+            string name = Regex.Replace(row.Name, @"\s*\([^()]*\)", "");
+            return @<div>
+                <img class="hrs-frame" src="png/equipFrame.png" alt="" />
+                <img class="atlas-icon hrs-overlay"
+                     alt=""
+                     data-size="64"
+                     data-l1x="@row.IconX" data-l1y="@row.IconY"
+                     data-l2x="@row.IconX1" data-l2y="@row.IconY1" data-l2t="@row.Color1"
+                     data-l3x="@row.IconX2" data-l3y="@row.IconY2" data-l3t="@row.Color2" />
+                <div class="hrs-tag @tierTag">
+                    <div class="hrs-tag-rating">@row.Rating</div>
+                    <div class="hrs-tag-name">@name</div>
+                </div>
+            </div>;
+        }
+        return @<span></span>;
+    }
+}

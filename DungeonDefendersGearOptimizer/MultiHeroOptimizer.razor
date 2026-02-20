@@ -1,0 +1,465 @@
+@using DDUP
+@inject IJSRuntime JS
+
+<div class="mho-container">
+    <div class="mho-header" @onclick="ToggleExpanded">
+        <span class="mho-caret">@(_expanded ? "▾" : "▸")</span>
+        <h2 class="mho-title">Multi-Hero Equipment Optimizer</h2>
+        <span class="mho-subtitle">Distribute best gear across up to 9 heroes by priority</span>
+    </div>
+
+    @if (_expanded)
+    {
+        <div class="mho-body">
+            <div class="mho-slots">
+                <div class="mho-slots-header">
+                    <span class="mho-col-pri">#</span>
+                    <span class="mho-col-hero">Hero</span>
+                    <span class="mho-col-mode">Build / Rating Mode</span>
+                    <span class="mho-col-sides">Sides</span>
+                    <span class="mho-col-actions"></span>
+                </div>
+
+                @for (int idx = 0; idx < _slots.Count; idx++)
+                {
+                    var i = idx;
+                    var slot = _slots[i];
+                    <div class="mho-slot">
+                        <span class="mho-col-pri mho-priority">@(i + 1)</span>
+
+                        <div class="mho-col-hero">
+                            <select class="mho-select" value="@slot.HeroKey" @onchange="(e) => OnHeroChanged(i, e)">
+                                <option value="">-- Select Hero --</option>
+                                @foreach (var h in HeroChoices)
+                                {
+                                    <option value="@h.Key">@h.Label</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mho-col-mode">
+                            <select class="mho-select" value="@slot.RatingMode" @onchange="(e) => OnModeChanged(i, e)">
+                                @foreach (var rm in Ratings.RatingModes)
+                                {
+                                    <option value="@rm.Name">@rm.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mho-col-sides">
+                            <label class="mho-sides-toggle" title="Include sides stats (50% weight) in best calculation">
+                                <input type="checkbox" checked="@slot.IncludeSides"
+                                       @onchange="(e) => OnSidesChanged(i, e)" />
+                            </label>
+                        </div>
+
+                        <div class="mho-col-actions">
+                            <button class="mho-btn-small" title="Move up" disabled="@(i == 0)" @onclick="() => MoveUp(i)">▲</button>
+                            <button class="mho-btn-small" title="Move down" disabled="@(i == _slots.Count - 1)" @onclick="() => MoveDown(i)">▼</button>
+                            <button class="mho-btn-small mho-btn-remove" title="Remove" @onclick="() => RemoveSlot(i)">✕</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="mho-actions">
+                @if (_slots.Count < 9)
+                {
+                    <button class="mho-btn" @onclick="AddSlot">+ Add Hero</button>
+                }
+                <button class="mho-btn mho-btn-primary" @onclick="EquipAllBest" disabled="@(_slots.Count == 0)">
+                    Equip All Best
+                </button>
+                @if (_hasAnyResults)
+                {
+                    <button class="mho-btn" @onclick="ClearResults">Clear Results</button>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(_statusMessage))
+            {
+                <div class="mho-status">@_statusMessage</div>
+            }
+
+            @* ===== Character Sheets ===== *@
+            @if (_hasAnyResults)
+            {
+                <div class="mho-sheets">
+                    @for (int idx = 0; idx < _slots.Count; idx++)
+                    {
+                        var slot = _slots[idx];
+                        @if (slot.HasResults)
+                        {
+                            <div class="mho-sheet-wrapper">
+                                <div class="mho-sheet-priority">#@(idx + 1)</div>
+                                <HeroResultSheet
+                                    HeroInfo="@slot.HeroInfoRef"
+                                    HeroIconUrl="@slot.HeroIconUrl"
+                                    HeroLabel="@slot.HeroLabel"
+                                    RatingModeLabel="@slot.RatingMode"
+                                    SetName="@slot.ResultSetName"
+                                    TotalRating="@slot.TotalRating"
+                                    TotalSides="@slot.TotalSides"
+                                    EquippedItems="@slot.EquippedSlotMap" />
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    // === Data from parent ===
+    [Parameter] public List<HeroChoice> HeroChoices { get; set; } = new();
+    [Parameter] public List<ItemViewRow> AllItems { get; set; } = new();
+    [Parameter] public bool SidesAreImportant { get; set; }
+    [Parameter] public bool ShowUpgradedStats { get; set; }
+    [Parameter] public bool AssumeSetBonuses { get; set; }
+
+    private bool _expanded = false;
+    private bool _hasAnyResults = false;
+    private string _statusMessage = "";
+    private List<HeroSlot> _slots = new();
+
+    public class HeroChoice
+    {
+        public string Key { get; set; } = "";
+        public string Label { get; set; } = "";
+        public string ClassName { get; set; } = "";
+        public string IconUrl { get; set; } = "";
+        public string Template { get; set; } = "";
+        public int HeroLevel { get; set; }
+        public DDHeroInfo? HeroInfo { get; set; }
+    }
+
+    private class HeroSlot
+    {
+        public string HeroKey { get; set; } = "";
+        public string HeroLabel { get; set; } = "";
+        public string HeroIconUrl { get; set; } = "";
+        public string HeroTemplate { get; set; } = "";
+        public int HeroLevel { get; set; }
+        public DDHeroInfo? HeroInfoRef { get; set; }
+        public string RatingMode { get; set; } = "Builder App";
+        public bool IncludeSides { get; set; } = false;
+
+        // Results
+        public bool HasResults { get; set; }
+        public List<ItemViewRow> AssignedItems { get; set; } = new();
+        public Dictionary<string, ItemViewRow> EquippedSlotMap { get; set; } = new();
+        public int TotalRating { get; set; }
+        public int TotalSides { get; set; }
+        public string ResultSetName { get; set; } = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        for (int i = 0; i < 3; i++)
+            _slots.Add(new HeroSlot());
+    }
+
+    private void ToggleExpanded() => _expanded = !_expanded;
+
+    private void AddSlot()
+    {
+        if (_slots.Count < 9)
+            _slots.Add(new HeroSlot());
+    }
+
+    private void RemoveSlot(int index)
+    {
+        if (index >= 0 && index < _slots.Count)
+            _slots.RemoveAt(index);
+    }
+
+    private void MoveUp(int index)
+    {
+        if (index > 0)
+            (_slots[index - 1], _slots[index]) = (_slots[index], _slots[index - 1]);
+    }
+
+    private void MoveDown(int index)
+    {
+        if (index < _slots.Count - 1)
+            (_slots[index], _slots[index + 1]) = (_slots[index + 1], _slots[index]);
+    }
+
+    private void OnHeroChanged(int index, ChangeEventArgs e)
+    {
+        var key = e.Value?.ToString() ?? "";
+        _slots[index].HeroKey = key;
+        _slots[index].HasResults = false;
+
+        var hero = HeroChoices.FirstOrDefault(h => h.Key == key);
+        if (hero != null)
+        {
+            _slots[index].HeroLabel = hero.Label;
+            _slots[index].HeroIconUrl = hero.IconUrl;
+            _slots[index].HeroTemplate = hero.Template;
+            _slots[index].HeroLevel = hero.HeroLevel;
+            _slots[index].HeroInfoRef = hero.HeroInfo;
+        }
+        else
+        {
+            _slots[index].HeroLabel = "";
+            _slots[index].HeroIconUrl = "";
+            _slots[index].HeroTemplate = "";
+            _slots[index].HeroLevel = 0;
+            _slots[index].HeroInfoRef = null;
+        }
+    }
+
+    private void OnModeChanged(int index, ChangeEventArgs e)
+    {
+        _slots[index].RatingMode = e.Value?.ToString() ?? "Builder App";
+        _slots[index].HasResults = false;
+    }
+
+    private void OnSidesChanged(int index, ChangeEventArgs e)
+    {
+        _slots[index].IncludeSides = e.Value is bool b && b;
+        _slots[index].HasResults = false;
+    }
+
+    private void ClearResults()
+    {
+        foreach (var slot in _slots)
+        {
+            slot.HasResults = false;
+            slot.AssignedItems.Clear();
+            slot.EquippedSlotMap.Clear();
+            slot.TotalRating = 0;
+            slot.TotalSides = 0;
+            slot.ResultSetName = "";
+        }
+        _hasAnyResults = false;
+        _statusMessage = "";
+    }
+
+    private void EquipAllBest()
+    {
+        ClearResults();
+
+        // Build index for O(1) item lookup by Idx
+        var itemByIdx = new Dictionary<int, ItemViewRow>(AllItems.Count);
+        foreach (var item in AllItems)
+            itemByIdx[item.Idx] = item;
+
+        // Collect all eligible items into a pool
+        var pool = new HashSet<int>();
+        foreach (var item in AllItems)
+        {
+            if (!item.IsHidden && item.IsEligibleForBest)
+                pool.Add(item.Idx);
+        }
+
+        int totalAssigned = 0;
+
+        foreach (var slot in _slots)
+        {
+            if (string.IsNullOrEmpty(slot.HeroKey))
+                continue;
+
+            var modeInfo = Ratings.GetRatingModeInfo(slot.RatingMode);
+            if (modeInfo == null)
+                continue;
+
+            var excludedQualities = GetExcludedQualities(slot.HeroLevel);
+
+            string extraSlotType = "None";
+            if (!string.IsNullOrEmpty(slot.HeroTemplate) && HeroTemplateData.Map.ContainsKey(slot.HeroTemplate))
+                extraSlotType = HeroTemplateData.Map[slot.HeroTemplate].ExtraType;
+
+            // Evaluate ratings for pool items
+            var itemRatings = new Dictionary<int, (int rating, int sides, int score)>();
+            foreach (var item in AllItems)
+            {
+                if (!pool.Contains(item.Idx)) continue;
+                if (excludedQualities.Contains(item.Quality)) continue;
+
+                var (rating, sides) = Ratings.EvalRatingAndUpgrades(
+                    item,
+                    modeInfo.RatingStatsPriority,
+                    modeInfo.SidesStatsPriority,
+                    modeInfo.RequireResists,
+                    modeInfo.UpgradeWeaponStats);
+
+                int score = rating + (slot.IncludeSides ? sides / 2 : 0);
+                itemRatings[item.Idx] = (rating, sides, score);
+            }
+
+            // Find best score per (set, type)
+            var bestBySetType = new Dictionary<string, (int score, int idx)>();
+            foreach (var kvp in itemRatings)
+            {
+                var item = itemByIdx[kvp.Key];
+                string set = item.Set;
+                string type = item.Type;
+
+                if (set == "Any")
+                {
+                    foreach (var s in ArmorSets)
+                        TryUpdateBest(bestBySetType, s + "_" + type, kvp.Value.score, kvp.Key);
+                }
+                else
+                {
+                    TryUpdateBest(bestBySetType, set + "_" + type, kvp.Value.score, kvp.Key);
+                }
+            }
+
+            // Score each armor set
+            string[] armorSlots = { "Helmet", "Torso", "Gauntlet", "Boots" };
+            int bestSetScore = -1;
+            string bestSet = "";
+
+            foreach (var setName in ArmorSets)
+            {
+                int setScore = 0;
+                foreach (var armorType in armorSlots)
+                {
+                    string key = setName + "_" + armorType;
+                    if (bestBySetType.ContainsKey(key))
+                        setScore += bestBySetType[key].score;
+                }
+                if (setScore > bestSetScore)
+                {
+                    bestSetScore = setScore;
+                    bestSet = setName;
+                }
+            }
+
+            // Collect best items
+            var assigned = new List<ItemViewRow>();
+            var slotMap = new Dictionary<string, ItemViewRow>();
+            var usedIdx = new HashSet<int>();
+
+            // Armor
+            foreach (var armorType in armorSlots)
+            {
+                var best = FindBestItemForSlot(AllItems, pool, itemRatings, bestSet, armorType, usedIdx);
+                if (best != null)
+                {
+                    assigned.Add(best);
+                    slotMap[armorType] = best;
+                    usedIdx.Add(best.Idx);
+                }
+            }
+
+            // Accessories
+            string[] accessorySlots = { "Bracers", "Brooch", "Mask" };
+            foreach (var accType in accessorySlots)
+            {
+                var best = FindBestAccessory(AllItems, pool, itemRatings, accType, usedIdx);
+                if (best != null)
+                {
+                    assigned.Add(best);
+                    slotMap[accType] = best;
+                    usedIdx.Add(best.Idx);
+                }
+            }
+
+            // Shield
+            if (extraSlotType == "Shield")
+            {
+                var best = FindBestAccessory(AllItems, pool, itemRatings, "Shield", usedIdx);
+                if (best != null)
+                {
+                    assigned.Add(best);
+                    slotMap["Extra"] = best;
+                    usedIdx.Add(best.Idx);
+                }
+            }
+
+            // Remove from pool
+            foreach (var id in usedIdx)
+                pool.Remove(id);
+
+            // Totals
+            int totalRating = 0;
+            int totalSides = 0;
+            foreach (var item in assigned)
+            {
+                if (itemRatings.ContainsKey(item.Idx))
+                {
+                    totalRating += itemRatings[item.Idx].rating;
+                    totalSides += itemRatings[item.Idx].sides;
+                }
+            }
+
+            slot.AssignedItems = assigned;
+            slot.EquippedSlotMap = slotMap;
+            slot.TotalRating = totalRating;
+            slot.TotalSides = totalSides;
+            slot.ResultSetName = bestSet;
+            slot.HasResults = true;
+            totalAssigned += assigned.Count;
+        }
+
+        int activeSlots = _slots.Count(s => !string.IsNullOrEmpty(s.HeroKey));
+        _hasAnyResults = _slots.Any(s => s.HasResults);
+        _statusMessage = $"Distributed {totalAssigned} items across {activeSlots} heroes.";
+        StateHasChanged();
+    }
+
+    private static readonly string[] ArmorSets = { "Plate", "Pristine", "Leather", "Mail", "Chain", "Zamira" };
+
+    private static void TryUpdateBest(Dictionary<string, (int score, int idx)> dict, string key, int score, int idx)
+    {
+        if (!dict.ContainsKey(key) || dict[key].score < score)
+            dict[key] = (score, idx);
+    }
+
+    private static ItemViewRow? FindBestItemForSlot(
+        List<ItemViewRow> allItems, HashSet<int> pool,
+        Dictionary<int, (int rating, int sides, int score)> itemRatings,
+        string targetSet, string targetType, HashSet<int> alreadyUsed)
+    {
+        ItemViewRow? best = null;
+        int bestScore = -1;
+        foreach (var item in allItems)
+        {
+            if (!pool.Contains(item.Idx) || alreadyUsed.Contains(item.Idx)) continue;
+            if (item.Type != targetType) continue;
+            if (item.Set != targetSet && item.Set != "Any") continue;
+            if (!itemRatings.ContainsKey(item.Idx)) continue;
+            int score = itemRatings[item.Idx].score;
+            if (score > bestScore) { bestScore = score; best = item; }
+        }
+        return best;
+    }
+
+    private static ItemViewRow? FindBestAccessory(
+        List<ItemViewRow> allItems, HashSet<int> pool,
+        Dictionary<int, (int rating, int sides, int score)> itemRatings,
+        string targetType, HashSet<int> alreadyUsed)
+    {
+        ItemViewRow? best = null;
+        int bestScore = -1;
+        foreach (var item in allItems)
+        {
+            if (!pool.Contains(item.Idx) || alreadyUsed.Contains(item.Idx)) continue;
+            if (item.Type != targetType) continue;
+            if (!itemRatings.ContainsKey(item.Idx)) continue;
+            int score = itemRatings[item.Idx].score;
+            if (score > bestScore) { bestScore = score; best = item; }
+        }
+        return best;
+    }
+
+    private static HashSet<string> GetExcludedQualities(int heroLevel)
+    {
+        var excluded = new HashSet<string>();
+        if (heroLevel < 60) excluded.Add("Godly");
+        if (heroLevel < 74) excluded.Add("Mythical");
+        if (heroLevel < 78) excluded.Add("Trans");
+        if (heroLevel < 83) excluded.Add("Supreme");
+        if (heroLevel < 90) excluded.Add("Ult90");
+        if (heroLevel < 93) excluded.Add("Ult93");
+        if (heroLevel < 100) excluded.Add("Ult+");
+        if (heroLevel < 100) excluded.Add("Ult++");
+        return excluded;
+    }
+}
