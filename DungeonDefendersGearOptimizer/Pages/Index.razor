@@ -12,7 +12,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Feb 20 2026 - Version 1.9b</i></div>
+        <div class="build"><i>Feb 20 2026 - Version 1.9c</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -1209,12 +1209,12 @@
         panel ??= ActivePanel;
         panel?.ChangeEquipment(row.CurrentEquippedSlot, null);
         row.CurrentEquippedSlot = "";
+        row.CurrentEquippedPanel = null;
         _ = UpdateCalculatedValues(false, true);
     }
 
     private void SelectRow(ItemViewRow row, CharacterPanel? panel = null)
-    {
-        if (row.CurrentEquippedSlot != "") return;
+    {        
         panel ??= ActivePanel;
         if (panel == null) return;
 
@@ -1235,8 +1235,13 @@
         if (panel.EquippedItems.ContainsKey(itemType))
             DeselectRow(panel.EquippedItems[itemType], panel);
 
+        if (row.CurrentEquippedPanel != null)
+            DeselectRow(row, row.CurrentEquippedPanel);
+
+        
         panel?.ChangeEquipment(itemType, row);
         row.CurrentEquippedSlot = itemType;
+        row.CurrentEquippedPanel = panel;
         _ = UpdateCalculatedValues(false, true);
     }
 
@@ -2067,9 +2072,6 @@
         panel ??= ActivePanel;
         if (panel == null) return;
 
-        // Clear this panel's equipment first so items become available
-        ClearPanelSelections(panel);
-
         Dictionary<string, int> BestPieces = new Dictionary<string, int>();
         var hinfo = panel.SelectedHeroInfo;
 
@@ -2100,8 +2102,7 @@
 
         for (int i = 0; i < _rows.Count; i++)
         {
-            var r = _rows[i];
-            if (r.CurrentEquippedSlot != "") continue; // equipped on another panel
+            var r = _rows[i];            
             if (!r.IsHidden && r.IsEligibleForBest && !ExcludedQualities.Contains(r.Quality) && !lockedItems.Contains(r.Idx))
             {
                 TestForBestPiece(r.Type, r.Set, r.Rating + (_ui.SidesAreImportant ? r.Sides/2:0), BestPieces);
@@ -2139,7 +2140,6 @@
         for (int i = 0; i < _rows.Count; i++)
         {
             var r = _rows[i];
-            if (r.CurrentEquippedSlot != "") continue; // equipped on another panel
             if (r.IsHidden || !r.IsEligibleForBest || lockedItems.Contains(r.Idx)) continue;
             if ((r.Set == bestSet) || (r.Set == "Any"))
             {
@@ -2819,7 +2819,7 @@
                 if (slot.Panel is not null)
                 {
                     slot.Panel.SetUIFlags(_ui.Censor);
-                    slot.Panel.Reload(_pendingHeroReload);
+                    slot.Panel.Reload(_pendingHeroReload, null);
                     anyPanel = true;
                 }
             }
@@ -2841,10 +2841,16 @@
             var newSlot = _panelSlots.FirstOrDefault(s => s.Id == _pendingReloadPanelId);
             if (newSlot?.Panel is not null)
             {
+                // Collect selected heroes from all OTHER panels (exclude the current panel we're reloading)
+                HashSet<string?>? otherSelectedHeroes = _panelSlots
+                    .Where(s => s.Panel is not null && s.Id != _pendingReloadPanelId)
+                    .Select(s => s.Panel!.SelectedHero)
+                    .ToHashSet();
+
                 newSlot.Panel.SetUIFlags(_ui.Censor);
-                newSlot.Panel.Reload(_lastLoadedHeroes);
+                newSlot.Panel.Reload(_lastLoadedHeroes, otherSelectedHeroes);
                 _pendingReloadPanelId = -1;
-                StateHasChanged();
+                StateHasChanged();                
             }
             else if (newSlot != null)
             {

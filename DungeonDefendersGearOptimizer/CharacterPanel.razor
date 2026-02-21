@@ -76,7 +76,7 @@
 
     public string GetRatingMode() { return SelectedRatingMode ?? ""; }
     private string? SelectedRatingMode;
-    private string? SelectedHero;
+    public string? SelectedHero;
     public DDHeroInfo? SelectedHeroInfo { get; set; }
     public ItemViewRow? HoveredEquipment { get; set; }
     private string ItemLevelString = "";
@@ -298,7 +298,7 @@
     }
 
 
-    public void Reload(List<DDHeroInfo> heroes)
+    public void Reload(List<DDHeroInfo> heroes, HashSet<string>? excludedHeroChoices)
     {
         heroes ??= new();
         HeroInfoByIndex.Clear();
@@ -334,11 +334,16 @@
 
         HeroChoices = choices;
         HeroIcons = icons;
-
+        
+     
         // Default selection
         if (string.IsNullOrWhiteSpace(SelectedHero) || !HeroChoices.Contains(SelectedHero))
         {
-            OnHeroChanged((HeroChoices[0], 0));           
+            var idx = HeroChoices.FindIndex(h => excludedHeroChoices is null || !excludedHeroChoices.Contains(h));
+            if (idx >= 0)
+                OnHeroChanged((HeroChoices[idx], idx));
+            else if (HeroChoices.Count > 0)
+                OnHeroChanged((HeroChoices[0], 0)); // fallback if everything is excluded
         }
 
         // If the current selection no longer exists, clear it.

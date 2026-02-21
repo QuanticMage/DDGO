@@ -111,6 +111,7 @@ namespace DDUP
 
 		public bool IsHiddenDueToSearch { get; set; }
 		public string CurrentEquippedSlot { get; set; }
+		public CharacterPanel? CurrentEquippedPanel { get; set;  }
 
 		public double CachedY { get; set; }
 		public double CachedHeight { get; set; }
