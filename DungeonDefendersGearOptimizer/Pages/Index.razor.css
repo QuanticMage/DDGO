@@ -2227,7 +2227,7 @@ table.grid.compact-table td.cell-name
 
 .grid-zoom {
     position: relative;
-    transform: scale(var(--gridAutoZoom));
+    zoom: var(--gridAutoZoom);
     transform-origin: top left;
     width: calc(100% / var(--gridAutoZoom))
 }

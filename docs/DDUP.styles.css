@@ -3555,7 +3555,7 @@ table.grid.compact-table td.cell-name[b-yrayc6w7vb]
 
 .grid-zoom[b-yrayc6w7vb] {
     position: relative;
-    transform: scale(var(--gridAutoZoom));
+    zoom: var(--gridAutoZoom);
     transform-origin: top left;
     width: calc(100% / var(--gridAutoZoom))
 }
