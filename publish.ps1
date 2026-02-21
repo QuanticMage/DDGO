@@ -16,13 +16,4 @@ $nojekyll = Join-Path $Target ".nojekyll"
 New-Item -ItemType File -Path $nojekyll -Force | Out-Null
 
 
-$index = Join-Path $Target "index.html"
-if (!(Test-Path $index)) { throw "index.html not found at $index" }
 
-$c = Get-Content -LiteralPath $index -Raw
-
-# Prefer updating base tag (Blazor)
-$c = [regex]::Replace($c, '<base\s+href="[^"]*"\s*/?>', "<base href=""$Base"" />")
-
-Set-Content -LiteralPath $index -Value $c -NoNewline
-Write-Host "Updated base href in $index"
