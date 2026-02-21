@@ -80,6 +80,7 @@ namespace DDUP
 			new ("Black Shades", "Accessories > High End Masks", "Tactical Sweaty Relic Pops Wild Demon", 932),
 			new ("Black Shades", "Accessories > High End Masks", "Cooked Shiny Guardian Summons Tactical Ravager", 932),
 			new ("Black Shades", "Accessories > High End Masks", "Heroic Chaotic Trap Shocks Fire Wretch", 932), // you are speed
+			new ("Black Shades", "Accessories > High End Masks", "Fortified Nerfed Forge Locks Sweaty Spider", 932), // from DWHU
 			new ("Blahaj", "Pets > DPS", "Nerfed Fire Sigil Pops Cooked Brood", 287),
 			new ("Blessed Brownie", "Pets > Exclusives", "Grim Hardened Barricade Freezes Luminous Ogre", 764),
 			new ("Bling! Bling! Bracers", "Accessories > Bracers", "Juicy Locked Defender Builds Chaotic Wyvern", 60),
