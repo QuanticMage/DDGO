@@ -1,40 +1,66 @@
 ﻿
 TODO:
 
-Next:
+PRIORITY
 * Show upgrades (+x) over the stats, how many upgrades went into resistances on the hero pane when hovering
+* Update auto-event identification code.  include bCantBesold (glass + defenders sets to event items, but not in list?)
+* Filter layout  perhaps
+* Fix test characters, make them real Heroes rather than broken 
+* Pet damage
+* Pets / Weapons in 'equip best'
+* Display and sorting by weapon and pet stats (Size, move speed, etc)
+* Add a warning when your hero has stats spec'd into something other than your build
+* Rarity and pricing analysis
+* Total events at top row of event list
 
+
+BUGS and COMPATIBILITY
+* The custom field has priority or is ignoring the "other" filters (other equipped characters)
+* Crystal Cane broken
+* Weird striping on table
+* Warn if no set bonus
+* Santa hat
+* Close event modal on mouse down not mouse up
 * "Firefox users should click the padlock and clear site cache if you are having problems" under a Firefox notes popup
-
-
-* Test shield auto equip
-* Add in new events if I can get a copy of them
-* Update auto-event identification code.  include bCantBesold
-
-* Persist gear on characters
-* Add in multiple characters
-
-
 * Zooming messes up selection (Firefox)
-
-* more layout and icon work
-** Save text between runs
-** The custom field has priority or is ignoring the "other" filters (other equipped characters)
-
-Setting to not force level limits
-Verify test characters
-
-Consider redoing filters
-Add Pride of the Kraken and Sword of Valor (yellow) events
-Resists>Tdmg>Hhp>>>AB2>Hdmg - JitB barb
-Anything labeled as 5,10 or 15cv gets added so you can see your net RAW CV
-Weapon + Pets in equip best
-Add in : ProtonChargeBlastDamageMultiplier to Equipment
-ExtraEquipmentColorMultiplier=> passed in to shader for santa hat?  EquipmentRating is also used, but unsure why.  Size?
-Add maxhp / etc for testing in DDGO ("all things that can reach a maxhp of..")
+* Opera - remove button
+* Brave - why won't it save between sessions
+* Safari - test
 
 
-// use this to check for events
+FEATURES TO CONSIDER
+* Setting for not enforcing level limits on characters
+* Save filter text between runs
+* Consider redoing filters to make them easier to use
+* Resists>Tdmg>Hhp>>>AB2>Hdmg - JitB barb
+* Upper jester is just Cast Rate+Res w/ HHP as a side? 3726 ab2 (wheel max) and ideally 0 trange but thats optional
+* Anything labeled as 5,10 or 15cv gets added so you can see your net RAW CV
+* Respect / hide <color> tags
+* Currency badge  - coal + frags + zamiras + mana tokens / raw mana - include known cv value?
+* Right click menu to "Exclude from search" (Extra filter tile w/ hover?) for location and individual items
+* Fix hover highlight- different color than selected?
+* Mana value mode
+* Pricing for ult accessories (25cv for ult, 50cv over cap?)
+* Show achievement list and missing achievements for different badges
+* Better examples- quality filter, negating searches, searching negative stats
+
+BACK END
+* Add in : ProtonChargeBlastDamageMultiplier to Equipment data
+* ExtraEquipmentColorMultiplier=> consider for calculating color
+* Add in MAXHP calculator
+* SeqAct_GiveEquipment analysis
+* Use loops for rows
+* Use GetMergedProperties instead of my walking manually?
+
+UI FEATURES:
+* Export to .csv
+* 3 piece resistances (sort of works now, but not really)
+
+
+NOTES:
+// =================================================
+use this to check for events, as well as bCantBeSold flag
+// =================================================
 function bool AllowSelling()
 {
     if((PrimaryColorOverride != self.default.PrimaryColorOverride && (PrimaryColorOverride.R > 1 || PrimaryColorOverride.G > 1 || PrimaryColorOverride.B > 1)) || (SecondaryColorOverride != self.default.SecondaryColorOverride && (SecondaryColorOverride.R > 1 || SecondaryColorOverride.G > 1 || SecondaryColorOverride.B > 1))) {
@@ -49,105 +75,10 @@ function bool AllowSelling()
     }
     return (bCantBeSold == 0 || bForceAllowSelling) && UsedInTradeManager() == none;
 }
-bCantBeSold
 
-
-//Upper jester is just Cast Rate+Res w/ HHP as a side?
-//yeah, also want 3726 ab2 (wheel max) and ideally 0 trange but thats optional
-
-
-Damage simulator
-
-Add weapons and pets to auto-equip.
-Wrap options menu and filter
-
-Add a warning when you are spec'd into something other than your build
-
-Does the best button just work for Accs at the min? would be good if it could change armour as well
-
-Respect <color> tags
-
-Update location on export to have page
-Update hover to show location in lower left of page (with location())  - suggeseted by who
-Optimize!!!
-
-New event items, new gun, beta characters
-"Why is this not updating"? help 
-
-PRI
-Fix hover highlight- different color than selected?
-
-* Adobe color
-* Update for new class / beta
-* Equip best should equip pets and weapons
-* Add new events to hash - maybe change hashes then too
-
-if(int(GetEquipment().NameIndex_QualityDescriptor) >= int(19))
-    if(((int(GetEquipment().NameIndex_QualityDescriptor) >= int(16)) && int(GetEquipment().EquipmentType) >= int(7)) && int(GetEquipment().EquipmentType) <= int(10))
-    if(GetEquipment().IsA('HeroEquipment_Familiar_PawnBooster') && int(GetEquipment().NameIndex_QualityDescriptor) >= int(14))
-    if((PathName(GetEquipment().ObjectArchetype) == "FamGuardians.EquipmentGuardianMage") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
-    if((PathName(GetEquipment().ObjectArchetype) == "Fam_Seahorse.Equipment_Familiar_SeahorseProjectile") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(16))
-    if((PathName(GetEquipment().ObjectArchetype) == "DunDef_CDT_LifeTree.Equipment.Familiars.Pony.EquipmentLifePony") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
-
-
-Allow respec?
-
-
-UI
-* Dark mode
-* Currency badge
-* Right click menu to "Exclude from search" (Extra filter tile w/ hover?) for location and individual items
-* Use class icons for stats instead of default ones
-* Custom filter is a dropdown list of recent custom searches
-
-UI FEATURES:
-* Weapons show damage / extra stats.  Maybe try a DPS calc.  Move speed.  Size.
-* Pets: show damage / extra stats.  Maybe try a DPS calc.  Show extra effects on pets.  Move speed.  Size.
-* Currency badge  - coal + frags + zamiras + mana tokens / raw mana - include known cv value?
-* Mana value mode
-* Pricing for ult accessories (25cv for ult, 50cv over cap?)
-* Better event pricing data?
-* Export to .csv
-* 3 piece resistances (sort of works now, but not really)
-* Show achievement list and missing achievements for different badges
-
-EXPLAIN ADVANCED SEARCH
-* Quality filter
-* Negating searches
-* Searching negative stats
-
-
-POLISH:
-* Buttons look better
-* Align equipment so it's not so chaotic
-* Santa hat brightness
-* Weird striping on table
-* Warn if no set bonus
-
-EVENTS
-* Close event modal on mouse down not mouse up
-* Total events at top row of event list
-* Move glass + defenders sets to event items, but not in list?
-
-BUGS
-* Fix some refresh issues when switching characters / modes (need to stress test this)
-* Fix bad icons
-* Fix hashing bug with color or leave it?
-
-COMPAT
-* Opera - remove button
-* Brave - why won't it save between sessions
-* Safari - test
-
-CLEANUP
-* Use loops for rows
-* Clean up .css (probably good for night mode)
-* Use GetMergedProperties instead of my walking manually?
-
- 
-NOTES:
 * Folders can be 16 characters, Names can be 36
 
+// =================================================
 1-166 : used in various game/map persistent settings
 171-178 : used in returnia NM and Ruthless for Baby Old One
 179-180 : used in return to CD Nm and Ruthless for Baby Old One
@@ -159,6 +90,19 @@ NOTES:
 212: Tinkerer's Workshop Secret DU increase
 500 : Used to only look at the best time for saves once (nm -> ruthless conversion)
 2019-2020 : Ruthless TBR
+// =================================================
+Verify censor
+
+if(int(GetEquipment().NameIndex_QualityDescriptor) >= int(19))
+    if(((int(GetEquipment().NameIndex_QualityDescriptor) >= int(16)) && int(GetEquipment().EquipmentType) >= int(7)) && int(GetEquipment().EquipmentType) <= int(10))
+    if(GetEquipment().IsA('HeroEquipment_Familiar_PawnBooster') && int(GetEquipment().NameIndex_QualityDescriptor) >= int(14))
+    if((PathName(GetEquipment().ObjectArchetype) == "FamGuardians.EquipmentGuardianMage") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
+    if((PathName(GetEquipment().ObjectArchetype) == "Fam_Seahorse.Equipment_Familiar_SeahorseProjectile") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(16))
+    if((PathName(GetEquipment().ObjectArchetype) == "DunDef_CDT_LifeTree.Equipment.Familiars.Pony.EquipmentLifePony") && int(GetEquipment().NameIndex_QualityDescriptor) >= int(15))
+// =================================================
+
+"Why is this not updating"? help 
+
 
 
 (DONE) Extra equipment slot needs to be tested / work.  
@@ -232,3 +176,25 @@ features for 1.6:
 (DONE) Character text behind character pane
 (DONE) FIX clicking on the "?" of the custom field DELETES whatever is entered in the field
 (DONE) Update icons - defender's party hat is broken
+(DONE) Test shield auto equip
+(DONE) Add in new events if I can get a copy of them
+
+(DONE) Persist gear on characters
+(DONE) Add in multiple characters
+(DONE) Add Pride of the Kraken and Sword of Valor (yellow) events
+(DONE) Damage simulator
+(DONE) Update location on export to have page
+(DONE) Update hover to show location in lower left of page (with location())  - suggeseted by who
+(DONE) Optimize!!!
+
+(DONE) New event items, new gun, beta characters
+(DONE) Dark mode
+
+(DONE) Use class icons for stats instead of default ones
+(DONE) Custom filter is a dropdown list of recent custom searches
+
+(DONE) Custom domain, favicon.ico
+
+(DONE) Fix some refresh issues when switching characters / modes (need to stress test this)
+(DONE) Fix bad icons
+(DONE) * Fix hashing bug with color or leave it? (Leave it)
