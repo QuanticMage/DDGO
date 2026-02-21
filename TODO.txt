@@ -1,47 +1,8 @@
 ﻿
 TODO:
 
-* View optimizations
-* 
-
-
-(DONE) Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
-(DONE) Make equip always show fully upgraded
-(DONE) Auto-detect mode is broken
-(DONE) Fully upgrade doesn't upgrade resist view
-(DONE) Fully upgrade needs to recalculate when you change rating
-
-(DONE) use null forgiving operator !. to fix warnings
-
-(DONE) Remove non-compact, make hover show template
-(DONE) Add accessories/weapons to type selection.  Actually add quick selection buttons above that in the filters
-(DONE) Broken Ability 2 
-(DONE) Add in x1.2 for costume bonus
-(DONE) Coal / Frags no longer show count (compact display related)
-
-(DONE) Remove cache clear of icons every load
-(DONE) Remove stat icons that aren't used on hover
-(DONE) also i have to like tick and untick get live prices for it to change the listed price
-
-(DONE) Rating mode doesn't automatically select?
-(DONE) Hover tips should show up on builder app stuff but not on equipment pieces after.
-(DONE) Hover over "App Builder" etc shows build order for primary stats
-(DONE) Make sure when you switch order it refreshes the upgrade stuff
-(DONE) Rework save option system- Save text filter state, selected character, etc?
-
-(DONE) Optimizations
-
-(DONE) Highlight Best -> remove
-(DONE) More tooltips
-(DONE) Compare Ult and other qualities
-(DONE) Allow <> with quality if it doesn't support it already- look at column sorting code
-(DONE) Upgrade weapon
-(DONE) Shots-per-second needs to not be upgradeable for staves-- why is it doing that?
-(DONE) Character text behind character pane
-(DONE) FIX clicking on the "?" of the custom field DELETES whatever is entered in the field
-(DONE) Update icons - defender's party hat is broken
-
 Next:
+* Show upgrades (+x) over the stats, how many upgrades went into resistances on the hero pane when hovering
 
 * "Firefox users should click the padlock and clear site cache if you are having problems" under a Firefox notes popup
 
@@ -49,6 +10,10 @@ Next:
 * Test shield auto equip
 * Add in new events if I can get a copy of them
 * Update auto-event identification code.  include bCantBesold
+
+* Persist gear on characters
+* Add in multiple characters
+
 
 * Zooming messes up selection (Firefox)
 
@@ -229,3 +194,41 @@ features for 1.6:
 (DONE) Custom filter => drop down with selection
 (DONE) Custom filter => support + and ops
 (DONE) Custom filter => better tooltip
+
+1.8:
+
+(DONE) Fix refresh issues- only do once per reequip. Suspend Layout kind of thing.
+(DONE) Make equip always show fully upgraded
+(DONE) Auto-detect mode is broken
+(DONE) Fully upgrade doesn't upgrade resist view
+(DONE) Fully upgrade needs to recalculate when you change rating
+
+(DONE) use null forgiving operator !. to fix warnings
+
+(DONE) Remove non-compact, make hover show template
+(DONE) Add accessories/weapons to type selection.  Actually add quick selection buttons above that in the filters
+(DONE) Broken Ability 2 
+(DONE) Add in x1.2 for costume bonus
+(DONE) Coal / Frags no longer show count (compact display related)
+
+(DONE) Remove cache clear of icons every load
+(DONE) Remove stat icons that aren't used on hover
+(DONE) also i have to like tick and untick get live prices for it to change the listed price
+
+(DONE) Rating mode doesn't automatically select?
+(DONE) Hover tips should show up on builder app stuff but not on equipment pieces after.
+(DONE) Hover over "App Builder" etc shows build order for primary stats
+(DONE) Make sure when you switch order it refreshes the upgrade stuff
+(DONE) Rework save option system- Save text filter state, selected character, etc?
+
+(DONE) Optimizations
+
+(DONE) Highlight Best -> remove
+(DONE) More tooltips
+(DONE) Compare Ult and other qualities
+(DONE) Allow <> with quality if it doesn't support it already- look at column sorting code
+(DONE) Upgrade weapon
+(DONE) Shots-per-second needs to not be upgradeable for staves-- why is it doing that?
+(DONE) Character text behind character pane
+(DONE) FIX clicking on the "?" of the custom field DELETES whatever is entered in the field
+(DONE) Update icons - defender's party hat is broken
