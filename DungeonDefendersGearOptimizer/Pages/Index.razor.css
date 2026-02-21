@@ -2229,7 +2229,7 @@ table.grid.compact-table td.cell-name
     position: relative;
     zoom: var(--gridAutoZoom);
     transform-origin: top left;
-    width: calc(100% / var(--gridAutoZoom))
+  
 }
 
 @media (max-width: 1850px) {
