@@ -4,7 +4,7 @@ TODO:
 PRIORITY
 * Show upgrades (+x) over the stats, how many upgrades went into resistances on the hero pane when hovering
 * Update auto-event identification code.  include bCantBesold (glass + defenders sets to event items, but not in list?)
-* Filter layout  perhaps
+* Filter layout iteration- make it easier
 * Fix test characters, make them real Heroes rather than broken 
 * Pet damage
 * Pets / Weapons in 'equip best'
@@ -12,6 +12,7 @@ PRIORITY
 * Add a warning when your hero has stats spec'd into something other than your build
 * Rarity and pricing analysis
 * Total events at top row of event list
+* Update export to include more stat columns
 
 
 BUGS and COMPATIBILITY
@@ -51,10 +52,6 @@ BACK END
 * SeqAct_GiveEquipment analysis
 * Use loops for rows
 * Use GetMergedProperties instead of my walking manually?
-
-UI FEATURES:
-* Export to .csv
-* 3 piece resistances (sort of works now, but not really)
 
 
 NOTES:
@@ -198,3 +195,6 @@ features for 1.6:
 (DONE) Fix some refresh issues when switching characters / modes (need to stress test this)
 (DONE) Fix bad icons
 (DONE) * Fix hashing bug with color or leave it? (Leave it)
+(DONE) Export to .csv
+(DONE) 3 piece resistances (sort of works now, but not really)
+
