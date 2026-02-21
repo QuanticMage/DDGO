@@ -1,29 +1,30 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <script>
-        // Apply saved theme before render to prevent flash
-        (function() {
-            try {
-                var saved = localStorage.getItem('ddgo.uiState.v1');
-                if (saved) {
-                    var parsed = JSON.parse(saved);
-                    if (parsed && parsed.Theme === 'dark') {
-                        document.documentElement.setAttribute('data-theme', 'dark');
-                    }
-                }
-            } catch(e) {}
-        })();
-    </script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dungeon Defenders Gear Optimizer</title>
-    <base href="/" />
-    <link href="css/app.css" rel="stylesheet" />
-    <link href="DDUP.styles.css" rel="stylesheet" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Belanosima:wght@400&display=swap" rel="stylesheet">
+	<script>
+		// Apply saved theme before render to prevent flash
+		(function () {
+			try {
+				var saved = localStorage.getItem('ddgo.uiState.v1');
+				if (saved) {
+					var parsed = JSON.parse(saved);
+					if (parsed && parsed.Theme === 'dark') {
+						document.documentElement.setAttribute('data-theme', 'dark');
+					}
+				}
+			} catch (e) { }
+		})();
+	</script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Dungeon Defenders Gear Optimizer</title>
+	<base href="/" />
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link href="css/app.css" rel="stylesheet" />
+	<link href="DDUP.styles.css" rel="stylesheet" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Belanosima:wght@400&display=swap" rel="stylesheet">
 </head>
 
 <body width="100%">

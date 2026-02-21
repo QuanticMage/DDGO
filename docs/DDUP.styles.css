@@ -2422,6 +2422,7 @@ h1[b-yrayc6w7vb] {
 }
 
 .name-row[b-yrayc6w7vb] {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -2432,13 +2433,25 @@ h1[b-yrayc6w7vb] {
     }
 td.cell-name[b-yrayc6w7vb] {
     position: relative;
+    container-type: inline-size;
 }
 .name-name[b-yrayc6w7vb] {
     flex: 1;
     font-size: clamp(8px, 1vw, 18px);
     min-width: 0; /* allows wrapping */
     display: block;
-    padding-right: 48px;
+    padding-right: 0px;
+}
+@container (min-width: 131px) {
+    .name-name[b-yrayc6w7vb] {
+        padding-right: 48px;
+    }
+}
+
+@container (max-width: 130px) {
+    .name-colors[b-yrayc6w7vb] {
+        display: none;
+    }
 }
 
 .name-colors[b-yrayc6w7vb] {
@@ -2563,7 +2576,7 @@ live-btn[b-yrayc6w7vb] {
 
 .utility-row[b-yrayc6w7vb] {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     width: auto;
     gap: 12px;
     padding: 8px 12px;
@@ -2603,6 +2616,41 @@ live-btn[b-yrayc6w7vb] {
     margin: 0 4px;
 }
 
+.utility-zoom-row[b-yrayc6w7vb] {
+    margin-top: 3px;
+    gap: 6px;
+    align-items: center; /* align to slider bottom */
+}
+
+.utility-zoom-wrap[b-yrayc6w7vb] {
+    position: relative;
+    width: 80px;
+    padding-top: 0px; /* room for the floating label */
+}
+
+.utility-zoom-wrap input[type="range"][b-yrayc6w7vb] {
+    width: 100%;
+    margin: 0;
+    display: block;
+    accent-color: var(--accent-check);
+    cursor: pointer;
+}
+
+.utility-zoom-pct[b-yrayc6w7vb] {
+    position: absolute;
+    top: 12px; /* sits just above the track */
+    left: calc(var(--zoom-pos) * (100% - 16px) + 8px);
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    pointer-events: none;
+    padding: 1px 5px;
+    border-radius: 4px;
+    line-height: 1.5;
+}
+
 .utility-spacer[b-yrayc6w7vb] {
     flex: 1;
 }
@@ -2613,21 +2661,21 @@ live-btn[b-yrayc6w7vb] {
     gap: 8px;
 }
 
-    .utility-select select[b-yrayc6w7vb] {
-        padding: 3px 8px;
-        font-size: 13px;
-        border-radius: 6px;
-        border: 1px solid var(--select-border);
-        background: var(--select-bg);
-        color: var(--text-primary);
-        cursor: pointer;
-        outline: none;
-        transition: border-color 0.2s;
-    }
+.utility-select select[b-yrayc6w7vb] {
+    padding: 3px 8px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: 1px solid var(--select-border);
+    background: var(--select-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
 
-        .utility-select select:hover[b-yrayc6w7vb] {
-            border-color: #4a6cf7;
-        }
+.utility-select select:hover[b-yrayc6w7vb] {
+    border-color: #4a6cf7;
+}
 
 .toolbar > *[b-yrayc6w7vb] {
     min-width: 0;
@@ -3044,6 +3092,8 @@ live-btn[b-yrayc6w7vb] {
     border: 2px solid transparent;
     border-radius: 6px;
     transition: border-color 0.15s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .panel-active[b-yrayc6w7vb] {
@@ -3051,13 +3101,12 @@ live-btn[b-yrayc6w7vb] {
 }
 
 .panel-controls[b-yrayc6w7vb] {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 10;
+    order: -1;
     display: flex;
+    justify-content: flex-end;
     align-items: center;
     gap: 6px;
+    padding: 0 2px 4px;
 }
 
 .panel-lock[b-yrayc6w7vb] {
@@ -3139,6 +3188,8 @@ live-btn[b-yrayc6w7vb] {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    position: relative;
+    z-index: 10;
 }
 
 .filters-row[b-yrayc6w7vb] {
@@ -3496,6 +3547,46 @@ table.grid.compact-table td.cell-name[b-yrayc6w7vb]
 .grid-hidden[b-yrayc6w7vb] { 
     visibility:hidden;
     pointer-events: none;
+}
+
+.grid-wrap[b-yrayc6w7vb]{
+    --gridAutoZoom: 1;
+}
+
+.grid-zoom[b-yrayc6w7vb] {
+    position: relative;
+    transform: scale(var(--gridAutoZoom));
+    transform-origin: top left;
+    width: calc(100% / var(--gridAutoZoom))
+}
+
+@media (max-width: 1850px) {
+    .grid-wrap[b-yrayc6w7vb] {
+        --gridAutoZoom: 0.96;
+    }
+}
+
+@media (max-width: 1750px) {
+    .grid-wrap[b-yrayc6w7vb] {
+        --gridAutoZoom: 0.91;
+    }
+}
+
+@media (max-width: 1650px) {
+    .grid-wrap[b-yrayc6w7vb] {
+        --gridAutoZoom: 0.86;
+    }
+}
+
+@media (max-width: 1550px) {
+    .grid-wrap[b-yrayc6w7vb] {
+        --gridAutoZoom: 0.81;
+    }
+}
+@media (max-width: 1450px) {
+    .grid-wrap[b-yrayc6w7vb] {
+        --gridAutoZoom: 0.76;
+    }
 }
 /* /RadioSelect.razor.rz.scp.css */
 

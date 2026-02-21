@@ -142,42 +142,12 @@
 @if (@_showContent)
 {
     <div class="main-content">
-        <div class="character-row" style="@(_compactDisplay?"zoom:0.8;":"")">
-            @for (int _si = 0; _si < _panelSlots.Count; _si++)
-            {
-                var slot = _panelSlots[_si];
-                var slotIndex = _si;
-                <div class="panel-slot @(slotIndex == _activePanelIndex ? "panel-active" : "")" @key="slot.Id" @onclick="() => SetActivePanel(slotIndex)">
-                    <CharacterPanel @ref="slot.Panel"
-                                    OnEquipFromFile="() => HandleEquipFromFile(slot)"
-                                    OnEquipBest="() => HandleEquipBest(slot)"
-                                    OnEquipClear="() => HandleEquipClear(slot)"
-                                    OnClickEquipment="HandleEquipmentClick"
-                                    OnRightClickEquipment="HandleEquipmentRightClick"
-                                    OnChangedRatingMode="HandleChangedRatingMode"
-                                    OnChangedHero="HandleChangedHero"
-                                    GetLocationFunc="GetLocation" />
-                    <div class="panel-controls">
-                        <label class="panel-lock" @onclick:stopPropagation="true" data-tooltip="Lock: equipped items won't be reassigned by Equip Best on other panels">
-                            <input type="checkbox" checked="@slot.IsLocked"
-                                   @onchange="@((e) => { slot.IsLocked = (bool)e.Value!; StateHasChanged(); })" />
-                            <span>Lock</span>
-                        </label>
-                        @if (_panelSlots.Count > 1)
-                        {
-                            <button type="button" class="panel-remove-btn" title="Remove this hero panel" @onclick:stopPropagation="true" @onclick="() => RemoveCharacterPanel(slot.Id)">×</button>
-                        }
-                    </div>
-                </div>
-            }
-            <button type="button" class="panel-add-btn" @onclick="AddCharacterPanel">+ Add Hero</button>
-        </div>
-
-        <div class="filters-bar" style="@(_compactDisplay?"zoom:0.9;":"")">
-            <div class="utility-row">
+        <div class="utility-row">
                 <span class="utility-label"><font face="Arial">⚙️</font></span>
 
-                <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
+           
+
+            <label class="utility-toggle" data-tooltip=@Tips["Censor"]>
                     <input type="checkbox"
                            class="tool-filter"
                            checked="@_ui.Censor"
@@ -224,16 +194,25 @@
                         <option value="6x4">6x4</option>
                     </select>
                 </label>
-                <label class="utility-select" data-tooltip=@Tips["DarkMode"]>                
-                <button type="button"
-                    class="theme-toggle @(_ui.Theme == "dark" ? "theme-toggle--active" : "")"
-                    title="Toggle dark mode"
-                    @onclick="@(() => SetUi(u => u with { Theme = u.Theme == "dark" ? "light" : "dark" }))">
-                        <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
-                    </svg>                
-                </button>               
+                <label class="utility-toggle utility-zoom-row" data-tooltip="Zoom level of the hero panels">
+                    <span>Character Zoom</span>
+                    <div class="utility-zoom-wrap" style="--zoom-pos:@(((_ui.PanelZoom - 0.4) / 0.6).ToString("F3", System.Globalization.CultureInfo.InvariantCulture))">
+                        <span class="utility-zoom-pct">@((int)(_ui.PanelZoom * 100))%</span>
+                        <input type="range" min="0.4" max="1.0" step="0.05"
+                               value="@_ui.PanelZoom"
+                               @oninput="@((e) => SetUi(u => u with { PanelZoom = double.Parse(e.Value!.ToString()!, System.Globalization.CultureInfo.InvariantCulture) }))" />
+                    </div>
                 </label>
+            <label class="utility-select" data-tooltip=@Tips["DarkMode"] style="zoom:0.75;">
+                <button type="button"
+                        class="theme-toggle @(_ui.Theme == "dark" ? "theme-toggle--active" : "")"
+                        title="Toggle dark mode"
+                        @onclick="@(() => SetUi(u => u with { Theme = u.Theme == "dark" ? "light" : "dark" }))">
+                    <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+                    </svg>
+                </button>
+            </label>
                 @* <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
                     <input type="checkbox"
                            class="tool-filter"
@@ -251,6 +230,38 @@
                 </label>*@
             </div>
 
+        <div class="character-row" style="zoom:@(_ui.PanelZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+            @for (int _si = 0; _si < _panelSlots.Count; _si++)
+            {
+                var slot = _panelSlots[_si];
+                var slotIndex = _si;
+                <div class="panel-slot @(slotIndex == _activePanelIndex ? "panel-active" : "")" @key="slot.Id" @onclick="() => SetActivePanel(slotIndex)">
+                    <CharacterPanel @ref="slot.Panel"
+                                    OnEquipFromFile="() => HandleEquipFromFile(slot)"
+                                    OnEquipBest="() => HandleEquipBest(slot)"
+                                    OnEquipClear="() => HandleEquipClear(slot)"
+                                    OnClickEquipment="HandleEquipmentClick"
+                                    OnRightClickEquipment="HandleEquipmentRightClick"
+                                    OnChangedRatingMode="HandleChangedRatingMode"
+                                    OnChangedHero="HandleChangedHero"
+                                    GetLocationFunc="GetLocation" />
+                    <div class="panel-controls">
+                        <label class="panel-lock" @onclick:stopPropagation="true" data-tooltip="Lock: equipped items won't be reassigned by Equip Best on other panels">
+                            <input type="checkbox" checked="@slot.IsLocked"
+                                   @onchange="@((e) => { slot.IsLocked = (bool)e.Value!; StateHasChanged(); })" />
+                            <span>Lock</span>
+                        </label>
+                        @if (_panelSlots.Count > 1)
+                        {
+                            <button type="button" class="panel-remove-btn" title="Remove this hero panel" @onclick:stopPropagation="true" @onclick="() => RemoveCharacterPanel(slot.Id)">×</button>
+                        }
+                    </div>
+                </div>
+            }
+            <button type="button" class="panel-add-btn" @onclick="AddCharacterPanel">+ Add Hero</button>
+        </div>
+
+        <div class="filters-bar" style="@(_compactDisplay?"zoom:0.8;":"")">
             <div class="filters-row">
                 <FilterChips Title="Type" Theme="type"
                              Options="_typeOptions"
@@ -528,6 +539,7 @@
     else
     {
         <div class='grid-wrap @(_gridReady ? "" : "grid-hidden")' @ref="_scrollRef" style="--overlay-height:@($"{_overlayHeightPx}px")">
+            <div class="grid-zoom">
             <div class="overlay-layer" aria-hidden="true">
                 @foreach (var slot in _panelSlots)
                 {
@@ -547,15 +559,15 @@
                     <col style="width:80px" />   @* Rating *@
                     <col style="width:70px" />   @* Value *@
                     <col style="width:65px" />   @* BestFor *@
-                    <col style="width:65px" />   @* Type *@
-                    <col style="width:70px" />   @* Position *@
+                    <col style="width:60px" />   @* Type *@
+                    <col style="width:60px" />   @* Set *@
 
                     <col style="width:15%" />    @* Name (2*) *@
                     <col style="width:10%" />    @* Location (2*) *@
                     <col style="width:60px" />   @* Quality *@
 
-                    <col style="width:50px" />   @* MaxLvl *@
-                    <col style="width:50px" />   @* Lvl *@
+                    <col style="width:45px" />   @* MaxLvl *@
+                    <col style="width:45px" />   @* Lvl *@
                     <col style="width:65px" />   @* Damage *@                    
                     <col style="width:55px" />   @* HHP *@
                     <col style="width:55px" />   @* HDmg *@
@@ -929,6 +941,7 @@
                 </tbody>
             </table>
         </div>
+        </div>
     }
 
 </div>
@@ -1234,10 +1247,29 @@
 
     private void OnRowClicked(ItemViewRow row)
     {
-        if (IsSelected(row))
-            DeselectRow(row, ActivePanel);
-        else
+        if (row.CurrentEquippedSlot == "")
+        {
             SelectRow(row, ActivePanel);
+            return;
+        }
+
+        // Item is equipped on some panel — find which one
+        var ownerSlot = _panelSlots.FirstOrDefault(s =>
+            s.Panel?.EquippedItems.Values.Contains(row) == true);
+
+        if (ownerSlot?.Panel == ActivePanel || ownerSlot == null)
+        {
+            // Equipped on the active panel — toggle it off
+            DeselectRow(row, ActivePanel);
+        }
+        else
+        {
+            // Equipped on a different panel
+            if (ownerSlot.IsLocked) return; // locked — can't steal it
+            // Not locked — move it to the active panel
+            DeselectRow(row, ownerSlot.Panel);
+            SelectRow(row, ActivePanel);
+        }
     }
 
     private static readonly string[] ValidTags =
@@ -1560,6 +1592,7 @@
         public bool SidesAreImportant { get; init; } = false;
         public string Theme { get; init; } = "light";
 
+        public double PanelZoom { get; init; } = 1.0;
         public string DPSMode { get; init; } = "Damage per Second";
 
         // bump this when baking new items
@@ -2811,6 +2844,11 @@
                 newSlot.Panel.SetUIFlags(_ui.Censor);
                 newSlot.Panel.Reload(_lastLoadedHeroes);
                 _pendingReloadPanelId = -1;
+                StateHasChanged();
+            }
+            else if (newSlot != null)
+            {
+                // @ref not assigned yet — trigger another render cycle to retry
                 StateHasChanged();
             }
         }
