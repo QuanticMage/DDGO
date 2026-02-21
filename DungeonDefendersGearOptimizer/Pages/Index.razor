@@ -2825,7 +2825,8 @@
             }
             if (anyPanel)
             {
-                _lastLoadedHeroes = _pendingHeroReload;
+                if ((_pendingHeroReload != null) && (_pendingHeroReload.Count > 0))
+                    _lastLoadedHeroes = _pendingHeroReload;
                 _pendingHeroReload = null;
                 ApplyFilters();
                 await UpdateCalculatedValues(true, true);
