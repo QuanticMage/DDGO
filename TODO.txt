@@ -6,6 +6,7 @@ PRIORITY
 * Update auto-event identification code.  include bCantBesold (glass + defenders sets to event items, but not in list?)
 * Filter layout iteration- make it easier
 * Fix test characters, make them real Heroes rather than broken 
+* Add in test guardian  
 * Pet damage
 * Pets / Weapons in 'equip best'
 * Display and sorting by weapon and pet stats (Size, move speed, etc)
@@ -16,6 +17,9 @@ PRIORITY
 
 
 BUGS and COMPATIBILITY
+* Don't have best role for a weapon be for a role that can never use that weapon
+
+* Pristine helm uses pristine accessory for some reason
 * The custom field has priority or is ignoring the "other" filters (other equipped characters)
 * Crystal Cane broken
 * Weird striping on table

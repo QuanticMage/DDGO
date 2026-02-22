@@ -488,6 +488,7 @@ public class DDDatabase
 				Status = $"Load: Loading ItemBox... {i} / {equipCount}";
 				await Task.Yield();
 			}
+
 		}
 		equipCount = reader.ReadInt32();
 		for (int i = 0; i < equipCount; i++)
@@ -587,16 +588,15 @@ public class DDDatabase
 			Items[i].Quality = quality;
 			Items[i].Idx = i;
 
-			// these are swapped
 			DDLinearColor IconColorPrimary = Items[i].Color1;
-			DDLinearColor IconColorSecondary = Items[i].Color2;
-
+			DDLinearColor IconColorSecondary = Items[i].Color2;			
 				
 			if ((TemplateDB != null) && (TemplateDB.TryGetTemplateIndex(itemInfo.Template, out int index)))
 			{
-
-				var equip = TemplateDB.GetHeroEquipment(index);
 				
+
+				var equip = TemplateDB.GetHeroEquipment(index);		
+
 				if      (equip.EquipmentType == (int)EquipmentType.Weapon) { type = "Weapon"; }
 				else if (equip.EquipmentType == (int)EquipmentType.Helmet) { type = "Helmet"; isArmor = true; }
 				else if (equip.EquipmentType == (int)EquipmentType.Torso) { type = "Torso"; isArmor = true; }

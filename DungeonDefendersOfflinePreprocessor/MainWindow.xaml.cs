@@ -141,11 +141,29 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			Log($"Running: {psi.FileName} {psi.Arguments}");
 			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
+
+			var stdoutTask = Task.Run(async () =>
+			{
+				while (!process.StandardOutput.EndOfStream)
+				{
+					var chunk = await process.StandardOutput.ReadLineAsync(); // or ReadToEndAsync for simplest
+					if (chunk != null)
+						MainWindow.Instance?.Dispatcher.BeginInvoke(() => Log(chunk));
+				}
+			});
+
+			var stderrTask = Task.Run(async () =>
+			{
+				while (!process.StandardError.EndOfStream)
+				{
+					var chunk = await process.StandardError.ReadLineAsync();
+					if (chunk != null)
+						MainWindow.Instance?.Dispatcher.BeginInvoke(() => Log("[ERR] " + chunk));
+				}
+			});
 
 			await process.WaitForExitAsync();
-
+			await Task.WhenAll(stdoutTask, stderrTask);
 			Log($"Process exited with code {process.ExitCode}");
 
 		}
@@ -207,7 +225,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		private async void Process_Click(object sender, RoutedEventArgs e)
 		{
 			var workingDir = @"E:\Temp\DunDef";
-			var packageDir = @"f:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
+			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
 			string[] files = Directory.GetFiles(packageDir);
 			System.IO.Directory.CreateDirectory(workingDir);
@@ -221,7 +239,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				// 1) Synchronous heavy work -> background thread
 				foreach (var fileName in upkFiles)
 				{
-					//await RunDecompressAsync(workingDir, packageDir + fileName);
+					await RunDecompressAsync(workingDir, packageDir + fileName);
 					//await RunExtractorAsync(workingDir, fileName); 
 					db.AddToDatabase(workingDir, fileName);
 					db.LoadAnimationsFromPackage(fileName.Replace(".upk",""));

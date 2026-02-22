@@ -790,11 +790,13 @@ namespace DungeonDefendersOfflinePreprocessor
 								continue;
 							}
 
+							string iconImagePath = iconImage.GetReferencePath();
+
 							if (key == "EquipmentIconColorLayers")
 							{
 								// Special Handling: Split Red and Green channels into two distinct atlas entries
-								string rKey = $"{iconImage.Name}_R";
-								string gKey = $"{iconImage.Name}_G";
+								string rKey = $"{iconImagePath}_R";
+								string gKey = $"{iconImagePath}_G";
 
 								ir.IconMask1 = rKey;
 								ir.IconMask2 = gKey;
@@ -806,11 +808,11 @@ namespace DungeonDefendersOfflinePreprocessor
 							}
 							else
 							{
-								ir.IconBase = iconImage.Name;
+								ir.IconBase = iconImagePath;
 								// Standard icon handling
-								if (!uniqueIcons.ContainsKey(iconImage.Name))
+								if (!uniqueIcons.ContainsKey(iconImagePath))
 								{
-									uniqueIcons.Add(iconImage.Name, File.ReadAllBytes(finalPath));
+									uniqueIcons.Add(iconImagePath, File.ReadAllBytes(finalPath));
 								}
 							}
 						}
@@ -1382,7 +1384,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			// Icon / color set arrays
 			AddArrayPropertyToMap(obj, "PrimaryColorSets", propertyMap);
 			AddArrayPropertyToMap(obj, "SecondaryColorSets", propertyMap);
-
+			
 			// Localized/string-ish fields
 			AddPropertyToMap(obj, "AdditionalDescription", propertyMap, "0");
 			AddPropertyToMap(obj, "BaseForgerName", propertyMap, "0");

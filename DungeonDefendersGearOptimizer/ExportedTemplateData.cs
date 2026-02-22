@@ -811,6 +811,7 @@ namespace DDUP
 		public byte EquipmentSetID;
 		public int EquipmentTemplate;           // parent - HeroEquipment
 		public int EquipmentWeaponTemplate;     // DunDefWeapon
+		
 		public float ExtraQualityDamageIncreasePerLevelMultiplier;
 		public float ExtraQualityMaxDamageIncreasePerLevel;
 		public int ExtraQualityUpgradeDamageNumberDescriptor;
@@ -1018,7 +1019,7 @@ namespace DDUP
 			EquipmentName = db.AddString(propertyMap["EquipmentName"]);
 			EquipmentSetID = (byte)Parse.Int(propertyMap, "EquipmentSetID");
 			EquipmentTemplate = db.AddString(propertyMap["EquipmentTemplate"]);
-			EquipmentWeaponTemplate = db.GetDunDefWeaponIndex(propertyMap["EquipmentWeaponTemplate"]);
+			EquipmentWeaponTemplate = db.GetDunDefWeaponIndex(propertyMap["EquipmentWeaponTemplate"]);			
 			ExtraQualityDamageIncreasePerLevelMultiplier = Parse.Float(propertyMap, "ExtraQualityDamageIncreasePerLevelMultiplier");
 			ExtraQualityMaxDamageIncreasePerLevel = Parse.Float(propertyMap, "ExtraQualityMaxDamageIncreasePerLevel");
 			ExtraQualityUpgradeDamageNumberDescriptor = Parse.Int(propertyMap, "ExtraQualityUpgradeDamageNumberDescriptor");
