@@ -522,7 +522,7 @@ namespace DDUP
 			for (int i = 1; i < 11; i++)
 				vr.UpgradedStats[i] = vr.Stats[i];
 
-			if (bUpgradeWeaponStats)
+			if ((bUpgradeWeaponStats) && (vr.Type == "Weapon"))
 			{
 				vr.UpgradesLeftForWeaponStats = levelsLeft;
 				levelsLeft = 0;
