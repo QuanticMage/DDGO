@@ -335,7 +335,7 @@ namespace DDUP
 			offset += HeroEquipment_Familiar_DatasCount * Marshal.SizeOf<HeroEquipment_Familiar_Data>();
 
 
-			// Read HeroEquipment_Familiar_Datas
+			// Read Hero Data
 			DunDefHero_DatasCount = ReadInt(span, ref offset);
 			DunDefHero_DatasOffset = offset;
 			offset += DunDefHero_DatasCount * Marshal.SizeOf<DunDefHero_Data>();
@@ -541,8 +541,8 @@ namespace DDUP
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref readonly HeroEquipment_Familiar_Data GetHeroEquipment_Familiar(int index)
 		{
-			ref readonly var entry = ref GetIndexEntry(index);
-			return ref HeroEquipmentFamiliarsSpan[entry.ObjIndex];
+			// Familiar data is non-indexed (direct array index, not an IndexEntry)
+			return ref HeroEquipmentFamiliarsSpan[index];
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

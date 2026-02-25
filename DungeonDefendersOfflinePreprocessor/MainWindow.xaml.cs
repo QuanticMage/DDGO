@@ -247,10 +247,10 @@ namespace DungeonDefendersOfflinePreprocessor
 				
 				// export the texture atlas
 				db.ExportAllHeroEquipmentToAtlas();
-
-				// 2) Your async method can run here too
 				var tdb = new DDUP.ExportedTemplateDatabase();
 				await db.AddObjectsToDatabase(tdb).ConfigureAwait(false);
+
+				
 				foreach (var kvp in Parse.UniqueFailedKeys)
 				{
 					MainWindow.Log($"Parse Error on [{kvp.Key}]: {kvp.Value}");

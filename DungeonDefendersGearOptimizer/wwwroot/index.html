@@ -184,6 +184,38 @@
             }
             return false;
 		};
+
+		window.setupDebugKeyHandler = (dotNetRef) => {
+			if (window.__debugKeyHandlerInstalled) return;
+			window.__debugKeyHandlerInstalled = true;
+
+			let mouseX = 0, mouseY = 0;
+
+			document.addEventListener('mousemove', (e) => {
+				mouseX = e.clientX;
+				mouseY = e.clientY;
+			}, true);
+
+			window.addEventListener('keydown', async (e) => {
+				if (e.key !== 'd' && e.key !== 'D') return;
+				if (e.ctrlKey || e.metaKey || e.altKey) return;
+				const tag = e.target?.tagName;
+				if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+				const el = document.elementFromPoint(mouseX, mouseY);
+				if (!el) return;
+				const row = el.closest('[data-key]');
+				if (!row) return;
+				const rowKey = row.getAttribute('data-key');
+				if (!rowKey) return;
+
+				try {
+					await dotNetRef.invokeMethodAsync('CopyItemDebugReport', rowKey);
+				} catch {
+					// ignore clipboard/interop failures
+				}
+			}, true);
+		};
 		window.scrollRowIntoView = (key) => {
 			const el = document.querySelector(`[data-key="${key}"]`);
 			if (el) {

@@ -1204,7 +1204,7 @@ namespace DDUP
 			IconX2 = Parse.Int(propertyMap, "IconX2");
 			IconY2 = Parse.Int(propertyMap, "IconY2");
 
-			FamiliarDataIndex = Parse.Int(propertyMap, "FamiliarData");
+			FamiliarDataIndex = Parse.Int(propertyMap, "FamiliarDataIndex", -1);
 		}
 	}
 
@@ -1285,6 +1285,7 @@ namespace DDUP
 		public float MaxRangeBoostStat;
 		public int MaxTowerBoostStat;
 		public int SoftMaxNumberOfTowersToBoost;
+		public float MaxAttackAnimationSpeed;
 
 		// HeroEquipment_Familiar_TowerDamageScaling
 		public float AbsoluteDamageMultiplier;
@@ -1314,6 +1315,7 @@ namespace DDUP
 		public Array_Data ProjectileTemplates;  // DunDefProjectiles
 		public int ShotsPerSecondBonusCap;
 		public float ShotsPerSecondExponent;
+		public float ShotsPerSecondAnimExponent;
 		public float TargetRange;
 		public float WeakenEnemyTargetPercentage;
 		public byte bAddManaForDamage;
@@ -1329,6 +1331,7 @@ namespace DDUP
 
 		// HeroEquipment_Familiar
 		public float BarbStanceDamageMulti;
+		public float AttackAnimationLength;
 
 		public HeroEquipment_Familiar_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -1362,6 +1365,8 @@ namespace DDUP
 			bAlsoShootProjectile = Parse.BoolByte(propertyMap, "bAlsoShootProjectile");
 			bDoMeleeHealing = Parse.BoolByte(propertyMap, "bDoMeleeHealing");
 			bUseRandomizedDamage = Parse.BoolByte(propertyMap, "bUseRandomizedDamage");
+
+			MaxAttackAnimationSpeed = Parse.Float(propertyMap, "MaxAttackAnimationSpeed", 2.4f);
 
 			BaseBoost = Parse.Float(propertyMap, "BaseBoost");
 			BoostRangeStatBase = Parse.Float(propertyMap, "BoostRangeStatBase");
@@ -1426,7 +1431,8 @@ namespace DDUP
 			ProjectileTemplateAlt = db.GetDunDefProjectileIndex(propertyMap["ProjectileTemplateAlt"]);
 			ProjectileTemplates = db.BuildArray(propertyMap["ProjectileTemplates"], VarType.DunDefProjectile);
 			ShotsPerSecondBonusCap = Parse.Int(propertyMap, "ShotsPerSecondBonusCap");
-			ShotsPerSecondExponent = Parse.Float(propertyMap, "ShotsPerSecondExponent");
+			ShotsPerSecondExponent = Parse.Float(propertyMap, "ShotsPerSecondExponent", 1.5f);
+			ShotsPerSecondAnimExponent = Parse.Float(propertyMap, "ShotsPerSecondAnimExponent", 0.75f);
 			TargetRange = Parse.Float(propertyMap, "TargetRange");
 			WeakenEnemyTargetPercentage = Parse.Float(propertyMap, "WeakenEnemyTargetPercentage");
 			bAddManaForDamage = Parse.BoolByte(propertyMap, "bAddManaForDamage");
@@ -1440,6 +1446,7 @@ namespace DDUP
 			bHealOverRadius = Parse.BoolByte(propertyMap, "bHealOverRadius");
 
 			BarbStanceDamageMulti = Parse.Float(propertyMap, "BarbStanceDamageMulti");
+			AttackAnimationLength = Parse.Float(propertyMap, "AttackAnimationLength", 1.0f);
 		}
 	}
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]

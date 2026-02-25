@@ -33,7 +33,6 @@ using UELib.Engine;
 using UELib.Services;
 using UELib.Types;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 
 namespace DungeonDefendersOfflinePreprocessor
@@ -193,6 +192,30 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			return true;
 		}
+
+		private void DumpAllChildObjects( UObject obj )
+		{
+			foreach ( var v in obj.Package.Exports)
+			{
+				if (v.GetPath().Contains(obj.GetPath()))
+				{
+					MainWindow.Log("Found child: " + v.GetPath());
+				}
+			}
+		}
+
+		private UObject? FindChildSkeletalMeshComponent( UObject obj )
+		{
+			foreach (var v in obj.Package.Exports)
+			{
+				if (v.GetPath().StartsWith(obj.GetPath() + ".SkeletalMeshComponent"))
+				{
+					return v.Object;
+				}
+			}
+			return null;
+		}
+
 
 		public Dictionary<string, UDefaultProperty> GetMergedProperties(UObject obj)
 		{
@@ -1642,14 +1665,15 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
-			// Finally store it in your DB (adapt to your actual DB API)
-			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
-
+			// Compute FamiliarDataIndex before creating hed so the constructor can read it
 			if (obj.GetReferencePath().StartsWith("HeroEquipment_Familiar"))
-				propertyMap["FamiliarDataIndex"] = AddFamiliarToDB(obj, db).ToString();
+			{
+				propertyMap["FamiliarDataIndex"] = AddFamiliarToDB(obj, db).ToString();				
+			}
 			else
 				propertyMap["FamiliarDataIndex"] = "-1";
 
+			HeroEquipment_Data hed = new HeroEquipment_Data(propertyMap, db);
 			return db.AddHeroEquipment(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref hed);
 		}
 
@@ -1677,6 +1701,9 @@ namespace DungeonDefendersOfflinePreprocessor
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
 
+
+			AddFamiliarAnimationPropertiesToMap(obj, propertyMap);
+
 			// Arrays (materialized)
 			// HeroEquipment_Familiar_TowerDamageScaling
 			AddArrayPropertyToMap(obj, "ProjectileDelays", propertyMap);
@@ -1700,14 +1727,17 @@ namespace DungeonDefendersOfflinePreprocessor
 			// HeroEquipment_Familiar_Melee_TowerScaling
 			AddPropertyToMap(obj, "BaseDamageToHealRatio", propertyMap, "0.0");
 			AddPropertyToMap(obj, "DamageHealMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraNightmareMeleeDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraNightmareMeleeDamageMultiplier", propertyMap, "1.3");
 			AddPropertyToMap(obj, "MaxHealMultiplierExponent", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MaxHealPerDamage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MaxKnockbackMuliplier", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MeleeDamageMomentum", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MeleeHitRadius", propertyMap, "0.0");
+			// MeleeHitRadius default is 110 for melee familiars, 0 for non-melee
+			string meleeHitRadiusFallback = (obj.Class?.Name?.Name ?? "").Contains("Melee") ? "110.0" : "0.0";
+			AddPropertyToMap(obj, "MeleeHitRadius", propertyMap, meleeHitRadiusFallback);
 			AddPropertyToMap(obj, "MinHealPerDamage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "RandomizedDamageMultiplierDivisor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxAttackAnimationSpeed", propertyMap, "2.4");
 
 			// HeroEquipment_Familiar_PawnBooster
 			AddPropertyToMap(obj, "BaseBoost", propertyMap, "0.0");
@@ -1739,13 +1769,13 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "MaxRangeBoostStat", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_TowerDamageScaling
-			AddPropertyToMap(obj, "AbsoluteDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AbsoluteDamageMultiplier", propertyMap, "1.0");
 			AddPropertyToMap(obj, "AltProjectileMinimumRange", propertyMap, "0.0");
 			AddPropertyToMap(obj, "BaseDamageToManaRatio", propertyMap, "0.0");
 			AddPropertyToMap(obj, "BaseHealAmount", propertyMap, "0.0");
 			AddPropertyToMap(obj, "Damage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "DamageManaMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraNightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraNightmareDamageMultiplier", propertyMap, "0.65");
 			AddPropertyToMap(obj, "HealAmountMultiplier", propertyMap, "0.0");
 			AddPropertyToMap(obj, "HealingPriorityHealthPercentage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "ManaMultiplier", propertyMap, "0.0");
@@ -1753,12 +1783,13 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "MaxManaPerDamage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MinManaPerDamage", propertyMap, "0.0");
 			AddPropertyToMap(obj, "MinimumProjectileSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "17.0");
 			AddPropertyToMap(obj, "NightmareHealingMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileShootInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ProjectileDamageMultiplier", propertyMap, "1.0");
+			AddPropertyToMap(obj, "ProjectileShootInterval", propertyMap, "3.0");
 			AddPropertyToMap(obj, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShotsPerSecondExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShotsPerSecondExponent", propertyMap, "1.5");
+			AddPropertyToMap(obj, "ShotsPerSecondAnimExponent", propertyMap, "0.75");
 			AddPropertyToMap(obj, "TargetRange", propertyMap, "0.0");
 			AddPropertyToMap(obj, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
 
@@ -2243,18 +2274,54 @@ namespace DungeonDefendersOfflinePreprocessor
 				}
 			}
 		}
-/*		public float GetAnimationDuration(string animName)
-		{
-			if (AnimationDurations.TryGetValue(animName, out float duration))
-			{
-				return duration;
-			}
+		/*		public float GetAnimationDuration(string animName)
+				{
+					if (AnimationDurations.TryGetValue(animName, out float duration))
+					{
+						return duration;
+					}
 
-			// Fallback: return default duration
-			MainWindow.Log($"Warning: Animation '{animName}' not found, using default 0.8s");
-			return 0.8f;
-		}*/
-	
+					// Fallback: return default duration
+					MainWindow.Log($"Warning: Animation '{animName}' not found, using default 0.8s");
+					return 0.8f;
+				}*/
+
+		public void AddFamiliarAnimationPropertiesToMap(UObject familiarTemplate, Dictionary<string, string> propertyMap)
+		{
+			float animLength = 1.0f;
+			var childSkeletalMeshComp = FindChildSkeletalMeshComponent(familiarTemplate);
+			if (childSkeletalMeshComp != null)
+			{
+				childSkeletalMeshComp.Load();
+
+				var animProp = GetProperty(familiarTemplate, "AttackAnimation");
+				var props = GetMergedProperties(childSkeletalMeshComp);
+
+				if (props.ContainsKey("AnimSets") && (animProp != null))
+				{
+					var animSet = props["AnimSets"];
+
+					int start = animSet.Value.IndexOf('\'') + 1;
+					int end = animSet.Value.IndexOf('\'', start);
+					string path = animSet.Value.Substring(start, end - start);
+					string key = animProp.Value;
+
+					if (key.Length >= 2 &&
+						key.StartsWith("\"") &&
+						key.EndsWith("\""))
+					{
+						key = key.Substring(1, key.Length - 2);
+					}
+
+					if (AnimationDurations[path].ContainsKey(key))
+					{
+						animLength = AnimationDurations[path][key];			
+					}
+						
+				}
+			}
+			propertyMap["AttackAnimationLength"] = animLength.ToString();
+		}
 
 		public void AddAnimationPropertiesToMap(UObject playerTemplate, Dictionary<string,string> propertyMap)
 		{

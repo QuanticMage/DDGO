@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 using System.ComponentModel;
 using System.Reflection.Emit;
 using System.Reflection.Metadata.Ecma335;
@@ -822,6 +822,148 @@ namespace DDUP
 			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 			int projBonus = bShowUpgraded ? viewRow.UpgradedWeaponNumberOfProjectilesBonus : viewRow.WeaponNumberOfProjectilesBonus;
 			return projBonus + Math.Max(weaponTemplate.BaseNumProjectiles, 1);
+		}
+
+		// TODO : SBSAnimExponent is now through the pipeline- it doesn't need to hardcode to 0.75
+
+
+		//====================================================================================================
+		// PET (FAMILIAR) DAMAGE CALCULATIONS
+		//======================================================================================================
+		private (float baseDmg, float elemDmg, float interval, int numProj)
+			GetPetBaseStats(ItemViewRow viewRow, bool bUseUpgraded, ref HeroInfo heroInfo, 
+							ref HeroEquipment_Familiar_Data familiarTemplate)
+		{
+			int weaponDamageBonus = bUseUpgraded ? viewRow.UpgradedWeaponDamageBonus : viewRow.WeaponDamageBonus;
+			int shotsPerSecBonus = bUseUpgraded ? viewRow.UpgradedWeaponShotsPerSecondBonus : viewRow.WeaponShotsPerSecondBonus;
+			int numProjBonus = bUseUpgraded ? viewRow.UpgradedWeaponNumberOfProjectilesBonus : viewRow.WeaponNumberOfProjectilesBonus;
+			int elementalAmount = bUseUpgraded ? viewRow.UpgradedWeaponAdditionalDamageAmount : viewRow.WeaponAdditionalDamageAmount;
+
+			// When bUseFixedShootSpeed is set, GetEquipmentStatValue(3) returns 0, pinning the
+			// attack timer to exactly ProjectileShootInterval regardless of the item's spsStat.
+			float spsStat = (familiarTemplate.bUseFixedShootSpeed != 0) ? 0.0f : MathF.Max(shotsPerSecBonus, 1.0f);
+
+			// Timer interval: ProjectileShootInterval / max(spsStat ^ ShotsPerSecondExponent, 1.0)
+			float speedAttackInterval =
+				familiarTemplate.ProjectileShootInterval /
+				MathF.Max(MathF.Pow(spsStat, familiarTemplate.ShotsPerSecondExponent), 1.0f);
+
+			// Animation playback speed uses ShotsPerSecondAnimExponent (0.75), not the timer exponent.
+			// The attack fires when BOTH the timer and the animation have completed.
+			const float ShotsPerSecondAnimExponent = 0.75f;
+			float animSpeed = MathF.Min(MathF.Max(MathF.Pow(spsStat, ShotsPerSecondAnimExponent), 1.0f),
+										familiarTemplate.MaxAttackAnimationSpeed);
+			float animDuration = familiarTemplate.AttackAnimationLength / animSpeed;
+			
+			float attackInterval = (familiarTemplate.bUseFixedShootSpeed == 1) ? speedAttackInterval : MathF.Max(speedAttackInterval, animDuration);
+
+
+			// ProjDamage base from the projectile template
+			float projTemplateDamage = 0.0f;
+			if (familiarTemplate.ProjectileTemplate != -1)
+			{
+				var projTemplate = tdb!.GetDunDefProjectile(familiarTemplate.ProjectileTemplate);							
+				projTemplateDamage = projTemplate.ProjDamage;
+			}
+
+			// TowerDamageScaling.GetProjectileDamage() -- the formula used by virtually all game familiars:
+			//   max(ProjectileDamageMultiplier * ProjDamage + WeaponDamageBonus, 1)
+			//   * AbsoluteDamageMultiplier
+			//   * (nightmare ? NightmareDamageMultiplier * ExtraNightmareDamageMultiplier : 1)
+			// Notably this does NOT include GetPawnDamageModifier() or HeroBonusPetDamageMultiplier.
+			float projBase = familiarTemplate.ProjectileDamageMultiplier * projTemplateDamage + weaponDamageBonus;
+			float pawnMult = Player_GetPawnDamageMult(ref heroInfo);
+
+			float baseDmg =
+				MathF.Max(projBase, 1.0f) *
+				familiarTemplate.AbsoluteDamageMultiplier *
+				familiarTemplate.NightmareDamageMultiplier *
+				familiarTemplate.ExtraNightmareDamageMultiplier*
+				pawnMult *
+				heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
+
+			float elemDmg =
+				elementalAmount *
+				familiarTemplate.NightmareDamageMultiplier *
+				pawnMult *
+				heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
+
+			// numProjectiles = max(1 + WeaponNumberOfProjectilesBonus, 1)
+			int numProj = Math.Max(1 + numProjBonus, 1);
+
+			return (baseDmg, elemDmg, attackInterval, numProj);
+		}
+		public (float dps, string tooltip) GetPetProjectileDPS(
+			ItemViewRow viewRow, bool bUseUpgraded,
+			ref HeroInfo heroInfo,
+			ref HeroEquipment_Data equipTemplate,
+			ref HeroEquipment_Familiar_Data familiarTemplate)
+		{
+
+			if (viewRow.Name == "Spazmatism")
+			{
+				int y = 0;
+			}
+
+			var (baseDmg, elemDmg, attackInterval, numProj) =
+				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate);
+
+			if (attackInterval <= 0.0f) return (0.0f, "");
+
+			// Mythical hero damage scaling: WithProjectileAI sets spawned projectile ScaleHeroDamage when QualityRank > 12.
+			// Your old code scaled only base; keep that unless you confirm elemental also scales in your projectile implementation.
+			string scalingNote = "";
+			if (viewRow.QualityRank > 12)
+			{
+				const float MythicalScaleDamageStatExponent = 0.575f;
+				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
+				baseDmg *= MathF.Pow(heroScaleMult, MythicalScaleDamageStatExponent);
+				scalingNote = " (hero dmg scaled)";
+			}
+
+			float dps = (baseDmg + elemDmg) * numProj / attackInterval;
+
+			string tooltip = DDEquipmentInfo.FormatCompact(baseDmg);
+			if (elemDmg > 0)
+				tooltip += $" + {DDEquipmentInfo.FormatCompact(elemDmg)} elemental";
+			if (numProj > 1)
+				tooltip += $" x {numProj} projectiles";
+			tooltip += $" every {attackInterval:F2} seconds{scalingNote}";
+
+			return (dps, tooltip);
+		}
+
+		public (float dps, string tooltip) GetPetMeleeDPS(
+			ItemViewRow viewRow, bool bUseUpgraded,
+			ref HeroInfo heroInfo,
+			ref HeroEquipment_Data equipTemplate,
+			ref HeroEquipment_Familiar_Data familiarTemplate)
+		{
+
+			var (baseDmg, elemDmg, attackInterval, numProj) =
+				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate);
+
+			if (attackInterval <= 0.0f) return (0.0f, "");
+
+			// baseDmg already includes NightmareDamageMultiplier * ExtraNightmareDamageMultiplier.
+			// Melee additionally multiplies by ExtraNightmareMeleeDamageMultiplier (melee-specific nightmare factor).
+			float damage = baseDmg * familiarTemplate.ExtraNightmareMeleeDamageMultiplier;
+
+			string scalingNote = "";
+			if (viewRow.QualityRank > 12)
+			{
+				const float ScaleDamageStatExponent = 0.75f;
+				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
+				damage *= MathF.Pow(heroScaleMult, ScaleDamageStatExponent);
+				scalingNote = " (hero dmg scaled)";
+			}
+
+			float dps = damage / attackInterval;
+
+			string dmgStr = DDEquipmentInfo.FormatCompact(damage);
+			string tooltip = $"{dmgStr} melee every {attackInterval:F2} seconds{scalingNote}";
+
+			return (dps, tooltip);
 		}
 	}
 }

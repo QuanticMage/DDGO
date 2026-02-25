@@ -566,8 +566,8 @@
                     <col style="width:10%" />    @* Location (2*) *@
                     <col style="width:60px" />   @* Quality *@
 
-                    <col style="width:45px" />   @* MaxLvl *@
-                    <col style="width:45px" />   @* Lvl *@
+                    <col style="width:53px" />   @* MaxLvl *@
+                    <col style="width:53px" />   @* Lvl *@
                     <col style="width:65px" />   @* Damage *@                    
                     <col style="width:55px" />   @* HHP *@
                     <col style="width:55px" />   @* HDmg *@
@@ -2385,7 +2385,7 @@
                 break;
             var v = _rows[i];
 
-            if (v.Type != "Weapon")
+            if ((v.Type != "Weapon") && (v.Type != "Pet"))
                 continue;
 
 
@@ -2399,58 +2399,71 @@
             v.DPS = 0.0f;
             v.DPSTooltip = "";
 
-            if (!IsWeaponSetValid(v.Set))
-                continue;
-
-            _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
-
-            if (v.Set == "Squire") 
+            if (v.Type == "Weapon")
             {
-                (dps[i], tips[i]) = (_damageCalculator.GetMeleeWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
-            }
-            else if (v.Set == "Huntress")
-            {
-                (dps[i], tips[i]) = (_damageCalculator.GetCrossbowWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
-            }                
-            else if (v.Set == "Monk")
-            {
-                (float meleeDamage, string meleeTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, false, ref info, ref weaponTemplate));                                
-                _damageCalculator.CalculateUpgradedWeaponStats(v, true, ref weaponTemplate);
-                (float rangedDamage, string rangedTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, true, ref info, ref weaponTemplate));
+                if (!IsWeaponSetValid(v.Set))
+                    continue;
 
-                string rangedStr = DDEquipmentInfo.FormatCompact(rangedDamage);
-                string meleeStr = DDEquipmentInfo.FormatCompact(meleeDamage);		
+                _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
 
-                dps[i] = (meleeDamage > rangedDamage) ? meleeDamage : rangedDamage;
-                tips[i] = $"{rangedStr} Ranged DPS (upgrading as Ranged)\r\n{rangedTip}\r\n\r\n{meleeStr} Melee DPS (upgrading as Melee)\r\n{meleeTip}\r\n";
-                
-                if (_ui.ShowUpgradedStats)
-                    tips[i] += "Stats below are upgrading for " + ((meleeDamage > rangedDamage) ? "Melee:" : "Ranged:");
-
-                if ( meleeDamage > rangedDamage )
+                if (v.Set == "Squire")
                 {
-                    // if melee wins, make sure we go with those upgrades
-                    _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
+                    (dps[i], tips[i]) = (_damageCalculator.GetMeleeWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
                 }
+                else if (v.Set == "Huntress")
+                {
+                    (dps[i], tips[i]) = (_damageCalculator.GetCrossbowWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
+                }
+                else if (v.Set == "Monk")
+                {
+                    (float meleeDamage, string meleeTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, false, ref info, ref weaponTemplate));
+                    _damageCalculator.CalculateUpgradedWeaponStats(v, true, ref weaponTemplate);
+                    (float rangedDamage, string rangedTip) = (_damageCalculator.GetSpearWeaponDamage(v, _ui.ShowUpgradedStats, true, ref info, ref weaponTemplate));
+
+                    string rangedStr = DDEquipmentInfo.FormatCompact(rangedDamage);
+                    string meleeStr = DDEquipmentInfo.FormatCompact(meleeDamage);
+
+                    dps[i] = (meleeDamage > rangedDamage) ? meleeDamage : rangedDamage;
+                    tips[i] = $"{rangedStr} Ranged DPS (upgrading as Ranged)\r\n{rangedTip}\r\n\r\n{meleeStr} Melee DPS (upgrading as Melee)\r\n{meleeTip}\r\n";
+
+                    if (_ui.ShowUpgradedStats)
+                        tips[i] += "Stats below are upgrading for " + ((meleeDamage > rangedDamage) ? "Melee:" : "Ranged:");
+
+                    if ( meleeDamage > rangedDamage )
+                    {
+                        // if melee wins, make sure we go with those upgrades
+                        _damageCalculator.CalculateUpgradedWeaponStats(v, false, ref weaponTemplate);
+                    }
+                }
+                else if (v.Set == "Apprentice")
+                {
+                    (dps[i], tips[i]) = (_damageCalculator.GetStaffWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
+                }
+
+                int viewWeaponDamage = _damageCalculator.GetDisplayWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+                int viewWeaponAltDamage = _damageCalculator.GetDisplayAltDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+                int viewWeaponAdditionalDamage = _damageCalculator.GetDisplayAdditionalDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+                int viewShotsPerSec = _damageCalculator.GetDisplayShotsPerSecond(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+                int viewNumProjectiles = _damageCalculator.GetDisplayNumProjectiles(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
+
+                tips[i] +=
+                   ((v.UpgradedWeaponDamageBonus == 0) ? "" : $"\r\n[Weapon Damage]: {viewWeaponDamage}") +
+                   ((v.UpgradedWeaponAltDamageBonus== 0) ? "" : $"\r\n[Weapon Alt Damage]: {viewWeaponAltDamage}") +
+                   ((v.UpgradedWeaponAdditionalDamageAmount == 0) ? "" : $"\r\n[Weapon Elemental Damage]: {viewWeaponAdditionalDamage}") +
+                   ((v.UpgradedWeaponNumberOfProjectilesBonus == 0) ? "" : $"\r\n[Num Projectiles]: {viewNumProjectiles}") +
+                   ((v.UpgradedWeaponShotsPerSecondBonus == 0) ? "" : $"\r\n[Shots Per Second]: {viewShotsPerSec}");
             }
-            else if (v.Set == "Apprentice")
+            else if (v.Type == "Pet")
             {
-                (dps[i], tips[i]) = (_damageCalculator.GetStaffWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate));
-            }             
-
-
-            int viewWeaponDamage = _damageCalculator.GetDisplayWeaponDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
-            int viewWeaponAltDamage = _damageCalculator.GetDisplayAltDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
-            int viewWeaponAdditionalDamage = _damageCalculator.GetDisplayAdditionalDamage(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
-            int viewShotsPerSec = _damageCalculator.GetDisplayShotsPerSecond(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
-            int viewNumProjectiles = _damageCalculator.GetDisplayNumProjectiles(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate);
-
-            tips[i] +=  
-               ((v.UpgradedWeaponDamageBonus == 0) ? "" : $"\r\n[Weapon Damage]: {viewWeaponDamage}") + 
-               ((v.UpgradedWeaponAltDamageBonus== 0) ? "" : $"\r\n[Weapon Alt Damage]: {viewWeaponAltDamage}") + 
-               ((v.UpgradedWeaponAdditionalDamageAmount == 0) ? "" : $"\r\n[Weapon Elemental Damage]: {viewWeaponAdditionalDamage}") +
-               ((v.UpgradedWeaponNumberOfProjectilesBonus == 0) ? "" : $"\r\n[Num Projectiles]: {viewNumProjectiles}") +
-               ((v.UpgradedWeaponShotsPerSecondBonus == 0) ? "" : $"\r\n[Shots Per Second]: {viewShotsPerSec}");
+                Console.WriteLine($"Template: {TemplateDB.GetString(weaponTemplate.Template)} Pet Index: {weaponTemplate.FamiliarDataIndex}");
+                if (weaponTemplate.FamiliarDataIndex < 0) continue;
+                var familiarTemplate = TemplateDB.GetHeroEquipment_Familiar(weaponTemplate.FamiliarDataIndex);
+                bool isMelee = familiarTemplate.MeleeHitRadius > 0;
+                if (isMelee)
+                    (dps[i], tips[i]) = _damageCalculator.GetPetMeleeDPS(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate, ref familiarTemplate);
+                else if (familiarTemplate.ProjectileShootInterval > 0)
+                    (dps[i], tips[i]) = _damageCalculator.GetPetProjectileDPS(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate, ref familiarTemplate);
+            }
 
 
             if ((++count & 127) == 0)
@@ -2469,7 +2482,7 @@
             if ( i >= _rows.Count)
                 break;
 
-            if (_rows[i].Type != "Weapon")
+            if (_rows[i].Type != "Weapon" && _rows[i].Type != "Pet")
                 continue;
 
             _rows[i].DPS = dps[i];
@@ -2793,6 +2806,7 @@
             StateHasChanged();
             await JS.InvokeVoidAsync("atlasIcons.init", "png/HeroEquipment_Atlas.png"); // set your atlas path
             await JS.InvokeVoidAsync("atlasIcons.startAutoRender");
+            await JS.InvokeVoidAsync("setupDebugKeyHandler", _dotNetRef);
 
             _atlasReady = true;
 
@@ -2990,6 +3004,22 @@
     public string GetFunHash(ItemViewRow ivr)
     {
         return ivr.FunHashString;
+    }
+
+    [JSInvokable]
+    public async Task CopyItemDebugReport(string rowKeyStr)
+    {
+        if (!int.TryParse(rowKeyStr, out int rowIdx)) return;
+
+        var row = _rows.FirstOrDefault(r => r.Idx == rowIdx);
+        if (row == null) return;
+
+        DDEquipmentInfo? equip = (db.IsReady && rowIdx >= 0 && rowIdx < db.Items.Count)
+            ? db.Items[rowIdx]
+            : null;
+
+        var report = ItemDebugReport.BuildReport(row, equip, _templateDBIsLoaded ? TemplateDB : null);
+        await JS.InvokeVoidAsync("copyToClipboard", report);
     }
     
 
