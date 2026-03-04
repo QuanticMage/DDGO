@@ -281,8 +281,8 @@ public class DDEquipmentInfo
 			else if (this.Quality == "Ult+") { mult = 1.4f; maxR = 29; maxStatLevel = 700; }
 			else if (this.Quality == "Ult93") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
 			else if (this.Quality == "Ult90") { mult = 1.4f; maxR = 29; maxStatLevel = 600; }
-			else if (this.Quality == "Supreme") { mult = 1.3666f; maxR = 30; maxStatLevel = 500; }
-			else if (this.Quality == "Trans") { mult = 1.3333f; maxR = 31; maxStatLevel = 420; }
+			else if (this.Quality == "Supreme") { mult = 1.36f; maxR = 30; maxStatLevel = 500; }
+			else if (this.Quality == "Trans") { mult = 1.33f; maxR = 31; maxStatLevel = 420; }
 			else if (this.Quality == "Mythic") { mult = 1.3f; maxR = 31; maxStatLevel = 360; }
 			else { mult = 1.25f; maxR = 31; maxStatLevel = 300; }
 

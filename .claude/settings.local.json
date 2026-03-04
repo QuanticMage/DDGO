@@ -3,7 +3,10 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(tail:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(find E:\\\\DDGO:*)",
+      "Bash(grep:*)",
+      "Bash(powershell.exe:*)"
     ]
   }
 }

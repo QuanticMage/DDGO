@@ -1,4 +1,4 @@
-﻿using DDUP;
+using DDUP;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
@@ -82,6 +82,54 @@ namespace DungeonDefendersOfflinePreprocessor
 			UnrealConfig.VariableTypes["Children"] = Tuple.Create("Engine.AnimTreeTemplate.Children", PropertyType.ObjectProperty);
 			UnrealConfig.VariableTypes["Notifies"] = Tuple.Create("Engine.AnimSequence.Notifies", PropertyType.StructProperty);
 			UnrealConfig.VariableTypes["FireInterval"] = Tuple.Create("UDKGame.DunDefWeapon.FireInterval", PropertyType.FloatProperty);
+
+			// DunDefEnemy arrays
+			UnrealConfig.VariableTypes["CustomEquipmentDrops"] = Tuple.Create("UDKGame.DunDefEnemy.CustomEquipmentDrops", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["DifficultyEquipmentQualityMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyEquipmentQualityMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultyEquipmentRarityWeightings"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyEquipmentRarityWeightings", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultyHealthMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyHealthMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultyDamageMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyDamageMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultySpeedMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultySpeedMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultyManaMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyManaMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["DifficultyScoreMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultyScoreMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["NumPlayerHealthMultipliers"] = Tuple.Create("UDKGame.DunDefEnemy.NumPlayerHealthMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["GoldenEnemyDifficultyOffset"] = Tuple.Create("UDKGame.DunDefEnemy.GoldenEnemyDifficultyOffset", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["MaxSimultaneousAllowedForPlayers"] = Tuple.Create("UDKGame.DunDefEnemy.MaxSimultaneousAllowedForPlayers", PropertyType.IntProperty);
+			UnrealConfig.VariableTypes["DifficultySetWaveOffsetThresholds"] = Tuple.Create("UDKGame.DunDefEnemy.DifficultySetWaveOffsetThresholds", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["ElementalEntries"] = Tuple.Create("UDKGame.DunDefEnemy.ElementalEntries", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["ElementalDamageModifiers"] = Tuple.Create("UDKGame.DunDefEnemy.ElementalDamageModifiers", PropertyType.StructProperty);
+
+			// HeroEquipment arrays
+			UnrealConfig.VariableTypes["StatModifiers"] = Tuple.Create("UDKGame.HeroEquipment.StatModifiers", PropertyType.IntProperty);
+			UnrealConfig.VariableTypes["DamageReductions"] = Tuple.Create("UDKGame.HeroEquipment.DamageReductions", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["DamageReductionRandomizers"] = Tuple.Create("UDKGame.HeroEquipment.DamageReductionRandomizers", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["QualityDescriptorRealNames"] = Tuple.Create("UDKGame.HeroEquipment.QualityDescriptorRealNames", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["StatEquipmentIDs"] = Tuple.Create("UDKGame.HeroEquipment.StatEquipmentIDs", PropertyType.IntProperty);
+			UnrealConfig.VariableTypes["StatEquipmentTiers"] = Tuple.Create("UDKGame.HeroEquipment.StatEquipmentTiers", PropertyType.IntProperty);
+			UnrealConfig.VariableTypes["StatModifierRandomizers"] = Tuple.Create("UDKGame.HeroEquipment.StatModifierRandomizers", PropertyType.StructProperty);
+			UnrealConfig.VariableTypes["StatObjectArray"] = Tuple.Create("UDKGame.HeroEquipment.StatObjectArray", PropertyType.ObjectProperty);
+			UnrealConfig.VariableTypes["QualityShopCostMultipliers"] = Tuple.Create("UDKGame.HeroEquipment.QualityShopCostMultipliers", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["QualityShopCostCaps"] = Tuple.Create("UDKGame.HeroEquipment.QualityShopCostCaps", PropertyType.FloatProperty);
+			UnrealConfig.VariableTypes["EquipLevelRequirements"] = Tuple.Create("UDKGame.HeroEquipment.EquipLevelRequirements", PropertyType.IntProperty);
+			UnrealConfig.VariableTypes["AccessoryRequirements"] = Tuple.Create("UDKGame.HeroEquipment.AccessoryRequirements", PropertyType.IntProperty);
+
+			// HeroEquipment_Familiar arrays
+			UnrealConfig.VariableTypes["ProjectileTemplates"] = Tuple.Create("UDKGame.HeroEquipment_Familiar_WithProjectileAI.ProjectileTemplates", PropertyType.ObjectProperty);
+
+			// DunDefWeapon arrays
+			UnrealConfig.VariableTypes["ExtraProjectileTemplates"] = Tuple.Create("UDKGame.DunDefWeapon.ExtraProjectileTemplates", PropertyType.ObjectProperty);
+			UnrealConfig.VariableTypes["RainbowDamageTypeArrays"] = Tuple.Create("UDKGame.DunDefWeapon.RainbowDamageTypeArrays", PropertyType.ObjectProperty);
+			UnrealConfig.VariableTypes["RandomizedProjectileTemplate"] = Tuple.Create("UDKGame.DunDefWeapon.RandomizedProjectileTemplate", PropertyType.ObjectProperty);
+
+			// DunDefProjectile arrays
+			UnrealConfig.VariableTypes["RandomDamageTypes"] = Tuple.Create("UDKGame.DunDefProjectile.RandomDamageTypes", PropertyType.ObjectProperty);
+
+			// DunDefHero arrays
+			UnrealConfig.VariableTypes["StatNames"] = Tuple.Create("UDKGame.DunDefHero.StatNames", PropertyType.StrProperty);
+			UnrealConfig.VariableTypes["StatDescriptions"] = Tuple.Create("UDKGame.DunDefHero.StatDescriptions", PropertyType.StrProperty);
+
+			// DunDef_SeqAct_GiveEquipmentToPlayers arrays
+			UnrealConfig.VariableTypes["GiveEquipmentEntries"] = Tuple.Create("UDKGame.DunDef_SeqAct_GiveEquipmentToPlayers.GiveEquipmentEntries", PropertyType.StructProperty);
 		}
 
 		private readonly StringBuilder _logBuilder = new();
@@ -127,43 +175,20 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			using var process = new Process { StartInfo = psi };
 
-			process.OutputDataReceived += (_, e) =>
-			{
-				if (e.Data != null)
-					MainWindow.Instance?.Dispatcher.BeginInvoke(new Action(() => Log(e.Data)));
-			};
-
-			process.ErrorDataReceived += (_, e) =>
-			{
-				if (e.Data != null)
-					MainWindow.Instance?.Dispatcher.BeginInvoke(new Action(() => Log("[ERR] " + e.Data)));
-			};
-
 			Log($"Running: {psi.FileName} {psi.Arguments}");
 			process.Start();
 
-			var stdoutTask = Task.Run(async () =>
-			{
-				while (!process.StandardOutput.EndOfStream)
-				{
-					var chunk = await process.StandardOutput.ReadLineAsync(); // or ReadToEndAsync for simplest
-					if (chunk != null)
-						MainWindow.Instance?.Dispatcher.BeginInvoke(() => Log(chunk));
-				}
-			});
-
-			var stderrTask = Task.Run(async () =>
-			{
-				while (!process.StandardError.EndOfStream)
-				{
-					var chunk = await process.StandardError.ReadLineAsync();
-					if (chunk != null)
-						MainWindow.Instance?.Dispatcher.BeginInvoke(() => Log("[ERR] " + chunk));
-				}
-			});
+			var stdoutTask = process.StandardOutput.ReadToEndAsync();
+			var stderrTask = process.StandardError.ReadToEndAsync();
 
 			await process.WaitForExitAsync();
-			await Task.WhenAll(stdoutTask, stderrTask);
+			var stdout = await stdoutTask;
+			var stderr = await stderrTask;
+
+			if (!string.IsNullOrEmpty(stdout))
+				Log(stdout);
+			if (!string.IsNullOrEmpty(stderr))
+				Log("[ERR] " + stderr);
 			Log($"Process exited with code {process.ExitCode}");
 
 		}
@@ -227,11 +252,17 @@ namespace DungeonDefendersOfflinePreprocessor
 			var workingDir = @"E:\Temp\DunDef";
 			var packageDir = @"g:\SteamLibrary\steamapps\common\Dungeon Defenders\UDKGame\CookedPCConsole\";
 
-			string[] files = Directory.GetFiles(packageDir);
 			System.IO.Directory.CreateDirectory(workingDir);
 
-			// all the templates we need are in these two, as well as the icons
-			string[] upkFiles = { "Engine.upk", "Core.upk", "UDKGame.upk", "Startup_INT.upk" };
+			// Process priority files first (in order), then all remaining .upk files in packageDir
+			string[] priorityFiles = { "Engine.upk", "Core.upk", "UDKGame.upk", "Startup_INT.upk" };
+			var prioritySet = new HashSet<string>(priorityFiles, StringComparer.OrdinalIgnoreCase);
+			var remainingFiles = Directory.GetFiles(packageDir, "*.upk")
+				.Select(Path.GetFileName)
+				.Where(f => !prioritySet.Contains(f))
+				.OrderBy(f => f)
+				.ToArray();
+			var upkFiles = priorityFiles.Concat(remainingFiles).ToArray();
 
 			Log("Processing...");
 			await Task.Run(async () =>
@@ -240,7 +271,7 @@ namespace DungeonDefendersOfflinePreprocessor
 				foreach (var fileName in upkFiles)
 				{
 					await RunDecompressAsync(workingDir, packageDir + fileName);
-					//await RunExtractorAsync(workingDir, fileName); 
+					await RunExtractorAsync(workingDir, fileName); 
 					db.AddToDatabase(workingDir, fileName);
 					db.LoadAnimationsFromPackage(fileName.Replace(".upk",""));
 				}

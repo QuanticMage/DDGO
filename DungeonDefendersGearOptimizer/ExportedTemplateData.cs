@@ -164,10 +164,16 @@ namespace DDUP
 		DunDefWeapon,
 		DunDefHero,
 		HeroEquipment,
-		HeroEquipment_Familiar,		
+		HeroEquipment_Familiar,
 		HeroCostumeTemplate,
+		EquipmentDropEntry,
+		EnemyElementalEntry,
+		ElementalDamageModifier,
+		DunDefEnemy,
+		GiveEquipmentEntry,
+		DunDef_SeqAct_GiveEquipmentToPlayers,
 		Max
-	
+
 	}
 
 
@@ -992,6 +998,61 @@ namespace DDUP
 
 		public int FamiliarDataIndex;  // HeroEquipment_Familiar_Data
 
+		// Sell worth
+		public float SellWorthLinearFactor;
+		public float SellWorthExponentialFactor;
+		public float SellWorthMin;
+		public float SellWorthMax;
+		public float SellRatingExponent;
+		public float SellWorthEquipmentRatingBase;
+		public float SellWorthMultiplierLevelBase;
+		public float SellWorthMultiplierLevelMin;
+		public float SellWorthMultiplierLevelMax;
+		public float HighResaleWorthPower;
+
+		// Shop sell worth
+		public float ShopSellWorthLinearFactor;
+		public float ShopSellWorthExponentialFactor;
+		public float ShopSellWorthMin;
+		public float ShopSellWorthMax;
+		public float ShopSellRatingExponent;
+		public float ShopSellWorthEquipmentRatingBase;
+		public float ShopSellWorthWeaponMultiplier;
+		public float ShopSellWorthWeaponExponentialFactorMult;
+		public float MaxShopSellWorth;
+		public float ShopSellWorthMinWeaponMultiplier;
+		public float ShopSellWorthMaxWeaponMultiplier;
+		public float ShopSellWorthRatingWeaponMultiplier;
+
+		// Mana cost per upgrade level
+		public float ManaCostPerLevelLinearFactor;
+		public float ManaCostPerLevelExponentialFactor;
+		public float ManaCostPerLevelMinQualityMultiplier;
+		public float ManaCostPerLevelMaxQualityMultiplier;
+		public float ManaCostPerLevelExponentialFactorAdditional;
+		public float ManaCostPerLevelMaxQualityMultiplierAdditional;
+
+		// Other missing floats
+		public float RatingPercentForLevelUpCostExponent;
+		public float WeaponDrawScaleGlobalMultiplier;
+		public float WeaponDrawScaleRandomizerExtraMultiplier;
+		public float IconScaleMultiplier;
+
+		// Missing int
+		public int DamageReductionUpgradeInterval;
+
+		// Missing byte/bool
+		public byte bUseAlternateThreshold;
+
+		// Missing EG_StatRandomizer index
+		public int WeaponDrawScaleMultiplierRandomizer;
+
+		// Missing arrays
+		public Array_Data QualityShopCostMultipliers;  // float[]
+		public Array_Data QualityShopCostCaps;         // float[]
+		public Array_Data EquipLevelRequirements;       // int[]
+		public Array_Data AccessoryRequirements;        // int[] (EAccessoryType enum values)
+
 		public HeroEquipment_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			Template = db.AddString(propertyMap["Template"]);
@@ -1205,6 +1266,61 @@ namespace DDUP
 			IconY2 = Parse.Int(propertyMap, "IconY2");
 
 			FamiliarDataIndex = Parse.Int(propertyMap, "FamiliarDataIndex", -1);
+
+			// Sell worth
+			SellWorthLinearFactor = Parse.Float(propertyMap, "SellWorthLinearFactor");
+			SellWorthExponentialFactor = Parse.Float(propertyMap, "SellWorthExponentialFactor");
+			SellWorthMin = Parse.Float(propertyMap, "SellWorthMin");
+			SellWorthMax = Parse.Float(propertyMap, "SellWorthMax");
+			SellRatingExponent = Parse.Float(propertyMap, "SellRatingExponent");
+			SellWorthEquipmentRatingBase = Parse.Float(propertyMap, "SellWorthEquipmentRatingBase");
+			SellWorthMultiplierLevelBase = Parse.Float(propertyMap, "SellWorthMultiplierLevelBase");
+			SellWorthMultiplierLevelMin = Parse.Float(propertyMap, "SellWorthMultiplierLevelMin");
+			SellWorthMultiplierLevelMax = Parse.Float(propertyMap, "SellWorthMultiplierLevelMax");
+			HighResaleWorthPower = Parse.Float(propertyMap, "HighResaleWorthPower");
+
+			// Shop sell worth
+			ShopSellWorthLinearFactor = Parse.Float(propertyMap, "ShopSellWorthLinearFactor");
+			ShopSellWorthExponentialFactor = Parse.Float(propertyMap, "ShopSellWorthExponentialFactor");
+			ShopSellWorthMin = Parse.Float(propertyMap, "ShopSellWorthMin");
+			ShopSellWorthMax = Parse.Float(propertyMap, "ShopSellWorthMax");
+			ShopSellRatingExponent = Parse.Float(propertyMap, "ShopSellRatingExponent");
+			ShopSellWorthEquipmentRatingBase = Parse.Float(propertyMap, "ShopSellWorthEquipmentRatingBase");
+			ShopSellWorthWeaponMultiplier = Parse.Float(propertyMap, "ShopSellWorthWeaponMultiplier");
+			ShopSellWorthWeaponExponentialFactorMult = Parse.Float(propertyMap, "ShopSellWorthWeaponExponentialFactorMult");
+			MaxShopSellWorth = Parse.Float(propertyMap, "MaxShopSellWorth");
+			ShopSellWorthMinWeaponMultiplier = Parse.Float(propertyMap, "ShopSellWorthMinWeaponMultiplier");
+			ShopSellWorthMaxWeaponMultiplier = Parse.Float(propertyMap, "ShopSellWorthMaxWeaponMultiplier");
+			ShopSellWorthRatingWeaponMultiplier = Parse.Float(propertyMap, "ShopSellWorthRatingWeaponMultiplier");
+
+			// Mana cost per upgrade level
+			ManaCostPerLevelLinearFactor = Parse.Float(propertyMap, "ManaCostPerLevelLinearFactor");
+			ManaCostPerLevelExponentialFactor = Parse.Float(propertyMap, "ManaCostPerLevelExponentialFactor");
+			ManaCostPerLevelMinQualityMultiplier = Parse.Float(propertyMap, "ManaCostPerLevelMinQualityMultiplier");
+			ManaCostPerLevelMaxQualityMultiplier = Parse.Float(propertyMap, "ManaCostPerLevelMaxQualityMultiplier");
+			ManaCostPerLevelExponentialFactorAdditional = Parse.Float(propertyMap, "ManaCostPerLevelExponentialFactorAdditional");
+			ManaCostPerLevelMaxQualityMultiplierAdditional = Parse.Float(propertyMap, "ManaCostPerLevelMaxQualityMultiplierAdditional");
+
+			// Other missing floats
+			RatingPercentForLevelUpCostExponent = Parse.Float(propertyMap, "RatingPercentForLevelUpCostExponent");
+			WeaponDrawScaleGlobalMultiplier = Parse.Float(propertyMap, "WeaponDrawScaleGlobalMultiplier");
+			WeaponDrawScaleRandomizerExtraMultiplier = Parse.Float(propertyMap, "WeaponDrawScaleRandomizerExtraMultiplier");
+			IconScaleMultiplier = Parse.Float(propertyMap, "IconScaleMultiplier");
+
+			// Missing int
+			DamageReductionUpgradeInterval = Parse.Int(propertyMap, "DamageReductionUpgradeInterval");
+
+			// Missing byte/bool
+			bUseAlternateThreshold = Parse.BoolByte(propertyMap, "bUseAlternateThreshold");
+
+			// Missing EG_StatRandomizer index
+			WeaponDrawScaleMultiplierRandomizer = db.AddEG_StatRandomizer(new EG_StatRandomizer_Data(propertyMap.ContainsKey("WeaponDrawScaleMultiplierRandomizer") ? propertyMap["WeaponDrawScaleMultiplierRandomizer"] : "0"));
+
+			// Missing arrays
+			QualityShopCostMultipliers = db.BuildArray(propertyMap.ContainsKey("QualityShopCostMultipliers") ? propertyMap["QualityShopCostMultipliers"] : "", VarType.Float);
+			QualityShopCostCaps = db.BuildArray(propertyMap.ContainsKey("QualityShopCostCaps") ? propertyMap["QualityShopCostCaps"] : "", VarType.Float);
+			EquipLevelRequirements = db.BuildArray(propertyMap.ContainsKey("EquipLevelRequirements") ? propertyMap["EquipLevelRequirements"] : "", VarType.Int);
+			AccessoryRequirements = db.BuildArray(propertyMap.ContainsKey("AccessoryRequirements") ? propertyMap["AccessoryRequirements"] : "", VarType.Int);
 		}
 	}
 
@@ -1333,6 +1449,42 @@ namespace DDUP
 		public float BarbStanceDamageMulti;
 		public float AttackAnimationLength;
 
+		// HeroEquipment_Familiar size scaling
+		public float SizeScalerMaximumLevel;
+		public float SizeScalerPower;
+		public float MaximumLevelScaleMultiplier;
+		public float DrawScaleOffsetExponent;
+		public float DrawScaleOffsetMult;
+		public float HeroExperienceInvestmentMultiplier;
+
+		// HeroEquipment_Familiar_CoreHealer mana cost
+		public float ManaCostStatBase;
+		public float ManaCostMultiplier;
+		public float ManaCostExponent;
+		public float ManaCostMin;
+		public float ManaCostMax;
+		public float HealRangeMaxEffectiveStat;
+		public byte bHealInCombatPhaseOnly;
+
+		// HeroEquipment_Familiar_TowerDamageScaling missing flags
+		public byte bSlowEnemyTarget;
+		public float SlowEnemyTargetPercentage;
+		public float EnemyClearSlowTime;
+		public float EnemyClearWeakenTime;
+		public byte bShootProjectileWithoutTarget;
+		public byte bMythicalScaleTowerDamage;
+		public float MythicalScaleDamageStatExponent;
+		public int MythicalScaleDamageStatType;  // LevelUpValueType enum
+		public byte bIgnoreElementInTargeting;
+		public byte bProjectilesCollideWithOwner;
+		public int AttackAnimationAlt;  // string index
+
+		// HeroEquipment_Familiar_AoeBuffer
+		public float StaticBuffRange;
+		public byte UseStaticBuffRange;
+		public float BoostAnimMinInterval;
+		public float BoostAnimMaxInterval;
+
 		public HeroEquipment_Familiar_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			BuffRange = Parse.Float(propertyMap, "BuffRange");
@@ -1447,6 +1599,44 @@ namespace DDUP
 
 			BarbStanceDamageMulti = Parse.Float(propertyMap, "BarbStanceDamageMulti");
 			AttackAnimationLength = Parse.Float(propertyMap, "AttackAnimationLength", 1.0f);
+
+			// Size scaling
+			SizeScalerMaximumLevel = Parse.Float(propertyMap, "SizeScalerMaximumLevel", 100.0f);
+			SizeScalerPower = Parse.Float(propertyMap, "SizeScalerPower", 1.0f);
+			MaximumLevelScaleMultiplier = Parse.Float(propertyMap, "MaximumLevelScaleMultiplier", 1.0f);
+			DrawScaleOffsetExponent = Parse.Float(propertyMap, "DrawScaleOffsetExponent");
+			DrawScaleOffsetMult = Parse.Float(propertyMap, "DrawScaleOffsetMult");
+			HeroExperienceInvestmentMultiplier = Parse.Float(propertyMap, "HeroExperienceInvestmentMultiplier");
+
+			// CoreHealer mana cost
+			ManaCostStatBase = Parse.Float(propertyMap, "ManaCostStatBase");
+			ManaCostMultiplier = Parse.Float(propertyMap, "ManaCostMultiplier");
+			ManaCostExponent = Parse.Float(propertyMap, "ManaCostExponent");
+			ManaCostMin = Parse.Float(propertyMap, "ManaCostMin");
+			ManaCostMax = Parse.Float(propertyMap, "ManaCostMax");
+			HealRangeMaxEffectiveStat = Parse.Float(propertyMap, "HealRangeMaxEffectiveStat");
+			bHealInCombatPhaseOnly = Parse.BoolByte(propertyMap, "bHealInCombatPhaseOnly");
+
+			// TowerDamageScaling missing flags
+			bSlowEnemyTarget = Parse.BoolByte(propertyMap, "bSlowEnemyTarget");
+			SlowEnemyTargetPercentage = Parse.Float(propertyMap, "SlowEnemyTargetPercentage");
+			EnemyClearSlowTime = Parse.Float(propertyMap, "EnemyClearSlowTime");
+			EnemyClearWeakenTime = Parse.Float(propertyMap, "EnemyClearWeakenTime");
+			bShootProjectileWithoutTarget = Parse.BoolByte(propertyMap, "bShootProjectileWithoutTarget");
+			bMythicalScaleTowerDamage = Parse.BoolByte(propertyMap, "bMythicalScaleTowerDamage");
+			MythicalScaleDamageStatExponent = Parse.Float(propertyMap, "MythicalScaleDamageStatExponent");
+			MythicalScaleDamageStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap.ContainsKey("MythicalScaleDamageStatType") ? propertyMap["MythicalScaleDamageStatType"] : "")
+				? (int)ImportMaps._LevelUpValueTypes[propertyMap["MythicalScaleDamageStatType"]]
+				: Parse.Int(propertyMap, "MythicalScaleDamageStatType");
+			bIgnoreElementInTargeting = Parse.BoolByte(propertyMap, "bIgnoreElementInTargeting");
+			bProjectilesCollideWithOwner = Parse.BoolByte(propertyMap, "bProjectilesCollideWithOwner");
+			AttackAnimationAlt = db.AddString(propertyMap.ContainsKey("AttackAnimationAlt") ? propertyMap["AttackAnimationAlt"] : "");
+
+			// AoeBuffer
+			StaticBuffRange = Parse.Float(propertyMap, "StaticBuffRange");
+			UseStaticBuffRange = Parse.BoolByte(propertyMap, "UseStaticBuffRange");
+			BoostAnimMinInterval = Parse.Float(propertyMap, "BoostAnimMinInterval");
+			BoostAnimMaxInterval = Parse.Float(propertyMap, "BoostAnimMaxInterval");
 		}
 	}
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -1564,6 +1754,446 @@ namespace DDUP
 			StatBoostCapInitial_HeroDamage = Parse.Float(propertyMap, "StatBoostCapInitial_HeroDamage");
 		}
 
+	}
+
+	// ============================================================
+	// New inline array element types
+	// ============================================================
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct EquipmentDropEntry_Data
+	{
+		public float EquipmentDropValue;
+		public float RelativeWeighting;
+		public float AbsoluteWeighting;
+		public float MinimumQualityThreshold;
+		public float MinimumShopQualityThreshold;
+		public float MinimumRarityThreshold;
+		public int EquipmentTemplate;                   // HeroEquipment index
+		public Array_Data AlternateEquipmentTemplates;  // int[] — HeroEquipment indices
+		public byte CanOnlyBeUsedOnce;
+		public byte bUseForAnyPlayer;
+		public float MinimumDropTimeInterval;
+		public byte MinimumDifficulty;                  // EGameDifficulty 0-5
+		public byte MaximumDifficulty;                  // EGameDifficulty 0-5
+
+		public EquipmentDropEntry_Data(string propertyString, ExportedTemplateDatabase db)
+		{
+			var m = PropertyParser.Parse(propertyString);
+			EquipmentDropValue = Parse.Float(m, "EquipmentDropValue");
+			RelativeWeighting = Parse.Float(m, "RelativeWeighting");
+			AbsoluteWeighting = Parse.Float(m, "AbsoluteWeighting");
+			MinimumQualityThreshold = Parse.Float(m, "MinimumQualityThreshold");
+			MinimumShopQualityThreshold = Parse.Float(m, "MinimumShopQualityThreshold");
+			MinimumRarityThreshold = Parse.Float(m, "MinimumRarityThreshold");
+			EquipmentTemplate = m.ContainsKey("EquipmentTemplate") ? db.GetHeroEquipmentIndex(m["EquipmentTemplate"]) : -1;
+			AlternateEquipmentTemplates = new Array_Data(0, 0, VarType.HeroEquipment); // inline arrays not supported in flat property string
+			CanOnlyBeUsedOnce = Parse.BoolByte(m, "CanOnlyBeUsedOnce");
+			bUseForAnyPlayer = Parse.BoolByte(m, "bUseForAnyPlayer");
+			MinimumDropTimeInterval = Parse.Float(m, "MinimumDropTimeInterval");
+			MinimumDifficulty = (byte)Parse.Int(m, "MinimumDifficulty");
+			MaximumDifficulty = (byte)Parse.Int(m, "MaximumDifficulty", 5);
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct EnemyElementalEntry_Data
+	{
+		public int ElementalDamageType;   // DunDefDamageType index
+		public float UsageChance;
+		public float ElementalEffectScale;
+
+		public EnemyElementalEntry_Data(string propertyString, ExportedTemplateDatabase db)
+		{
+			var m = PropertyParser.Parse(propertyString);
+			ElementalDamageType = m.ContainsKey("ElementalDamageType") ? db.GetDunDefDamageTypeIndex(m["ElementalDamageType"]) : -1;
+			UsageChance = Parse.Float(m, "UsageChance");
+			ElementalEffectScale = Parse.Float(m, "ElementalEffectScale", 1.0f);
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct ElementalDamageModifier_Data
+	{
+		public int DamageType;         // DunDefDamageType index
+		public float DamageMultiplier;
+
+		public ElementalDamageModifier_Data(string propertyString, ExportedTemplateDatabase db)
+		{
+			var m = PropertyParser.Parse(propertyString);
+			DamageType = m.ContainsKey("DamageType") ? db.GetDunDefDamageTypeIndex(m["DamageType"]) : -1;
+			DamageMultiplier = Parse.Float(m, "DamageMultiplier", 1.0f);
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct GiveEquipmentEntry_Data
+	{
+		public int HeroArchetype;                      // DunDefHero index (-1 = any)
+		public int EquipmentArchetype;                 // HeroEquipment index
+		public Array_Data EquipmentArchetypesRandom;   // int[] — HeroEquipment indices
+		public float BaseForceRandomizationQuality;
+		public float MaxRandomizationQuality;
+		public float RandomizerMultiplierOverride;
+		public float RandomGlobalEquipmentDropExtraRarityWeighting;
+		public float RandomGlobalEquipmentDropValueMin;
+		public float RandomGlobalEquipmentDropValueMax;
+		public byte bUseEquipmentArchetypeAsTemplate;
+		public byte bGetRandomGlobalEquipmentDrop;
+		public byte bRandomGlobalDontUseShopDrops;
+		public byte bRandomGlobalDontUseAdditionalItemEntries;
+		public byte ForceHeroArchetypeExactMatch;
+		public byte bDontIgnoreEquipmentMinUpgradeLevels;
+
+		public GiveEquipmentEntry_Data(string propertyString, ExportedTemplateDatabase db)
+		{
+			var m = PropertyParser.Parse(propertyString);
+			HeroArchetype = m.ContainsKey("HeroArchetype") ? db.GetDunDefHeroIndex(m["HeroArchetype"]) : -1;
+			EquipmentArchetype = m.ContainsKey("EquipmentArchetype") ? db.GetHeroEquipmentIndex(m["EquipmentArchetype"]) : -1;
+			EquipmentArchetypesRandom = new Array_Data(0, 0, VarType.HeroEquipment); // inline arrays not supported
+			BaseForceRandomizationQuality = Parse.Float(m, "BaseForceRandomizationQuality");
+			MaxRandomizationQuality = Parse.Float(m, "MaxRandomizationQuality");
+			RandomizerMultiplierOverride = Parse.Float(m, "RandomizerMultiplierOverride");
+			RandomGlobalEquipmentDropExtraRarityWeighting = Parse.Float(m, "RandomGlobalEquipmentDropExtraRarityWeighting");
+			RandomGlobalEquipmentDropValueMin = Parse.Float(m, "RandomGlobalEquipmentDropValueMin");
+			RandomGlobalEquipmentDropValueMax = Parse.Float(m, "RandomGlobalEquipmentDropValueMax");
+			bUseEquipmentArchetypeAsTemplate = Parse.BoolByte(m, "bUseEquipmentArchetypeAsTemplate");
+			bGetRandomGlobalEquipmentDrop = Parse.BoolByte(m, "bGetRandomGlobalEquipmentDrop");
+			bRandomGlobalDontUseShopDrops = Parse.BoolByte(m, "bRandomGlobalDontUseShopDrops");
+			bRandomGlobalDontUseAdditionalItemEntries = Parse.BoolByte(m, "bRandomGlobalDontUseAdditionalItemEntries");
+			ForceHeroArchetypeExactMatch = Parse.BoolByte(m, "ForceHeroArchetypeExactMatch");
+			bDontIgnoreEquipmentMinUpgradeLevels = Parse.BoolByte(m, "bDontIgnoreEquipmentMinUpgradeLevels");
+		}
+	}
+
+	// ============================================================
+	// New top-level object types
+	// ============================================================
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct DunDefEnemy_Data
+	{
+		public int Template;
+		public int Class;
+		public int DescriptiveName; // localized string
+
+		// Drop flags
+		public byte bDropEquipment;
+		public byte bDropMana;
+		public byte bForceDropEquipment;
+		public byte bScaleDroppedEquipmentWithLevel;
+		public byte bIgnoreGlobalEnemyDropQualityMultiplier;
+		public byte bAffectWaveBonusDamageCauser;
+
+		// Global drop config (float)
+		public float GlobalEquipmentDropChanceThreshold;
+		public float GlobalEquipmentDropValueMin;
+		public float GlobalEquipmentDropValueMax;
+		public float GlobalEquipmentDropQuality;
+		public float GlobalDropChanceThresholdMultiplier;
+		public float MaxWaveEquipmentQualityMultiplier;
+		public float AbsoluteMaxEquipmentDropQuality;
+
+		// Global drop config (int)
+		public int NumGlobalEquipmentDropChances;
+		public int NumGlobalEquipmentDropChancesRuthless;
+		public int EquipmentQualityMultiplierMaxWave;
+		public int MinimumStartWaveDifferenceForEquipment;
+
+		// Custom drop config (float)
+		public float CustomEquipmentDropChanceThreshold;
+		public float CustomEquipmentDropValueMin;
+		public float CustomEquipmentDropValueMax;
+		public float CustomEquipmentDropQuality;
+
+		// Custom drop config (int)
+		public int NumCustomEquipmentDropChances;
+
+		// Custom drop entries
+		public Array_Data CustomEquipmentDrops; // EquipmentDropEntry[]
+
+		// Difficulty scaling arrays
+		public Array_Data DifficultyEquipmentQualityMultipliers; // float[]
+		public Array_Data DifficultyEquipmentRarityWeightings;   // float[]
+		public Array_Data DifficultyHealthMultipliers;           // float[]
+		public Array_Data DifficultyDamageMultipliers;           // float[]
+		public Array_Data DifficultySpeedMultipliers;            // float[]
+		public Array_Data DifficultyManaMultipliers;             // float[]
+		public Array_Data DifficultyScoreMultipliers;            // float[]
+		public Array_Data NumPlayerHealthMultipliers;            // float[]
+		public Array_Data GoldenEnemyDifficultyOffset;           // float[]
+		public Array_Data MaxSimultaneousAllowedForPlayers;      // int[]
+		public Array_Data DifficultySetWaveOffsetThresholds;     // float[]
+
+		// Elemental system
+		public Array_Data ElementalEntries;           // EnemyElementalEntry[]
+		public Array_Data ElementalDamageModifiers;   // ElementalDamageModifier[]
+		public float ElementalChanceMultiplier;
+
+		// Ruthless modifiers (flattened from RuthlessEnemyModifiers struct)
+		public float RuthlessHealthMultiplier;
+		public float RuthlessDamageMultiplier;
+		public float RuthlessSpeedMultiplier;
+		public float RuthlessPawnDamageResistanceModifierOverride;
+		public float RuthlessTowerDamageResistanceModifier;
+		public byte RuthlessBUseTowerResistance;
+		public byte bDisableRuthlessModifiers;
+
+		// Nightmare
+		public float NightmareDamageMultiplier;
+		public float ExtraNightmareHealthMultiplier;
+
+		// Tower resistance
+		public float TowerDamageResistanceMultiplier;
+
+		// Spawn config
+		public int SpawnClumpAbsoluteAmount;
+		public int SpawnClumpMaximumAmount;
+		public float SpawnClumpRelativePercent;
+
+		// Difficulty set
+		public int DifficultySetOffset;
+		public int MaxDifficultySets;
+		public float DifficultySetWaveOffset;
+
+		// Speed / stats
+		public float MaxGroundSpeed;
+		public float MaxDifficultySpeedMultiplier;
+		public float KillCountMultiplier;
+		public float EnemyLifeSpan;
+		public float EnemyPlayerFavoringMultiplier;
+
+		// Survival
+		public int SurvivalPartOneWaveTreshold;
+		public int SurvivalPartTwoWaveTreshold;
+		public float SurvivalPartOneDifficultyMultiplier;
+		public float SurvivalPartTwoDifficultyMultiplier;
+
+		// Difficulty offset adders
+		public float AdditionalDifficultyOffsetDamageMultiplier;
+		public float AdditionalDifficultyOffsetHealthMultiplier;
+		public float AdditionalDifficultyOffsetSpeedMultiplier;
+
+		// Combat flags
+		public byte bAllowDarkness;
+		public byte bAllowCoughing;
+		public byte bAllowShocking;
+		public byte bAllowEnsnare;
+		public byte bAllowEnrage;
+		public byte bAllowOil;
+		public byte bCanBeFrozen;
+		public byte bIgnoreAllTowerDamage;
+		public byte bInvincibleWhileSpawningIn;
+		public byte bIgnoreDifficultyScaling;
+		public byte IsPlayerAlly;
+		public byte bAllowSlowByHero;
+		public byte bAllowWeakenByHero;
+		public byte bAddToEnemyCap;
+		public byte bAllowInvincibility;
+		public byte bAllowEnemyDrain;
+		public byte bEvenlySpaceWaveSpawns;
+		public byte bUseEnemyGlobalMultipliers;
+		public byte UseDjinnSpawnClamping;
+		public byte UseSharkenSpawnClamping;
+		public byte UseCopterSpawnClamping;
+		public byte UseRuthlessOgreSpawnClamping;
+		public byte bDontUseStatsInSurvival;
+		public byte bUseSurvivalExtraDifficulty;
+		public byte bClampDifficultyToInsane;
+		public byte bIgnoreStats;
+		public byte bKillOnBuildPhase;
+		public byte bUnclampDifficultyHealthMultiplier;
+		public byte bUnclampDifficultySpeedMultiplier;
+
+		// Classification / misc
+		public byte MyClassification;           // EnemyClassification
+		public byte MinimumDifficultyForRandomElementalEffect; // EGameDifficulty
+
+		public DunDefEnemy_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
+		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+			DescriptiveName = db.AddString(propertyMap.ContainsKey("DescriptiveName") ? propertyMap["DescriptiveName"] : "");
+
+			bDropEquipment = Parse.BoolByte(propertyMap, "bDropEquipment");
+			bDropMana = Parse.BoolByte(propertyMap, "bDropMana");
+			bForceDropEquipment = Parse.BoolByte(propertyMap, "bForceDropEquipment");
+			bScaleDroppedEquipmentWithLevel = Parse.BoolByte(propertyMap, "bScaleDroppedEquipmentWithLevel");
+			bIgnoreGlobalEnemyDropQualityMultiplier = Parse.BoolByte(propertyMap, "bIgnoreGlobalEnemyDropQualityMultiplier");
+			bAffectWaveBonusDamageCauser = Parse.BoolByte(propertyMap, "bAffectWaveBonusDamageCauser");
+
+			GlobalEquipmentDropChanceThreshold = Parse.Float(propertyMap, "GlobalEquipmentDropChanceThreshold");
+			GlobalEquipmentDropValueMin = Parse.Float(propertyMap, "GlobalEquipmentDropValueMin");
+			GlobalEquipmentDropValueMax = Parse.Float(propertyMap, "GlobalEquipmentDropValueMax");
+			GlobalEquipmentDropQuality = Parse.Float(propertyMap, "GlobalEquipmentDropQuality");
+			GlobalDropChanceThresholdMultiplier = Parse.Float(propertyMap, "GlobalDropChanceThresholdMultiplier", 1.0f);
+			MaxWaveEquipmentQualityMultiplier = Parse.Float(propertyMap, "MaxWaveEquipmentQualityMultiplier", 1.0f);
+			AbsoluteMaxEquipmentDropQuality = Parse.Float(propertyMap, "AbsoluteMaxEquipmentDropQuality");
+
+			NumGlobalEquipmentDropChances = Parse.Int(propertyMap, "NumGlobalEquipmentDropChances");
+			NumGlobalEquipmentDropChancesRuthless = Parse.Int(propertyMap, "NumGlobalEquipmentDropChancesRuthless");
+			EquipmentQualityMultiplierMaxWave = Parse.Int(propertyMap, "EquipmentQualityMultiplierMaxWave");
+			MinimumStartWaveDifferenceForEquipment = Parse.Int(propertyMap, "MinimumStartWaveDifferenceForEquipment");
+
+			CustomEquipmentDropChanceThreshold = Parse.Float(propertyMap, "CustomEquipmentDropChanceThreshold");
+			CustomEquipmentDropValueMin = Parse.Float(propertyMap, "CustomEquipmentDropValueMin");
+			CustomEquipmentDropValueMax = Parse.Float(propertyMap, "CustomEquipmentDropValueMax");
+			CustomEquipmentDropQuality = Parse.Float(propertyMap, "CustomEquipmentDropQuality");
+
+			NumCustomEquipmentDropChances = Parse.Int(propertyMap, "NumCustomEquipmentDropChances");
+
+			CustomEquipmentDrops = db.BuildArray(propertyMap.ContainsKey("CustomEquipmentDrops") ? propertyMap["CustomEquipmentDrops"] : "", VarType.EquipmentDropEntry);
+
+			DifficultyEquipmentQualityMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultyEquipmentQualityMultipliers") ? propertyMap["DifficultyEquipmentQualityMultipliers"] : "", VarType.Float);
+			DifficultyEquipmentRarityWeightings = db.BuildArray(propertyMap.ContainsKey("DifficultyEquipmentRarityWeightings") ? propertyMap["DifficultyEquipmentRarityWeightings"] : "", VarType.Float);
+			DifficultyHealthMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultyHealthMultipliers") ? propertyMap["DifficultyHealthMultipliers"] : "", VarType.Float);
+			DifficultyDamageMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultyDamageMultipliers") ? propertyMap["DifficultyDamageMultipliers"] : "", VarType.Float);
+			DifficultySpeedMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultySpeedMultipliers") ? propertyMap["DifficultySpeedMultipliers"] : "", VarType.Float);
+			DifficultyManaMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultyManaMultipliers") ? propertyMap["DifficultyManaMultipliers"] : "", VarType.Float);
+			DifficultyScoreMultipliers = db.BuildArray(propertyMap.ContainsKey("DifficultyScoreMultipliers") ? propertyMap["DifficultyScoreMultipliers"] : "", VarType.Float);
+			NumPlayerHealthMultipliers = db.BuildArray(propertyMap.ContainsKey("NumPlayerHealthMultipliers") ? propertyMap["NumPlayerHealthMultipliers"] : "", VarType.Float);
+			GoldenEnemyDifficultyOffset = db.BuildArray(propertyMap.ContainsKey("GoldenEnemyDifficultyOffset") ? propertyMap["GoldenEnemyDifficultyOffset"] : "", VarType.Float);
+			MaxSimultaneousAllowedForPlayers = db.BuildArray(propertyMap.ContainsKey("MaxSimultaneousAllowedForPlayers") ? propertyMap["MaxSimultaneousAllowedForPlayers"] : "", VarType.Int);
+			DifficultySetWaveOffsetThresholds = db.BuildArray(propertyMap.ContainsKey("DifficultySetWaveOffsetThresholds") ? propertyMap["DifficultySetWaveOffsetThresholds"] : "", VarType.Float);
+
+			ElementalEntries = db.BuildArray(propertyMap.ContainsKey("ElementalEntries") ? propertyMap["ElementalEntries"] : "", VarType.EnemyElementalEntry);
+			ElementalDamageModifiers = db.BuildArray(propertyMap.ContainsKey("ElementalDamageModifiers") ? propertyMap["ElementalDamageModifiers"] : "", VarType.ElementalDamageModifier);
+			ElementalChanceMultiplier = Parse.Float(propertyMap, "ElementalChanceMultiplier", 1.0f);
+
+			// Parse RuthlessEnemyModifiers struct
+			string ruthlessStr = propertyMap.ContainsKey("RuthlessEnemyModifiers") ? propertyMap["RuthlessEnemyModifiers"] : "";
+			var ruthless = string.IsNullOrEmpty(ruthlessStr) ? null : PropertyParser.Parse(ruthlessStr);
+			RuthlessHealthMultiplier = ruthless != null ? Parse.Float(ruthless, "HealthMultiplier", 9.0f) : 9.0f;
+			RuthlessDamageMultiplier = ruthless != null ? Parse.Float(ruthless, "DamageMultiplier", 1.05f) : 1.05f;
+			RuthlessSpeedMultiplier = ruthless != null ? Parse.Float(ruthless, "SpeedMultiplier", 0.35f) : 0.35f;
+			RuthlessPawnDamageResistanceModifierOverride = ruthless != null ? Parse.Float(ruthless, "PawnDamageResistanceModifierOverride") : 0.0f;
+			RuthlessTowerDamageResistanceModifier = ruthless != null ? Parse.Float(ruthless, "TowerDamageResistanceModifier", 0.75f) : 0.75f;
+			RuthlessBUseTowerResistance = ruthless != null ? Parse.BoolByte(ruthless, "bUseTowerResistance") : (byte)0;
+			bDisableRuthlessModifiers = Parse.BoolByte(propertyMap, "bDisableRuthlessModifiers");
+
+			NightmareDamageMultiplier = Parse.Float(propertyMap, "NightmareDamageMultiplier", 1.0f);
+			ExtraNightmareHealthMultiplier = Parse.Float(propertyMap, "ExtraNightmareHealthMultiplier", 1.0f);
+
+			TowerDamageResistanceMultiplier = Parse.Float(propertyMap, "TowerDamageResistanceMultiplier", 1.0f);
+
+			SpawnClumpAbsoluteAmount = Parse.Int(propertyMap, "SpawnClumpAbsoluteAmount");
+			SpawnClumpMaximumAmount = Parse.Int(propertyMap, "SpawnClumpMaximumAmount");
+			SpawnClumpRelativePercent = Parse.Float(propertyMap, "SpawnClumpRelativePercent");
+
+			DifficultySetOffset = Parse.Int(propertyMap, "DifficultySetOffset");
+			MaxDifficultySets = Parse.Int(propertyMap, "MaxDifficultySets");
+			DifficultySetWaveOffset = Parse.Float(propertyMap, "DifficultySetWaveOffset");
+
+			MaxGroundSpeed = Parse.Float(propertyMap, "MaxGroundSpeed");
+			MaxDifficultySpeedMultiplier = Parse.Float(propertyMap, "MaxDifficultySpeedMultiplier", 1.0f);
+			KillCountMultiplier = Parse.Float(propertyMap, "KillCountMultiplier", 1.0f);
+			EnemyLifeSpan = Parse.Float(propertyMap, "EnemyLifeSpan");
+			EnemyPlayerFavoringMultiplier = Parse.Float(propertyMap, "EnemyPlayerFavoringMultiplier", 1.0f);
+
+			SurvivalPartOneWaveTreshold = Parse.Int(propertyMap, "SurvivalPartOneWaveTreshold");
+			SurvivalPartTwoWaveTreshold = Parse.Int(propertyMap, "SurvivalPartTwoWaveTreshold");
+			SurvivalPartOneDifficultyMultiplier = Parse.Float(propertyMap, "SurvivalPartOneDifficultyMultiplier", 1.0f);
+			SurvivalPartTwoDifficultyMultiplier = Parse.Float(propertyMap, "SurvivalPartTwoDifficultyMultiplier", 1.0f);
+
+			AdditionalDifficultyOffsetDamageMultiplier = Parse.Float(propertyMap, "AdditionalDifficultyOffsetDamageMultiplier", 1.0f);
+			AdditionalDifficultyOffsetHealthMultiplier = Parse.Float(propertyMap, "AdditionalDifficultyOffsetHealthMultiplier", 1.0f);
+			AdditionalDifficultyOffsetSpeedMultiplier = Parse.Float(propertyMap, "AdditionalDifficultyOffsetSpeedMultiplier", 1.0f);
+
+			bAllowDarkness = Parse.BoolByte(propertyMap, "bAllowDarkness", 1);
+			bAllowCoughing = Parse.BoolByte(propertyMap, "bAllowCoughing", 1);
+			bAllowShocking = Parse.BoolByte(propertyMap, "bAllowShocking", 1);
+			bAllowEnsnare = Parse.BoolByte(propertyMap, "bAllowEnsnare", 1);
+			bAllowEnrage = Parse.BoolByte(propertyMap, "bAllowEnrage", 1);
+			bAllowOil = Parse.BoolByte(propertyMap, "bAllowOil", 1);
+			bCanBeFrozen = Parse.BoolByte(propertyMap, "bCanBeFrozen", 1);
+			bIgnoreAllTowerDamage = Parse.BoolByte(propertyMap, "bIgnoreAllTowerDamage");
+			bInvincibleWhileSpawningIn = Parse.BoolByte(propertyMap, "bInvincibleWhileSpawningIn");
+			bIgnoreDifficultyScaling = Parse.BoolByte(propertyMap, "bIgnoreDifficultyScaling");
+			IsPlayerAlly = Parse.BoolByte(propertyMap, "IsPlayerAlly");
+			bAllowSlowByHero = Parse.BoolByte(propertyMap, "bAllowSlowByHero", 1);
+			bAllowWeakenByHero = Parse.BoolByte(propertyMap, "bAllowWeakenByHero", 1);
+			bAddToEnemyCap = Parse.BoolByte(propertyMap, "bAddToEnemyCap", 1);
+			bAllowInvincibility = Parse.BoolByte(propertyMap, "bAllowInvincibility", 1);
+			bAllowEnemyDrain = Parse.BoolByte(propertyMap, "bAllowEnemyDrain", 1);
+			bEvenlySpaceWaveSpawns = Parse.BoolByte(propertyMap, "bEvenlySpaceWaveSpawns");
+			bUseEnemyGlobalMultipliers = Parse.BoolByte(propertyMap, "bUseEnemyGlobalMultipliers", 1);
+			UseDjinnSpawnClamping = Parse.BoolByte(propertyMap, "UseDjinnSpawnClamping");
+			UseSharkenSpawnClamping = Parse.BoolByte(propertyMap, "UseSharkenSpawnClamping");
+			UseCopterSpawnClamping = Parse.BoolByte(propertyMap, "UseCopterSpawnClamping");
+			UseRuthlessOgreSpawnClamping = Parse.BoolByte(propertyMap, "UseRuthlessOgreSpawnClamping");
+			bDontUseStatsInSurvival = Parse.BoolByte(propertyMap, "bDontUseStatsInSurvival");
+			bUseSurvivalExtraDifficulty = Parse.BoolByte(propertyMap, "bUseSurvivalExtraDifficulty");
+			bClampDifficultyToInsane = Parse.BoolByte(propertyMap, "bClampDifficultyToInsane");
+			bIgnoreStats = Parse.BoolByte(propertyMap, "bIgnoreStats");
+			bKillOnBuildPhase = Parse.BoolByte(propertyMap, "bKillOnBuildPhase");
+			bUnclampDifficultyHealthMultiplier = Parse.BoolByte(propertyMap, "bUnclampDifficultyHealthMultiplier");
+			bUnclampDifficultySpeedMultiplier = Parse.BoolByte(propertyMap, "bUnclampDifficultySpeedMultiplier");
+
+			MyClassification = (byte)Parse.Int(propertyMap, "MyClassification");
+			MinimumDifficultyForRandomElementalEffect = (byte)Parse.Int(propertyMap, "MinimumDifficultyForRandomElementalEffect");
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct DunDef_SeqAct_GiveEquipmentToPlayers_Data
+	{
+		public int Template;
+		public int Class;
+		public Array_Data GiveEquipmentEntries;  // GiveEquipmentEntry[]
+
+		// Flags
+		public byte bGiveToEveryone;
+		public byte bNotifyUser;
+		public byte bAutoLockEquipment;
+		public byte bForceEquipmentIntoItemBox;
+		public byte bOnlyGiveToUniqueProfile;
+		public byte bOnlyGiveToPrimaryLocalPlayer;
+		public byte bUseNightmareRandomizerMultiplier;
+		public byte bAllowTranscendentGear;
+		public byte bForceGiveEquipmentEvenOnFirstWave;
+		public byte bChooseRandomRewardEntry;
+		public byte bChooseTheBestReward;
+		public byte FactorUpgradesForBestReward;
+		public byte bIgnoreMapOfTheWeek;
+
+		// Floats
+		public float NightmareRandomizerMultiplier;
+		public float HardcoreRandomizerMultiplier;
+		public float ExtraInsaneRandomizerMultiplier;
+		public float ExtraInsaneHardcoreRandomizerMultiplier;
+		public float HardcoreMinimumTranscendentRandomizerMultiplier;
+
+		// Ints
+		public int NumberOfRewardsToChooseFrom;
+
+		public DunDef_SeqAct_GiveEquipmentToPlayers_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
+		{
+			Template = db.AddString(propertyMap["Template"]);
+			Class = db.AddString(propertyMap["Class"]);
+			GiveEquipmentEntries = db.BuildArray(propertyMap.ContainsKey("GiveEquipmentEntries") ? propertyMap["GiveEquipmentEntries"] : "", VarType.GiveEquipmentEntry);
+
+			bGiveToEveryone = Parse.BoolByte(propertyMap, "bGiveToEveryone");
+			bNotifyUser = Parse.BoolByte(propertyMap, "bNotifyUser", 1);
+			bAutoLockEquipment = Parse.BoolByte(propertyMap, "bAutoLockEquipment");
+			bForceEquipmentIntoItemBox = Parse.BoolByte(propertyMap, "bForceEquipmentIntoItemBox");
+			bOnlyGiveToUniqueProfile = Parse.BoolByte(propertyMap, "bOnlyGiveToUniqueProfile");
+			bOnlyGiveToPrimaryLocalPlayer = Parse.BoolByte(propertyMap, "bOnlyGiveToPrimaryLocalPlayer");
+			bUseNightmareRandomizerMultiplier = Parse.BoolByte(propertyMap, "bUseNightmareRandomizerMultiplier");
+			bAllowTranscendentGear = Parse.BoolByte(propertyMap, "bAllowTranscendentGear");
+			bForceGiveEquipmentEvenOnFirstWave = Parse.BoolByte(propertyMap, "bForceGiveEquipmentEvenOnFirstWave");
+			bChooseRandomRewardEntry = Parse.BoolByte(propertyMap, "bChooseRandomRewardEntry");
+			bChooseTheBestReward = Parse.BoolByte(propertyMap, "bChooseTheBestReward");
+			FactorUpgradesForBestReward = Parse.BoolByte(propertyMap, "FactorUpgradesForBestReward");
+			bIgnoreMapOfTheWeek = Parse.BoolByte(propertyMap, "bIgnoreMapOfTheWeek");
+
+			NightmareRandomizerMultiplier = Parse.Float(propertyMap, "NightmareRandomizerMultiplier", 1.0f);
+			HardcoreRandomizerMultiplier = Parse.Float(propertyMap, "HardcoreRandomizerMultiplier", 1.0f);
+			ExtraInsaneRandomizerMultiplier = Parse.Float(propertyMap, "ExtraInsaneRandomizerMultiplier", 1.0f);
+			ExtraInsaneHardcoreRandomizerMultiplier = Parse.Float(propertyMap, "ExtraInsaneHardcoreRandomizerMultiplier", 1.0f);
+			HardcoreMinimumTranscendentRandomizerMultiplier = Parse.Float(propertyMap, "HardcoreMinimumTranscendentRandomizerMultiplier", 1.0f);
+
+			NumberOfRewardsToChooseFrom = Parse.Int(propertyMap, "NumberOfRewardsToChooseFrom", 1);
+		}
 	}
 
 

@@ -15,6 +15,11 @@ PRIORITY
 * Total events at top row of event list
 * Update export to include more stat columns
 
+* Look at indirection of resists on .sup from rebeljake16
+* Fix supreme set bonuses (did this, just need to check in)
+* Look at showing the original timestamp of the loaded .dun file
+* Credit rebeljake16 for resists
+
 
 BUGS and COMPATIBILITY
 * Don't have best role for a weapon be for a role that can never use that weapon

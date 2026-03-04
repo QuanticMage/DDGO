@@ -31,6 +31,14 @@ namespace DDUP
 		private List<HeroEquipment_Familiar_Data> HeroEquipment_Familiar_Datas = new();
 		private List<DunDefHero_Data> DunDefHero_Datas = new();
 
+		// New types
+		private List<EquipmentDropEntry_Data> EquipmentDropEntry_Datas = new();
+		private List<EnemyElementalEntry_Data> EnemyElementalEntry_Datas = new();
+		private List<ElementalDamageModifier_Data> ElementalDamageModifier_Datas = new();
+		private List<DunDefEnemy_Data> DunDefEnemy_Datas = new();
+		private List<GiveEquipmentEntry_Data> GiveEquipmentEntry_Datas = new();
+		private List<DunDef_SeqAct_GiveEquipmentToPlayers_Data> GiveEquipmentToPlayers_Datas = new();
+
 		private List<IndexEntry> IndexEntries = new();
 
 		private Dictionary<string, int> StringList = new();
@@ -40,6 +48,8 @@ namespace DDUP
 		private Dictionary<string, int> DunDefProjectile_IndexMap = new Dictionary<string, int>();
 		private Dictionary<string, int> DunDefDamageType_IndexMap = new Dictionary<string, int>();
 		private Dictionary<string, int> DunDefHero_IndexMap = new Dictionary<string, int>();
+		private Dictionary<string, int> DunDefEnemy_IndexMap = new Dictionary<string, int>();
+		private Dictionary<string, int> GiveEquipmentToPlayers_IndexMap = new Dictionary<string, int>();
 
 		// These variables are for managing the db once loaded
 		// Offsets into AllData for each section
@@ -80,6 +90,22 @@ namespace DDUP
 		private int DunDefHero_DatasCount;
 		private int HeroCostumeTemplatesCount;
 
+		// New type offsets
+		private int EquipmentDropEntry_DatasOffset;
+		private int EnemyElementalEntry_DatasOffset;
+		private int ElementalDamageModifier_DatasOffset;
+		private int DunDefEnemy_DatasOffset;
+		private int GiveEquipmentEntry_DatasOffset;
+		private int GiveEquipmentToPlayers_DatasOffset;
+
+		// New type counts
+		private int EquipmentDropEntry_DatasCount;
+		private int EnemyElementalEntry_DatasCount;
+		private int ElementalDamageModifier_DatasCount;
+		private int DunDefEnemy_DatasCount;
+		private int GiveEquipmentEntry_DatasCount;
+		private int GiveEquipmentToPlayers_DatasCount;
+
 
 		// String data for loaded database
 		private List<string> LoadedStrings = new();
@@ -92,9 +118,9 @@ namespace DDUP
 			using (MemoryStream ms = new MemoryStream())
 			using (BinaryWriter writer = new BinaryWriter(ms))
 			{
-				// Write FileHeader (ID = 0xe47a46e, Version = 1)
+				// Write FileHeader (ID = 0xe47a46e, Version = 2)
 				writer.Write((uint)0xe47a46e);
-				writer.Write((uint)1);
+				writer.Write((uint)2);
 
 				// Write IndexEntries array, prepended by count
 				writer.Write(IndexEntries.Count);
@@ -214,6 +240,37 @@ namespace DDUP
 				{
 					WriteStruct(writer, elem);
 				}
+
+				// Write EquipmentDropEntry_Datas
+				writer.Write(EquipmentDropEntry_Datas.Count);
+				foreach (var elem in EquipmentDropEntry_Datas)
+					WriteStruct(writer, elem);
+
+				// Write EnemyElementalEntry_Datas
+				writer.Write(EnemyElementalEntry_Datas.Count);
+				foreach (var elem in EnemyElementalEntry_Datas)
+					WriteStruct(writer, elem);
+
+				// Write ElementalDamageModifier_Datas
+				writer.Write(ElementalDamageModifier_Datas.Count);
+				foreach (var elem in ElementalDamageModifier_Datas)
+					WriteStruct(writer, elem);
+
+				// Write DunDefEnemy_Datas
+				writer.Write(DunDefEnemy_Datas.Count);
+				foreach (var elem in DunDefEnemy_Datas)
+					WriteStruct(writer, elem);
+
+				// Write GiveEquipmentEntry_Datas
+				writer.Write(GiveEquipmentEntry_Datas.Count);
+				foreach (var elem in GiveEquipmentEntry_Datas)
+					WriteStruct(writer, elem);
+
+				// Write GiveEquipmentToPlayers_Datas
+				writer.Write(GiveEquipmentToPlayers_Datas.Count);
+				foreach (var elem in GiveEquipmentToPlayers_Datas)
+					WriteStruct(writer, elem);
+
 				return ms.ToArray();
 			}
 		}
@@ -245,7 +302,7 @@ namespace DDUP
 			FileHeader = ReadStruct<FileHeader>(span, ref offset);
 
 			// Validate header
-			if (FileHeader.ID != 0xe47a46e || FileHeader.Version != 1)
+			if (FileHeader.ID != 0xe47a46e || FileHeader.Version != 2)
 			{
 				throw new InvalidDataException($"Invalid file header. ID: 0x{FileHeader.ID:X}, Version: {FileHeader.Version}");
 			}
@@ -340,6 +397,35 @@ namespace DDUP
 			DunDefHero_DatasOffset = offset;
 			offset += DunDefHero_DatasCount * Marshal.SizeOf<DunDefHero_Data>();
 
+			// Read EquipmentDropEntry_Datas
+			EquipmentDropEntry_DatasCount = ReadInt(span, ref offset);
+			EquipmentDropEntry_DatasOffset = offset;
+			offset += EquipmentDropEntry_DatasCount * Marshal.SizeOf<EquipmentDropEntry_Data>();
+
+			// Read EnemyElementalEntry_Datas
+			EnemyElementalEntry_DatasCount = ReadInt(span, ref offset);
+			EnemyElementalEntry_DatasOffset = offset;
+			offset += EnemyElementalEntry_DatasCount * Marshal.SizeOf<EnemyElementalEntry_Data>();
+
+			// Read ElementalDamageModifier_Datas
+			ElementalDamageModifier_DatasCount = ReadInt(span, ref offset);
+			ElementalDamageModifier_DatasOffset = offset;
+			offset += ElementalDamageModifier_DatasCount * Marshal.SizeOf<ElementalDamageModifier_Data>();
+
+			// Read DunDefEnemy_Datas
+			DunDefEnemy_DatasCount = ReadInt(span, ref offset);
+			DunDefEnemy_DatasOffset = offset;
+			offset += DunDefEnemy_DatasCount * Marshal.SizeOf<DunDefEnemy_Data>();
+
+			// Read GiveEquipmentEntry_Datas
+			GiveEquipmentEntry_DatasCount = ReadInt(span, ref offset);
+			GiveEquipmentEntry_DatasOffset = offset;
+			offset += GiveEquipmentEntry_DatasCount * Marshal.SizeOf<GiveEquipmentEntry_Data>();
+
+			// Read GiveEquipmentToPlayers_Datas
+			GiveEquipmentToPlayers_DatasCount = ReadInt(span, ref offset);
+			GiveEquipmentToPlayers_DatasOffset = offset;
+			offset += GiveEquipmentToPlayers_DatasCount * Marshal.SizeOf<DunDef_SeqAct_GiveEquipmentToPlayers_Data>();
 
 			// Build index map for loaded templates
 			LoadedTemplateIndexMap.Clear();
@@ -450,6 +536,41 @@ namespace DDUP
 					DunDefHero_DatasOffset,
 					DunDefHero_DatasCount * Unsafe.SizeOf<DunDefHero_Data>()));
 
+		public ReadOnlySpan<EquipmentDropEntry_Data> EquipmentDropEntriesSpan
+			=> MemoryMarshal.Cast<byte, EquipmentDropEntry_Data>(
+				AllData.AsSpan(
+					EquipmentDropEntry_DatasOffset,
+					EquipmentDropEntry_DatasCount * Unsafe.SizeOf<EquipmentDropEntry_Data>()));
+
+		public ReadOnlySpan<EnemyElementalEntry_Data> EnemyElementalEntriesSpan
+			=> MemoryMarshal.Cast<byte, EnemyElementalEntry_Data>(
+				AllData.AsSpan(
+					EnemyElementalEntry_DatasOffset,
+					EnemyElementalEntry_DatasCount * Unsafe.SizeOf<EnemyElementalEntry_Data>()));
+
+		public ReadOnlySpan<ElementalDamageModifier_Data> ElementalDamageModifiersSpan
+			=> MemoryMarshal.Cast<byte, ElementalDamageModifier_Data>(
+				AllData.AsSpan(
+					ElementalDamageModifier_DatasOffset,
+					ElementalDamageModifier_DatasCount * Unsafe.SizeOf<ElementalDamageModifier_Data>()));
+
+		public ReadOnlySpan<DunDefEnemy_Data> DunDefEnemiesSpan
+			=> MemoryMarshal.Cast<byte, DunDefEnemy_Data>(
+				AllData.AsSpan(
+					DunDefEnemy_DatasOffset,
+					DunDefEnemy_DatasCount * Unsafe.SizeOf<DunDefEnemy_Data>()));
+
+		public ReadOnlySpan<GiveEquipmentEntry_Data> GiveEquipmentEntriesSpan
+			=> MemoryMarshal.Cast<byte, GiveEquipmentEntry_Data>(
+				AllData.AsSpan(
+					GiveEquipmentEntry_DatasOffset,
+					GiveEquipmentEntry_DatasCount * Unsafe.SizeOf<GiveEquipmentEntry_Data>()));
+
+		public ReadOnlySpan<DunDef_SeqAct_GiveEquipmentToPlayers_Data> GiveEquipmentToPlayersSpan
+			=> MemoryMarshal.Cast<byte, DunDef_SeqAct_GiveEquipmentToPlayers_Data>(
+				AllData.AsSpan(
+					GiveEquipmentToPlayers_DatasOffset,
+					GiveEquipmentToPlayers_DatasCount * Unsafe.SizeOf<DunDef_SeqAct_GiveEquipmentToPlayers_Data>()));
 
 
 
@@ -551,6 +672,32 @@ namespace DDUP
 			ref readonly var entry = ref GetIndexEntry(index);
 			return ref DunDefHeroesSpan[entry.ObjIndex];
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ref readonly DunDefEnemy_Data GetDunDefEnemy(int index)
+		{
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref DunDefEnemiesSpan[entry.ObjIndex];
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ref readonly DunDef_SeqAct_GiveEquipmentToPlayers_Data GetGiveEquipmentToPlayers(int index)
+		{
+			ref readonly var entry = ref GetIndexEntry(index);
+			return ref GiveEquipmentToPlayersSpan[entry.ObjIndex];
+		}
+
+		public ref readonly EquipmentDropEntry_Data GetEquipmentDropEntry(int index)
+			=> ref EquipmentDropEntriesSpan[index];
+
+		public ref readonly EnemyElementalEntry_Data GetEnemyElementalEntry(int index)
+			=> ref EnemyElementalEntriesSpan[index];
+
+		public ref readonly ElementalDamageModifier_Data GetElementalDamageModifier(int index)
+			=> ref ElementalDamageModifiersSpan[index];
+
+		public ref readonly GiveEquipmentEntry_Data GetGiveEquipmentEntry(int index)
+			=> ref GiveEquipmentEntriesSpan[index];
 
 
 		// Array element accessors with bounds checking
@@ -737,6 +884,36 @@ namespace DDUP
 					foreach (var v in entries)
 						HeroCostumeTemplates.Add(new HeroCostumeTemplate_Data(v, this, AnimationDurations));
 					count = HeroCostumeTemplates.Count - start;
+					break;
+				case VarType.EquipmentDropEntry:
+					start = EquipmentDropEntry_Datas.Count;
+					foreach (var v in entries)
+						EquipmentDropEntry_Datas.Add(new EquipmentDropEntry_Data(v, this));
+					count = EquipmentDropEntry_Datas.Count - start;
+					break;
+				case VarType.EnemyElementalEntry:
+					start = EnemyElementalEntry_Datas.Count;
+					foreach (var v in entries)
+						EnemyElementalEntry_Datas.Add(new EnemyElementalEntry_Data(v, this));
+					count = EnemyElementalEntry_Datas.Count - start;
+					break;
+				case VarType.ElementalDamageModifier:
+					start = ElementalDamageModifier_Datas.Count;
+					foreach (var v in entries)
+						ElementalDamageModifier_Datas.Add(new ElementalDamageModifier_Data(v, this));
+					count = ElementalDamageModifier_Datas.Count - start;
+					break;
+				case VarType.GiveEquipmentEntry:
+					start = GiveEquipmentEntry_Datas.Count;
+					foreach (var v in entries)
+						GiveEquipmentEntry_Datas.Add(new GiveEquipmentEntry_Data(v, this));
+					count = GiveEquipmentEntry_Datas.Count - start;
+					break;
+				case VarType.HeroEquipment:
+					start = IntArrayElems.Count;
+					foreach (var v in entries)
+						IntArrayElems.Add(GetHeroEquipmentIndex(v));
+					count = IntArrayElems.Count - start;
 					break;
 				default:
 					break;
@@ -1052,6 +1229,52 @@ namespace DDUP
 			DunDefDamageType_Datas.Add(damageTypeData);
 
 			return entryIdx;
+		}
+
+		public int AddDunDefEnemy(string path, string className, ref DunDefEnemy_Data enemyData)
+		{
+			if (DunDefEnemy_IndexMap.ContainsKey(path))
+				return IndexEntries[DunDefEnemy_IndexMap[path]].ObjIndex;
+
+			int objIdx = DunDefEnemy_Datas.Count;
+			int entryIdx = AddIndexEntry(path, className, VarType.DunDefEnemy, objIdx);
+
+			DunDefEnemy_IndexMap.Add(path, entryIdx);
+			DunDefEnemy_Datas.Add(enemyData);
+
+			return entryIdx;
+		}
+
+		public int AddGiveEquipmentToPlayers(string path, string className, ref DunDef_SeqAct_GiveEquipmentToPlayers_Data data)
+		{
+			if (GiveEquipmentToPlayers_IndexMap.ContainsKey(path))
+				return IndexEntries[GiveEquipmentToPlayers_IndexMap[path]].ObjIndex;
+
+			int objIdx = GiveEquipmentToPlayers_Datas.Count;
+			int entryIdx = AddIndexEntry(path, className, VarType.DunDef_SeqAct_GiveEquipmentToPlayers, objIdx);
+
+			GiveEquipmentToPlayers_IndexMap.Add(path, entryIdx);
+			GiveEquipmentToPlayers_Datas.Add(data);
+
+			return entryIdx;
+		}
+
+		public int GetDunDefEnemyIndex(string s)
+		{
+			s = ExtractQuotedString(s);
+			if (DunDefEnemy_IndexMap.ContainsKey(s))
+				return DunDefEnemy_IndexMap[s];
+			else
+				return -1;
+		}
+
+		public int GetGiveEquipmentToPlayersIndex(string s)
+		{
+			s = ExtractQuotedString(s);
+			if (GiveEquipmentToPlayers_IndexMap.ContainsKey(s))
+				return GiveEquipmentToPlayers_IndexMap[s];
+			else
+				return -1;
 		}
 	}
 }

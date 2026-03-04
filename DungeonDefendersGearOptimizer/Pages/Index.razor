@@ -2455,7 +2455,7 @@
             }
             else if (v.Type == "Pet")
             {
-                Console.WriteLine($"Template: {TemplateDB.GetString(weaponTemplate.Template)} Pet Index: {weaponTemplate.FamiliarDataIndex}");
+             //   Console.WriteLine($"Template: {TemplateDB.GetString(weaponTemplate.Template)} Pet Index: {weaponTemplate.FamiliarDataIndex}");
                 if (weaponTemplate.FamiliarDataIndex < 0) continue;
                 var familiarTemplate = TemplateDB.GetHeroEquipment_Familiar(weaponTemplate.FamiliarDataIndex);
                 bool isMelee = familiarTemplate.MeleeHitRadius > 0;

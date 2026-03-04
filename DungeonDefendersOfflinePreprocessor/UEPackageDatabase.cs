@@ -1293,6 +1293,19 @@ namespace DungeonDefendersOfflinePreprocessor
 			}
 
 
+			// DunDefEnemy pass (must run before HeroEquipment so enemy drop entry indices are valid)
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (obj.GetReferencePath().StartsWith("DunDefEnemy"))
+					{
+						MainWindow.Log($"Adding DunDefEnemy {obj.GetPath()}");
+						AddEnemyToDB(obj, db);
+						await Task.Yield();
+					}
+				}
+			}
 			foreach (var item in PackageCache.Values)
 			{
 				foreach (var obj in item.Objects)
@@ -1301,6 +1314,19 @@ namespace DungeonDefendersOfflinePreprocessor
 					{
 						MainWindow.Log($"Adding HeroEquipment {obj.GetPath()}");
 						AddEquipmentToDB(obj, db);
+						await Task.Yield();
+					}
+				}
+			}
+			// DunDef_SeqAct_GiveEquipmentToPlayers pass (after HeroEquipment so indices resolve)
+			foreach (var item in PackageCache.Values)
+			{
+				foreach (var obj in item.Objects)
+				{
+					if (DoesObjectInheritFromClass(obj, "DunDef_SeqAct_GiveEquipmentToPlayers"))
+					{
+						MainWindow.Log($"Adding GiveEquipmentToPlayers {obj.GetPath()}");
+						AddGiveEquipmentToPlayersToDB(obj, db);
 						await Task.Yield();
 					}
 				}
@@ -1588,6 +1614,57 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "bForceToMinElementalScale", propertyMap, "0");
 			AddPropertyToMap(obj, "bForceToMaxElementalScale", propertyMap, "0");
 
+			// Sell worth
+			AddPropertyToMap(obj, "SellWorthLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellRatingExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthEquipmentRatingBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthMultiplierLevelBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthMultiplierLevelMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SellWorthMultiplierLevelMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HighResaleWorthPower", propertyMap, "0.0");
+
+			// Shop sell worth
+			AddPropertyToMap(obj, "ShopSellWorthLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellRatingExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthEquipmentRatingBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthWeaponExponentialFactorMult", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxShopSellWorth", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthMinWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthMaxWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ShopSellWorthRatingWeaponMultiplier", propertyMap, "0.0");
+
+			// Mana cost per level
+			AddPropertyToMap(obj, "ManaCostPerLevelLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostPerLevelExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostPerLevelMinQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostPerLevelMaxQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
+
+			// Other new floats
+			AddPropertyToMap(obj, "RatingPercentForLevelUpCostExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponDrawScaleGlobalMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "WeaponDrawScaleRandomizerExtraMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "IconScaleMultiplier", propertyMap, "0.0");
+
+			// New int/byte fields
+			AddPropertyToMap(obj, "DamageReductionUpgradeInterval", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseAlternateThreshold", propertyMap, "0");
+			AddPropertyToMap(obj, "WeaponDrawScaleMultiplierRandomizer", propertyMap, "0");
+
+			// New array fields
+			AddArrayPropertyToMap(obj, "QualityShopCostMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "QualityShopCostCaps", propertyMap);
+			AddArrayPropertyToMap(obj, "EquipLevelRequirements", propertyMap);
+			AddArrayPropertyToMap(obj, "AccessoryRequirements", propertyMap);
+
 			AddPropertyToMap(obj, "IconColorAddPrimary", propertyMap, "0");
 			AddPropertyToMap(obj, "IconColorAddSecondary", propertyMap, "0");
 			AddPropertyToMap(obj, "IconColorMultPrimary", propertyMap, "0.0");
@@ -1856,6 +1933,42 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			// HeroEquipment_Familiar_TowerHealer
 			AddPropertyToMap(obj, "bHealOverRadius", propertyMap, "0");
+
+			// HeroEquipment_Familiar size scaling
+			AddPropertyToMap(obj, "SizeScalerMaximumLevel", propertyMap, "100.0");
+			AddPropertyToMap(obj, "SizeScalerPower", propertyMap, "1.0");
+			AddPropertyToMap(obj, "MaximumLevelScaleMultiplier", propertyMap, "1.0");
+			AddPropertyToMap(obj, "DrawScaleOffsetExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DrawScaleOffsetMult", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HeroExperienceInvestmentMultiplier", propertyMap, "0.0");
+
+			// HeroEquipment_Familiar_CoreHealer mana cost
+			AddPropertyToMap(obj, "ManaCostStatBase", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ManaCostMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HealRangeMaxEffectiveStat", propertyMap, "0.0");
+			AddPropertyToMap(obj, "bHealInCombatPhaseOnly", propertyMap, "0");
+
+			// HeroEquipment_Familiar_TowerDamageScaling missing flags
+			AddPropertyToMap(obj, "bSlowEnemyTarget", propertyMap, "0");
+			AddPropertyToMap(obj, "SlowEnemyTargetPercentage", propertyMap, "0.0");
+			AddPropertyToMap(obj, "EnemyClearSlowTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "EnemyClearWeakenTime", propertyMap, "0.0");
+			AddPropertyToMap(obj, "bShootProjectileWithoutTarget", propertyMap, "0");
+			AddPropertyToMap(obj, "bMythicalScaleTowerDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "MythicalScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MythicalScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreElementInTargeting", propertyMap, "0");
+			AddPropertyToMap(obj, "bProjectilesCollideWithOwner", propertyMap, "0");
+			AddPropertyToMap(obj, "AttackAnimationAlt", propertyMap, "0");
+
+			// HeroEquipment_Familiar_AoeBuffer
+			AddPropertyToMap(obj, "StaticBuffRange", propertyMap, "0.0");
+			AddPropertyToMap(obj, "UseStaticBuffRange", propertyMap, "0");
+			AddPropertyToMap(obj, "BoostAnimMinInterval", propertyMap, "0.0");
+			AddPropertyToMap(obj, "BoostAnimMaxInterval", propertyMap, "0.0");
 
 			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
 			HeroEquipment_Familiar_Data hef = new HeroEquipment_Familiar_Data(propertyMap, db);
@@ -2392,5 +2505,180 @@ namespace DungeonDefendersOfflinePreprocessor
 
 		}		
 
+
+		public int AddEnemyToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Drop flags (byte)
+			AddPropertyToMap(obj, "bDropEquipment", propertyMap, "0");
+			AddPropertyToMap(obj, "bDropMana", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceDropEquipment", propertyMap, "0");
+			AddPropertyToMap(obj, "bScaleDroppedEquipmentWithLevel", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreGlobalEnemyDropQualityMultiplier", propertyMap, "0");
+			AddPropertyToMap(obj, "bAffectWaveBonusDamageCauser", propertyMap, "0");
+
+			// Global drop config (float)
+			AddPropertyToMap(obj, "GlobalEquipmentDropChanceThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "GlobalEquipmentDropValueMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "GlobalEquipmentDropValueMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "GlobalEquipmentDropQuality", propertyMap, "0.0");
+			AddPropertyToMap(obj, "GlobalDropChanceThresholdMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxWaveEquipmentQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AbsoluteMaxEquipmentDropQuality", propertyMap, "0.0");
+
+			// Global drop config (int)
+			AddPropertyToMap(obj, "NumGlobalEquipmentDropChances", propertyMap, "0");
+			AddPropertyToMap(obj, "NumGlobalEquipmentDropChancesRuthless", propertyMap, "0");
+			AddPropertyToMap(obj, "EquipmentQualityMultiplierMaxWave", propertyMap, "0");
+			AddPropertyToMap(obj, "MinimumStartWaveDifferenceForEquipment", propertyMap, "0");
+
+			// Custom drop config (float)
+			AddPropertyToMap(obj, "CustomEquipmentDropChanceThreshold", propertyMap, "0.0");
+			AddPropertyToMap(obj, "CustomEquipmentDropValueMin", propertyMap, "0.0");
+			AddPropertyToMap(obj, "CustomEquipmentDropValueMax", propertyMap, "0.0");
+			AddPropertyToMap(obj, "CustomEquipmentDropQuality", propertyMap, "0.0");
+
+			// Custom drop config (int)
+			AddPropertyToMap(obj, "NumCustomEquipmentDropChances", propertyMap, "0");
+
+			// Custom drop entries array
+			AddArrayPropertyToMap(obj, "CustomEquipmentDrops", propertyMap);
+
+			// Difficulty scaling arrays
+			AddArrayPropertyToMap(obj, "DifficultyEquipmentQualityMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultyEquipmentRarityWeightings", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultyHealthMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultyDamageMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultySpeedMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultyManaMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultyScoreMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "NumPlayerHealthMultipliers", propertyMap);
+			AddArrayPropertyToMap(obj, "GoldenEnemyDifficultyOffset", propertyMap);
+			AddArrayPropertyToMap(obj, "MaxSimultaneousAllowedForPlayers", propertyMap);
+			AddArrayPropertyToMap(obj, "DifficultySetWaveOffsetThresholds", propertyMap);
+
+			// Elemental system
+			AddArrayPropertyToMap(obj, "ElementalEntries", propertyMap);
+			AddArrayPropertyToMap(obj, "ElementalDamageModifiers", propertyMap);
+			AddPropertyToMap(obj, "ElementalChanceMultiplier", propertyMap, "0.0");
+
+			// Ruthless modifiers (from RuthlessEnemyModifiers struct)
+			AddPropertyToMap(obj, "RuthlessEnemyModifiers", propertyMap, "");
+
+			// Nightmare / tower resistance
+			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraNightmareHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "TowerDamageResistanceMultiplier", propertyMap, "0.0");
+
+			// Spawn config
+			AddPropertyToMap(obj, "SpawnClumpAbsoluteAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "SpawnClumpMaximumAmount", propertyMap, "0");
+			AddPropertyToMap(obj, "SpawnClumpRelativePercent", propertyMap, "0.0");
+
+			// Difficulty set
+			AddPropertyToMap(obj, "DifficultySetOffset", propertyMap, "0");
+			AddPropertyToMap(obj, "MaxDifficultySets", propertyMap, "0");
+			AddPropertyToMap(obj, "DifficultySetWaveOffset", propertyMap, "0.0");
+
+			// Speed / stats
+			AddPropertyToMap(obj, "MaxGroundSpeed", propertyMap, "0.0");
+			AddPropertyToMap(obj, "MaxDifficultySpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "KillCountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "EnemyLifeSpan", propertyMap, "0.0");
+			AddPropertyToMap(obj, "EnemyPlayerFavoringMultiplier", propertyMap, "0.0");
+
+			// Survival
+			AddPropertyToMap(obj, "SurvivalPartOneWaveTreshold", propertyMap, "0");
+			AddPropertyToMap(obj, "SurvivalPartTwoWaveTreshold", propertyMap, "0");
+			AddPropertyToMap(obj, "SurvivalPartOneDifficultyMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "SurvivalPartTwoDifficultyMultiplier", propertyMap, "0.0");
+
+			// Difficulty offset adders
+			AddPropertyToMap(obj, "AdditionalDifficultyOffsetDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AdditionalDifficultyOffsetHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "AdditionalDifficultyOffsetSpeedMultiplier", propertyMap, "0.0");
+
+			// Combat flags (byte)
+			AddPropertyToMap(obj, "bAllowDarkness", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowCoughing", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowShocking", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowEnsnare", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowEnrage", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowOil", propertyMap, "0");
+			AddPropertyToMap(obj, "bCanBeFrozen", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreAllTowerDamage", propertyMap, "0");
+			AddPropertyToMap(obj, "bInvincibleWhileSpawningIn", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreDifficultyScaling", propertyMap, "0");
+			AddPropertyToMap(obj, "IsPlayerAlly", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowSlowByHero", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowWeakenByHero", propertyMap, "0");
+			AddPropertyToMap(obj, "bAddToEnemyCap", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowInvincibility", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowEnemyDrain", propertyMap, "0");
+			AddPropertyToMap(obj, "bEvenlySpaceWaveSpawns", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseEnemyGlobalMultipliers", propertyMap, "0");
+			AddPropertyToMap(obj, "UseDjinnSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(obj, "UseSharkenSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(obj, "UseCopterSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(obj, "UseRuthlessOgreSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(obj, "bDontUseStatsInSurvival", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseSurvivalExtraDifficulty", propertyMap, "0");
+			AddPropertyToMap(obj, "bClampDifficultyToInsane", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreStats", propertyMap, "0");
+			AddPropertyToMap(obj, "bKillOnBuildPhase", propertyMap, "0");
+			AddPropertyToMap(obj, "bUnclampDifficultyHealthMultiplier", propertyMap, "0");
+			AddPropertyToMap(obj, "bUnclampDifficultySpeedMultiplier", propertyMap, "0");
+
+			// Classification
+			AddPropertyToMap(obj, "MyClassification", propertyMap, "0");
+			AddPropertyToMap(obj, "MinimumDifficultyForRandomElementalEffect", propertyMap, "0");
+
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
+			propertyMap["DescriptiveName"] = "0";
+
+			DunDefEnemy_Data enemy = new DunDefEnemy_Data(propertyMap, db);
+			return db.AddDunDefEnemy(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref enemy);
+		}
+
+		public int AddGiveEquipmentToPlayersToDB(UObject obj, ExportedTemplateDatabase db)
+		{
+			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+
+			// Give equipment entries array
+			AddArrayPropertyToMap(obj, "GiveEquipmentEntries", propertyMap);
+
+			// Flags (byte)
+			AddPropertyToMap(obj, "bGiveToEveryone", propertyMap, "0");
+			AddPropertyToMap(obj, "bNotifyUser", propertyMap, "0");
+			AddPropertyToMap(obj, "bAutoLockEquipment", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceEquipmentIntoItemBox", propertyMap, "0");
+			AddPropertyToMap(obj, "bOnlyGiveToUniqueProfile", propertyMap, "0");
+			AddPropertyToMap(obj, "bOnlyGiveToPrimaryLocalPlayer", propertyMap, "0");
+			AddPropertyToMap(obj, "bUseNightmareRandomizerMultiplier", propertyMap, "0");
+			AddPropertyToMap(obj, "bAllowTranscendentGear", propertyMap, "0");
+			AddPropertyToMap(obj, "bForceGiveEquipmentEvenOnFirstWave", propertyMap, "0");
+			AddPropertyToMap(obj, "bChooseRandomRewardEntry", propertyMap, "0");
+			AddPropertyToMap(obj, "bChooseTheBestReward", propertyMap, "0");
+			AddPropertyToMap(obj, "FactorUpgradesForBestReward", propertyMap, "0");
+			AddPropertyToMap(obj, "bIgnoreMapOfTheWeek", propertyMap, "0");
+
+			// Floats
+			AddPropertyToMap(obj, "NightmareRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HardcoreRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraInsaneRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ExtraInsaneHardcoreRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(obj, "HardcoreMinimumTranscendentRandomizerMultiplier", propertyMap, "0.0");
+
+			// Ints
+			AddPropertyToMap(obj, "NumberOfRewardsToChooseFrom", propertyMap, "0");
+
+			propertyMap["Template"] = obj.GetPath();
+			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
+
+			DunDef_SeqAct_GiveEquipmentToPlayers_Data data = new DunDef_SeqAct_GiveEquipmentToPlayers_Data(propertyMap, db);
+			return db.AddGiveEquipmentToPlayers(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref data);
+		}
 	}
 }
