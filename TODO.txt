@@ -2,6 +2,19 @@
 TODO:
 
 PRIORITY
+
+(DONE) Event list problem (see Teinelai's .dun file) - final patch, delver's eyewear, crystalline defender, molon labe, mr crackers, sun staff, and armor 21k vs armor 14k
+
+
+* Survey for DDGO
+* HHP as side for DPS?
+
+* Given damage curves, what's the ideal ratio of stats?  When does one stat not matter as much?
+* Gunwitch TRate as main or side?
+* Right click context menu
+
+* search field not updating properly when pressing enter sometimes (or X)
+
 * Show upgrades (+x) over the stats, how many upgrades went into resistances on the hero pane when hovering
 * Update auto-event identification code.  include bCantBesold (glass + defenders sets to event items, but not in list?)
 * Filter layout iteration- make it easier
