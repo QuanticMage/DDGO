@@ -1,0 +1,334 @@
+/* ── Loading / error ─────────────────────────────────────────────────────── */
+
+.db-loading,
+.db-error {
+    padding: 2rem;
+    font-size: 1.1rem;
+}
+
+.db-error {
+    color: #c00;
+}
+
+/* ── Page shell ──────────────────────────────────────────────────────────── */
+
+.dbsearch-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+/* ── Controls strip ──────────────────────────────────────────────────────── */
+
+.controls-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.5rem 0.75rem;
+    background: #1e1e2e;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ctrl-label {
+    display: inline-block;
+    width: 90px;
+    flex-shrink: 0;
+    color: #999;
+    text-align: right;
+    font-size: 0.80rem;
+}
+
+.controls-strip select,
+.ctrl-input {
+    flex: 1 1 0;
+    min-width: 0;
+    background: #2a2a3e;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #eee;
+    padding: 3px 6px;
+    font-size: 0.82rem;
+    font-family: monospace;
+}
+
+.controls-strip select {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.run-btn {
+    padding: 3px 14px;
+    background: #3a7bd5;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.run-btn:hover { background: #2e64b8; }
+
+.search-error {
+    color: #f66;
+    font-size: 0.82rem;
+}
+
+/* ── Splitters ────────────────────────────────────────────────────────────── */
+
+.splitter-h {
+    flex-shrink: 0;
+    height: 5px;
+    background: #2a2a3e;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+    cursor: row-resize;
+    transition: background 0.15s;
+}
+.splitter-h:hover { background: #3a7bd5; }
+
+.splitter-v {
+    flex-shrink: 0;
+    width: 5px;
+    background: #2a2a3e;
+    border-left: 1px solid #444;
+    border-right: 1px solid #444;
+    cursor: col-resize;
+    transition: background 0.15s;
+}
+.splitter-v:hover { background: #3a7bd5; }
+
+/* ── Top half: detail pane ────────────────────────────────────────────────── */
+
+.detail-pane {
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Bottom half: results grid ────────────────────────────────────────────── */
+
+.results-pane {
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.results-count {
+    padding: 3px 8px;
+    background: #1a1a2a;
+    color: #888;
+    font-size: 0.78rem;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.no-results {
+    padding: 1rem;
+    color: #666;
+}
+
+.table-scroll {
+    overflow: auto;
+    flex: 1 1 0;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.80rem;
+}
+
+.results-table th {
+    position: sticky;
+    top: 0;
+    background: #1e1e2e;
+    border-bottom: 1px solid #444;
+    padding: 3px 6px;
+    text-align: left;
+    color: #bbb;
+    white-space: nowrap;
+}
+
+.results-table td {
+    padding: 2px 6px;
+    border-bottom: 1px solid #2a2a3a;
+    white-space: nowrap;
+    color: #ddd;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.results-table tr:hover td { background: #252535; }
+
+.row-selected td {
+    background: #2b3a5a !important;
+}
+
+.row-compare td {
+    background: #2a3a2a !important;
+}
+
+.cell-name {
+    font-weight: 600;
+    color: #8ec5e8 !important;
+}
+
+.cell-class {
+    color: #999 !important;
+    font-size: 0.76rem;
+}
+
+.pane-header-vs {
+    color: #556;
+    font-weight: normal;
+    padding: 0 0.3rem;
+}
+
+.pane-header-compare {
+    color: #7ec87e;
+    font-weight: 600;
+}
+
+.pane-header-hint {
+    font-weight: normal;
+    font-size: 0.72rem;
+    color: #556;
+    margin-left: 0.3rem;
+}
+
+.pane-header {
+    padding: 4px 8px;
+    background: #1a2535;
+    color: #8ec5e8;
+    font-weight: 600;
+    font-size: 0.84rem;
+    border-bottom: 1px solid #334;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pane-placeholder {
+    padding: 1rem;
+    color: #555;
+}
+
+.compare-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 4px 6px;
+    background: #1e1e2e;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.compare-input {
+    flex: 1 1 0;
+    background: #2a2a3e;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #eee;
+    padding: 2px 5px;
+    font-size: 0.82rem;
+    font-family: monospace;
+}
+
+.not-found-msg {
+    color: #f66;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.field-scroll {
+    flex: 1 1 0;
+    overflow: auto;
+}
+
+/* ── Field rows ──────────────────────────────────────────────────────────── */
+
+.field-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 36%) 1fr;
+    border-bottom: 1px solid #1c1c2c;
+    min-width: 0;
+}
+
+.field-row.field-diff {
+    background: #2a1f1f;
+}
+
+/* Column 1: expand toggle + indented field name */
+.field-name-cell {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    padding: 2px 4px 2px 0;
+    color: #8cb4d8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Column 2: value + optional diff annotation */
+.field-value-cell {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 2px 6px;
+    border-left: 1px solid #252535;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.expand-btn {
+    display: inline-block;
+    width: 14px;
+    flex-shrink: 0;
+    text-align: center;
+    cursor: pointer;
+    color: #888;
+    user-select: none;
+}
+
+.expand-btn:hover { color: #ccc; }
+
+.expand-placeholder {
+    cursor: default;
+    color: transparent;
+}
+
+.field-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.field-value {
+    color: #d4d4aa;
+    word-break: break-all;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.diff-other {
+    color: #f09060;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}

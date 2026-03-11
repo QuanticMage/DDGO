@@ -1,0 +1,369 @@
+@page "/dbsearch"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>DB Search</PageTitle>
+
+@if (_loading)
+{
+    <div class="db-loading">Loading template database…</div>
+}
+else if (_loadError != null)
+{
+    <div class="db-error">Failed to load database: @_loadError</div>
+}
+else
+{
+    <div class="dbsearch-page">
+
+        <!-- ── Controls strip ── -->
+        <div class="controls-strip">
+            <div class="ctrl-row">
+                <span class="ctrl-label">Type</span>
+                <select @bind="_selectedTypeIdx" @bind:after="ClearResults">
+                    @for (int i = 0; i < DbSearchHelper.StructTypes.Length; i++)
+                    {
+                        int idx = i;
+                        <option value="@idx">@DbSearchHelper.StructTypes[i].Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label">Columns</span>
+                <input type="text" class="ctrl-input" @bind="_columnsInput"
+                       @onkeydown="OnCtrlKeyDown"
+                       placeholder="comma-separated field names, e.g. ProjDamage, AttackInterval" />
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label">Name filter</span>
+                <input type="text" class="ctrl-input" @bind="_nameFilter"
+                       @onkeydown="OnCtrlKeyDown"
+                       placeholder="template name substring…" />
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label">Expression</span>
+                <input type="text" class="ctrl-input" @bind="_filterExpr"
+                       @onkeydown="OnCtrlKeyDown"
+                       placeholder="e.g.  ManaCostMin > 0  and  NightmareDamageMultiplier != 1" />
+            </div>
+
+            <div class="ctrl-row">
+                <span class="ctrl-label"></span>
+                <button class="run-btn" @onclick="RunSearch">Search</button>
+                @if (_searchError != null)
+                {
+                    <span class="search-error">@_searchError</span>
+                }
+            </div>
+        </div>
+
+        <!-- ── Top half: detail pane ── -->
+        <div class="detail-pane">
+            @if (_selectedRow == null)
+            {
+                <div class="pane-placeholder">Click a row to view details.</div>
+            }
+            else
+            {
+                <div class="pane-header">
+                    @_selectedRow.TemplateName
+                    @if (_compareRow != null)
+                    {
+                        <span class="pane-header-vs"> vs </span>
+                        <span class="pane-header-compare">@_compareRow.TemplateName</span>
+                        <span class="pane-header-hint"> (right-click row to change)</span>
+                    }
+                </div>
+                <div class="field-scroll">
+                    @RenderTree(_detailNodes, _compareValueMap, _compareRow != null)
+                </div>
+            }
+        </div>
+
+        <!-- Horizontal splitter between view area and results grid -->
+        <div class="splitter-h"></div>
+
+        <!-- ── Bottom half: results grid ── -->
+        <div class="results-pane">
+            @if (_results.Count == 0)
+            {
+                <div class="no-results">No results. Run a search above.</div>
+            }
+            else
+            {
+                <div class="results-count">@_results.Count result(s)</div>
+                <div class="table-scroll">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Template</th>
+                                <th>Class</th>
+                                @foreach (var col in _columns)
+                                {
+                                    <th>@col</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in _results)
+                            {
+                                bool isSelected = _selectedRow == row;
+                                bool isCompare  = _compareRow  == row;
+                                string rowCls = isSelected ? "row-selected" : isCompare ? "row-compare" : "";
+                                <tr class="@rowCls"
+                                    @onclick="() => SelectRow(row)"
+                                    @oncontextmenu="() => SetCompareRow(row)"
+                                    @oncontextmenu:preventDefault>
+                                    <td class="cell-name">@row.TemplateName</td>
+                                    <td class="cell-class">@row.ClassName</td>
+                                    @for (int c = 0; c < row.ColumnValues.Length; c++)
+                                    {
+                                        <td>@row.ColumnValues[c]</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    // ── DB ──────────────────────────────────────────────────────────────────
+    private readonly TemplateDatabase _db = new();
+    private bool _loading = true;
+    private string? _loadError;
+    private bool _suppressRender = false;
+
+    protected override bool ShouldRender()
+    {
+        if (_suppressRender) { _suppressRender = false; return false; }
+        return true;
+    }
+
+    // ── Search controls ──────────────────────────────────────────────────────
+    private int _selectedTypeIdx = 0;
+    private string _columnsInput = "";
+    private string _nameFilter = "";
+    private string _filterExpr = "";
+    private string? _searchError;
+
+    // ── Results ──────────────────────────────────────────────────────────────
+    private string[] _columns = Array.Empty<string>();
+    private List<SearchResult> _results = new();
+
+    // ── Detail pane ──────────────────────────────────────────────────────────
+    private SearchResult? _selectedRow;
+    private List<FieldNode> _detailNodes = new();
+    private Dictionary<string, string> _detailValueMap = new();
+
+    // ── Compare pane ─────────────────────────────────────────────────────────
+    private SearchResult? _compareRow;
+    private Dictionary<string, string> _compareValueMap = new();
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await _db.Load(Http, "DunDefTemplates.dbz");
+        }
+        catch (Exception ex)
+        {
+            _loadError = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_loading)
+            await JS.InvokeVoidAsync("initSplitters");
+    }
+
+    private void OnCtrlKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") RunSearch();
+        else _suppressRender = true;
+    }
+
+    // ── Search ───────────────────────────────────────────────────────────────
+
+    private void ClearResults()
+    {
+        _results.Clear();
+        _selectedRow = null;
+        _detailNodes.Clear();
+        _detailValueMap.Clear();
+        _compareRow = null;
+        _compareValueMap.Clear();
+    }
+
+    private void RunSearch()
+    {
+        _searchError = null;
+        ClearResults();
+
+        _columns = _columnsInput
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var filter = new DbSearchFilter(_db);
+        string expr = _filterExpr.Trim();
+        string name = _nameFilter.Trim();
+
+        try
+        {
+            foreach (var (tname, cname, ieIdx, famIdx, structData) in
+                     DbSearchHelper.EnumerateEntries(_db, _selectedTypeIdx))
+            {
+                if (name.Length > 0 && !tname.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                object? famData = famIdx >= 0
+                    ? (object)_db.GetHeroEquipment_Familiar(famIdx) : null;
+
+                if (!filter.Evaluate(structData, expr, famData))
+                    continue;
+
+                var colValues = new string[_columns.Length];
+                for (int c = 0; c < _columns.Length; c++)
+                    colValues[c] = DbSearchHelper.ResolveToDisplay(structData, _columns[c], _db, famData);
+
+                _results.Add(new SearchResult(tname, cname, ieIdx, famIdx, structData, colValues));
+            }
+        }
+        catch (Exception ex)
+        {
+            _searchError = $"Error: {ex.Message}";
+        }
+    }
+
+    // ── Row selection ─────────────────────────────────────────────────────────
+
+    private void SelectRow(SearchResult row)
+    {
+        _selectedRow = row;
+        object? famData = row.FamiliarDirectIdx >= 0
+            ? (object)_db.GetHeroEquipment_Familiar(row.FamiliarDirectIdx) : null;
+        _detailNodes = DbSearchHelper.BuildNodes(row.StructData, _db, famData);
+        _detailValueMap = DbSearchHelper.BuildValueMap(row.StructData, _db, extraStruct: famData);
+    }
+
+    // ── Compare pane ──────────────────────────────────────────────────────────
+
+    private void SetCompareRow(SearchResult row)
+    {
+        _compareRow = row;
+        object? famData = row.FamiliarDirectIdx >= 0
+            ? (object)_db.GetHeroEquipment_Familiar(row.FamiliarDirectIdx) : null;
+        _compareValueMap = DbSearchHelper.BuildValueMap(row.StructData, _db, extraStruct: famData);
+    }
+
+    // ── Node expansion ────────────────────────────────────────────────────────
+
+    private void ToggleNode(FieldNode node)
+    {
+        node.IsExpanded = !node.IsExpanded;
+        if (node.IsExpanded && node.Children == null)
+            node.Children = DbSearchHelper.LoadChildren(node, _db);
+    }
+
+    // ── Tree rendering ────────────────────────────────────────────────────────
+
+    private RenderFragment RenderTree(List<FieldNode> nodes, Dictionary<string, string> otherMap,
+                                      bool hasCompare = false) => builder =>
+    {
+        var flat = DbSearchHelper.Flatten(nodes);
+        int seq = 0;
+
+        string cols = hasCompare
+            ? "minmax(120px,28%) 1fr 1fr"
+            : "minmax(140px,36%) 1fr";
+
+        foreach (var (node, depth, path) in flat)
+        {
+            // ── Section header ─────────────────────────────────────────────
+            if (node.IsHeader)
+            {
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "style",
+                    "grid-column:1/-1;padding:3px 6px;background:#1a2535;color:#5a8aba;font-size:0.75rem;border-bottom:1px solid #2a3a4a;letter-spacing:0.05em;");
+                builder.AddContent(seq++, node.Name);
+                builder.CloseElement();
+                continue;
+            }
+
+            otherMap.TryGetValue(path, out string? otherVal);
+            bool isDiff = hasCompare && otherVal != null && otherVal != node.DisplayValue;
+            bool canExpand = node.IsRef || node.IsFamiliarRef || node.IsArray;
+
+            string bg = isDiff ? "background:#2a1f1f;" : "";
+            string rowStyle = $"display:grid;grid-template-columns:{cols};border-bottom:1px solid #1c1c2c;{bg}";
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field-row" + (isDiff ? " field-diff" : ""));
+            builder.AddAttribute(seq++, "style", rowStyle);
+
+            // ── Column 1: expand button + indented field name ──────────────
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field-name-cell");
+            builder.AddAttribute(seq++, "style",
+                $"display:flex;align-items:baseline;gap:0.2rem;overflow:hidden;white-space:nowrap;padding:2px 4px 2px {depth * 16 + 2}px;color:#8cb4d8;");
+
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "style",
+                canExpand
+                    ? "display:inline-block;width:14px;text-align:center;cursor:pointer;color:#888;user-select:none;flex-shrink:0;"
+                    : "display:inline-block;width:14px;flex-shrink:0;");
+            if (canExpand)
+            {
+                FieldNode capturedNode = node;
+                builder.AddAttribute(seq++, "onclick",
+                    EventCallback.Factory.Create(this, () => ToggleNode(capturedNode)));
+                builder.AddContent(seq++, node.IsExpanded ? "▼" : "▶");
+            }
+            builder.CloseElement(); // expand-btn
+
+            builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "style", "overflow:hidden;text-overflow:ellipsis;flex:1 1 0;min-width:0;");
+            builder.AddContent(seq++, node.Name);
+            builder.CloseElement(); // field-name
+
+            builder.CloseElement(); // field-name-cell
+
+            // ── Column 2: selected row value ───────────────────────────────
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style",
+                "display:flex;align-items:baseline;overflow:hidden;white-space:nowrap;border-left:1px solid #252535;padding:2px 6px;min-width:0;color:#d4d4aa;");
+            builder.AddContent(seq++, node.DisplayValue);
+            builder.CloseElement(); // value cell
+
+            // ── Column 3: compare row value (only when hasCompare) ─────────
+            if (hasCompare)
+            {
+                string compareCellStyle = isDiff
+                    ? "display:flex;align-items:baseline;overflow:hidden;white-space:nowrap;border-left:1px solid #3a2a1a;padding:2px 6px;min-width:0;color:#f09060;"
+                    : "display:flex;align-items:baseline;overflow:hidden;white-space:nowrap;border-left:1px solid #252535;padding:2px 6px;min-width:0;color:#666;";
+
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "style", compareCellStyle);
+                if (isDiff && otherVal != null)
+                    builder.AddContent(seq++, otherVal);
+                builder.CloseElement(); // compare cell
+            }
+
+            builder.CloseElement(); // field-row
+        }
+    };
+
+    private static string Trim(string s) => s.Trim();
+}
