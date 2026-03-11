@@ -270,8 +270,8 @@ namespace DungeonDefendersOfflinePreprocessor
 				// 1) Synchronous heavy work -> background thread
 				foreach (var fileName in upkFiles)
 				{
-					await RunDecompressAsync(workingDir, packageDir + fileName);
-					await RunExtractorAsync(workingDir, fileName); 
+//					await RunDecompressAsync(workingDir, packageDir + fileName);
+					//await RunExtractorAsync(workingDir, fileName); 
 					db.AddToDatabase(workingDir, fileName);
 					db.LoadAnimationsFromPackage(fileName.Replace(".upk",""));
 				}

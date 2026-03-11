@@ -114,10 +114,14 @@ namespace DDUP
 
 		static public Dictionary<string, LevelUpValueType> _LevelUpValueTypes = new()
 		{
+			{ "LevelUpValueType.None",	                         LevelUpValueType.None },
 			{ "LevelUpValueType.LU_NONE",                        LevelUpValueType.None },
 			{ "LevelUpValueType.LU_HEALTH",                      LevelUpValueType.HeroHealth },
 			{ "LevelUpValueType.LU_SPEED",                       LevelUpValueType.HeroSpeed },
 			{ "LevelUpValueType.LU_DAMAGE",                      LevelUpValueType.HeroDamage },
+			{ "LevelUpValueType.LU_HEROHEALTH",                  LevelUpValueType.HeroHealth },
+			{ "LevelUpValueType.LU_HEROSPEED",                   LevelUpValueType.HeroSpeed },
+			{ "LevelUpValueType.LU_HERODAMAGE",                  LevelUpValueType.HeroDamage },
 			{ "LevelUpValueType.LU_CASTINGRATE",                 LevelUpValueType.HeroCastRate },
 			{ "LevelUpValueType.LU_HEROABILITYONE",              LevelUpValueType.Ability1 },
 			{ "LevelUpValueType.LU_HEROABILITYTWO",              LevelUpValueType.Ability2 },
@@ -1327,6 +1331,8 @@ namespace DDUP
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct HeroEquipment_Familiar_Data
 	{
+		public byte bDoFamiliarAbilities;
+
 		// HeroEquipment_Familiar_AoeBuffer
 		public float BuffRange;
 
@@ -1491,6 +1497,7 @@ namespace DDUP
 
 		// track how many times the anim notifies happen 
 		public int NumAnimNotifyAttacks;
+		public int NumAnimNotifyAttacksAlt;
 
 		public HeroEquipment_Familiar_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
@@ -1600,6 +1607,7 @@ namespace DDUP
 			bUseAltProjectile = Parse.BoolByte(propertyMap, "bUseAltProjectile");
 			bUseFixedShootSpeed = Parse.BoolByte(propertyMap, "bUseFixedShootSpeed");
 			bWeakenEnemyTarget = Parse.BoolByte(propertyMap, "bWeakenEnemyTarget");
+			bDoFamiliarAbilities = Parse.BoolByte(propertyMap, "bDoFamiliarAbilities");
 
 			HealRadius = Parse.Float(propertyMap, "HealRadius");
 			bHealOverRadius = Parse.BoolByte(propertyMap, "bHealOverRadius");
@@ -1608,6 +1616,7 @@ namespace DDUP
 			AttackAnimationLength = Parse.Float(propertyMap, "AttackAnimationLength", 1.0f);
 
 			NumAnimNotifyAttacks = Parse.Int(propertyMap, "NumAnimNotifyAttacks", 1);
+			NumAnimNotifyAttacks = Parse.Int(propertyMap, "NumAnimNotifyAttacksAlt", 1);
 
 			// Size scaling
 			SizeScalerMaximumLevel = Parse.Float(propertyMap, "SizeScalerMaximumLevel", 100.0f);

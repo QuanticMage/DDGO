@@ -31,28 +31,29 @@ else
 
             <div class="ctrl-row">
                 <span class="ctrl-label">Columns</span>
-                <input type="text" class="ctrl-input" @bind="_columnsInput"
-                       @onkeydown="OnCtrlKeyDown"
+                <input type="text" class="ctrl-input" value="@_columnsInput"
+                       @oninput="OnColumnsInput" @onkeydown="OnCtrlKeyDown"
                        placeholder="comma-separated field names, e.g. ProjDamage, AttackInterval" />
             </div>
 
             <div class="ctrl-row">
                 <span class="ctrl-label">Name filter</span>
-                <input type="text" class="ctrl-input" @bind="_nameFilter"
-                       @onkeydown="OnCtrlKeyDown"
+                <input type="text" class="ctrl-input" value="@_nameFilter"
+                       @oninput="OnNameFilterInput" @onkeydown="OnCtrlKeyDown"
                        placeholder="template name substring…" />
             </div>
 
             <div class="ctrl-row">
                 <span class="ctrl-label">Expression</span>
-                <input type="text" class="ctrl-input" @bind="_filterExpr"
-                       @onkeydown="OnCtrlKeyDown"
+                <input type="text" class="ctrl-input" value="@_filterExpr"
+                       @oninput="OnFilterExprInput" @onkeydown="OnCtrlKeyDown"
                        placeholder="e.g.  ManaCostMin > 0  and  NightmareDamageMultiplier != 1" />
             </div>
 
             <div class="ctrl-row">
                 <span class="ctrl-label"></span>
                 <button class="run-btn" @onclick="RunSearch">Search</button>
+                <button class="clear-btn" @onclick="ClearResults">Clear</button>
                 @if (_searchError != null)
                 {
                     <span class="search-error">@_searchError</span>
@@ -190,6 +191,10 @@ else
             await JS.InvokeVoidAsync("initSplitters");
     }
 
+    private void OnColumnsInput(ChangeEventArgs e)    { _columnsInput = e.Value?.ToString() ?? ""; _suppressRender = true; }
+    private void OnNameFilterInput(ChangeEventArgs e) { _nameFilter   = e.Value?.ToString() ?? ""; _suppressRender = true; }
+    private void OnFilterExprInput(ChangeEventArgs e) { _filterExpr   = e.Value?.ToString() ?? ""; _suppressRender = true; }
+
     private void OnCtrlKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") RunSearch();
@@ -211,7 +216,7 @@ else
     private void RunSearch()
     {
         _searchError = null;
-        ClearResults();
+        _results.Clear();
 
         _columns = _columnsInput
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -245,17 +250,19 @@ else
         {
             _searchError = $"Error: {ex.Message}";
         }
+        // _selectedRow and _compareRow are intentionally left untouched;
+        // they only clear when the type dropdown changes (ClearResults).
     }
 
     // ── Row selection ─────────────────────────────────────────────────────────
 
+    private object? GetFamData(SearchResult? row) =>
+        row?.FamiliarDirectIdx >= 0 ? (object)_db.GetHeroEquipment_Familiar(row.FamiliarDirectIdx) : null;
+
     private void SelectRow(SearchResult row)
     {
         _selectedRow = row;
-        object? famData = row.FamiliarDirectIdx >= 0
-            ? (object)_db.GetHeroEquipment_Familiar(row.FamiliarDirectIdx) : null;
-        _detailNodes = DbSearchHelper.BuildNodes(row.StructData, _db, famData);
-        _detailValueMap = DbSearchHelper.BuildValueMap(row.StructData, _db, extraStruct: famData);
+        RebuildDetail();
     }
 
     // ── Compare pane ──────────────────────────────────────────────────────────
@@ -263,9 +270,29 @@ else
     private void SetCompareRow(SearchResult row)
     {
         _compareRow = row;
-        object? famData = row.FamiliarDirectIdx >= 0
-            ? (object)_db.GetHeroEquipment_Familiar(row.FamiliarDirectIdx) : null;
-        _compareValueMap = DbSearchHelper.BuildValueMap(row.StructData, _db, extraStruct: famData);
+        RebuildDetail();
+        RebuildCompareMap();
+    }
+
+    private void RebuildDetail()
+    {
+        if (_selectedRow == null) return;
+        object? selFam = GetFamData(_selectedRow);
+        object? cmpFam = GetFamData(_compareRow);
+        _detailNodes = DbSearchHelper.BuildNodes(_selectedRow.StructData, _db,
+            extraStruct: selFam,
+            placeholderExtraStruct: selFam == null ? cmpFam : null);
+        _detailValueMap = DbSearchHelper.BuildValueMap(_selectedRow.StructData, _db, extraStruct: selFam);
+    }
+
+    private void RebuildCompareMap()
+    {
+        if (_compareRow == null) { _compareValueMap = new(); return; }
+        object? selFam = GetFamData(_selectedRow);
+        object? cmpFam = GetFamData(_compareRow);
+        _compareValueMap = DbSearchHelper.BuildValueMap(_compareRow.StructData, _db,
+            extraStruct: cmpFam,
+            placeholderExtraStruct: cmpFam == null ? selFam : null);
     }
 
     // ── Node expansion ────────────────────────────────────────────────────────

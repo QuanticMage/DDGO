@@ -64,6 +64,7 @@ namespace DungeonDefendersOfflinePreprocessor
 
 
 		private Dictionary<string, UnrealPackage> PackageCache = new(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, Dictionary<string, UExportTableItem>> ExportDatabase = new();
 		private Dictionary<string, IconReference> IconRefs = new(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<string, IconLocation> IconLocs = new(StringComparer.OrdinalIgnoreCase);
 		private string BaseDirectory = "";
@@ -76,6 +77,22 @@ namespace DungeonDefendersOfflinePreprocessor
 			package.CookerPlatform = BuildPlatform.PC;
 			package.InitializePackage();
 			PackageCache[package.PackageName] = package;
+
+			package.InitializeExportObjects();			
+
+			var dict = new Dictionary<string, UExportTableItem>();
+			ExportDatabase[package.PackageName] = dict;
+			// load all objects
+			foreach ( var v in package.Exports )
+			{
+				var obj = v.Object;
+				if (obj == null) continue;
+
+				obj.Load();
+				string s = obj.GetReferencePath().ToLowerInvariant();				
+				dict[s] = v;				
+			}
+
 
 			MainWindow.Log($"Loaded {package.PackageName}");			
 		}
@@ -145,6 +162,7 @@ namespace DungeonDefendersOfflinePreprocessor
 			string targetName = parts[parts.Length - 1];
 
 			// 3. Filter exports by name first (efficient)
+						
 			var potentialMatches = package.Exports.Where(e =>
 				e.ObjectName.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
 
@@ -1782,6 +1800,8 @@ namespace DungeonDefendersOfflinePreprocessor
 
 			AddFamiliarAnimationPropertiesToMap(obj, propertyMap);
 
+			AddPropertyToMap(obj, "bDoFamiliarAbilities", propertyMap, "true");
+
 			// Arrays (materialized)
 			// HeroEquipment_Familiar_TowerDamageScaling
 			AddArrayPropertyToMap(obj, "ProjectileDelays", propertyMap);
@@ -2362,6 +2382,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						}
 						float startweapondamageTime = -1.0f;
 						int nFamiliarShots = 0;
+						int nFamiliarShotsAlt = 0;
 						if (props.TryGetValue("Notifies", out var notifyProp))
 						{
 							// for barbrians, this might need to include StartMainHand / StartOffHand, but I hope not
@@ -2373,8 +2394,13 @@ namespace DungeonDefendersOfflinePreprocessor
 								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));								
 							}
 					
-							matches = Regex.Matches(notifyProp.Value, "(AnimNotify_ScriptedEquipmentAttachment')");
-							nFamiliarShots += matches.Count;							
+							var shotPattern = @"class=UDKGame\.AnimNotify_ScriptedEquipmentAttachment[\s\S]*?NotifyID=(\d+)";
+							foreach (Match m in Regex.Matches(notifyProp.Value, shotPattern))
+							{
+								int notifyId = int.Parse(m.Groups[1].Value);
+								if (notifyId == 2000) nFamiliarShots++;
+								else if (notifyId == 2005) nFamiliarShotsAlt++;
+							}
 						}
 
 
@@ -2393,7 +2419,9 @@ namespace DungeonDefendersOfflinePreprocessor
 						if (nFamiliarShots > 0)
 							AnimationDurations[animObjName][animName.Replace("\"", "") + "_NumFamiliarShots"] = (float)nFamiliarShots;
 
-						//MainWindow.Log($"{export.GetPath()}\t{animName}\t{sequenceLength}\t{numFrames}\t{rateScale}");
+						if (nFamiliarShotsAlt > 0)
+							AnimationDurations[animObjName][animName.Replace("\"", "") + "_NumFamiliarShotsAlt"] = (float)nFamiliarShotsAlt;
+
 					}
 				}
 			}
@@ -2413,7 +2441,8 @@ namespace DungeonDefendersOfflinePreprocessor
 		public void AddFamiliarAnimationPropertiesToMap(UObject familiarTemplate, Dictionary<string, string> propertyMap)
 		{
 			float animLength = 1.0f;
-			int numAnimNotifyAttacks = 1;
+			int numAnimNotifyAttacks = 0;
+			int numAnimNotifyAttacksAlt = 0;
 			var childSkeletalMeshComp = FindChildSkeletalMeshComponent(familiarTemplate);
 			if (childSkeletalMeshComp != null)
 			{
@@ -2446,16 +2475,18 @@ namespace DungeonDefendersOfflinePreprocessor
 					if (AnimationDurations[path].ContainsKey(key + "_NumFamiliarShots"))
 					{
 						numAnimNotifyAttacks = (int)AnimationDurations[path][key + "_NumFamiliarShots"];
-						if (numAnimNotifyAttacks != 1)
-						{
-							MainWindow.Log($"Animation: {path} has {numAnimNotifyAttacks} attacks");
-						}
 					}
-						
+
+					if (AnimationDurations[path].ContainsKey(key + "_NumFamiliarShotsAlt"))
+					{
+						numAnimNotifyAttacksAlt = (int)AnimationDurations[path][key + "_NumFamiliarShotsAlt"];
+					}
+
 				}
 			}
 			propertyMap["AttackAnimationLength"] = animLength.ToString();
 			propertyMap["NumAnimNotifyAttacks"] = numAnimNotifyAttacks.ToString();
+			propertyMap["NumAnimNotifyAttacksAlt"] = numAnimNotifyAttacksAlt.ToString();
 		}
 
 		public void AddAnimationPropertiesToMap(UObject playerTemplate, Dictionary<string,string> propertyMap)

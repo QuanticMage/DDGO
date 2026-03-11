@@ -42,7 +42,6 @@ namespace DDUP
 		public static readonly (string Name, VarType? IndexedType, Type DataType)[] StructTypes =
 		{
 			("HeroEquipment",                  VarType.HeroEquipment,                          typeof(HeroEquipment_Data)),
-			("HeroEquipment_Familiar",         null,                                            typeof(HeroEquipment_Familiar_Data)),
 			("DunDefWeapon",                   VarType.DunDefWeapon,                            typeof(DunDefWeapon_Data)),
 			("DunDefProjectile",               VarType.DunDefProjectile,                        typeof(DunDefProjectile_Data)),
 			("DunDefDamageType",               VarType.DunDefDamageType,                        typeof(DunDefDamageType_Data)),
@@ -94,7 +93,17 @@ namespace DDUP
 			"BaseForgerName", "DamageDescription", "ForgedByDescription", "LevelString",
 			"RequiredClassString", "Name", "AdjectiveName", "FriendlyName", "AdditionalName",
 			"StringHealAmount", "StringHealRange", "StringHealSpeed", "EquipmentDescription",
-			"AttackAnimationAlt", "AdditionalName",
+			"AttackAnimationAlt",
+			// HeroEquipment user-visible name/forger strings
+			"UserEquipmentName", "UserForgerName",
+			// DunDefHero strings
+			"GivenCostumeString", "HeroClassDisplayName", "HeroClassDescription",
+			// DunDefEnemy
+			"DescriptiveName",
+			// EG_StatMatchingString
+			"StringValue",
+			// HeroCostumeTemplate
+			"CostumeName",
 		};
 
 		private static bool IsBoolByte(string name) =>
@@ -248,51 +257,44 @@ namespace DDUP
 			EnumerateEntries(ExportedTemplateDatabase db, int structTypeIdx)
 		{
 			var (_, indexedType, _) = StructTypes[structTypeIdx];
-
-			if (indexedType.HasValue)
+			VarType target = indexedType!.Value;
+			for (int i = 0; i < db.GetIndexEntryCount(); i++)
 			{
-				// Standard: filter IndexEntries by VarType
-				VarType target = indexedType.Value;
-				for (int i = 0; i < db.GetIndexEntryCount(); i++)
-				{
-					// Copy struct to avoid ref-in-iterator restriction (C# 12)
-					var entry = db.GetIndexEntry(i);
-					if (entry.Type != target) continue;
-					string tname = db.ExtractQuotedString(db.GetString(entry.TemplateName));
-					string cname = db.ExtractQuotedString(db.GetString(entry.ClassName));
-					yield return (tname, cname, i, -1, GetStructByIndexEntry(db, i)!);
-				}
-			}
-			else
-			{
-				// HeroEquipment_Familiar: iterate HeroEquipment entries with a valid FamiliarDataIndex
-				for (int i = 0; i < db.GetIndexEntryCount(); i++)
-				{
-					// Copy struct to avoid ref-in-iterator restriction (C# 12)
-					var entry = db.GetIndexEntry(i);
-					if (entry.Type != VarType.HeroEquipment) continue;
-					var equip = db.GetHeroEquipment(i);
-					if (equip.FamiliarDataIndex < 0) continue;
-					string tname = db.ExtractQuotedString(db.GetString(entry.TemplateName));
-					string cname = db.ExtractQuotedString(db.GetString(entry.ClassName));
-					yield return (tname, cname, i, equip.FamiliarDataIndex,
-						(object)db.GetHeroEquipment_Familiar(equip.FamiliarDataIndex));
-				}
+				// Copy struct to avoid ref-in-iterator restriction (C# 12)
+				var entry = db.GetIndexEntry(i);
+				if (entry.Type != target) continue;
+				string tname = db.ExtractQuotedString(db.GetString(entry.TemplateName));
+				string cname = db.ExtractQuotedString(db.GetString(entry.ClassName));
+				var structData = GetStructByIndexEntry(db, i)!;
+				int famIdx = structData is HeroEquipment_Data equip && equip.FamiliarDataIndex >= 0
+					? equip.FamiliarDataIndex : -1;
+				yield return (tname, cname, i, famIdx, structData);
 			}
 		}
 
 		// ======================== FIELD NODE TREE ========================
 
 		public static List<FieldNode> BuildNodes(object structObj, ExportedTemplateDatabase db,
-			object? extraStruct = null)
+			object? extraStruct = null, object? placeholderExtraStruct = null)
 		{
 			var nodes = BuildNodesInternal(structObj, db);
-			if (extraStruct != null)
+			var extra = extraStruct ?? placeholderExtraStruct;
+			if (extra != null)
 			{
-				string label = extraStruct.GetType().Name.Replace("_Data", "");
+				string label = extra.GetType().Name.Replace("_Data", "");
 				nodes.Add(new FieldNode { Name = $"── {label} ──", IsHeader = true });
-				nodes.AddRange(BuildNodesInternal(extraStruct, db));
+				nodes.AddRange(extraStruct != null
+					? BuildNodesInternal(extraStruct, db)
+					: BuildPlaceholderNodes(extra));
 			}
+			return nodes;
+		}
+
+		private static List<FieldNode> BuildPlaceholderNodes(object schema)
+		{
+			var nodes = new List<FieldNode>();
+			foreach (var field in schema.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+				nodes.Add(new FieldNode { Name = field.Name, DisplayValue = "—" });
 			return nodes;
 		}
 
@@ -514,7 +516,7 @@ namespace DDUP
 		// Build a full flat value map (path → displayValue) for diff comparison
 		public static Dictionary<string, string> BuildValueMap(
 			object structObj, ExportedTemplateDatabase db, int maxDepth = 3, string prefix = "",
-			object? extraStruct = null)
+			object? extraStruct = null, object? placeholderExtraStruct = null)
 		{
 			var map = new Dictionary<string, string>(StringComparer.Ordinal);
 			if (maxDepth <= 0) return map;
@@ -597,6 +599,13 @@ namespace DDUP
 			if (extraStruct != null)
 				foreach (var kv in BuildValueMap(extraStruct, db, maxDepth, prefix))
 					map[kv.Key] = kv.Value;
+
+			if (placeholderExtraStruct != null)
+				foreach (var field in placeholderExtraStruct.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+				{
+					string path = prefix.Length == 0 ? field.Name : $"{prefix}.{field.Name}";
+					map.TryAdd(path, "—");
+				}
 
 			return map;
 		}

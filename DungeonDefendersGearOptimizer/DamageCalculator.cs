@@ -934,6 +934,10 @@ namespace DDUP
 			ref HeroEquipment_Data equipTemplate,
 			ref HeroEquipment_Familiar_Data familiarTemplate)
 		{
+
+			if (familiarTemplate.bDoFamiliarAbilities == 0)
+				return (0, "Does not attack");
+
 			var (baseDmg, elemDmg, attackInterval, numProj) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, false);
 
@@ -966,6 +970,9 @@ namespace DDUP
 			ref HeroEquipment_Data equipTemplate,
 			ref HeroEquipment_Familiar_Data familiarTemplate)
 		{
+			if (familiarTemplate.bDoFamiliarAbilities == 0)
+				return (0, "Does not attack");
+
 
 			var (baseDmg, elemDmg, attackInterval, numProj) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, true);
