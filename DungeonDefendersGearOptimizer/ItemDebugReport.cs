@@ -484,18 +484,82 @@ namespace DDUP
 					break;
 				}
 				case VarType.DunDefDamageType:
-				case VarType.DunDefProjectile:
-				case VarType.DunDefWeapon:
-				case VarType.DunDefHero:
-				case VarType.HeroEquipment:
 				{
-					// Elements are IndexEntry indices stored in the int array
 					var span = db.GetIntArrayElemsSpan(arr.Start, arr.Count);
 					for (int i = 0; i < span.Length; i++)
 					{
 						int idx = span[i];
-						string name = (idx >= 0 && idx < db.GetIndexEntryCount()) ? GetEntryName(db, idx) : $"(invalid:{idx})";
-						sb.AppendLine($"    [{i}]: {name}");
+						if (idx >= 0 && idx < db.GetIndexEntryCount())
+						{
+							sb.AppendLine($"    [{i}]: {GetEntryName(db, idx)}");
+							AppendStructFields(sb, (object)db.GetDunDefDamageType(idx), db);
+						}
+						else
+							sb.AppendLine($"    [{i}]: (invalid:{idx})");
+					}
+					break;
+				}
+				case VarType.DunDefProjectile:
+				{
+					var span = db.GetIntArrayElemsSpan(arr.Start, arr.Count);
+					for (int i = 0; i < span.Length; i++)
+					{
+						int idx = span[i];
+						if (idx >= 0 && idx < db.GetIndexEntryCount())
+						{
+							sb.AppendLine($"    [{i}]: {GetEntryName(db, idx)}");
+							AppendStructFields(sb, (object)db.GetDunDefProjectile(idx), db);
+						}
+						else
+							sb.AppendLine($"    [{i}]: (invalid:{idx})");
+					}
+					break;
+				}
+				case VarType.DunDefWeapon:
+				{
+					var span = db.GetIntArrayElemsSpan(arr.Start, arr.Count);
+					for (int i = 0; i < span.Length; i++)
+					{
+						int idx = span[i];
+						if (idx >= 0 && idx < db.GetIndexEntryCount())
+						{
+							sb.AppendLine($"    [{i}]: {GetEntryName(db, idx)}");
+							AppendStructFields(sb, (object)db.GetDunDefWeapon(idx), db);
+						}
+						else
+							sb.AppendLine($"    [{i}]: (invalid:{idx})");
+					}
+					break;
+				}
+				case VarType.DunDefHero:
+				{
+					var span = db.GetIntArrayElemsSpan(arr.Start, arr.Count);
+					for (int i = 0; i < span.Length; i++)
+					{
+						int idx = span[i];
+						if (idx >= 0 && idx < db.GetIndexEntryCount())
+						{
+							sb.AppendLine($"    [{i}]: {GetEntryName(db, idx)}");
+							AppendStructFields(sb, (object)db.GetDunDefHero(idx), db);
+						}
+						else
+							sb.AppendLine($"    [{i}]: (invalid:{idx})");
+					}
+					break;
+				}
+				case VarType.HeroEquipment:
+				{
+					var span = db.GetIntArrayElemsSpan(arr.Start, arr.Count);
+					for (int i = 0; i < span.Length; i++)
+					{
+						int idx = span[i];
+						if (idx >= 0 && idx < db.GetIndexEntryCount())
+						{
+							sb.AppendLine($"    [{i}]: {GetEntryName(db, idx)}");
+							AppendStructFields(sb, (object)db.GetHeroEquipment(idx), db);
+						}
+						else
+							sb.AppendLine($"    [{i}]: (invalid:{idx})");
 					}
 					break;
 				}

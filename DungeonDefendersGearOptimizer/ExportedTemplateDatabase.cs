@@ -864,7 +864,7 @@ namespace DDUP
 				case VarType.DunDefDamageType:
 					start = IntArrayElems.Count;
 					foreach (var v in entries)
-						IntArrayElems.Add(GetDunDefProjectileIndex(v));
+						IntArrayElems.Add(GetDunDefDamageTypeIndex(v));
 					count = IntArrayElems.Count - start;
 					break;
 				case VarType.DunDefProjectile:

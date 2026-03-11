@@ -222,9 +222,8 @@ public class DDEquipmentInfo
 		int decimals = Math.Max(0, 3 - digits);
 
 		return scaled
-			.ToString("F" + decimals)
-			.TrimEnd('0')
-			.TrimEnd('.') + suffix;
+			.ToString("F" + decimals)			
+			+ suffix;
 	}
 
 	public ItemViewRow ToItemViewRow()

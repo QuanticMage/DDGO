@@ -1344,6 +1344,10 @@ namespace DDUP
 		public int StringHealRange;                                    // localized string
 		public int StringHealSpeed;                                    // localized string
 
+		// HeroEquipment_Familiar_Melee
+		public float ScaleDamageStatExponent;
+		public int ScaleMeleeDamageForHeroStatType;  
+
 		// HeroEquipment_Familiar_Melee_TowerScaling
 		public float BaseDamageToHealRatio;
 		public float DamageHealMultiplierExponent;
@@ -1485,6 +1489,9 @@ namespace DDUP
 		public float BoostAnimMinInterval;
 		public float BoostAnimMaxInterval;
 
+		// track how many times the anim notifies happen 
+		public int NumAnimNotifyAttacks;
+
 		public HeroEquipment_Familiar_Data(Dictionary<string, string> propertyMap, ExportedTemplateDatabase db)
 		{
 			BuffRange = Parse.Float(propertyMap, "BuffRange");
@@ -1600,6 +1607,8 @@ namespace DDUP
 			BarbStanceDamageMulti = Parse.Float(propertyMap, "BarbStanceDamageMulti");
 			AttackAnimationLength = Parse.Float(propertyMap, "AttackAnimationLength", 1.0f);
 
+			NumAnimNotifyAttacks = Parse.Int(propertyMap, "NumAnimNotifyAttacks", 1);
+
 			// Size scaling
 			SizeScalerMaximumLevel = Parse.Float(propertyMap, "SizeScalerMaximumLevel", 100.0f);
 			SizeScalerPower = Parse.Float(propertyMap, "SizeScalerPower", 1.0f);
@@ -1637,6 +1646,14 @@ namespace DDUP
 			UseStaticBuffRange = Parse.BoolByte(propertyMap, "UseStaticBuffRange");
 			BoostAnimMinInterval = Parse.Float(propertyMap, "BoostAnimMinInterval");
 			BoostAnimMaxInterval = Parse.Float(propertyMap, "BoostAnimMaxInterval");
+
+			// Melee
+
+			ScaleDamageStatExponent = Parse.Float(propertyMap, "ScaleDamageStatExponent");
+			ScaleMeleeDamageForHeroStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap.ContainsKey("ScaleMeleeDamageForHeroStatType") ? propertyMap["ScaleMeleeDamageForHeroStatType"] : "")
+				? (int)ImportMaps._LevelUpValueTypes[propertyMap["ScaleMeleeDamageForHeroStatType"]]
+				: Parse.Int(propertyMap, "ScaleMeleeDamageForHeroStatType");
+
 		}
 	}
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]

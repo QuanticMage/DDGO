@@ -778,6 +778,7 @@ namespace DungeonDefendersOfflinePreprocessor
 						if (iconProperty == null) continue;
 
 						var matInst = FindObjectByPath(item, iconProperty.Value);
+						if (matInst == null) continue;
 						matInst.Load();
 
 						var textureArrayProperty = GetProperty(matInst, "TextureParameterValues");
@@ -1970,6 +1971,10 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "BoostAnimMinInterval", propertyMap, "0.0");
 			AddPropertyToMap(obj, "BoostAnimMaxInterval", propertyMap, "0.0");
 
+			// HeroEquipment_Familiar_Melee
+			AddPropertyToMap(obj, "ScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(obj, "ScaleMeleeDamageForHeroStatType", propertyMap, "0"); 
+
 			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
 			HeroEquipment_Familiar_Data hef = new HeroEquipment_Familiar_Data(propertyMap, db);
 
@@ -2356,17 +2361,20 @@ namespace DungeonDefendersOfflinePreprocessor
 							}
 						}
 						float startweapondamageTime = -1.0f;
+						int nFamiliarShots = 0;
 						if (props.TryGetValue("Notifies", out var notifyProp))
 						{
 							// for barbrians, this might need to include StartMainHand / StartOffHand, but I hope not
 
 							var pattern = @"Time=(\d+\.\d+).*?NotifyName=""AnimNotify_StartWeaponSwingDamage""";
-							var matches = Regex.Matches(notifyProp.Value, pattern, RegexOptions.Singleline);
-
+							var matches = Regex.Matches(notifyProp.Value, pattern, RegexOptions.Singleline);							
 							if ( matches.Count > 0)
 							{
 								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));								
-							}							
+							}
+					
+							matches = Regex.Matches(notifyProp.Value, "(AnimNotify_ScriptedEquipmentAttachment')");
+							nFamiliarShots += matches.Count;							
 						}
 
 
@@ -2381,6 +2389,9 @@ namespace DungeonDefendersOfflinePreprocessor
 						
 						if (startweapondamageTime > 0.0f)
 							AnimationDurations[animObjName][animName.Replace("\"", "") + "_StartWeaponSwingDamage"] = (float)startweapondamageTime / rateScale;
+
+						if (nFamiliarShots > 0)
+							AnimationDurations[animObjName][animName.Replace("\"", "") + "_NumFamiliarShots"] = (float)nFamiliarShots;
 
 						//MainWindow.Log($"{export.GetPath()}\t{animName}\t{sequenceLength}\t{numFrames}\t{rateScale}");
 					}
@@ -2402,6 +2413,7 @@ namespace DungeonDefendersOfflinePreprocessor
 		public void AddFamiliarAnimationPropertiesToMap(UObject familiarTemplate, Dictionary<string, string> propertyMap)
 		{
 			float animLength = 1.0f;
+			int numAnimNotifyAttacks = 1;
 			var childSkeletalMeshComp = FindChildSkeletalMeshComponent(familiarTemplate);
 			if (childSkeletalMeshComp != null)
 			{
@@ -2430,10 +2442,20 @@ namespace DungeonDefendersOfflinePreprocessor
 					{
 						animLength = AnimationDurations[path][key];			
 					}
+
+					if (AnimationDurations[path].ContainsKey(key + "_NumFamiliarShots"))
+					{
+						numAnimNotifyAttacks = (int)AnimationDurations[path][key + "_NumFamiliarShots"];
+						if (numAnimNotifyAttacks != 1)
+						{
+							MainWindow.Log($"Animation: {path} has {numAnimNotifyAttacks} attacks");
+						}
+					}
 						
 				}
 			}
 			propertyMap["AttackAnimationLength"] = animLength.ToString();
+			propertyMap["NumAnimNotifyAttacks"] = numAnimNotifyAttacks.ToString();
 		}
 
 		public void AddAnimationPropertiesToMap(UObject playerTemplate, Dictionary<string,string> propertyMap)
