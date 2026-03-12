@@ -85,12 +85,15 @@ namespace DungeonDefendersOfflinePreprocessor
 			// load all objects
 			foreach ( var v in package.Exports )
 			{
+				if (v.Owner == null) continue;
+
 				var obj = v.Object;
 				if (obj == null) continue;
-
+				if (obj.ExportTable == null) continue;
 				obj.Load();
-				string s = obj.GetReferencePath().ToLowerInvariant();				
-				dict[s] = v;				
+				string s = obj.GetReferencePath().ToLowerInvariant();
+				if (s.Contains("'")) s = s.Split('\'')[1]; // strip Type'...' prefix
+				dict[s] = v;
 			}
 
 
@@ -148,67 +151,19 @@ namespace DungeonDefendersOfflinePreprocessor
 		}
 		public UObject FindObjectByPath(UnrealPackage package, string fullPath)
 		{
-			// 1. Clean the path: Extract 'X.Y.Z' from T'X.Y.Z'
 			string cleanPath = fullPath;
 			if (cleanPath.Contains("'"))
-			{
 				cleanPath = cleanPath.Split('\'')[1];
-			}
+			cleanPath = cleanPath.ToLowerInvariant();
 
-			// 2. Split into segments: ["X", "Y", "Z"]
-			string[] parts = cleanPath.Split('.');
-
-			// The last part is always the Object Name
-			string targetName = parts[parts.Length - 1];
-
-			// 3. Filter exports by name first (efficient)
-						
-			var potentialMatches = package.Exports.Where(e =>
-				e.ObjectName.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
-
-			foreach (var export in potentialMatches)
+			if (ExportDatabase.TryGetValue(package.PackageName, out var dict) &&
+				dict.TryGetValue(cleanPath, out var export))
 			{
-				// 4. Verify the Outer chain
-				if (VerifyOuterChain(export, parts))
-				{
-					export.Object?.Load();
-					return export.Object;
-				}
+				export.Object?.Load();
+				return export.Object;
 			}
 
 			return null;
-		}
-
-		private bool VerifyOuterChain(UExportTableItem export, string[] pathParts)
-		{
-			// PathParts: ["Package", "Group", "Object"]
-			// We walk backwards from the Object up to the Package
-			int partIndex = pathParts.Length - 2; // Start with the immediate Outer (e.g., "Group")
-
-			var currentOuter = export.Outer;
-
-			while (partIndex >= 0)
-			{
-				string expectedOuterName = pathParts[partIndex];
-
-				// If we ran out of Outers but still have path parts (or vice versa), it's a mismatch
-				// Note: The top-level Outer in a UPK is usually null or represents the Package itself
-				if (currentOuter == null)
-				{
-					// If the current part we're checking is the Package name (parts[0]), we're good
-					return partIndex == 0 && export.Owner.PackageName.Equals(expectedOuterName, StringComparison.OrdinalIgnoreCase);
-				}
-
-				if (!currentOuter.ObjectName.Name.Equals(expectedOuterName, StringComparison.OrdinalIgnoreCase))
-				{
-					return false;
-				}
-
-				currentOuter = currentOuter.Outer;
-				partIndex--;
-			}
-
-			return true;
 		}
 
 		private void DumpAllChildObjects( UObject obj )
@@ -224,13 +179,20 @@ namespace DungeonDefendersOfflinePreprocessor
 
 		private UObject? FindChildSkeletalMeshComponent( UObject obj )
 		{
-			foreach (var v in obj.Package.Exports)
+			if (!ExportDatabase.TryGetValue(obj.Package.PackageName, out var dict))
 			{
-				if (v.GetPath().StartsWith(obj.GetPath() + ".SkeletalMeshComponent"))
-				{
-					return v.Object;
-				}
+				MainWindow.Log($"[FindChildSkeletalMeshComponent] Package '{obj.Package.PackageName}' not in ExportDatabase for '{obj.GetPath()}'");
+				return null;
 			}
+
+			string prefix = (obj.GetPath() + ".SkeletalMeshComponent").ToLowerInvariant();
+			foreach (var kvp in dict)
+			{
+				if (kvp.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+					return kvp.Value.Object;
+			}
+
+			MainWindow.Log($"[FindChildSkeletalMeshComponent] No SkeletalMeshComponent found under '{obj.GetPath()}'");
 			return null;
 		}
 
@@ -2394,12 +2356,25 @@ namespace DungeonDefendersOfflinePreprocessor
 								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));								
 							}
 					
-							var shotPattern = @"class=UDKGame\.AnimNotify_ScriptedEquipmentAttachment[\s\S]*?NotifyID=(\d+)";
-							foreach (Match m in Regex.Matches(notifyProp.Value, shotPattern))
+							// NotifyID lives on the AnimNotify_ScriptedEquipmentAttachment subobject,
+							// not inlined in the Notifies text — scan child exports directly.
+							string animSeqPath = export.GetPath();
+							foreach (var childExport in package.Exports)
 							{
-								int notifyId = int.Parse(m.Groups[1].Value);
-								if (notifyId == 2000) nFamiliarShots++;
-								else if (notifyId == 2005) nFamiliarShotsAlt++;
+								if (childExport.Class?.ObjectName.Name != "AnimNotify_ScriptedEquipmentAttachment") continue;
+								if (!childExport.GetPath().StartsWith(animSeqPath + ".", StringComparison.OrdinalIgnoreCase)) continue;
+
+								var notifyObj = childExport.Object;
+								notifyObj?.Load();
+								if (notifyObj == null) continue;
+
+								var notifyObjProps = GetMergedProperties(notifyObj);
+								if (notifyObjProps.TryGetValue("NotifyID", out var idProp) &&
+									int.TryParse(idProp.Value?.ToString(), out int notifyId))
+								{
+									if (notifyId == 2000) nFamiliarShots++;
+									else if (notifyId == 2005) nFamiliarShotsAlt++;
+								}
 							}
 						}
 

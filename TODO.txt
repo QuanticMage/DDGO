@@ -5,6 +5,8 @@ PRIORITY
 
 (DONE) Event list problem (see Teinelai's .dun file) - final patch, delver's eyewear, crystalline defender, molon labe, mr crackers, sun staff, and armor 21k vs armor 14k
 
+* Blue headers on event list are hard to read in night mode
+
 
 * Survey for DDGO
 * HHP as side for DPS?

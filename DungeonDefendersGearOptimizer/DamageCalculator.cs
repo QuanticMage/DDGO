@@ -867,8 +867,8 @@ namespace DDUP
 
 			// calculate how long each attack is over the duration
 
-			int numAnimNotifyAttacks = 1;
-			if (!bIsMelee) numAnimNotifyAttacks = familiarTemplate.NumAnimNotifyAttacks;
+			int numAnimNotifyAttacks = bIsMelee ? 1 : familiarTemplate.NumAnimNotifyAttacks;
+			
 			attackInterval = Math.Max(animDuration, attackInterval) / numAnimNotifyAttacks;
 
 			// ProjDamage base from the projectile template

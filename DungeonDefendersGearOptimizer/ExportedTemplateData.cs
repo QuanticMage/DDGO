@@ -87,6 +87,7 @@ namespace DDUP
 			{ "EWeaponType.EWT_WEAPON_INITIATE",   WeaponType.Huntress },
 			{ "EWeaponType.EWT_WEAPON_RECRUIT",    WeaponType.Monk },
 			{ "EWeaponType.EWT_WEAPON_SQUIRE",     WeaponType.Squire },
+			//{ "EWeaponType.EWT_WEAPON_ANYONE",     WeaponType.Squire },
 		};
 
 		static public Dictionary<string, HeroType> _heroType = new()
@@ -1616,7 +1617,7 @@ namespace DDUP
 			AttackAnimationLength = Parse.Float(propertyMap, "AttackAnimationLength", 1.0f);
 
 			NumAnimNotifyAttacks = Parse.Int(propertyMap, "NumAnimNotifyAttacks", 1);
-			NumAnimNotifyAttacks = Parse.Int(propertyMap, "NumAnimNotifyAttacksAlt", 1);
+			NumAnimNotifyAttacksAlt = Parse.Int(propertyMap, "NumAnimNotifyAttacksAlt", 1);
 
 			// Size scaling
 			SizeScalerMaximumLevel = Parse.Float(propertyMap, "SizeScalerMaximumLevel", 100.0f);
