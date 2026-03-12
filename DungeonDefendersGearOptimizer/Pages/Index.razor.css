@@ -472,6 +472,33 @@ th.importance-cell {
             min-height: 0;
         }
 
+th.dps-type-cell .th-center {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    line-height: 1;
+}
+
+.dps-type-label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-secondary, #555);    
+    margin-bottom: 4px;
+}
+
+.dps-type-select {
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid var(--border-default, #aaa);
+    background: var(--bg-surface, #fff);
+    color: var(--text-primary, #222);
+    cursor: pointer;
+    max-width: 100%;
+}
+
 .rating-image {
     width: 10px;
     height: auto;

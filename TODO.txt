@@ -222,3 +222,16 @@ features for 1.6:
 (DONE) Export to .csv
 (DONE) 3 piece resistances (sort of works now, but not really)
 
+
+
+NOTES:
+set GIT_TRACE_PACKET=1
+set GIT_TRACE=1
+set GIT_CURL_VERBOSE=1
+^ these fix 
+
+git config --global core.compression 0
+git clone --depth 1 <repo_URI>
+# cd to your newly created directory
+git fetch --unshallow 
+git pull --all

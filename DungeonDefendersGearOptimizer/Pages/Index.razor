@@ -220,14 +220,7 @@
                            @onchange="@((e) => { _livePrices = e.Value is bool b && b; QueueSaveUiState(); if (_livePrices) GetLivePrices(); })" />
                     <span>Get Live Prices</span>
                 </label> *@
-                @*
-                <label class="utility-select" data-tooltip=@Tips["DPSMode"]>
-                    <span>DPS Mode</span>
-                    <select value="@_dpsMode" @onchange="OnDPSModeChanged" font="inherit">
-                        <option value="Single Target">Single Target</option>
-                        <option value="AoE">AoE</option>                        
-                    </select>
-                </label>*@
+                
             </div>
 
         <div class="character-row" style="zoom:@(_ui.PanelZoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
@@ -584,7 +577,7 @@
 
                 <thead>
                     <tr class="rating-row">
-                        <th colspan="11">
+                        <th colspan="10">
 
                             <span class="hint-text">
                                 <span class="hint-left">
@@ -595,6 +588,17 @@
                                     Click names to sort, or stars to adjust the rating calculation →
                                 </span>
                             </span>
+                        </th>                
+
+                        <th class="importance-cell dps-type-cell">
+                            <div class="th-center" data-tooltip=@Tips["DPSMode"]>
+                                <label class="dps-type-label">DPS Mode:</label>
+                                <select class="dps-type-select" value="@_ui.DPSMode" @onchange="@((e) => SetUi(u => u with { DPSMode = e.Value?.ToString() ?? u.DPSMode }))">
+                                    <option value="DPS">DPS</option>
+                                    <option value="AoE">AoE</option>
+                                    <option value="Stats">Stats</option>
+                                </select>
+                            </div>
                         </th>
                         <th class="importance-cell">
                             <div class="th-center">
@@ -1598,7 +1602,7 @@
         public string Theme { get; init; } = "light";
 
         public double PanelZoom { get; init; } = 1.0;
-        public string DPSMode { get; init; } = "Damage per Second";
+        public string DPSMode { get; init; } = "DPS";
 
         // bump this when baking new items
         public int IconVersion { get; init; } = 2;
@@ -1807,7 +1811,7 @@
         ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
         ["SidesAreImportant"] = "Makes 'Equip best' includes sides at half value.\n",
         ["DarkMode"] = "Toggles between light and dark themes.",
-        ["DPSMode"] = "Set DPS Display Mode"
+        ["DPSMode"] = "Set how pets and weapons are upgraded,\n and how DPS is displayed.\n\nAoE scales damage by radius."
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
