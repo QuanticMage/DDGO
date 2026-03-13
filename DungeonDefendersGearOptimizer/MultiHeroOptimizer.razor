@@ -285,7 +285,7 @@
                     modeInfo.RatingStatsPriority,
                     modeInfo.SidesStatsPriority,
                     modeInfo.RequireResists,
-                    modeInfo.UpgradeWeaponStats);
+                    modeInfo.DPSMode != "Stats");
 
                 int score = rating + (slot.IncludeSides ? sides / 2 : 0);
                 itemRatings[item.Idx] = (rating, sides, score);

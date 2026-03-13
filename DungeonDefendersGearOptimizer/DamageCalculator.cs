@@ -753,7 +753,78 @@ namespace DDUP
 			}
 		}
 
-		public int GetDisplayWeaponDamage(ItemViewRow viewRow, bool bShowUpgraded, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)		
+		public void CalculateUpgradedPetStats(ItemViewRow viewRow, ref HeroEquipment_Data equipTemplate, ref HeroEquipment_Familiar_Data familiarTemplate)
+		{
+			int numUpgradesAvailable = viewRow.UpgradesLeftForWeaponStats;
+			viewRow.UpgradedWeaponDamageBonus = viewRow.WeaponDamageBonus;
+			viewRow.UpgradedWeaponShotsPerSecondBonus = viewRow.WeaponShotsPerSecondBonus;
+			viewRow.UpgradedWeaponNumberOfProjectilesBonus = viewRow.WeaponNumberOfProjectilesBonus;
+			viewRow.UpgradedWeaponSpeedOfProjectilesBonus = viewRow.WeaponSpeedOfProjectilesBonus;
+			viewRow.UpgradedWeaponAdditionalDamageAmount = viewRow.WeaponAdditionalDamageAmount;
+
+			var maxNumberOfProjectilesBonus = (int)(tdb!.GetEG_StatRandomizer(equipTemplate.WeaponNumberOfProjectilesBonusRandomizer).MaxRandomValue) + equipTemplate.WeaponNumberOfProjectilesBonus;
+			var maxShotsPerSecondBonus = (int)(tdb!.GetEG_StatRandomizer(equipTemplate.WeaponShotsPerSecondBonusRandomizer).MaxRandomValue) + equipTemplate.WeaponShotsPerSecondBonus;
+			var maxSpeedOfProjectilesBonus = 30000;
+
+			if (familiarTemplate.bDoShotsPerSecondBonusCap != 0)
+				maxShotsPerSecondBonus = Math.Min(maxShotsPerSecondBonus, familiarTemplate.ShotsPerSecondBonusCap);
+
+			// upgrade shots per second first
+			// you can only upgrade when (level + 1) % 4 == 0. This is not perfect, but it's an approximation.
+			maxShotsPerSecondBonus = (int)MathF.Min(maxShotsPerSecondBonus, viewRow.UpgradedWeaponShotsPerSecondBonus + (numUpgradesAvailable / 4));
+			if ((viewRow.UpgradedWeaponShotsPerSecondBonus < maxShotsPerSecondBonus) && (maxShotsPerSecondBonus > 0))
+			{
+				int upgradesToUse = Math.Min(numUpgradesAvailable, maxShotsPerSecondBonus - viewRow.UpgradedWeaponShotsPerSecondBonus);
+				viewRow.UpgradedWeaponShotsPerSecondBonus += upgradesToUse;
+				numUpgradesAvailable -= upgradesToUse;
+			}
+
+			// then upgrade number of projectiles
+			// you can only upgrade when (level + 1) % 5 == 0. This is not perfect, but it's an approximation.
+			maxNumberOfProjectilesBonus = (int)MathF.Min(maxNumberOfProjectilesBonus, viewRow.UpgradedWeaponNumberOfProjectilesBonus + (numUpgradesAvailable / 5));
+			if (viewRow.UpgradedWeaponNumberOfProjectilesBonus < maxNumberOfProjectilesBonus)
+			{
+				int upgradesToUse = Math.Min(numUpgradesAvailable, maxNumberOfProjectilesBonus - viewRow.UpgradedWeaponNumberOfProjectilesBonus);
+				viewRow.UpgradedWeaponNumberOfProjectilesBonus += upgradesToUse;
+				numUpgradesAvailable -= upgradesToUse;
+			}
+
+			// then upgrade speed of projectiles to 30000
+			while ((viewRow.UpgradedWeaponSpeedOfProjectilesBonus < maxSpeedOfProjectilesBonus) && (numUpgradesAvailable > 0))
+			{
+				int AmountToUpgrade = (int)Math.Clamp(Math.Abs(viewRow.UpgradedWeaponSpeedOfProjectilesBonus) / 4, 100, 1200);
+				viewRow.UpgradedWeaponSpeedOfProjectilesBonus += AmountToUpgrade;
+				numUpgradesAvailable--;
+			}
+
+			// everything else goes into damage
+			if (viewRow.UpgradedWeaponDamageBonus > 0)
+			{
+				while (numUpgradesAvailable > 0)
+				{
+					bool useBaseScaling = (viewRow.QualityRank < 16);
+
+					float multiplier =
+						(useBaseScaling || equipTemplate.UltimateDamageIncreasePerLevelMultiplier < equipTemplate.DamageIncreasePerLevelMultiplier)
+							? equipTemplate.DamageIncreasePerLevelMultiplier
+							: equipTemplate.UltimateDamageIncreasePerLevelMultiplier;
+
+					int maxIncreasePerLevel = (int)
+						((useBaseScaling || equipTemplate.UltimateMaxDamageIncreasePerLevel < equipTemplate.MaxDamageIncreasePerLevel)
+							? equipTemplate.MaxDamageIncreasePerLevel
+							: equipTemplate.UltimateMaxDamageIncreasePerLevel);
+
+					viewRow.UpgradedWeaponDamageBonus += (int)Math.Clamp(
+						Math.Ceiling(multiplier * Math.Abs(viewRow.UpgradedWeaponDamageBonus)),
+						1,
+						maxIncreasePerLevel
+					);
+					numUpgradesAvailable--;
+				}
+			}
+		}
+
+		public int GetDisplayWeaponDamage(ItemViewRow viewRow, bool bShowUpgraded, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
 			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
 

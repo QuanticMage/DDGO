@@ -24,7 +24,7 @@ namespace DDUP
 			public List<DDStat> RatingStatsPriority = new();
 			public List<DDStat> SidesStatsPriority = new();
 			public bool RequireResists = false;
-			public bool UpgradeWeaponStats = false;
+			public string DPSMode = "Stats";
 			public string APIRoles = "";			
 			public bool CanBeBestFor = false;
 			public int ListIndex = -1;
@@ -67,7 +67,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "app",
 				CanBeBestFor = true
 			},
@@ -80,7 +80,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRange, DDStat.TowerHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "hermit",
 				CanBeBestFor = true
 			},
@@ -93,7 +93,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerDamage, DDStat.TowerRate },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "trange",
 				CanBeBestFor = true
 			},
@@ -106,7 +106,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "builder ev",
 				CanBeBestFor = true
 			},
@@ -119,7 +119,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "summoner",
 				CanBeBestFor = true
 			},
@@ -132,7 +132,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange  },
 				SidesStatsPriority = new List<DDStat>() { },
 				RequireResists = false,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "",
 				CanBeBestFor = true
 			},
@@ -145,7 +145,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroAbility1 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroDamage, DDStat.HeroCastRate },
 				RequireResists = true,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "tb",
 				CanBeBestFor = true
 			},
@@ -158,7 +158,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility1 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
 				RequireResists = true,
-				UpgradeWeaponStats = true,
+				DPSMode = "DPS",
 				APIRoles = "dps ab1",
 				CanBeBestFor = true
 			},
@@ -171,7 +171,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility2 },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
 				RequireResists = true,
-				UpgradeWeaponStats = true,
+				DPSMode = "DPS",
 				APIRoles = "dps ab2",
 				CanBeBestFor = true
 			},
@@ -184,7 +184,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility1, DDStat.HeroAbility2, DDStat.HeroCastRate },
 				RequireResists = true,
-				UpgradeWeaponStats = true,
+				DPSMode = "DPS",
 				APIRoles = "",
 				CanBeBestFor = false
 			},
@@ -197,7 +197,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage },
 				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate, DDStat.HeroHealth },
 				RequireResists = true,
-				UpgradeWeaponStats = true,
+				DPSMode = "DPS",
 				APIRoles = "gunwitch",
 				CanBeBestFor = true
 			},
@@ -210,7 +210,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerRange },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage, DDStat.TowerRate, DDStat.HeroHealth },
 				RequireResists = true,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "",
 				CanBeBestFor = false
 			},
@@ -223,7 +223,7 @@ namespace DDUP
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
 				SidesStatsPriority = new List<DDStat>() { DDStat.HeroAbility2 },
 				RequireResists = true,
-				UpgradeWeaponStats = false,
+				DPSMode = "Stats",
 				APIRoles = "",
 				CanBeBestFor = true
 			}
@@ -338,7 +338,7 @@ namespace DDUP
 			
 			for (int i = 0; i < Ratings.RatingModes.Count; i++ )
 			{
-				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists, RatingModes[i].UpgradeWeaponStats);
+				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists, RatingModes[i].DPSMode != "Stats");
 				vr.CachedRatings.Add(rating);
 				vr.CachedSides.Add(sides);
 			}
@@ -522,7 +522,7 @@ namespace DDUP
 			for (int i = 1; i < 11; i++)
 				vr.UpgradedStats[i] = vr.Stats[i];
 
-			if ((bUpgradeWeaponStats) && (vr.Type == "Weapon"))
+			if ((bUpgradeWeaponStats) && ((vr.Type == "Weapon") || (vr.Type == "Pet")))
 			{
 				vr.UpgradesLeftForWeaponStats = levelsLeft;
 				levelsLeft = 0;

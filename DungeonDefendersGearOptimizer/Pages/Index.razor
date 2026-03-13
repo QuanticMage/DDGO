@@ -12,7 +12,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Feb 20 2026 - Version 1.9c</i></div>
+        <div class="build"><i>Mar 12 2026 - Version 1.10</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -593,9 +593,9 @@
                         <th class="importance-cell dps-type-cell">
                             <div class="th-center" data-tooltip=@Tips["DPSMode"]>
                                 <label class="dps-type-label">DPS Mode:</label>
-                                <select class="dps-type-select" value="@_ui.DPSMode" @onchange="@((e) => SetUi(u => u with { DPSMode = e.Value?.ToString() ?? u.DPSMode }))">
+                                <select class="dps-type-select" @bind="DPSMode">
                                     <option value="DPS">DPS</option>
-                                    <option value="AoE">AoE</option>
+                                    
                                     <option value="Stats">Stats</option>
                                 </select>
                             </div>
@@ -1051,7 +1051,6 @@
 
     // Current sorting criteria
     private bool _bRequireResists = false;
-    private bool _bUpgradeWeaponStats = false;
     private List<DDStat> _RatingStatsPriority = new();
     private List<DDStat> _SidesStatsPriority = new();
     private bool _showFilterHelp = false;
@@ -1078,6 +1077,12 @@
     }
 
     // Bind targets
+    private string DPSMode
+    {
+        get => _ui.DPSMode;
+        set => SetUi(u => u with { DPSMode = value });
+    }
+
     private List<string> SelectedTypes
     {
         get => _ui.SelectedTypes.ToList();
@@ -1648,6 +1653,7 @@
         if (prev.RatingMode != _ui.RatingMode) { bNeedUpdateMode = true; bNeedUpdateRating = true; bNeedUpdateDPS = true; }
         if (prev.ItemBoxLayout != _ui.ItemBoxLayout) {bNeedUpdateCache = true; }
         if (prev.ShowUpgradedStats != _ui.ShowUpgradedStats) { bNeedUpdateDPS = true; }
+        if (prev.DPSMode != _ui.DPSMode) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
         if (prev.AssumeSetBonuses != _ui.AssumeSetBonuses) { bNeedUpdateRating = true; bNeedUpdateDPS = true; }
         if (prev.SidesAreImportant != _ui.SidesAreImportant) { bNeedUpdateRating = true; }
         if (prev.Theme != _ui.Theme) { JS.InvokeVoidAsync("setTheme", _ui.Theme); }
@@ -1811,7 +1817,7 @@
         ["CompactDisplay"] = "Compresses the size of elements for\nsmaller windows.",
         ["SidesAreImportant"] = "Makes 'Equip best' includes sides at half value.\n",
         ["DarkMode"] = "Toggles between light and dark themes.",
-        ["DPSMode"] = "Set how pets and weapons are upgraded,\n and how DPS is displayed.\n\nAoE scales damage by radius."
+        ["DPSMode"] = "Set how pets and weapons are upgraded,\n and how DPS is displayed."//\n\nAoE scales damage by radius."
     };
 
     // Note: filtering is now driven by FilterChips selections (SelectedTypes/SelectedSets/SelectedOther)
@@ -2038,7 +2044,7 @@
                 _SidesStatsPriority.Clear();
                 _SidesStatsPriority.AddRange(v.SidesStatsPriority);
                 _bRequireResists = v.RequireResists;
-                _bUpgradeWeaponStats = v.UpgradeWeaponStats;
+                SetUi(u => u with { DPSMode = v.DPSMode ?? u.DPSMode });                
                 break;
             }
         }                
@@ -2265,7 +2271,7 @@
         for (int i = 0; i < n; i++)
         {            
             var r = _rows[i];
-            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists, _bUpgradeWeaponStats);
+            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists, (_ui.DPSMode != "Stats"));
 
             if (((i & 127) == 0) && (i!=0))
             {
@@ -2462,6 +2468,7 @@
               //   Console.WriteLine($"Template: {TemplateDB.GetString(weaponTemplate.Template)} Pet Index: {weaponTemplate.FamiliarDataIndex}");
                 if (weaponTemplate.FamiliarDataIndex < 0) continue;
                 var familiarTemplate = TemplateDB.GetHeroEquipment_Familiar(weaponTemplate.FamiliarDataIndex);
+                _damageCalculator.CalculateUpgradedPetStats(v, ref weaponTemplate, ref familiarTemplate);
                 bool isMelee = familiarTemplate.MeleeHitRadius > 0;
                 if (isMelee)
                     (dps[i], tips[i]) = _damageCalculator.GetPetMeleeDPS(v, _ui.ShowUpgradedStats, ref info, ref weaponTemplate, ref familiarTemplate);
