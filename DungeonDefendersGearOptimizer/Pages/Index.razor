@@ -1927,7 +1927,7 @@
             }
         }
 
-        foreach (var v in _rows)
+        foreach (var itemRow in _rows)
         {
             // ---- Type filtering (OR within the chip group) ----
             bool typeOk;
@@ -1937,11 +1937,11 @@
             }
             else
             {
-                var typeLabel = v.Type switch
+                var typeLabel = itemRow.Type switch
                 {
                     "Pet" => "Pets",
                     "Weapon" => "Weapons",
-                    _ => v.Type
+                    _ => itemRow.Type
                 };
 
                 typeOk = _ui.SelectedTypes.Contains(typeLabel);
@@ -1953,49 +1953,49 @@
             {
                 setOk = true;
             }
-            else if (v.IsArmor)
+            else if (itemRow.IsArmor)
             {                
-                if (string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(itemRow.Set, "Any", StringComparison.OrdinalIgnoreCase))
                 {
                     setOk = true;//_ui.SelectedSets.Any(s => ArmorSetNames.Contains(s));
                 }
                 else
                 {
-                    setOk = _ui.SelectedSets.Contains(v.Set);
+                    setOk = _ui.SelectedSets.Contains(itemRow.Set);
                 }
             }
             else
             {
                 // Non-armor: Set is usually the weapon archetype (Squire/Monk/etc.)
-                setOk = _ui.SelectedSets.Contains(v.Set) || string.Equals(v.Set, "Any", StringComparison.OrdinalIgnoreCase);
+                setOk = _ui.SelectedSets.Contains(itemRow.Set) || string.Equals(itemRow.Set, "Any", StringComparison.OrdinalIgnoreCase);
             }
 
             bool includeItem = typeOk && setOk;
 
             if (onlyEvents)
-                includeItem &= v.IsEvent;
+                includeItem &= itemRow.IsEvent;
             if (excludeEvents)
-                includeItem &= !v.IsEvent;
+                includeItem &= !itemRow.IsEvent;
 
-            if ((excludeEquipped && (ActivePanel?.SelectedHeroInfo?.Name != null) && (v.Location != "Character > " + ActivePanel?.SelectedHeroInfo?.Name)) ||
-                (excludeEquipped && (ActivePanel?.SelectedHeroInfo == null) && (v.Location.StartsWith("Character"))))
-                includeItem &= !v.IsEquipped;
+            if ((excludeEquipped && (ActivePanel?.SelectedHeroInfo?.Name != null) && (itemRow.Location != "Character > " + ActivePanel?.SelectedHeroInfo?.Name)) ||
+                (excludeEquipped && (ActivePanel?.SelectedHeroInfo == null) && (itemRow.Location.StartsWith("Character"))))
+                includeItem &= !itemRow.IsEquipped;
 
             if (excludeMissingResists)
-                includeItem &= !v.IsMissingResists;
+                includeItem &= !itemRow.IsMissingResists;
 
             if (updateCustomSearch)
             {
                 if (customSearchIsError == false)
-                    v.IsHiddenDueToSearch = (root == null) ? false : !(root.Eval(v));
+                    itemRow.IsHiddenDueToSearch = (root == null) ? false : !(root.Eval(itemRow));
                 else
-                    v.IsHiddenDueToSearch = false;
+                    itemRow.IsHiddenDueToSearch = false;
             }
 
-            if (v.IsHiddenDueToSearch)
+            if (itemRow.IsHiddenDueToSearch)
                 includeItem = false;
 
-            v.IsHidden = !includeItem;
+            itemRow.IsHidden = !includeItem;
         }
     }
 
