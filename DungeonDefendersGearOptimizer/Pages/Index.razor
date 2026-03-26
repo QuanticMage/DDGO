@@ -1977,9 +1977,12 @@
             if (excludeEvents)
                 includeItem &= !itemRow.IsEvent;
 
-            if ((excludeEquipped && (ActivePanel?.SelectedHeroInfo?.Name != null) && (itemRow.Location != "Character > " + ActivePanel?.SelectedHeroInfo?.Name)) ||
-                (excludeEquipped && (ActivePanel?.SelectedHeroInfo == null) && (itemRow.Location.StartsWith("Character"))))
-                includeItem &= !itemRow.IsEquipped;
+            string? selectedHeroGuid = ActivePanel?.SelectedHeroInfo?.ResolveGuid();
+            bool otherHeroIstWearingItem = ActivePanel?.SelectedHeroInfo is null || (itemRow.EquippedHeroId is not null &&  selectedHeroGuid is not null && itemRow.EquippedHeroId != selectedHeroGuid);
+            if(excludeEquipped && itemRow.IsEquipped && otherHeroIstWearingItem)
+            {
+                includeItem &= false;
+            }
 
             if (excludeMissingResists)
                 includeItem &= !itemRow.IsMissingResists;
