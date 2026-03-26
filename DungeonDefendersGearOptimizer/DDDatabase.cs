@@ -170,6 +170,7 @@ public class DDEquipmentInfo
 	public string Description = "";
 	public string Template = "";
 	public string Location = "";
+	public string? EquippedHeroId;
 
 	public string Quality = "";
 	public string Type = "";
@@ -375,6 +376,11 @@ public class DDHeroInfo
 	public List<DDEquipmentInfo> Equipment = new();
 	public string Template = "";
 	public int EquipmentCount;
+
+	public string ResolveGuid()
+	{
+		return $"{GUID1}-{GUID2}-{GUID3}-{GUID4}";
+	}
 };
 
 public class DDDatabase
@@ -443,6 +449,7 @@ public class DDDatabase
 				//Console.WriteLine(j);
 				DDEquipmentInfo equipment = ReadEquipment(reader);
 				equipment.Location = "Character > " + hero.Name;
+				equipment.EquippedHeroId = hero.ResolveGuid();
 				equipment.bIsEquipped = true;
 				if (equipment == null) { Status = "Load: Failed to parse equipment"; return; }				
 				Items.Add(equipment);
