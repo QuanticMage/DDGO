@@ -942,8 +942,8 @@ namespace DDUP
 		//====================================================================================================
 		// PET (FAMILIAR) DAMAGE CALCULATIONS
 		//======================================================================================================
-		private (float baseDmg, float elemDmg, float interval, int numProj)
-			GetPetBaseStats(ItemViewRow viewRow, bool bUseUpgraded, ref HeroInfo heroInfo, 
+		private (float baseDmg, float elemDmg, float interval, int numProj, bool hasDoT)
+			GetPetBaseStats(ItemViewRow viewRow, bool bUseUpgraded, ref HeroInfo heroInfo,
 							ref HeroEquipment_Familiar_Data familiarTemplate, bool bIsMelee)
 		{
 			int weaponDamageBonus = bUseUpgraded ? viewRow.UpgradedWeaponDamageBonus : viewRow.WeaponDamageBonus;
@@ -1031,7 +1031,7 @@ namespace DDUP
 			// numProjectiles = max(1 + WeaponNumberOfProjectilesBonus, 1)
 			int numProj = Math.Max(1 + numProjBonus, 1);
 
-			return (baseDmg, elemDmg, attackInterval, numProj);
+			return (baseDmg, elemDmg, attackInterval, numProj, dotDamageTotal > 0);
 		}
 		public (float dps, string tooltip) GetPetProjectileDPS(
 			ItemViewRow viewRow, bool bUseUpgraded,
@@ -1043,7 +1043,7 @@ namespace DDUP
 			if (familiarTemplate.bDoFamiliarAbilities == 0)
 				return (0, "Does not attack");
 
-			var (baseDmg, elemDmg, attackInterval, numProj) =
+			var (baseDmg, elemDmg, attackInterval, numProj, hasDoT) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, bIsFromMelee);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
@@ -1060,6 +1060,8 @@ namespace DDUP
 			float dps = (baseDmg + elemDmg) * numProj / attackInterval;
 
 			string tooltip = DDEquipmentInfo.FormatCompact(baseDmg);
+			if (hasDoT)
+				tooltip += " (incl. DoT)";
 			if (elemDmg > 0)
 				tooltip += $" + {DDEquipmentInfo.FormatCompact(elemDmg)} elemental";
 			if (numProj > 1)
@@ -1079,7 +1081,7 @@ namespace DDUP
 				return (0, "Does not attack");
 
 
-			var (baseDmg, elemDmg, attackInterval, numProj) =
+			var (baseDmg, elemDmg, attackInterval, numProj, hasDoT) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, true);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
@@ -1110,8 +1112,6 @@ namespace DDUP
 				var (projDps, projTooltip) = GetPetProjectileDPS(viewRow, bUseUpgraded, ref heroInfo, ref equipTemplate, ref familiarTemplate, true);
 				if (projDps > 0)
 					tooltip += $"\r\nAlso shoots projectile when out of melee range: {projTooltip}";
-				else
-					tooltip += $"\r\nAlso shoots projectile when out of melee range (ERR): {projTooltip}";
 			}
 
 			return (dps, tooltip);
