@@ -170,6 +170,7 @@ public class DDEquipmentInfo
 	public string Description = "";
 	public string Template = "";
 	public string Location = "";
+	public string? EquippedHeroId;
 
 	public string Quality = "";
 	public string Type = "";
@@ -295,7 +296,9 @@ public class DDEquipmentInfo
 				Rating: 0,
 				Sides: 0,
 				Name: name,
-				Location: this.Location,//this.Description + $"{Color1.R},{Color1.G},{Color1.B},{Color1.A} -  {Color2.R},{Color2.G},{Color2.B},{Color2.A}" ?? "",
+				Location: this.Location,
+				EquippedHeroId: this.EquippedHeroId,
+				//this.Description + $"{Color1.R},{Color1.G},{Color1.B},{Color1.A} -  {Color2.R},{Color2.G},{Color2.B},{Color2.A}" ?? "",
 				Quality: this.Quality ?? "",
 				Type: this.Type ?? "",
 				Set: this.Set ?? "",
@@ -375,6 +378,11 @@ public class DDHeroInfo
 	public List<DDEquipmentInfo> Equipment = new();
 	public string Template = "";
 	public int EquipmentCount;
+
+	public string ResolveGuid()
+	{
+		return $"{GUID1}-{GUID2}-{GUID3}-{GUID4}";
+	}
 };
 
 public class DDDatabase
@@ -443,8 +451,9 @@ public class DDDatabase
 				//Console.WriteLine(j);
 				DDEquipmentInfo equipment = ReadEquipment(reader);
 				equipment.Location = "Character > " + hero.Name;
+				equipment.EquippedHeroId = hero.ResolveGuid();
 				equipment.bIsEquipped = true;
-				if (equipment == null) { Status = "Load: Failed to parse equipment"; return; }				
+
 				Items.Add(equipment);
 				hero.Equipment.Add(equipment);
 			}
@@ -479,7 +488,6 @@ public class DDDatabase
 		for (int i = 0; i < equipCount; i++)
 		{
 			var equipment = ReadEquipment(reader);
-			if (equipment == null) { Status = "Load: Failed to parse equipment for item box"; return; }
 			equipment.Location = "ItemBox";
 			Items.Add(equipment);
 			if (i % 100 == 0)
@@ -493,7 +501,6 @@ public class DDDatabase
 		for (int i = 0; i < equipCount; i++)
 		{
 			var equipment = ReadEquipment(reader);
-			if (equipment == null) { Status = "Load: Failed to parse equipment list"; return; }
 			equipment.Location = "HeroEquipment?";
 			Items.Add(equipment);
 		}
@@ -501,7 +508,6 @@ public class DDDatabase
 		for (int i = 0; i < equipCount; i++)
 		{
 			var equipment = ReadEquipment(reader);
-			if (equipment == null) { Status = "Load: Failed to parse equipment for lobby"; return; }
 			equipment.Location = "Tavern";
 			Items.Add(equipment);
 			if ( i % 100 == 0)
@@ -518,7 +524,6 @@ public class DDDatabase
 			for (int j = 0; j < equipCount; j++)
 			{
 				var equipment = ReadEquipment(reader);
-				if (equipment == null) { Status = "Load: Failed to parse shopkeeper equipment"; return; }				
 			}
 		}
 
@@ -527,7 +532,6 @@ public class DDDatabase
 		for (int j = 0; j < equipCount; j++)
 		{
 			var equipment = ReadEquipment(reader);
-			if (equipment == null) { Status = "Load: Failed to parse shop equipment"; return; }
 			equipment.UserSellPrice = reader.ReadInt32();
 			equipment.Location = "Shop";
 			Items.Add(equipment);

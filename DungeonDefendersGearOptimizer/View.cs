@@ -43,6 +43,7 @@ namespace DDUP
 
 		public string Name { get; set; }
 		public string Location { get; set; }
+		public string? EquippedHeroId { get; set; }
 		public string Quality { get; set; }
 		public string Type { get; set; }
 		public string Set { get; set; }
@@ -151,6 +152,7 @@ namespace DDUP
 				int Sides,
 				string Name,
 				string Location,
+				string? EquippedHeroId,
 				string Quality,
 				string Type,
 				string Set,
@@ -212,6 +214,7 @@ namespace DDUP
 
 			this.Name = Name;
 			this.Location = Location;
+			this.EquippedHeroId = EquippedHeroId;
 			this.Quality = Quality;
 			this.QualityRank = GetQualityRank(this.Quality);
 			this.Type = Type;
