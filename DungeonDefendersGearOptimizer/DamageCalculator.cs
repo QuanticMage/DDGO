@@ -289,21 +289,19 @@ namespace DDUP
 
 				// Meteor fire DoT (from DamagingFireEmitters GasCloud)
 				// .uc formula: Dot.DamageAmount *= DotDamageScale * ((default.ProjDamage > 0) ? Damage/default.ProjDamage : 1.0)
-				// default.ProjDamage is the CLASS default (CDO), which is 0 for all projectile classes
-				// (not set in any defaultproperties block), so the ratio always evaluates to 1.0.
-				// DoT per tick = CloudDamageAmount * DamageScale (flat, not scaled by projectile damage).
-				if (projTemplate.FireDamageScale > 0 && projTemplate.FireCloudEffectInterval > 0)
+				// default.ProjDamage resolves through archetype chain to the template's ProjDamage value.
+				if (projTemplate.FireDamageScale > 0 && projTemplate.FireCloudEffectInterval > 0 && projTemplate.ProjDamage > 0)
 				{
 					float numTicks = projTemplate.FireCloudLifeSpan / projTemplate.FireCloudEffectInterval;
-					float fireDamagePerTick = projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale;
+					float fireDamagePerTick = projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale * (baseDamage / projTemplate.ProjDamage);
 					baseDamage += fireDamagePerTick * numTicks;
 				}
 
-				// StaffDot DoT (from DotTemplate GasCloud) — same flat scaling as fire DoT
-				if (projTemplate.DotDamageScale > 0 && projTemplate.DotCloudEffectInterval > 0)
+				// StaffDot DoT (from DotTemplate GasCloud)
+				if (projTemplate.DotDamageScale > 0 && projTemplate.DotCloudEffectInterval > 0 && projTemplate.ProjDamage > 0)
 				{
 					float numTicks = projTemplate.DotCloudLifeSpan / projTemplate.DotCloudEffectInterval;
-					float dotDamagePerTick = projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale;
+					float dotDamagePerTick = projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale * (baseDamage / projTemplate.ProjDamage);
 					baseDamage += dotDamagePerTick * numTicks;
 				}
 
@@ -1048,12 +1046,13 @@ namespace DDUP
 			// get DoT via the separate GetPetProjectileDPS call with bIsMelee=false.
 			//
 			// .uc formula: Dot.DamageAmount *= DotDamageScale * ((default.ProjDamage > 0) ? Damage/default.ProjDamage : 1.0)
-			// default.ProjDamage is the CLASS default (CDO) which is 0 for all projectile classes,
-			// so the ratio always evaluates to 1.0. DoT per tick is flat: CloudDamageAmount * DamageScale.
+			// default.ProjDamage resolves through the archetype chain to the template's ProjDamage.
+			// DoT per tick = CloudDamageAmount * DamageScale * (scaledDamage / templateProjDamage).
 			float scaledDoTPerTick = 0.0f;
-			if (bIncludeDoT && dotPerTickTotal > 0)
+			if (bIncludeDoT && projDamage > 0 && dotPerTickTotal > 0)
 			{
-				scaledDoTPerTick = dotPerTickTotal;
+				float dotScaleRatio = scaledDirectHit / projDamage;
+				scaledDoTPerTick = dotPerTickTotal * dotScaleRatio;
 			}
 
 			float baseDmg = scaledDirectHit + scaledDoTPerTick * dotNumTicks;
@@ -1085,15 +1084,15 @@ namespace DDUP
 			if (attackInterval <= 0.0f) return (0.0f, "");
 
 			// Mythical hero damage scaling: WithProjectileAI sets spawned projectile ScaleHeroDamage when QualityRank > 12.
-			// DoT is flat (not scaled by projectile damage) so only the direct hit and baseDmg get hero scaling.
+			// DoT scales through Damage/default.ProjDamage ratio, so hero scaling affects both.
 			string scalingNote = "";
 			if (viewRow.QualityRank > 12)
 			{
 				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
 				float heroScale = MathF.Pow(heroScaleMult, familiarTemplate.MythicalScaleDamageStatExponent);
+				baseDmg *= heroScale;
 				scaledDirectHit *= heroScale;
-				// Recompute baseDmg with scaled direct hit + unchanged flat DoT
-				baseDmg = scaledDirectHit + scaledDoTPerTick * dotNumTicks;
+				scaledDoTPerTick *= heroScale;
 				scalingNote = " (Hero dmg scaled)";
 			}
 
