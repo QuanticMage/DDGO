@@ -549,6 +549,19 @@ namespace DDUP
 
 		public float FireDamageScale;
 
+		// StaffDot DoT
+		public float DotDamageScale;
+
+		// GasCloud properties resolved from DotTemplate reference
+		public float DotCloudDamageAmount;
+		public float DotCloudEffectInterval;
+		public float DotCloudLifeSpan;
+
+		// GasCloud properties resolved from DamagingFireEmitters reference
+		public float FireCloudDamageAmount;
+		public float FireCloudEffectInterval;
+		public float FireCloudLifeSpan;
+
 		public float TheDamageMinScale;
 		public float TheDamageMaxScale;
 		public float ExtraDamageMaxScale;
@@ -600,6 +613,14 @@ namespace DDUP
 			HomingInterpSpeed = Parse.Float(propertyMap, "HomingInterpSpeed");
 			bDamageOnTouch = Parse.BoolByte(propertyMap, "bDamageOnTouch");
 			FireDamageScale = Parse.Float(propertyMap, "FireDamageScale");
+
+			DotDamageScale = Parse.Float(propertyMap, "DotDamageScale");
+			DotCloudDamageAmount = Parse.Float(propertyMap, "DotCloudDamageAmount");
+			DotCloudEffectInterval = Parse.Float(propertyMap, "DotCloudEffectInterval");
+			DotCloudLifeSpan = Parse.Float(propertyMap, "DotCloudLifeSpan");
+			FireCloudDamageAmount = Parse.Float(propertyMap, "FireCloudDamageAmount");
+			FireCloudEffectInterval = Parse.Float(propertyMap, "FireCloudEffectInterval");
+			FireCloudLifeSpan = Parse.Float(propertyMap, "FireCloudLifeSpan");
 
 			TheDamageMinScale = Parse.Float(propertyMap, "TheDamageMinScale");
 			TheDamageMaxScale = Parse.Float(propertyMap, "TheDamageMaxScale");

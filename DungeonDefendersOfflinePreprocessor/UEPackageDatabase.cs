@@ -2004,6 +2004,41 @@ namespace DungeonDefendersOfflinePreprocessor
 			return db.AddDunDefPlayer(obj.GetPath(), (obj.Class?.Name?.Name ?? ""), ref ddp);
 		}
 
+		private void ResolveGasCloudProperties(UObject obj, string referencePropertyName, Dictionary<string, string> propertyMap,
+			string damageAmountKey, string effectIntervalKey, string cloudLifeSpanKey)
+		{
+			// Defaults if we can't resolve
+			propertyMap[damageAmountKey] = "0.0";
+			propertyMap[effectIntervalKey] = "0.0";
+			propertyMap[cloudLifeSpanKey] = "0.0";
+
+			var refProp = GetProperty(obj, referencePropertyName);
+			if (refProp == null || string.IsNullOrWhiteSpace(refProp.Value) || refProp.Value == "None" || refProp.Value == "0")
+				return;
+
+			// Resolve the object reference to get the GasCloud/EmitterSpawnable object
+			var gasCloud = FindObjectByPath(obj.Package, refProp.Value);
+			if (gasCloud == null)
+			{
+				MainWindow.Log($"[ResolveGasCloudProperties] Could not resolve '{referencePropertyName}' reference '{refProp.Value}' on '{obj.GetPath()}'");
+				return;
+			}
+
+			gasCloud.Load();
+
+			var damageAmount = GetProperty(gasCloud, "DamageAmount");
+			if (damageAmount != null)
+				propertyMap[damageAmountKey] = damageAmount.Value;
+
+			var effectInterval = GetProperty(gasCloud, "EffectInterval");
+			if (effectInterval != null)
+				propertyMap[effectIntervalKey] = effectInterval.Value;
+
+			var cloudLifeSpan = GetProperty(gasCloud, "CloudLifeSpan");
+			if (cloudLifeSpan != null)
+				propertyMap[cloudLifeSpanKey] = cloudLifeSpan.Value;
+		}
+
 		public int AddProjectileToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
@@ -2054,11 +2089,19 @@ namespace DungeonDefendersOfflinePreprocessor
 			AddPropertyToMap(obj, "bDamageOnTouch", propertyMap, "0");
 
 			AddPropertyToMap(obj, "FireDamageScale", propertyMap, "0.0");
+			AddPropertyToMap(obj, "DotDamageScale", propertyMap, "0.0");
 
 			AddPropertyToMap(obj, "TheDamageMinScale", propertyMap, "0.0");
 			AddPropertyToMap(obj, "TheDamageMaxScale", propertyMap, "0.0");
 			AddPropertyToMap(obj, "ExtraDamageMaxScale", propertyMap, "0.0");
 
+			// Resolve GasCloud properties from DotTemplate reference (StaffDot)
+			ResolveGasCloudProperties(obj, "DotTemplate", propertyMap,
+				"DotCloudDamageAmount", "DotCloudEffectInterval", "DotCloudLifeSpan");
+
+			// Resolve GasCloud properties from DamagingFireEmitters reference (Meteor)
+			ResolveGasCloudProperties(obj, "DamagingFireEmitters", propertyMap,
+				"FireCloudDamageAmount", "FireCloudEffectInterval", "FireCloudLifeSpan");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");

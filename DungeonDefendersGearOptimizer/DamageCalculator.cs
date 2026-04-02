@@ -287,15 +287,20 @@ namespace DDUP
 					additionalDamage *= damageChargeScale;
 				}
 
-				if (projTemplate.FireDamageScale > 0 )
+				// Meteor fire DoT (from DamagingFireEmitters GasCloud)
+				if (projTemplate.FireDamageScale > 0 && projTemplate.FireCloudEffectInterval > 0 && projTemplate.ProjDamage > 0)
 				{
-					// hardcoded because it would be a lot to thread this through.  Someday maybe
-					float baseFireDamage = 10.0f;
-					int numTicks = 24;
+					float numTicks = projTemplate.FireCloudLifeSpan / projTemplate.FireCloudEffectInterval;
+					float fireDamagePerTick = projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale * (baseDamage / projTemplate.ProjDamage);
+					baseDamage += fireDamagePerTick * numTicks;
+				}
 
-					float fireDamage = baseFireDamage * projTemplate.FireDamageScale * baseDamage;
-					// this leaves fire, like MM or Phantom Destroyer
-					baseDamage += fireDamage * numTicks;
+				// StaffDot DoT (from DotTemplate GasCloud)
+				if (projTemplate.DotDamageScale > 0 && projTemplate.DotCloudEffectInterval > 0 && projTemplate.ProjDamage > 0)
+				{
+					float numTicks = projTemplate.DotCloudLifeSpan / projTemplate.DotCloudEffectInterval;
+					float dotDamagePerTick = projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale * (baseDamage / projTemplate.ProjDamage);
+					baseDamage += dotDamagePerTick * numTicks;
 				}
 
 			}
