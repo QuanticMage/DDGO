@@ -1039,12 +1039,15 @@ namespace DDUP
 
 			float scaledDirectHit = MathF.Max(projBase, 1.0f) * dmgMultChain;
 
-			// DoT scales by (Damage / default.ProjDamage) — the ratio of fully-scaled damage
-			// to base ProjDamage — matching the .uc formula:
-			//   Dot.DamageAmount *= DotDamageScale * (Damage / default.ProjDamage)
+			// DoT only applies to projectile attacks, not melee swings — melee familiars
+			// don't spawn projectiles (so no DoT cloud). Melee familiars with bAlsoShootProjectile
+			// get DoT via the separate GetPetProjectileDPS call with bIsMelee=false.
 			float scaledDoTPerTick = 0.0f;
-			if (projDamage > 0 && dotPerTickTotal > 0)
+			if (!bIsMelee && projDamage > 0 && dotPerTickTotal > 0)
 			{
+				// DoT scales by (Damage / default.ProjDamage) — the ratio of fully-scaled damage
+				// to base ProjDamage — matching the .uc formula:
+				//   Dot.DamageAmount *= DotDamageScale * (Damage / default.ProjDamage)
 				float dotScaleRatio = scaledDirectHit / projDamage;
 				scaledDoTPerTick = dotPerTickTotal * dotScaleRatio;
 			}
