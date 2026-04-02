@@ -1018,7 +1018,6 @@ namespace DDUP
 			if (templateCounts > 0)
 			{
 				projDamage /= templateCounts;
-				dotDamageTotal /= templateCounts;
 				dotPerTickTotal /= templateCounts;
 				projMultiplier /= templateCounts;
 			}
@@ -1027,13 +1026,10 @@ namespace DDUP
 				projMultiplier = 1.0f;
 			}
 
-			// Add DoT damage contribution (fire clouds, staff DoT) to base projectile damage
-			projDamage += dotDamageTotal;
-
+			// Compute base damage from direct hit only (no DoT yet)
 			float projBase = projMultiplier * (projDamage * familiarTemplate.ProjectileDamageMultiplier + weaponDamageBonus);
 			float pawnMult = Player_GetPawnDamageMult(ref heroInfo);
 
-			// Common multiplier chain applied to all damage components
 			float dmgMultChain =
 				familiarTemplate.AbsoluteDamageMultiplier *
 				familiarTemplate.NightmareDamageMultiplier *
@@ -1041,13 +1037,19 @@ namespace DDUP
 				pawnMult *
 				heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
 
-			float baseDmg = MathF.Max(projBase, 1.0f) * dmgMultChain;
+			float scaledDirectHit = MathF.Max(projBase, 1.0f) * dmgMultChain;
 
-			// Compute scaled DoT components for tooltip display
-			// These go through the same projMultiplier * ProjectileDamageMultiplier * dmgMultChain
-			float dotScale = projMultiplier * familiarTemplate.ProjectileDamageMultiplier * dmgMultChain;
-			float scaledDirectHit = baseDmg - dotDamageTotal * dotScale;
-			float scaledDoTPerTick = dotPerTickTotal * dotScale;
+			// DoT scales by (Damage / default.ProjDamage) — the ratio of fully-scaled damage
+			// to base ProjDamage — matching the .uc formula:
+			//   Dot.DamageAmount *= DotDamageScale * (Damage / default.ProjDamage)
+			float scaledDoTPerTick = 0.0f;
+			if (projDamage > 0 && dotPerTickTotal > 0)
+			{
+				float dotScaleRatio = scaledDirectHit / projDamage;
+				scaledDoTPerTick = dotPerTickTotal * dotScaleRatio;
+			}
+
+			float baseDmg = scaledDirectHit + scaledDoTPerTick * dotNumTicks;
 
 			float elemDmg =
 				elementalAmount *
