@@ -915,34 +915,44 @@ namespace DDUP
 		}
 
 		/// <summary>
-		/// Calculates the total DoT (damage-over-time) contribution from a projectile's fire and staff DoT effects.
-		/// Returns the total extra damage dealt per projectile hit from all DoT clouds.
+		/// Returns DoT details from a projectile template:
+		/// totalDoT = total extra damage per hit from all DoT clouds,
+		/// perTick = combined per-tick damage (fire + staff),
+		/// numTicks = number of ticks (max of fire/staff if both present).
 		/// </summary>
-		private static float GetProjectileDoTDamage(ref DunDefProjectile_Data projTemplate)
+		private static (float totalDoT, float perTick, float numTicks) GetProjectileDoTDetails(ref DunDefProjectile_Data projTemplate)
 		{
-			float dotDamage = 0.0f;
+			float totalDoT = 0.0f;
+			float perTick = 0.0f;
+			float numTicks = 0.0f;
 
 			// Meteor fire DoT (from DamagingFireEmitters GasCloud)
 			if (projTemplate.FireDamageScale > 0 && projTemplate.FireCloudEffectInterval > 0)
 			{
-				float numTicks = projTemplate.FireCloudLifeSpan / projTemplate.FireCloudEffectInterval;
-				dotDamage += projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale * numTicks;
+				float n = projTemplate.FireCloudLifeSpan / projTemplate.FireCloudEffectInterval;
+				float pt = projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale;
+				totalDoT += pt * n;
+				perTick += pt;
+				numTicks = MathF.Max(numTicks, n);
 			}
 
 			// StaffDot DoT (from DotTemplate GasCloud)
 			if (projTemplate.DotDamageScale > 0 && projTemplate.DotCloudEffectInterval > 0)
 			{
-				float numTicks = projTemplate.DotCloudLifeSpan / projTemplate.DotCloudEffectInterval;
-				dotDamage += projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale * numTicks;
+				float n = projTemplate.DotCloudLifeSpan / projTemplate.DotCloudEffectInterval;
+				float pt = projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale;
+				totalDoT += pt * n;
+				perTick += pt;
+				numTicks = MathF.Max(numTicks, n);
 			}
 
-			return dotDamage;
+			return (totalDoT, perTick, numTicks);
 		}
 
 		//====================================================================================================
 		// PET (FAMILIAR) DAMAGE CALCULATIONS
 		//======================================================================================================
-		private (float baseDmg, float elemDmg, float interval, int numProj, bool hasDoT)
+		private (float baseDmg, float elemDmg, float interval, int numProj, float scaledDirectHit, float scaledDoTPerTick, float dotNumTicks)
 			GetPetBaseStats(ItemViewRow viewRow, bool bUseUpgraded, ref HeroInfo heroInfo,
 							ref HeroEquipment_Familiar_Data familiarTemplate, bool bIsMelee)
 		{
@@ -973,6 +983,8 @@ namespace DDUP
 			// ProjDamage base from the projectile template
 			float projDamage = 0.0f;
 			float dotDamageTotal = 0.0f;
+			float dotPerTickTotal = 0.0f;
+			float dotNumTicks = 0.0f;
 			int templateCounts = 0;
 			float projMultiplier = 0.0f;
 			if (familiarTemplate.ProjectileTemplate != -1)
@@ -980,7 +992,10 @@ namespace DDUP
 				var projTemplate = tdb!.GetDunDefProjectile(familiarTemplate.ProjectileTemplate);
 				projMultiplier += GetFamiliarProjectileMultBasedOnClass(ref projTemplate);
 				projDamage += projTemplate.ProjDamage;
-				dotDamageTotal += GetProjectileDoTDamage(ref projTemplate);
+				var (total, pt, nt) = GetProjectileDoTDetails(ref projTemplate);
+				dotDamageTotal += total;
+				dotPerTickTotal += pt;
+				dotNumTicks = MathF.Max(dotNumTicks, nt);
 				templateCounts++;
 			}
 
@@ -992,7 +1007,10 @@ namespace DDUP
 					var projTemplate = tdb!.GetDunDefProjectile(tdb!.GetIntArrayElem(familiarTemplate.ProjectileTemplates.Start + i));
 					projMultiplier += GetFamiliarProjectileMultBasedOnClass(ref projTemplate);
 					projDamage += projTemplate.ProjDamage;
-					dotDamageTotal += GetProjectileDoTDamage(ref projTemplate);
+					var (total, pt, nt) = GetProjectileDoTDetails(ref projTemplate);
+					dotDamageTotal += total;
+					dotPerTickTotal += pt;
+					dotNumTicks = MathF.Max(dotNumTicks, nt);
 					templateCounts++;
 				}
 			}
@@ -1001,6 +1019,7 @@ namespace DDUP
 			{
 				projDamage /= templateCounts;
 				dotDamageTotal /= templateCounts;
+				dotPerTickTotal /= templateCounts;
 				projMultiplier /= templateCounts;
 			}
 			else
@@ -1014,13 +1033,21 @@ namespace DDUP
 			float projBase = projMultiplier * (projDamage * familiarTemplate.ProjectileDamageMultiplier + weaponDamageBonus);
 			float pawnMult = Player_GetPawnDamageMult(ref heroInfo);
 
-			float baseDmg =
-				MathF.Max(projBase, 1.0f) *
+			// Common multiplier chain applied to all damage components
+			float dmgMultChain =
 				familiarTemplate.AbsoluteDamageMultiplier *
 				familiarTemplate.NightmareDamageMultiplier *
-				familiarTemplate.ExtraNightmareDamageMultiplier*
+				familiarTemplate.ExtraNightmareDamageMultiplier *
 				pawnMult *
 				heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
+
+			float baseDmg = MathF.Max(projBase, 1.0f) * dmgMultChain;
+
+			// Compute scaled DoT components for tooltip display
+			// These go through the same projMultiplier * ProjectileDamageMultiplier * dmgMultChain
+			float dotScale = projMultiplier * familiarTemplate.ProjectileDamageMultiplier * dmgMultChain;
+			float scaledDirectHit = baseDmg - dotDamageTotal * dotScale;
+			float scaledDoTPerTick = dotPerTickTotal * dotScale;
 
 			float elemDmg =
 				elementalAmount *
@@ -1031,7 +1058,7 @@ namespace DDUP
 			// numProjectiles = max(1 + WeaponNumberOfProjectilesBonus, 1)
 			int numProj = Math.Max(1 + numProjBonus, 1);
 
-			return (baseDmg, elemDmg, attackInterval, numProj, dotDamageTotal > 0);
+			return (baseDmg, elemDmg, attackInterval, numProj, scaledDirectHit, scaledDoTPerTick, dotNumTicks);
 		}
 		public (float dps, string tooltip) GetPetProjectileDPS(
 			ItemViewRow viewRow, bool bUseUpgraded,
@@ -1043,7 +1070,7 @@ namespace DDUP
 			if (familiarTemplate.bDoFamiliarAbilities == 0)
 				return (0, "Does not attack");
 
-			var (baseDmg, elemDmg, attackInterval, numProj, hasDoT) =
+			var (baseDmg, elemDmg, attackInterval, numProj, scaledDirectHit, scaledDoTPerTick, dotNumTicks) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, bIsFromMelee);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
@@ -1053,15 +1080,33 @@ namespace DDUP
 			if (viewRow.QualityRank > 12)
 			{
 				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
-				baseDmg *= MathF.Pow(heroScaleMult, familiarTemplate.MythicalScaleDamageStatExponent);
+				float heroScale = MathF.Pow(heroScaleMult, familiarTemplate.MythicalScaleDamageStatExponent);
+				baseDmg *= heroScale;
+				scaledDirectHit *= heroScale;
+				scaledDoTPerTick *= heroScale;
 				scalingNote = " (Hero dmg scaled)";
 			}
 
 			float dps = (baseDmg + elemDmg) * numProj / attackInterval;
 
-			string tooltip = DDEquipmentInfo.FormatCompact(baseDmg);
-			if (hasDoT)
-				tooltip += " (incl. DoT)";
+			string tooltip;
+			if (dotNumTicks > 0 && scaledDoTPerTick > 0)
+			{
+				string directStr = DDEquipmentInfo.FormatCompact(scaledDirectHit);
+				string dotTickStr = DDEquipmentInfo.FormatCompact(scaledDoTPerTick);
+				int ticks = (int)MathF.Round(dotNumTicks);
+
+				// If direct hit ≈ DoT per tick (within 10%), simplify
+				if (scaledDirectHit > 0 && MathF.Abs(scaledDirectHit - scaledDoTPerTick) / scaledDirectHit < 0.10f)
+					tooltip = $"{DDEquipmentInfo.FormatCompact(baseDmg)} ({dotTickStr} x {ticks})";
+				else
+					tooltip = $"{DDEquipmentInfo.FormatCompact(baseDmg)} ({directStr}+{dotTickStr} x {ticks})";
+			}
+			else
+			{
+				tooltip = DDEquipmentInfo.FormatCompact(baseDmg);
+			}
+
 			if (elemDmg > 0)
 				tooltip += $" + {DDEquipmentInfo.FormatCompact(elemDmg)} elemental";
 			if (numProj > 1)
@@ -1081,7 +1126,7 @@ namespace DDUP
 				return (0, "Does not attack");
 
 
-			var (baseDmg, elemDmg, attackInterval, numProj, hasDoT) =
+			var (baseDmg, elemDmg, attackInterval, numProj, _, _, _) =
 				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, true);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
