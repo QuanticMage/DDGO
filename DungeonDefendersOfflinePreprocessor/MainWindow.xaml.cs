@@ -267,13 +267,34 @@ namespace DungeonDefendersOfflinePreprocessor
 			Log("Processing...");
 			await Task.Run(async () =>
 			{
-				// 1) Synchronous heavy work -> background thread
-				foreach (var fileName in upkFiles)
+				// Pipeline: decompress+extract file N+1 while parsing file N
+				// First file must be fully prepared before we can start
+				await RunDecompressAsync(workingDir, packageDir + upkFiles[0]);
+				await RunExtractorAsync(workingDir, upkFiles[0]);
+
+				for (int i = 0; i < upkFiles.Length; i++)
 				{
-					await RunDecompressAsync(workingDir, packageDir + fileName);
-					await RunExtractorAsync(workingDir, fileName); 
+					var fileName = upkFiles[i];
+
+					// Start preparing next file while we parse current one
+					Task? nextPrepare = null;
+					if (i + 1 < upkFiles.Length)
+					{
+						var nextFile = upkFiles[i + 1];
+						var nextPkg = packageDir + nextFile;
+						nextPrepare = Task.Run(async () =>
+						{
+							await RunDecompressAsync(workingDir, nextPkg);
+							await RunExtractorAsync(workingDir, nextFile);
+						});
+					}
+
 					db.AddToDatabase(workingDir, fileName);
-					db.LoadAnimationsFromPackage(fileName.Replace(".upk",""));
+					db.LoadAnimationsFromPackage(fileName.Replace(".upk", ""));
+
+					// Wait for next file's preparation before looping
+					if (nextPrepare != null)
+						await nextPrepare;
 				}
 				
 				// export the texture atlas
@@ -309,28 +330,49 @@ namespace DungeonDefendersOfflinePreprocessor
 
 		private const int MaxChars = 2_000_000; // ~2MB of text
 
+		private static readonly object _logLock = new();
+		private static readonly StringBuilder _pendingLogs = new();
+		private static bool _flushScheduled = false;
+
 		public static void Log(string message)
 		{
 			if (Instance == null)
 				return;
 			System.Diagnostics.Debug.WriteLine(message);
 
-			Instance.Dispatcher.Invoke(() =>
+			string line = $"[{DateTime.Now:HH:mm:ss}] {message}\n";
+
+			lock (_logLock)
 			{
-				string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+				_pendingLogs.Append(line);
 
-				Instance._logBuilder.AppendLine(line);
-
-				// Trim if too large
-				if (Instance._logBuilder.Length > MaxChars)
+				if (!_flushScheduled)
 				{
-					Instance._logBuilder.Remove(0, Instance._logBuilder.Length / 4);
-				}
+					_flushScheduled = true;
+					// Batch UI updates: flush on next idle instead of blocking per log line
+					Instance.Dispatcher.InvokeAsync(() =>
+					{
+						string batch;
+						lock (_logLock)
+						{
+							batch = _pendingLogs.ToString();
+							_pendingLogs.Clear();
+							_flushScheduled = false;
+						}
 
-				Instance.LogTextBox.Text = Instance._logBuilder.ToString();
-				Instance.LogTextBox.CaretIndex = Instance.LogTextBox.Text.Length;
-				Instance.LogTextBox.ScrollToEnd();
-			});
+						Instance._logBuilder.Append(batch);
+
+						if (Instance._logBuilder.Length > MaxChars)
+						{
+							Instance._logBuilder.Remove(0, Instance._logBuilder.Length / 4);
+						}
+
+						Instance.LogTextBox.Text = Instance._logBuilder.ToString();
+						Instance.LogTextBox.CaretIndex = Instance.LogTextBox.Text.Length;
+						Instance.LogTextBox.ScrollToEnd();
+					}, DispatcherPriority.Background);
+				}
+			}
 		}
 
 		// Detect whether the user is at (or very near) the bottom.

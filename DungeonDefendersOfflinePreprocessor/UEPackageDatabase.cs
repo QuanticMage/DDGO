@@ -53,6 +53,51 @@ namespace DungeonDefendersOfflinePreprocessor
 		public byte[] TransparentMask = new byte[1];
 	}
 
+	/// <summary>
+	/// Pre-builds the full default chain (base class → derived → archetype → instance) for a UObject
+	/// once, then serves both scalar and array property lookups as O(1) dictionary hits.
+	/// This eliminates repeated chain walks when extracting many properties from the same object.
+	/// </summary>
+	public class PreloadedProperties
+	{
+		private readonly Dictionary<string, UDefaultProperty> _scalarProps;
+		private readonly List<UObject> _chain;
+
+		public PreloadedProperties(List<UObject> chain)
+		{
+			_chain = chain;
+			_scalarProps = new Dictionary<string, UDefaultProperty>();
+			foreach (var o in chain)
+			{
+				o.Load();
+				if (o.Properties == null) continue;
+				foreach (var p in o.Properties)
+					_scalarProps[p.Name] = p; // later (more derived) overrides earlier
+			}
+		}
+
+		public UDefaultProperty? GetProperty(string name)
+		{
+			_scalarProps.TryGetValue(name, out var prop);
+			return prop;
+		}
+
+		public IReadOnlyList<UDefaultProperty> GetArrayProperty(string name)
+		{
+			var mergedByIndex = new SortedDictionary<int, UDefaultProperty>();
+			foreach (var o in _chain)
+			{
+				if (o.Properties == null) continue;
+				foreach (var p in o.Properties)
+				{
+					if (p == null || p.Name != name) continue;
+					mergedByIndex[p.ArrayIndex] = p;
+				}
+			}
+			return mergedByIndex.Values.ToList();
+		}
+	}
+
 	public class UEPackageDatabase
 	{
 
@@ -657,6 +702,11 @@ namespace DungeonDefendersOfflinePreprocessor
 			return mergedByIndex.Values.ToList();
 		}
 
+		public PreloadedProperties PreloadProperties(UObject obj)
+		{
+			return new PreloadedProperties(BuildDefaultChainBaseFirst(obj));
+		}
+
 		private List<UObject> BuildDefaultChainBaseFirst(UObject obj)
 		{
 			var visited = new HashSet<UObject>(ReferenceEqualityComparer.Instance);
@@ -1208,109 +1258,84 @@ namespace DungeonDefendersOfflinePreprocessor
 
 		public async Task AddObjectsToDatabase(ExportedTemplateDatabase db)
 		{
+			// Single pass: classify all objects into buckets instead of 8 separate full scans
+			var damageTypes = new List<UObject>();
+			var players = new List<UObject>();
+			var heroes = new List<UObject>();
+			var projectiles = new List<UObject>();
+			var weapons = new List<UObject>();
+			var enemies = new List<UObject>();
+			var equipment = new List<UObject>();
+			var giveEquipment = new List<UObject>();
+
 			foreach (var item in PackageCache.Values)
 			{
 				foreach (var obj in item.Objects)
 				{
-					if (obj.GetReferencePath().StartsWith("DunDefDamageType"))
-					{
-						MainWindow.Log($"Adding DunDefDamageType {obj.GetPath()}");
-						AddDunDefDamageTypeToDB(obj, db);
-						await Task.Yield();
+					var refPath = obj.GetReferencePath();
+					if (refPath.StartsWith("DunDefDamageType")) damageTypes.Add(obj);
+					else if (refPath.StartsWith("DunDefPlayer")) players.Add(obj);
+					else if (refPath.StartsWith("DunDefHero")) heroes.Add(obj);
+					else if (refPath.StartsWith("DunDefProjectile")) projectiles.Add(obj);
+					else if (refPath.StartsWith("DunDefWeapon")) weapons.Add(obj);
+					else if (refPath.StartsWith("DunDefEnemy")) enemies.Add(obj);
+					else if (refPath.StartsWith("HeroEquipment")) equipment.Add(obj);
 
-					}
+					if (DoesObjectInheritFromClass(obj, "DunDef_SeqAct_GiveEquipmentToPlayers"))
+						giveEquipment.Add(obj);
 				}
 			}
-			foreach (var item in PackageCache.Values)
+
+			// Process in dependency order
+			foreach (var obj in damageTypes)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("DunDefPlayer"))
-					{
-						MainWindow.Log($"Adding DunDefPlayer {obj.GetPath()}");
-						AddPlayerToDB(obj, db);
-						await Task.Yield();
-
-					}
-				}
+				MainWindow.Log($"Adding DunDefDamageType {obj.GetPath()}");
+				AddDunDefDamageTypeToDB(obj, db);
+				await Task.Yield();
 			}
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in players)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("DunDefHero"))
-					{
-						MainWindow.Log($"Adding DunDefHero {obj.GetPath()}");
-						AddDunDefHeroToDB(obj, db);
-						await Task.Yield();
-
-					}
-				}
+				MainWindow.Log($"Adding DunDefPlayer {obj.GetPath()}");
+				AddPlayerToDB(obj, db);
+				await Task.Yield();
 			}
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in heroes)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("DunDefProjectile"))
-					{
-						MainWindow.Log($"Adding DunDefProjectile {obj.GetPath()}");
-						AddProjectileToDB(obj, db);
-						await Task.Yield();
-					}
-				}
-
+				MainWindow.Log($"Adding DunDefHero {obj.GetPath()}");
+				AddDunDefHeroToDB(obj, db);
+				await Task.Yield();
 			}
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in projectiles)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("DunDefWeapon"))
-					{
-						MainWindow.Log($"Adding DunDefWeapon {obj.GetPath()}");
-						AddWeaponToDB(obj, db);
-						await Task.Yield();
-					}
-				}
+				MainWindow.Log($"Adding DunDefProjectile {obj.GetPath()}");
+				AddProjectileToDB(obj, db);
+				await Task.Yield();
 			}
-
-
+			foreach (var obj in weapons)
+			{
+				MainWindow.Log($"Adding DunDefWeapon {obj.GetPath()}");
+				AddWeaponToDB(obj, db);
+				await Task.Yield();
+			}
 			// DunDefEnemy pass (must run before HeroEquipment so enemy drop entry indices are valid)
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in enemies)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("DunDefEnemy"))
-					{
-						MainWindow.Log($"Adding DunDefEnemy {obj.GetPath()}");
-						AddEnemyToDB(obj, db);
-						await Task.Yield();
-					}
-				}
+				MainWindow.Log($"Adding DunDefEnemy {obj.GetPath()}");
+				AddEnemyToDB(obj, db);
+				await Task.Yield();
 			}
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in equipment)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (obj.GetReferencePath().StartsWith("HeroEquipment"))
-					{
-						MainWindow.Log($"Adding HeroEquipment {obj.GetPath()}");
-						AddEquipmentToDB(obj, db);
-						await Task.Yield();
-					}
-				}
+				MainWindow.Log($"Adding HeroEquipment {obj.GetPath()}");
+				AddEquipmentToDB(obj, db);
+				await Task.Yield();
 			}
 			// DunDef_SeqAct_GiveEquipmentToPlayers pass (after HeroEquipment so indices resolve)
-			foreach (var item in PackageCache.Values)
+			foreach (var obj in giveEquipment)
 			{
-				foreach (var obj in item.Objects)
-				{
-					if (DoesObjectInheritFromClass(obj, "DunDef_SeqAct_GiveEquipmentToPlayers"))
-					{
-						MainWindow.Log($"Adding GiveEquipmentToPlayers {obj.GetPath()}");
-						AddGiveEquipmentToPlayersToDB(obj, db);
-						await Task.Yield();
-					}
-				}
+				MainWindow.Log($"Adding GiveEquipmentToPlayers {obj.GetPath()}");
+				AddGiveEquipmentToPlayersToDB(obj, db);
+				await Task.Yield();
 			}
 		}
 
@@ -1345,6 +1370,63 @@ namespace DungeonDefendersOfflinePreprocessor
 			}
 
 		}
+
+		// Fast overload using pre-built property cache (no chain walk per call)
+		public static void AddPropertyToMap(PreloadedProperties preloaded, string property, Dictionary<string, string> map, string? def = null)
+		{
+			UDefaultProperty? prop = preloaded.GetProperty(property);
+			if (prop != null)
+			{
+				map[property] = prop.Value;
+			}
+			else if (def != null)
+			{
+				map[property] = def;
+			}
+		}
+
+		// Fast overload using pre-built property cache (no chain walk per call)
+		public static void AddArrayPropertyToMap(PreloadedProperties preloaded, string propertyName, Dictionary<string, string> map, int forcedLength = -1, string defaultValue = "0")
+		{
+			var sparse = preloaded.GetArrayProperty(propertyName);
+
+			if ((sparse.Count == 1) && (sparse[0].Value.Contains("[")))
+			{
+				map[propertyName] = sparse[0].Value;
+				return;
+			}
+
+			var byIndex = new Dictionary<int, string>(sparse.Count);
+			var maxIndex = -1;
+
+			foreach (var p in sparse)
+			{
+				int idx = p.ArrayIndex;
+				if (idx > maxIndex) maxIndex = idx;
+				byIndex[idx] = p.Value?.ToString() ?? defaultValue;
+			}
+
+			int impliedLength = (maxIndex >= 0) ? (maxIndex + 1) : 0;
+			int length = (forcedLength > 0) ? forcedLength : impliedLength;
+
+			if (length <= 0)
+			{
+				map[propertyName] = "";
+				return;
+			}
+
+			var sb = new StringBuilder();
+			for (int i = 0; i < length; i++)
+			{
+				var v = byIndex.TryGetValue(i, out var val) ? val : defaultValue;
+				sb.Append(propertyName)
+				  .Append('[').Append(i).Append("]=")
+				  .Append(v)
+				  .Append("\r\n");
+			}
+			map[propertyName] = sb.ToString();
+		}
+
 		public void AddArrayPropertyToMap(UObject obj, string propertyName, Dictionary<string, string> map, int forcedLength = -1, string defaultValue = "0")
 		{
 			var sparse = GetArrayPropertiesMerged(obj, propertyName); // IReadOnlyList<UDefaultProperty>
@@ -1398,258 +1480,259 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddEquipmentToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Arrays (materialized)
-			AddArrayPropertyToMap(obj, "StatModifiers", propertyMap, 10, "0");
-			AddArrayPropertyToMap(obj, "DamageReductions", propertyMap);
-			AddArrayPropertyToMap(obj, "DamageReductionRandomizers", propertyMap);
-			AddArrayPropertyToMap(obj, "QualityDescriptorNames", propertyMap);
-			AddArrayPropertyToMap(obj, "QualityDescriptorRealNames", propertyMap);
-			AddArrayPropertyToMap(obj, "RandomBaseNames", propertyMap);
-			AddArrayPropertyToMap(obj, "StatEquipmentIDs", propertyMap, 10, "0");
-			AddArrayPropertyToMap(obj, "StatEquipmentTiers", propertyMap, 10, "0");
-			AddArrayPropertyToMap(obj, "StatModifierRandomizers", propertyMap, 11, "0");
-			AddArrayPropertyToMap(obj, "StatObjectArray", propertyMap);
+			AddArrayPropertyToMap(pl, "StatModifiers", propertyMap, 10, "0");
+			AddArrayPropertyToMap(pl, "DamageReductions", propertyMap);
+			AddArrayPropertyToMap(pl, "DamageReductionRandomizers", propertyMap);
+			AddArrayPropertyToMap(pl, "QualityDescriptorNames", propertyMap);
+			AddArrayPropertyToMap(pl, "QualityDescriptorRealNames", propertyMap);
+			AddArrayPropertyToMap(pl, "RandomBaseNames", propertyMap);
+			AddArrayPropertyToMap(pl, "StatEquipmentIDs", propertyMap, 10, "0");
+			AddArrayPropertyToMap(pl, "StatEquipmentTiers", propertyMap, 10, "0");
+			AddArrayPropertyToMap(pl, "StatModifierRandomizers", propertyMap, 11, "0");
+			AddArrayPropertyToMap(pl, "StatObjectArray", propertyMap);
 
 			// Icon / color set arrays
-			AddArrayPropertyToMap(obj, "PrimaryColorSets", propertyMap);
-			AddArrayPropertyToMap(obj, "SecondaryColorSets", propertyMap);
-			
+			AddArrayPropertyToMap(pl, "PrimaryColorSets", propertyMap);
+			AddArrayPropertyToMap(pl, "SecondaryColorSets", propertyMap);
+
 			// Localized/string-ish fields
-			AddPropertyToMap(obj, "AdditionalDescription", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseForgerName", propertyMap, "0");
-			AddPropertyToMap(obj, "DamageDescription", propertyMap, "0");
-			AddPropertyToMap(obj, "Description", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentName", propertyMap, "0");
-			AddPropertyToMap(obj, "ExtraQualityUpgradeDamageNumberDescriptor", propertyMap, "0");
-			AddPropertyToMap(obj, "ForgedByDescription", propertyMap, "0");
-			AddPropertyToMap(obj, "LevelString", propertyMap, "0");
-			AddPropertyToMap(obj, "Name", propertyMap, "0");
-			AddPropertyToMap(obj, "RequiredClassString", propertyMap, "0");
-			AddPropertyToMap(obj, "UserEquipmentName", propertyMap, "0");
-			AddPropertyToMap(obj, "UserForgerName", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalDescription", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseForgerName", propertyMap, "0");
+			AddPropertyToMap(pl, "DamageDescription", propertyMap, "0");
+			AddPropertyToMap(pl, "Description", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentName", propertyMap, "0");
+			AddPropertyToMap(pl, "ExtraQualityUpgradeDamageNumberDescriptor", propertyMap, "0");
+			AddPropertyToMap(pl, "ForgedByDescription", propertyMap, "0");
+			AddPropertyToMap(pl, "LevelString", propertyMap, "0");
+			AddPropertyToMap(pl, "Name", propertyMap, "0");
+			AddPropertyToMap(pl, "RequiredClassString", propertyMap, "0");
+			AddPropertyToMap(pl, "UserEquipmentName", propertyMap, "0");
+			AddPropertyToMap(pl, "UserForgerName", propertyMap, "0");
 
 			// Ints
-			AddPropertyToMap(obj, "EquipmentID1", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentID2", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentSetID", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentWeaponTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "HeroStatUpgradeLimit", propertyMap, "0");
-			AddPropertyToMap(obj, "Level", propertyMap, "0");
-			AddPropertyToMap(obj, "LevelRequirementIndex", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxEquipmentLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxEquipmentLevelRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxHeroStatValue", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxNonTranscendentStatRollValue", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxUpgradeableSpeedOfProjectilesBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "MinDamageBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "MinLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MinSupremeLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MinTranscendentLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MinUltimateLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MinimumSellWorth", propertyMap, "0");
-			AddPropertyToMap(obj, "StoredMana", propertyMap, "0");
-			AddPropertyToMap(obj, "UltimateMaxHeroStatValue", propertyMap, "0");
-			AddPropertyToMap(obj, "UltimatePlusMaxHeroStatValue", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAdditionalDamageAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAdditionalDamageAmountRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAdditionalDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAltDamageBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAltDamageBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponBlockingBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponChargeSpeedBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponClipAmmoBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponClipAmmoBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponDamageBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponDamageBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponDamageDisplayValueScale", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponAltDamageDisplayValueScale", propertyMap, "0"); 
-			AddPropertyToMap(obj, "WeaponKnockbackBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponKnockbackMax", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponNumberOfProjectilesQualityBaseline", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponReloadSpeedBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponShotsPerSecondBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponSpeedOfProjectilesBonusRandomizer", propertyMap, "0");
-			AddPropertyToMap(obj, "weaponType", propertyMap, "0");
-		
+			AddPropertyToMap(pl, "EquipmentID1", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentID2", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentSetID", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentWeaponTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "HeroStatUpgradeLimit", propertyMap, "0");
+			AddPropertyToMap(pl, "Level", propertyMap, "0");
+			AddPropertyToMap(pl, "LevelRequirementIndex", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxEquipmentLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxEquipmentLevelRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxNonTranscendentStatRollValue", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxUpgradeableSpeedOfProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "MinDamageBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "MinLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MinSupremeLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MinTranscendentLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MinUltimateLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MinimumSellWorth", propertyMap, "0");
+			AddPropertyToMap(pl, "StoredMana", propertyMap, "0");
+			AddPropertyToMap(pl, "UltimateMaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(pl, "UltimatePlusMaxHeroStatValue", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAdditionalDamageAmountRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAltDamageBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAltDamageBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponBlockingBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponChargeSpeedBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponClipAmmoBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponClipAmmoBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponDamageBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponDamageBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponDamageDisplayValueScale", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAltDamageDisplayValueScale", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponKnockbackBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponKnockbackMax", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponNumberOfProjectilesBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponNumberOfProjectilesQualityBaseline", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponReloadSpeedBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponShotsPerSecondBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponSpeedOfProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponSpeedOfProjectilesBonusRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "weaponType", propertyMap, "0");
+
 
 			// Floats
-			AddPropertyToMap(obj, "AdditionalWeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AltDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AltDamageRandomizerMult", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AltMaxDamageIncreasePerLevel", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ElementalDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ElementalDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
-			AddPropertyToMap(obj, "FullEquipmentSetStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HighLevelManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HighLevelManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HighLevelRequirementRatingThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HighLevelThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxDamageIncreasePerLevel", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxRandomValue", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxRandomValueNegative", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinElementalDamageIncreasePerLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxElementalDamageIncreasePerLevel", propertyMap, "400");
-			AddPropertyToMap(obj, "MinEquipmentLevels", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumPercentageValue", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MythicalFullEquipmentSetStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NegativeMinimumPercentageValue", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NegativeThresholdQualityPecentMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "PlayerSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "QualityThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomNegativeThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomPower", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomPowerOverrideIfNegative", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomizerQualityMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomizerStatModifierGoNegativeChance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomizerStatModifierGoNegativeMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SecondExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SecondExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StackedStatModifier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SupremeFullEquipmentSetStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SupremeLevelBoostAmount", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SupremeLevelBoostRandomizerPower", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TotalRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TranscendentFullEquipmentSetStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TranscendentLevelBoostAmount", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TranscendentLevelBoostRandomizerPower", propertyMap, "0.0");
-			AddPropertyToMap(obj, "Ultimate93Chance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimateDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimateFullEquipmentSetStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimateLevelBoostAmount", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimateLevelBoostRandomizerPower", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimateMaxDamageIncreasePerLevel", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimatePlusChance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UltimatePlusPlusChance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "Values", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponAltDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponEquipmentRatingPercentBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponSwingSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RuthlessUltimate93Chance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RuthlessUltimatePlusChance", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RuthlessUltimatePlusPlusChance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalWeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AltDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AltDamageRandomizerMult", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AltMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ElementalDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ElementalDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HighLevelManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HighLevelManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HighLevelRequirementRatingThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HighLevelThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxRandomValue", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxRandomValueNegative", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinElementalDamageIncreasePerLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxElementalDamageIncreasePerLevel", propertyMap, "400");
+			AddPropertyToMap(pl, "MinEquipmentLevels", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumPercentageValue", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MythicalFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NegativeMinimumPercentageValue", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NegativeThresholdQualityPecentMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "PlayerSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "QualityThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomNegativeThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomPower", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomPowerOverrideIfNegative", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomizerQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomizerStatModifierGoNegativeChance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomizerStatModifierGoNegativeMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SecondExtraQualityDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SecondExtraQualityMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StackedStatModifier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SupremeFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SupremeLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SupremeLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TotalRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TranscendentFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TranscendentLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TranscendentLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(pl, "Ultimate93Chance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimateDamageIncreasePerLevelMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimateFullEquipmentSetStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimateLevelBoostAmount", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimateLevelBoostRandomizerPower", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimateMaxDamageIncreasePerLevel", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimatePlusChance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UltimatePlusPlusChance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "Values", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponAltDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponDamageBonusRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponEquipmentRatingPercentBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponSwingSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RuthlessUltimate93Chance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RuthlessUltimatePlusChance", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RuthlessUltimatePlusPlusChance", propertyMap, "0.0");
 
 			// Bytes / bool-ish flags
-			AddPropertyToMap(obj, "AllowNameRandomization", propertyMap, "0");
-			AddPropertyToMap(obj, "CountsForAllArmorSets", propertyMap, "0");
-			AddPropertyToMap(obj, "NameIndex_Base", propertyMap, "0");
-			AddPropertyToMap(obj, "NameIndex_DamageReduction", propertyMap, "0");
-			AddPropertyToMap(obj, "NameIndex_QualityDescriptor", propertyMap, "0");
-			AddPropertyToMap(obj, "OnlyRandomizeBaseName", propertyMap, "0");
+			AddPropertyToMap(pl, "AllowNameRandomization", propertyMap, "0");
+			AddPropertyToMap(pl, "CountsForAllArmorSets", propertyMap, "0");
+			AddPropertyToMap(pl, "NameIndex_Base", propertyMap, "0");
+			AddPropertyToMap(pl, "NameIndex_DamageReduction", propertyMap, "0");
+			AddPropertyToMap(pl, "NameIndex_QualityDescriptor", propertyMap, "0");
+			AddPropertyToMap(pl, "OnlyRandomizeBaseName", propertyMap, "0");
 
-			AddPropertyToMap(obj, "WeaponAdditionalDamageTypeNotPoison", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponBlockingBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponChargeSpeedBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponKnockbackBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponNumberOfProjectilesBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponReloadSpeedBonus", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponShotsPerSecondBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAdditionalDamageTypeNotPoison", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponBlockingBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponChargeSpeedBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponKnockbackBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponNumberOfProjectilesBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponReloadSpeedBonus", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponShotsPerSecondBonus", propertyMap, "0");
 
-			AddPropertyToMap(obj, "bCanBeEquipped", propertyMap, "0");
-			AddPropertyToMap(obj, "bCantBeDropped", propertyMap, "0");
-			AddPropertyToMap(obj, "bCantBeSold", propertyMap, "0");
-			AddPropertyToMap(obj, "bDisableRandomization", propertyMap, "0");
-			AddPropertyToMap(obj, "bEquipmentFeatureByte1", propertyMap, "0");
-			AddPropertyToMap(obj, "bEquipmentFeatureByte2", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceAllowDropping", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceAllowSelling", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceRandomizerWithMinEquipmentLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "bHideQualityDescriptors", propertyMap, "0");
-			AddPropertyToMap(obj, "bIsConsumable", propertyMap, "0");
-			AddPropertyToMap(obj, "bIsSecondary", propertyMap, "0");
-			AddPropertyToMap(obj, "bNoNegativeRandomizations", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseBonusStatsFromStacking", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseExtraQualityDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseSecondExtraQualityDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "UseColorSets", propertyMap, "0");
+			AddPropertyToMap(pl, "bCanBeEquipped", propertyMap, "0");
+			AddPropertyToMap(pl, "bCantBeDropped", propertyMap, "0");
+			AddPropertyToMap(pl, "bCantBeSold", propertyMap, "0");
+			AddPropertyToMap(pl, "bDisableRandomization", propertyMap, "0");
+			AddPropertyToMap(pl, "bEquipmentFeatureByte1", propertyMap, "0");
+			AddPropertyToMap(pl, "bEquipmentFeatureByte2", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceAllowDropping", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceAllowSelling", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceRandomizerWithMinEquipmentLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "bHideQualityDescriptors", propertyMap, "0");
+			AddPropertyToMap(pl, "bIsConsumable", propertyMap, "0");
+			AddPropertyToMap(pl, "bIsSecondary", propertyMap, "0");
+			AddPropertyToMap(pl, "bNoNegativeRandomizations", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseBonusStatsFromStacking", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseExtraQualityDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseSecondExtraQualityDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "UseColorSets", propertyMap, "0");
 
 			// Native-ish / icon section
-			AddPropertyToMap(obj, "EquipmentDescription", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentType", propertyMap, "0");
-			AddPropertyToMap(obj, "ForDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxRandomElementalDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MyRating", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MyRatingPercent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "PercentageReduction", propertyMap, "0");
-			AddPropertyToMap(obj, "UserID", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentDescription", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentType", propertyMap, "0");
+			AddPropertyToMap(pl, "ForDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxRandomElementalDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MyRating", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MyRatingPercent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "PercentageReduction", propertyMap, "0");
+			AddPropertyToMap(pl, "UserID", propertyMap, "0");
 
-			AddPropertyToMap(obj, "WeaponAltDamageBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponBlockingBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponChargeSpeedBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponClipAmmoBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponKnockbackBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponReloadSpeedBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponShotsPerSecondBonusUse", propertyMap, "0");
-			AddPropertyToMap(obj, "bDisableTheRandomization", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceUseParentTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "UseWeaponCoreStats", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceToMinElementalScale", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceToMaxElementalScale", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponAltDamageBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponBlockingBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponChargeSpeedBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponClipAmmoBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponKnockbackBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponReloadSpeedBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponShotsPerSecondBonusUse", propertyMap, "0");
+			AddPropertyToMap(pl, "bDisableTheRandomization", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceUseParentTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "UseWeaponCoreStats", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceToMinElementalScale", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceToMaxElementalScale", propertyMap, "0");
 
 			// Sell worth
-			AddPropertyToMap(obj, "SellWorthLinearFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthExponentialFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellRatingExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthEquipmentRatingBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthMultiplierLevelBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthMultiplierLevelMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SellWorthMultiplierLevelMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HighResaleWorthPower", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellRatingExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthEquipmentRatingBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthMultiplierLevelBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthMultiplierLevelMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SellWorthMultiplierLevelMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HighResaleWorthPower", propertyMap, "0.0");
 
 			// Shop sell worth
-			AddPropertyToMap(obj, "ShopSellWorthLinearFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthExponentialFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellRatingExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthEquipmentRatingBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthWeaponMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthWeaponExponentialFactorMult", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxShopSellWorth", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthMinWeaponMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthMaxWeaponMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShopSellWorthRatingWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellRatingExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthEquipmentRatingBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthWeaponExponentialFactorMult", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxShopSellWorth", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthMinWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthMaxWeaponMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShopSellWorthRatingWeaponMultiplier", propertyMap, "0.0");
 
 			// Mana cost per level
-			AddPropertyToMap(obj, "ManaCostPerLevelLinearFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostPerLevelExponentialFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostPerLevelMinQualityMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostPerLevelMaxQualityMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelMinQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelMaxQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelExponentialFactorAdditional", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostPerLevelMaxQualityMultiplierAdditional", propertyMap, "0.0");
 
 			// Other new floats
-			AddPropertyToMap(obj, "RatingPercentForLevelUpCostExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponDrawScaleGlobalMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponDrawScaleRandomizerExtraMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "IconScaleMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RatingPercentForLevelUpCostExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponDrawScaleGlobalMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponDrawScaleRandomizerExtraMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "IconScaleMultiplier", propertyMap, "0.0");
 
 			// New int/byte fields
-			AddPropertyToMap(obj, "DamageReductionUpgradeInterval", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseAlternateThreshold", propertyMap, "0");
-			AddPropertyToMap(obj, "WeaponDrawScaleMultiplierRandomizer", propertyMap, "0");
+			AddPropertyToMap(pl, "DamageReductionUpgradeInterval", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseAlternateThreshold", propertyMap, "0");
+			AddPropertyToMap(pl, "WeaponDrawScaleMultiplierRandomizer", propertyMap, "0");
 
 			// New array fields
-			AddArrayPropertyToMap(obj, "QualityShopCostMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "QualityShopCostCaps", propertyMap);
-			AddArrayPropertyToMap(obj, "EquipLevelRequirements", propertyMap);
-			AddArrayPropertyToMap(obj, "AccessoryRequirements", propertyMap);
+			AddArrayPropertyToMap(pl, "QualityShopCostMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "QualityShopCostCaps", propertyMap);
+			AddArrayPropertyToMap(pl, "EquipLevelRequirements", propertyMap);
+			AddArrayPropertyToMap(pl, "AccessoryRequirements", propertyMap);
 
-			AddPropertyToMap(obj, "IconColorAddPrimary", propertyMap, "0");
-			AddPropertyToMap(obj, "IconColorAddSecondary", propertyMap, "0");
-			AddPropertyToMap(obj, "IconColorMultPrimary", propertyMap, "0.0");
-			AddPropertyToMap(obj, "IconColorMultSecondary", propertyMap, "0.0");
+			AddPropertyToMap(pl, "IconColorAddPrimary", propertyMap, "0");
+			AddPropertyToMap(pl, "IconColorAddSecondary", propertyMap, "0");
+			AddPropertyToMap(pl, "IconColorMultPrimary", propertyMap, "0.0");
+			AddPropertyToMap(pl, "IconColorMultSecondary", propertyMap, "0.0");
 
 
 
@@ -1738,11 +1821,12 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddDunDefDamageTypeToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
-			AddPropertyToMap(obj, "AdjectiveName", propertyMap, "Default");
-			AddPropertyToMap(obj, "FriendlyName", propertyMap, "Default");
-			AddPropertyToMap(obj, "UseForNotPoisonElementalDamage", propertyMap, "false");
-			AddPropertyToMap(obj, "UseForRandomElementalDamage", propertyMap, "false");
-			AddPropertyToMap(obj, "DamageTypeArrayIndex", propertyMap, "-1");
+			var pl = PreloadProperties(obj);
+			AddPropertyToMap(pl, "AdjectiveName", propertyMap, "Default");
+			AddPropertyToMap(pl, "FriendlyName", propertyMap, "Default");
+			AddPropertyToMap(pl, "UseForNotPoisonElementalDamage", propertyMap, "false");
+			AddPropertyToMap(pl, "UseForRandomElementalDamage", propertyMap, "false");
+			AddPropertyToMap(pl, "DamageTypeArrayIndex", propertyMap, "-1");
 
 
 			propertyMap["Template"] = obj.GetPath();
@@ -1758,204 +1842,204 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddFamiliarToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
-
+			var pl = PreloadProperties(obj);
 
 			AddFamiliarAnimationPropertiesToMap(obj, propertyMap);
 
-			AddPropertyToMap(obj, "bDoFamiliarAbilities", propertyMap, "true");
+			AddPropertyToMap(pl, "bDoFamiliarAbilities", propertyMap, "true");
 
 			// Arrays (materialized)
 			// HeroEquipment_Familiar_TowerDamageScaling
-			AddArrayPropertyToMap(obj, "ProjectileDelays", propertyMap);
-			AddArrayPropertyToMap(obj, "ProjectileTemplates", propertyMap);
+			AddArrayPropertyToMap(pl, "ProjectileDelays", propertyMap);
+			AddArrayPropertyToMap(pl, "ProjectileTemplates", propertyMap);
 
 			// Floats
 			// HeroEquipment_Familiar_AoeBuffer
-			AddPropertyToMap(obj, "BuffRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BuffRange", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_Corehealer
-			AddPropertyToMap(obj, "HealAmountBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealAmountExtraMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealAmountMaxPercent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealInterval", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRangeBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRangeStatBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRangeStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRangeStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumCoreHealthPercent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealAmountBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealAmountExtraMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealAmountMaxPercent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRangeBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRangeStatBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRangeStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRangeStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumCoreHealthPercent", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_Melee_TowerScaling
-			AddPropertyToMap(obj, "BaseDamageToHealRatio", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DamageHealMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraNightmareMeleeDamageMultiplier", propertyMap, "1.3");
-			AddPropertyToMap(obj, "MaxHealMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxHealPerDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxKnockbackMuliplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MeleeDamageMomentum", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseDamageToHealRatio", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageHealMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraNightmareMeleeDamageMultiplier", propertyMap, "1.3");
+			AddPropertyToMap(pl, "MaxHealMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxHealPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxKnockbackMuliplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MeleeDamageMomentum", propertyMap, "0.0");
 			// MeleeHitRadius default is 110 for melee familiars, 0 for non-melee
 			string meleeHitRadiusFallback = (obj.Class?.Name?.Name ?? "").Contains("Melee") ? "110.0" : "0.0";
-			AddPropertyToMap(obj, "MeleeHitRadius", propertyMap, meleeHitRadiusFallback);
-			AddPropertyToMap(obj, "MinHealPerDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "RandomizedDamageMultiplierDivisor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxAttackAnimationSpeed", propertyMap, "2.4");
+			AddPropertyToMap(pl, "MeleeHitRadius", propertyMap, meleeHitRadiusFallback);
+			AddPropertyToMap(pl, "MinHealPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "RandomizedDamageMultiplierDivisor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxAttackAnimationSpeed", propertyMap, "2.4");
 
 			// HeroEquipment_Familiar_PawnBooster
-			AddPropertyToMap(obj, "BaseBoost", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostRangeStatBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostRangeStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostRangeStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostStatBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostStatMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "FirstBoostInterval", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxBoostStat", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseBoost", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostRangeStatBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostRangeStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostRangeStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostStatBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostStatMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FirstBoostInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxBoostStat", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_PlayerHealer
-			AddPropertyToMap(obj, "FalloffExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRange", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumHealDistancePercent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FalloffExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumHealDistancePercent", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_TADPS
-			AddPropertyToMap(obj, "dpsTreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "dpsTreshold", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_TowerBooster
-			AddPropertyToMap(obj, "BaseBoostRange", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostAmountMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostRangeExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ETBAttackRangeExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ETBAttackRateExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ETBDamageExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ETBResistanceExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxRangeBoostStat", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseBoostRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostAmountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostRangeExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ETBAttackRangeExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ETBAttackRateExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ETBDamageExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ETBResistanceExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxRangeBoostStat", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_TowerDamageScaling
-			AddPropertyToMap(obj, "AbsoluteDamageMultiplier", propertyMap, "1.0");
-			AddPropertyToMap(obj, "AltProjectileMinimumRange", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BaseDamageToManaRatio", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BaseHealAmount", propertyMap, "0.0");
-			AddPropertyToMap(obj, "Damage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DamageManaMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraNightmareDamageMultiplier", propertyMap, "0.65");
-			AddPropertyToMap(obj, "HealAmountMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealingPriorityHealthPercentage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxManaMultiplierExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxManaPerDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinManaPerDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumProjectileSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "17.0");
-			AddPropertyToMap(obj, "NightmareHealingMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileDamageMultiplier", propertyMap, "1.0");
-			AddPropertyToMap(obj, "ProjectileShootInterval", propertyMap, "3.0");
-			AddPropertyToMap(obj, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ShotsPerSecondExponent", propertyMap, "1.5");
-			AddPropertyToMap(obj, "ShotsPerSecondAnimExponent", propertyMap, "0.75");
-			AddPropertyToMap(obj, "TargetRange", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AbsoluteDamageMultiplier", propertyMap, "1.0");
+			AddPropertyToMap(pl, "AltProjectileMinimumRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseDamageToManaRatio", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseHealAmount", propertyMap, "0.0");
+			AddPropertyToMap(pl, "Damage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageManaMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraNightmareDamageMultiplier", propertyMap, "0.65");
+			AddPropertyToMap(pl, "HealAmountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealingPriorityHealthPercentage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxManaMultiplierExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxManaPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinManaPerDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumProjectileSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NightmareDamageMultiplier", propertyMap, "17.0");
+			AddPropertyToMap(pl, "NightmareHealingMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileDamageMultiplier", propertyMap, "1.0");
+			AddPropertyToMap(pl, "ProjectileShootInterval", propertyMap, "3.0");
+			AddPropertyToMap(pl, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShotsPerSecondExponent", propertyMap, "1.5");
+			AddPropertyToMap(pl, "ShotsPerSecondAnimExponent", propertyMap, "0.75");
+			AddPropertyToMap(pl, "TargetRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_TowerHealer
-			AddPropertyToMap(obj, "HealRadius", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRadius", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar
-			AddPropertyToMap(obj, "BarbStanceDamageMulti", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BarbStanceDamageMulti", propertyMap, "0.0");
 
 			// Ints
 			// HeroEquipment_Familiar_Corehealer
-			AddPropertyToMap(obj, "StringHealAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "StringHealRange", propertyMap, "0");
-			AddPropertyToMap(obj, "StringHealSpeed", propertyMap, "0");
+			AddPropertyToMap(pl, "StringHealAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "StringHealRange", propertyMap, "0");
+			AddPropertyToMap(pl, "StringHealSpeed", propertyMap, "0");
 
 			// HeroEquipment_Familiar_Melee_TowerScaling
-			AddPropertyToMap(obj, "MeleeDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "RandomizedDamageMultiplierMaximum", propertyMap, "0");
+			AddPropertyToMap(pl, "MeleeDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "RandomizedDamageMultiplierMaximum", propertyMap, "0");
 
 			// HeroEquipment_Familiar_PawnBooster
-			AddPropertyToMap(obj, "BoostStatUpgradeInterval", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxNumberOfPawnsToBoost", propertyMap, "0");
-			AddPropertyToMap(obj, "SoftMaxNumberOfPawnsToBoost", propertyMap, "0");
+			AddPropertyToMap(pl, "BoostStatUpgradeInterval", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxNumberOfPawnsToBoost", propertyMap, "0");
+			AddPropertyToMap(pl, "SoftMaxNumberOfPawnsToBoost", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TADPS
-			AddPropertyToMap(obj, "AdditionalName", propertyMap, "0");
-			AddPropertyToMap(obj, "fixedprojspeedbonus", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalName", propertyMap, "0");
+			AddPropertyToMap(pl, "fixedprojspeedbonus", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TowerBooster
-			AddPropertyToMap(obj, "MaxBoostStatValue", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxNumberOfTowersToBoost", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxTowerBoostStat", propertyMap, "0");
-			AddPropertyToMap(obj, "SoftMaxNumberOfTowersToBoost", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxBoostStatValue", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxNumberOfTowersToBoost", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxTowerBoostStat", propertyMap, "0");
+			AddPropertyToMap(pl, "SoftMaxNumberOfTowersToBoost", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TowerDamageScaling
-			AddPropertyToMap(obj, "Projectile", propertyMap, "0");
-			AddPropertyToMap(obj, "ProjectileTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "ProjectileTemplateAlt", propertyMap, "0");
-			AddPropertyToMap(obj, "ShotsPerSecondBonusCap", propertyMap, "0");
+			AddPropertyToMap(pl, "Projectile", propertyMap, "0");
+			AddPropertyToMap(pl, "ProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "ProjectileTemplateAlt", propertyMap, "0");
+			AddPropertyToMap(pl, "ShotsPerSecondBonusCap", propertyMap, "0");
 
 			// Bytes / bool-ish flags
 			// HeroEquipment_Familiar_Melee_TowerScaling
-			AddPropertyToMap(obj, "bAlsoShootProjectile", propertyMap, "0");
-			AddPropertyToMap(obj, "bDoMeleeHealing", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseRandomizedDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bAlsoShootProjectile", propertyMap, "0");
+			AddPropertyToMap(pl, "bDoMeleeHealing", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseRandomizedDamage", propertyMap, "0");
 
 			// HeroEquipment_Familiar_PawnBooster
-			AddPropertyToMap(obj, "ProModeFocused", propertyMap, "false");
+			AddPropertyToMap(pl, "ProModeFocused", propertyMap, "false");
 
 			// HeroEquipment_Familiar_PlayerHealer
-			AddPropertyToMap(obj, "bUseFixedHealSpeed", propertyMap, "false");
+			AddPropertyToMap(pl, "bUseFixedHealSpeed", propertyMap, "false");
 
 			// HeroEquipment_Familiar_TADPS
-			AddPropertyToMap(obj, "bFixedProjSpeed", propertyMap, "0");
+			AddPropertyToMap(pl, "bFixedProjSpeed", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TowerDamageScaling
-			AddPropertyToMap(obj, "DoLineOfSightCheck", propertyMap, "false");
-			AddPropertyToMap(obj, "bAddManaForDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bChooseHealingTarget", propertyMap, "0");
-			AddPropertyToMap(obj, "bDoShotsPerSecondBonusCap", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseAltProjectile", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseFixedShootSpeed", propertyMap, "0");
-			AddPropertyToMap(obj, "bWeakenEnemyTarget", propertyMap, "0");
+			AddPropertyToMap(pl, "DoLineOfSightCheck", propertyMap, "false");
+			AddPropertyToMap(pl, "bAddManaForDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bChooseHealingTarget", propertyMap, "0");
+			AddPropertyToMap(pl, "bDoShotsPerSecondBonusCap", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseAltProjectile", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseFixedShootSpeed", propertyMap, "0");
+			AddPropertyToMap(pl, "bWeakenEnemyTarget", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TowerHealer
-			AddPropertyToMap(obj, "bHealOverRadius", propertyMap, "0");
+			AddPropertyToMap(pl, "bHealOverRadius", propertyMap, "0");
 
 			// HeroEquipment_Familiar size scaling
-			AddPropertyToMap(obj, "SizeScalerMaximumLevel", propertyMap, "100.0");
-			AddPropertyToMap(obj, "SizeScalerPower", propertyMap, "1.0");
-			AddPropertyToMap(obj, "MaximumLevelScaleMultiplier", propertyMap, "1.0");
-			AddPropertyToMap(obj, "DrawScaleOffsetExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DrawScaleOffsetMult", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroExperienceInvestmentMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SizeScalerMaximumLevel", propertyMap, "100.0");
+			AddPropertyToMap(pl, "SizeScalerPower", propertyMap, "1.0");
+			AddPropertyToMap(pl, "MaximumLevelScaleMultiplier", propertyMap, "1.0");
+			AddPropertyToMap(pl, "DrawScaleOffsetExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DrawScaleOffsetMult", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroExperienceInvestmentMultiplier", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_CoreHealer mana cost
-			AddPropertyToMap(obj, "ManaCostStatBase", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ManaCostMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HealRangeMaxEffectiveStat", propertyMap, "0.0");
-			AddPropertyToMap(obj, "bHealInCombatPhaseOnly", propertyMap, "0");
+			AddPropertyToMap(pl, "ManaCostStatBase", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ManaCostMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HealRangeMaxEffectiveStat", propertyMap, "0.0");
+			AddPropertyToMap(pl, "bHealInCombatPhaseOnly", propertyMap, "0");
 
 			// HeroEquipment_Familiar_TowerDamageScaling missing flags
-			AddPropertyToMap(obj, "bSlowEnemyTarget", propertyMap, "0");
-			AddPropertyToMap(obj, "SlowEnemyTargetPercentage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "EnemyClearSlowTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "EnemyClearWeakenTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "bShootProjectileWithoutTarget", propertyMap, "0");
-			AddPropertyToMap(obj, "bMythicalScaleTowerDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "MythicalScaleDamageStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MythicalScaleDamageStatType", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreElementInTargeting", propertyMap, "0");
-			AddPropertyToMap(obj, "bProjectilesCollideWithOwner", propertyMap, "0");
-			AddPropertyToMap(obj, "AttackAnimationAlt", propertyMap, "0");
+			AddPropertyToMap(pl, "bSlowEnemyTarget", propertyMap, "0");
+			AddPropertyToMap(pl, "SlowEnemyTargetPercentage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "EnemyClearSlowTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "EnemyClearWeakenTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "bShootProjectileWithoutTarget", propertyMap, "0");
+			AddPropertyToMap(pl, "bMythicalScaleTowerDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "MythicalScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MythicalScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreElementInTargeting", propertyMap, "0");
+			AddPropertyToMap(pl, "bProjectilesCollideWithOwner", propertyMap, "0");
+			AddPropertyToMap(pl, "AttackAnimationAlt", propertyMap, "0");
 
 			// HeroEquipment_Familiar_AoeBuffer
-			AddPropertyToMap(obj, "StaticBuffRange", propertyMap, "0.0");
-			AddPropertyToMap(obj, "UseStaticBuffRange", propertyMap, "0");
-			AddPropertyToMap(obj, "BoostAnimMinInterval", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BoostAnimMaxInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StaticBuffRange", propertyMap, "0.0");
+			AddPropertyToMap(pl, "UseStaticBuffRange", propertyMap, "0");
+			AddPropertyToMap(pl, "BoostAnimMinInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BoostAnimMaxInterval", propertyMap, "0.0");
 
 			// HeroEquipment_Familiar_Melee
-			AddPropertyToMap(obj, "ScaleDamageStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ScaleMeleeDamageForHeroStatType", propertyMap, "0"); 
+			AddPropertyToMap(pl, "ScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ScaleMeleeDamageForHeroStatType", propertyMap, "0");
 
 			// Build the familiar data struct (parses arrays via db.BuildArray in the ctor)
 			HeroEquipment_Familiar_Data hef = new HeroEquipment_Familiar_Data(propertyMap, db);
@@ -1970,30 +2054,31 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddPlayerToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 			AddAnimationPropertiesToMap(obj, propertyMap);
 			// Floats
-			AddPropertyToMap(obj, "AdditionalSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraPlayerDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroBonusPetDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroBoostSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NightmareModePlayerHealthMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "PlayerWeaponDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpFull_HeroCastingRate", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroCastingRate", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroCastingRate", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultInitial_HeroCastingRate", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AnimSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraPlayerDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroBonusPetDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroBoostSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NightmareModePlayerHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "PlayerWeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpFull_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_HeroCastingRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AnimSpeedMultiplier", propertyMap, "0.0");
 
 			// Arrays
-			AddArrayPropertyToMap(obj, "MeleeSwingInfoMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "MainHandSwingInfoMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "OffHandSwingInfoMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "MeleeSwingInfoMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "MainHandSwingInfoMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "OffHandSwingInfoMultipliers", propertyMap);
 
 			// DunDefPawn float
-			AddPropertyToMap(obj, "DamageMultiplierAdditional", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageMultiplierAdditional", propertyMap, "0.0");
 
 			// Ints
-			AddPropertyToMap(obj, "HeroBoostHealAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "HeroBoostHealAmount", propertyMap, "0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
@@ -2042,58 +2127,59 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddProjectileToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Arrays
-			AddArrayPropertyToMap(obj, "RandomDamageTypes", propertyMap);
+			AddArrayPropertyToMap(pl, "RandomDamageTypes", propertyMap);
 
 
-			AddPropertyToMap(obj, "bSecondScaleDamageStatOnAdditionalDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bSecondScaleDamageStatType", propertyMap, "0");
-			AddPropertyToMap(obj, "SecondScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(pl, "bSecondScaleDamageStatOnAdditionalDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bSecondScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(pl, "SecondScaleDamageStatType", propertyMap, "0");
 		// Ints
-			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "ScaleDamageStatType", propertyMap, "0");
-			AddPropertyToMap(obj, "ProjDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "NumAllowedPassThrough", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "ScaleDamageStatType", propertyMap, "0");
+			AddPropertyToMap(pl, "ProjDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "NumAllowedPassThrough", propertyMap, "0");
 
 			// Floats
-			AddPropertyToMap(obj, "DamageRadiusFallOffExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ScaleDamageStatExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjDamageRadius", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileDamageByWeaponDamageDivider", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileDamagePerDistanceTravelled", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileLifespan", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileMaxSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageRadiusFallOffExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ScaleDamageStatExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjDamageRadius", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileDamageByWeaponDamageDivider", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileDamagePerDistanceTravelled", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileLifespan", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileMaxSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileSpeed", propertyMap, "0.0");
 
 			// Floats (homing / extra)
-			AddPropertyToMap(obj, "TowerDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HomingInterpSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TowerDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HomingInterpSpeed", propertyMap, "0.0");
 
 			// Bytes / bool-ish flags (stored as byte in struct)
-			AddPropertyToMap(obj, "MultiplyProjectileDamageByPrimaryWeaponSwingSpeed", propertyMap, "0");
-			AddPropertyToMap(obj, "MultiplyProjectileDamageByWeaponDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "OnlyCollideWithIgnoreClasses", propertyMap, "0");
-			AddPropertyToMap(obj, "ScaleHeroDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bAlwaysUseRandomDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "bApplyBuffsOnAoe", propertyMap, "0");
-			AddPropertyToMap(obj, "bReplicateWeaponProjectile", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseProjectilePerDistanceScaling", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseProjectilePerDistanceSizeScaling", propertyMap, "0");
+			AddPropertyToMap(pl, "MultiplyProjectileDamageByPrimaryWeaponSwingSpeed", propertyMap, "0");
+			AddPropertyToMap(pl, "MultiplyProjectileDamageByWeaponDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "OnlyCollideWithIgnoreClasses", propertyMap, "0");
+			AddPropertyToMap(pl, "ScaleHeroDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bAlwaysUseRandomDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "bApplyBuffsOnAoe", propertyMap, "0");
+			AddPropertyToMap(pl, "bReplicateWeaponProjectile", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseProjectilePerDistanceScaling", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseProjectilePerDistanceSizeScaling", propertyMap, "0");
 
 			// Homing projectile flags
-			AddPropertyToMap(obj, "bPierceEnemies", propertyMap, "0");
-			AddPropertyToMap(obj, "bScaleDamagePerLevel", propertyMap, "0");			
-			AddPropertyToMap(obj, "bDamageOnTouch", propertyMap, "0");
+			AddPropertyToMap(pl, "bPierceEnemies", propertyMap, "0");
+			AddPropertyToMap(pl, "bScaleDamagePerLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "bDamageOnTouch", propertyMap, "0");
 
-			AddPropertyToMap(obj, "FireDamageScale", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DotDamageScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FireDamageScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DotDamageScale", propertyMap, "0.0");
 
-			AddPropertyToMap(obj, "TheDamageMinScale", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TheDamageMaxScale", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraDamageMaxScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TheDamageMinScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TheDamageMaxScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraDamageMaxScale", propertyMap, "0.0");
 
 			// Resolve GasCloud properties from DotTemplate reference (StaffDot)
 			ResolveGasCloudProperties(obj, "DotTemplate", propertyMap,
@@ -2116,102 +2202,103 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddWeaponToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Arrays
-			AddArrayPropertyToMap(obj, "ExtraProjectileTemplates", propertyMap);
-			AddArrayPropertyToMap(obj, "MeleeSwingInfos", propertyMap);
-			AddArrayPropertyToMap(obj, "RainbowDamageTypeArrays", propertyMap);
-			AddArrayPropertyToMap(obj, "RandomizedProjectileTemplate", propertyMap);
-			AddArrayPropertyToMap(obj, "FireInterval", propertyMap);
+			AddArrayPropertyToMap(pl, "ExtraProjectileTemplates", propertyMap);
+			AddArrayPropertyToMap(pl, "MeleeSwingInfos", propertyMap);
+			AddArrayPropertyToMap(pl, "RainbowDamageTypeArrays", propertyMap);
+			AddArrayPropertyToMap(pl, "RandomizedProjectileTemplate", propertyMap);
+			AddArrayPropertyToMap(pl, "FireInterval", propertyMap);
 
 			// Ints (core)
-			AddPropertyToMap(obj, "AdditionalDamageAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "AdditionalDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseAltDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseShotsPerSecond", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseTotalAmmo", propertyMap, "0");			
-			AddPropertyToMap(obj, "ProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalDamageAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "AdditionalDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseAltDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseShotsPerSecond", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseTotalAmmo", propertyMap, "0");
+			AddPropertyToMap(pl, "ProjectileTemplate", propertyMap, "0");
 
 			// Floats (core)
-			AddPropertyToMap(obj, "WeaponDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumProjectileSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileSpeedAddition", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumProjectileSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileSpeedAddition", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileSpeedBonusMultiplier", propertyMap, "0.0");
 
 			// Bytes (core flags)
-			AddPropertyToMap(obj, "bIsMeleeWeapon", propertyMap, "0");
-			AddPropertyToMap(obj, "bRandomizeProjectileTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseAdditionalProjectileDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseAltDamageForProjectileBaseDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseDamageReductionForAbilities", propertyMap, "0");
+			AddPropertyToMap(pl, "bIsMeleeWeapon", propertyMap, "0");
+			AddPropertyToMap(pl, "bRandomizeProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseAdditionalProjectileDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseAltDamageForProjectileBaseDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseDamageReductionForAbilities", propertyMap, "0");
 
 			// DunDefWeapon_Crossbow
-			AddPropertyToMap(obj, "BaseNumProjectiles", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseReloadSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ClipAmmo", propertyMap, "0");
-			AddPropertyToMap(obj, "FireIntervalMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "bUseHighShotPerSecond", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseNumProjectiles", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseReloadSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ClipAmmo", propertyMap, "0");
+			AddPropertyToMap(pl, "FireIntervalMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "bUseHighShotPerSecond", propertyMap, "0");
 
 			// DunDefWeapon_MagicStaff
-			AddPropertyToMap(obj, "AbilityCooldownTime", propertyMap, "0");
-			AddPropertyToMap(obj, "BaseChargeSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "BonusDamageMulti", propertyMap, "0.0");
-			AddPropertyToMap(obj, "CooldownDuration", propertyMap, "0");
-			AddPropertyToMap(obj, "ElementalDamageForRightClickScalar", propertyMap, "0.0");
-			AddPropertyToMap(obj, "FullAltChargeTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "FullChargeTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "FullchargeRefireInterval", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MediumChargeFFThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NumProjectiles", propertyMap, "0");
-			AddPropertyToMap(obj, "bIsRainMaker", propertyMap, "0");
-			AddPropertyToMap(obj, "bEmberorMoon", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseAttackCD", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseElementalScallingForRightClick", propertyMap, "0");
+			AddPropertyToMap(pl, "AbilityCooldownTime", propertyMap, "0");
+			AddPropertyToMap(pl, "BaseChargeSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BonusDamageMulti", propertyMap, "0.0");
+			AddPropertyToMap(pl, "CooldownDuration", propertyMap, "0");
+			AddPropertyToMap(pl, "ElementalDamageForRightClickScalar", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FullAltChargeTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FullChargeTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "FullchargeRefireInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MediumChargeFFThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NumProjectiles", propertyMap, "0");
+			AddPropertyToMap(pl, "bIsRainMaker", propertyMap, "0");
+			AddPropertyToMap(pl, "bEmberorMoon", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseAttackCD", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseElementalScallingForRightClick", propertyMap, "0");
 
 			// DunDefWeapon_MagicStaff_Channeling
-			AddPropertyToMap(obj, "ChannelingProjectileDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ChannelingProjectileFireSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ChannelingProjectileTemplate", propertyMap, "0");
-			AddPropertyToMap(obj, "ChannelingRangeMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ChannelingProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ChannelingProjectileFireSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ChannelingProjectileTemplate", propertyMap, "0");
+			AddPropertyToMap(pl, "ChannelingRangeMultiplier", propertyMap, "0.0");
 
 			// DunDefWeapon_MeleeSword
-			AddPropertyToMap(obj, "BaseMeleeDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "DamageIncreaseForSwingSpeedFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "DamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraSpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "IsSwingingWeapon", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxMomentumMultplierByDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxTotalMomentumMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MeleeDamageMomentum", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumSwingDamageTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MinimumSwingTime", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MomentumMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ProjectileDamageHeroStatExponentMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SpeedMultiplierDamageExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "WeaponProjectileDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "bShootMeleeProjectile", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseRainbowDamageType", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseWeaponDamageForProjectileDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "BlockingMomentumExponent", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AdditionalMomentumExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "BaseMeleeDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "DamageIncreaseForSwingSpeedFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "IsSwingingWeapon", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxMomentumMultplierByDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxTotalMomentumMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MeleeDamageMomentum", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumSwingDamageTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinimumSwingTime", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MomentumMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ProjectileDamageHeroStatExponentMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SpeedMultiplierDamageExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeakenEnemyTargetPercentage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "WeaponProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "bShootMeleeProjectile", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseRainbowDamageType", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseWeaponDamageForProjectileDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "BlockingMomentumExponent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalMomentumExponent", propertyMap, "0.0");
 
 			// DunDefWeapon_Minigun
-			AddPropertyToMap(obj, "MinigunProjectileDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SpeedPerDelta", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MinigunProjectileDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SpeedPerDelta", propertyMap, "0.0");
 
 			// DunDefWeapon_MonkSpear
-			AddPropertyToMap(obj, "ShootInterval", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ShootInterval", propertyMap, "0.0");
 
 			// DunDefWeapon_NessieLauncher
-			AddPropertyToMap(obj, "Multiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "NessieCooldown", propertyMap, "0.0");
+			AddPropertyToMap(pl, "Multiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NessieCooldown", propertyMap, "0.0");
 
-			AddPropertyToMap(obj, "ChargeSpeedBonusLinearScale", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ChargeSpeedBonusExpScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ChargeSpeedBonusLinearScale", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ChargeSpeedBonusExpScale", propertyMap, "0.0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
@@ -2226,81 +2313,82 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddDunDefHeroToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Arrays
-			AddArrayPropertyToMap(obj, "StatNames", propertyMap);
-			AddArrayPropertyToMap(obj, "StatDescriptions", propertyMap);
+			AddArrayPropertyToMap(pl, "StatNames", propertyMap);
+			AddArrayPropertyToMap(pl, "StatDescriptions", propertyMap);
 
 			// Bytes (core flags)
-			AddPropertyToMap(obj, "bIsMeleeHero", propertyMap, "0");
+			AddPropertyToMap(pl, "bIsMeleeHero", propertyMap, "0");
 
 			// Ints (core)
-			AddPropertyToMap(obj, "MyHeroType", propertyMap, "0");
-			AddPropertyToMap(obj, "GivenCostumeString", propertyMap, "0");     // (string ref / id)
+			AddPropertyToMap(pl, "MyHeroType", propertyMap, "0");
+			AddPropertyToMap(pl, "GivenCostumeString", propertyMap, "0");     // (string ref / id)
 
-			
-			AddArrayPropertyToMap(obj, "HeroCostumes", propertyMap);
 
-			AddPropertyToMap(obj, "PlayerTemplate", propertyMap, "0");         // DunDefPlayer ref/id
-			
-			
-			
-			AddPropertyToMap(obj, "HeroClassDisplayName", propertyMap, "0");   // (string ref / id)
-			AddPropertyToMap(obj, "HeroClassDescription", propertyMap, "0");   // (string ref / id)
+			AddArrayPropertyToMap(pl, "HeroCostumes", propertyMap);
+
+			AddPropertyToMap(pl, "PlayerTemplate", propertyMap, "0");         // DunDefPlayer ref/id
+
+
+
+			AddPropertyToMap(pl, "HeroClassDisplayName", propertyMap, "0");   // (string ref / id)
+			AddPropertyToMap(pl, "HeroClassDescription", propertyMap, "0");   // (string ref / id)
 
 			// Struct-ish / special (leave as string default; adjust if you store colors differently)
-			AddPropertyToMap(obj, "ClassNameColor", propertyMap, "0");         // ULinear_Color
+			AddPropertyToMap(pl, "ClassNameColor", propertyMap, "0");         // ULinear_Color
 
 			// Floats (scaling)
-			AddPropertyToMap(obj, "HeroDefenseAttackRateLinearFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroDefenseAttackRateExponentialFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroHealthExponentialFactor", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HeroHealthLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroDefenseAttackRateLinearFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroDefenseAttackRateExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroHealthExponentialFactor", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HeroHealthLinearFactor", propertyMap, "0.0");
 
 			// HeroDamage
-			AddPropertyToMap(obj, "StatExpFull_HeroDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultInitial_HeroDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpFull_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_HeroDamage", propertyMap, "0.0");
 
 			// HeroSpeed
-			AddPropertyToMap(obj, "StatMultInitial_HeroSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_HeroSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_HeroSpeed", propertyMap, "0.0");
 
 			// HeroAbilityOne
-			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityOne", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityOne", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroAbilityOne", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_HeroAbilityOne", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExptFull_HeroAbilityOne", propertyMap, "0.0");
 
 			// HeroAbilityTwo
-			AddPropertyToMap(obj, "StatMultInitial_HeroAbilityTwo", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_HeroAbilityTwo", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_HeroAbilityTwo", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_HeroAbilityTwo", propertyMap, "0.0"); 
+			AddPropertyToMap(pl, "StatMultInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_HeroAbilityTwo", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExptFull_HeroAbilityTwo", propertyMap, "0.0");
 
 			// DefenseHealth
-			AddPropertyToMap(obj, "StatMultInitial_DefenseHealth", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseHealth", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_DefenseHealth", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_DefenseHealth", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExptFull_DefenseHealth", propertyMap, "0.0");
 
 			// DefenseDamage
-			AddPropertyToMap(obj, "StatMultInitial_DefenseDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_DefenseDamage", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_DefenseDamage", propertyMap, "0.0"); 
+			AddPropertyToMap(pl, "StatMultInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_DefenseDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExptFull_DefenseDamage", propertyMap, "0.0");
 
 			// DefenseAttackRate
-			AddPropertyToMap(obj, "StatMultInitial_DefenseAttackRate", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseAttackRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_DefenseAttackRate", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_DefenseAttackRate", propertyMap, "0.0");
 
 			// DefenseAOE
-			AddPropertyToMap(obj, "StatMultInitial_DefenseAOE", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExpInitial_DefenseAOE", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatMultFull_DefenseAOE", propertyMap, "0.0");
-			AddPropertyToMap(obj, "StatExptFull_DefenseAOE", propertyMap, "0.0"); 
-			AddPropertyToMap(obj, "StatBoostCapInitial_HeroDamage", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultInitial_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExpInitial_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatMultFull_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatExptFull_DefenseAOE", propertyMap, "0.0");
+			AddPropertyToMap(pl, "StatBoostCapInitial_HeroDamage", propertyMap, "0.0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
@@ -2343,6 +2431,21 @@ namespace DungeonDefendersOfflinePreprocessor
 				return;
 			}
 
+			// Pre-index AnimNotify_ScriptedEquipmentAttachment exports by parent path
+			// to avoid O(n^2) inner scan for each AnimSequence
+			var notifyByParent = new Dictionary<string, List<UExportTableItem>>(StringComparer.OrdinalIgnoreCase);
+			foreach (var exp in package.Exports)
+			{
+				if (exp.Class?.ObjectName.Name != "AnimNotify_ScriptedEquipmentAttachment") continue;
+				string parentPath = RemoveAfterLastDot(exp.GetPath());
+				if (!notifyByParent.TryGetValue(parentPath, out var list))
+				{
+					list = new List<UExportTableItem>();
+					notifyByParent[parentPath] = list;
+				}
+				list.Add(exp);
+			}
+
 			foreach (var export in package.Exports)
 			{
 				// Check if this export is an AnimSequence
@@ -2351,21 +2454,17 @@ namespace DungeonDefendersOfflinePreprocessor
 					var animObj = export.Object;
 					animObj?.Load();
 
-
-
 					if (animObj != null)
 					{
 						var props = GetMergedProperties(animObj);
 
-						//string animName = export.GetPath();
 						float sequenceLength = 0.0f;
 						int numFrames = 0;
-						float rateScale = 1.0f; // Default FPS
+						float rateScale = 1.0f;
 
 						props.TryGetValue("SequenceName", out var sequenceName);
 						string animName = sequenceName?.Value ?? "";
 
-						// Extract properties
 						if (props.TryGetValue("SequenceLength", out var lengthProp))
 						{
 							float.TryParse(lengthProp.Value?.ToString() ?? "0", out sequenceLength);
@@ -2376,61 +2475,53 @@ namespace DungeonDefendersOfflinePreprocessor
 							int.TryParse(framesProp.Value?.ToString() ?? "0", out numFrames);
 						}
 
-						float rate = 1.0f;
-
 						if (props.TryGetValue("RateScale", out var rateProp))
 						{
-							if (float.TryParse(rateProp.Value?.ToString() ?? "1.0", out rateScale))
-							{
-								rate = rateScale;
-							}
+							float.TryParse(rateProp.Value?.ToString() ?? "1.0", out rateScale);
 						}
+
 						float startweapondamageTime = -1.0f;
 						int nFamiliarShots = 0;
 						int nFamiliarShotsAlt = 0;
 						if (props.TryGetValue("Notifies", out var notifyProp))
 						{
-							// for barbrians, this might need to include StartMainHand / StartOffHand, but I hope not
-
 							var pattern = @"Time=(\d+\.\d+).*?NotifyName=""AnimNotify_StartWeaponSwingDamage""";
-							var matches = Regex.Matches(notifyProp.Value, pattern, RegexOptions.Singleline);							
-							if ( matches.Count > 0)
+							var matches = Regex.Matches(notifyProp.Value, pattern, RegexOptions.Singleline);
+							if (matches.Count > 0)
 							{
-								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));								
+								startweapondamageTime = (float)(double.Parse(matches[0].Groups[1].Value, CultureInfo.InvariantCulture));
 							}
-					
-							// NotifyID lives on the AnimNotify_ScriptedEquipmentAttachment subobject,
-							// not inlined in the Notifies text — scan child exports directly.
+
+							// Look up pre-indexed child notify exports (O(1) instead of O(n))
 							string animSeqPath = export.GetPath();
-							foreach (var childExport in package.Exports)
+							if (notifyByParent.TryGetValue(animSeqPath, out var childNotifies))
 							{
-								if (childExport.Class?.ObjectName.Name != "AnimNotify_ScriptedEquipmentAttachment") continue;
-								if (!childExport.GetPath().StartsWith(animSeqPath + ".", StringComparison.OrdinalIgnoreCase)) continue;
-
-								var notifyObj = childExport.Object;
-								notifyObj?.Load();
-								if (notifyObj == null) continue;
-
-								var notifyObjProps = GetMergedProperties(notifyObj);
-								if (notifyObjProps.TryGetValue("NotifyID", out var idProp) &&
-									int.TryParse(idProp.Value?.ToString(), out int notifyId))
+								foreach (var childExport in childNotifies)
 								{
-									if (notifyId == 2000) nFamiliarShots++;
-									else if (notifyId == 2005) nFamiliarShotsAlt++;
+									var notifyObj = childExport.Object;
+									notifyObj?.Load();
+									if (notifyObj == null) continue;
+
+									var notifyObjProps = GetMergedProperties(notifyObj);
+									if (notifyObjProps.TryGetValue("NotifyID", out var idProp) &&
+										int.TryParse(idProp.Value?.ToString(), out int notifyId))
+									{
+										if (notifyId == 2000) nFamiliarShots++;
+										else if (notifyId == 2005) nFamiliarShotsAlt++;
+									}
 								}
 							}
 						}
 
-
 						string animObjName = RemoveAfterLastDot(export.GetPath());
-				
+
 						// Store in cache
 						if (!AnimationDurations.ContainsKey(animObjName))
 						{
 							AnimationDurations.Add(animObjName, new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase));
 						}
 						AnimationDurations[animObjName][animName.Replace("\"", "")] = sequenceLength / rateScale;
-						
+
 						if (startweapondamageTime > 0.0f)
 							AnimationDurations[animObjName][animName.Replace("\"", "") + "_StartWeaponSwingDamage"] = (float)startweapondamageTime / rateScale;
 
@@ -2580,130 +2671,131 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddEnemyToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Drop flags (byte)
-			AddPropertyToMap(obj, "bDropEquipment", propertyMap, "0");
-			AddPropertyToMap(obj, "bDropMana", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceDropEquipment", propertyMap, "0");
-			AddPropertyToMap(obj, "bScaleDroppedEquipmentWithLevel", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreGlobalEnemyDropQualityMultiplier", propertyMap, "0");
-			AddPropertyToMap(obj, "bAffectWaveBonusDamageCauser", propertyMap, "0");
+			AddPropertyToMap(pl, "bDropEquipment", propertyMap, "0");
+			AddPropertyToMap(pl, "bDropMana", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceDropEquipment", propertyMap, "0");
+			AddPropertyToMap(pl, "bScaleDroppedEquipmentWithLevel", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreGlobalEnemyDropQualityMultiplier", propertyMap, "0");
+			AddPropertyToMap(pl, "bAffectWaveBonusDamageCauser", propertyMap, "0");
 
 			// Global drop config (float)
-			AddPropertyToMap(obj, "GlobalEquipmentDropChanceThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "GlobalEquipmentDropValueMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "GlobalEquipmentDropValueMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "GlobalEquipmentDropQuality", propertyMap, "0.0");
-			AddPropertyToMap(obj, "GlobalDropChanceThresholdMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxWaveEquipmentQualityMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AbsoluteMaxEquipmentDropQuality", propertyMap, "0.0");
+			AddPropertyToMap(pl, "GlobalEquipmentDropChanceThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "GlobalEquipmentDropValueMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "GlobalEquipmentDropValueMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "GlobalEquipmentDropQuality", propertyMap, "0.0");
+			AddPropertyToMap(pl, "GlobalDropChanceThresholdMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxWaveEquipmentQualityMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AbsoluteMaxEquipmentDropQuality", propertyMap, "0.0");
 
 			// Global drop config (int)
-			AddPropertyToMap(obj, "NumGlobalEquipmentDropChances", propertyMap, "0");
-			AddPropertyToMap(obj, "NumGlobalEquipmentDropChancesRuthless", propertyMap, "0");
-			AddPropertyToMap(obj, "EquipmentQualityMultiplierMaxWave", propertyMap, "0");
-			AddPropertyToMap(obj, "MinimumStartWaveDifferenceForEquipment", propertyMap, "0");
+			AddPropertyToMap(pl, "NumGlobalEquipmentDropChances", propertyMap, "0");
+			AddPropertyToMap(pl, "NumGlobalEquipmentDropChancesRuthless", propertyMap, "0");
+			AddPropertyToMap(pl, "EquipmentQualityMultiplierMaxWave", propertyMap, "0");
+			AddPropertyToMap(pl, "MinimumStartWaveDifferenceForEquipment", propertyMap, "0");
 
 			// Custom drop config (float)
-			AddPropertyToMap(obj, "CustomEquipmentDropChanceThreshold", propertyMap, "0.0");
-			AddPropertyToMap(obj, "CustomEquipmentDropValueMin", propertyMap, "0.0");
-			AddPropertyToMap(obj, "CustomEquipmentDropValueMax", propertyMap, "0.0");
-			AddPropertyToMap(obj, "CustomEquipmentDropQuality", propertyMap, "0.0");
+			AddPropertyToMap(pl, "CustomEquipmentDropChanceThreshold", propertyMap, "0.0");
+			AddPropertyToMap(pl, "CustomEquipmentDropValueMin", propertyMap, "0.0");
+			AddPropertyToMap(pl, "CustomEquipmentDropValueMax", propertyMap, "0.0");
+			AddPropertyToMap(pl, "CustomEquipmentDropQuality", propertyMap, "0.0");
 
 			// Custom drop config (int)
-			AddPropertyToMap(obj, "NumCustomEquipmentDropChances", propertyMap, "0");
+			AddPropertyToMap(pl, "NumCustomEquipmentDropChances", propertyMap, "0");
 
 			// Custom drop entries array
-			AddArrayPropertyToMap(obj, "CustomEquipmentDrops", propertyMap);
+			AddArrayPropertyToMap(pl, "CustomEquipmentDrops", propertyMap);
 
 			// Difficulty scaling arrays
-			AddArrayPropertyToMap(obj, "DifficultyEquipmentQualityMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultyEquipmentRarityWeightings", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultyHealthMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultyDamageMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultySpeedMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultyManaMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultyScoreMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "NumPlayerHealthMultipliers", propertyMap);
-			AddArrayPropertyToMap(obj, "GoldenEnemyDifficultyOffset", propertyMap);
-			AddArrayPropertyToMap(obj, "MaxSimultaneousAllowedForPlayers", propertyMap);
-			AddArrayPropertyToMap(obj, "DifficultySetWaveOffsetThresholds", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyEquipmentQualityMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyEquipmentRarityWeightings", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyHealthMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyDamageMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultySpeedMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyManaMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultyScoreMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "NumPlayerHealthMultipliers", propertyMap);
+			AddArrayPropertyToMap(pl, "GoldenEnemyDifficultyOffset", propertyMap);
+			AddArrayPropertyToMap(pl, "MaxSimultaneousAllowedForPlayers", propertyMap);
+			AddArrayPropertyToMap(pl, "DifficultySetWaveOffsetThresholds", propertyMap);
 
 			// Elemental system
-			AddArrayPropertyToMap(obj, "ElementalEntries", propertyMap);
-			AddArrayPropertyToMap(obj, "ElementalDamageModifiers", propertyMap);
-			AddPropertyToMap(obj, "ElementalChanceMultiplier", propertyMap, "0.0");
+			AddArrayPropertyToMap(pl, "ElementalEntries", propertyMap);
+			AddArrayPropertyToMap(pl, "ElementalDamageModifiers", propertyMap);
+			AddPropertyToMap(pl, "ElementalChanceMultiplier", propertyMap, "0.0");
 
 			// Ruthless modifiers (from RuthlessEnemyModifiers struct)
-			AddPropertyToMap(obj, "RuthlessEnemyModifiers", propertyMap, "");
+			AddPropertyToMap(pl, "RuthlessEnemyModifiers", propertyMap, "");
 
 			// Nightmare / tower resistance
-			AddPropertyToMap(obj, "NightmareDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraNightmareHealthMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "TowerDamageResistanceMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NightmareDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraNightmareHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "TowerDamageResistanceMultiplier", propertyMap, "0.0");
 
 			// Spawn config
-			AddPropertyToMap(obj, "SpawnClumpAbsoluteAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "SpawnClumpMaximumAmount", propertyMap, "0");
-			AddPropertyToMap(obj, "SpawnClumpRelativePercent", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SpawnClumpAbsoluteAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "SpawnClumpMaximumAmount", propertyMap, "0");
+			AddPropertyToMap(pl, "SpawnClumpRelativePercent", propertyMap, "0.0");
 
 			// Difficulty set
-			AddPropertyToMap(obj, "DifficultySetOffset", propertyMap, "0");
-			AddPropertyToMap(obj, "MaxDifficultySets", propertyMap, "0");
-			AddPropertyToMap(obj, "DifficultySetWaveOffset", propertyMap, "0.0");
+			AddPropertyToMap(pl, "DifficultySetOffset", propertyMap, "0");
+			AddPropertyToMap(pl, "MaxDifficultySets", propertyMap, "0");
+			AddPropertyToMap(pl, "DifficultySetWaveOffset", propertyMap, "0.0");
 
 			// Speed / stats
-			AddPropertyToMap(obj, "MaxGroundSpeed", propertyMap, "0.0");
-			AddPropertyToMap(obj, "MaxDifficultySpeedMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "KillCountMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "EnemyLifeSpan", propertyMap, "0.0");
-			AddPropertyToMap(obj, "EnemyPlayerFavoringMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxGroundSpeed", propertyMap, "0.0");
+			AddPropertyToMap(pl, "MaxDifficultySpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "KillCountMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "EnemyLifeSpan", propertyMap, "0.0");
+			AddPropertyToMap(pl, "EnemyPlayerFavoringMultiplier", propertyMap, "0.0");
 
 			// Survival
-			AddPropertyToMap(obj, "SurvivalPartOneWaveTreshold", propertyMap, "0");
-			AddPropertyToMap(obj, "SurvivalPartTwoWaveTreshold", propertyMap, "0");
-			AddPropertyToMap(obj, "SurvivalPartOneDifficultyMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "SurvivalPartTwoDifficultyMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SurvivalPartOneWaveTreshold", propertyMap, "0");
+			AddPropertyToMap(pl, "SurvivalPartTwoWaveTreshold", propertyMap, "0");
+			AddPropertyToMap(pl, "SurvivalPartOneDifficultyMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "SurvivalPartTwoDifficultyMultiplier", propertyMap, "0.0");
 
 			// Difficulty offset adders
-			AddPropertyToMap(obj, "AdditionalDifficultyOffsetDamageMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AdditionalDifficultyOffsetHealthMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "AdditionalDifficultyOffsetSpeedMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalDifficultyOffsetDamageMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalDifficultyOffsetHealthMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "AdditionalDifficultyOffsetSpeedMultiplier", propertyMap, "0.0");
 
 			// Combat flags (byte)
-			AddPropertyToMap(obj, "bAllowDarkness", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowCoughing", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowShocking", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowEnsnare", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowEnrage", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowOil", propertyMap, "0");
-			AddPropertyToMap(obj, "bCanBeFrozen", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreAllTowerDamage", propertyMap, "0");
-			AddPropertyToMap(obj, "bInvincibleWhileSpawningIn", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreDifficultyScaling", propertyMap, "0");
-			AddPropertyToMap(obj, "IsPlayerAlly", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowSlowByHero", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowWeakenByHero", propertyMap, "0");
-			AddPropertyToMap(obj, "bAddToEnemyCap", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowInvincibility", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowEnemyDrain", propertyMap, "0");
-			AddPropertyToMap(obj, "bEvenlySpaceWaveSpawns", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseEnemyGlobalMultipliers", propertyMap, "0");
-			AddPropertyToMap(obj, "UseDjinnSpawnClamping", propertyMap, "0");
-			AddPropertyToMap(obj, "UseSharkenSpawnClamping", propertyMap, "0");
-			AddPropertyToMap(obj, "UseCopterSpawnClamping", propertyMap, "0");
-			AddPropertyToMap(obj, "UseRuthlessOgreSpawnClamping", propertyMap, "0");
-			AddPropertyToMap(obj, "bDontUseStatsInSurvival", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseSurvivalExtraDifficulty", propertyMap, "0");
-			AddPropertyToMap(obj, "bClampDifficultyToInsane", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreStats", propertyMap, "0");
-			AddPropertyToMap(obj, "bKillOnBuildPhase", propertyMap, "0");
-			AddPropertyToMap(obj, "bUnclampDifficultyHealthMultiplier", propertyMap, "0");
-			AddPropertyToMap(obj, "bUnclampDifficultySpeedMultiplier", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowDarkness", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowCoughing", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowShocking", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowEnsnare", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowEnrage", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowOil", propertyMap, "0");
+			AddPropertyToMap(pl, "bCanBeFrozen", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreAllTowerDamage", propertyMap, "0");
+			AddPropertyToMap(pl, "bInvincibleWhileSpawningIn", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreDifficultyScaling", propertyMap, "0");
+			AddPropertyToMap(pl, "IsPlayerAlly", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowSlowByHero", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowWeakenByHero", propertyMap, "0");
+			AddPropertyToMap(pl, "bAddToEnemyCap", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowInvincibility", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowEnemyDrain", propertyMap, "0");
+			AddPropertyToMap(pl, "bEvenlySpaceWaveSpawns", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseEnemyGlobalMultipliers", propertyMap, "0");
+			AddPropertyToMap(pl, "UseDjinnSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(pl, "UseSharkenSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(pl, "UseCopterSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(pl, "UseRuthlessOgreSpawnClamping", propertyMap, "0");
+			AddPropertyToMap(pl, "bDontUseStatsInSurvival", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseSurvivalExtraDifficulty", propertyMap, "0");
+			AddPropertyToMap(pl, "bClampDifficultyToInsane", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreStats", propertyMap, "0");
+			AddPropertyToMap(pl, "bKillOnBuildPhase", propertyMap, "0");
+			AddPropertyToMap(pl, "bUnclampDifficultyHealthMultiplier", propertyMap, "0");
+			AddPropertyToMap(pl, "bUnclampDifficultySpeedMultiplier", propertyMap, "0");
 
 			// Classification
-			AddPropertyToMap(obj, "MyClassification", propertyMap, "0");
-			AddPropertyToMap(obj, "MinimumDifficultyForRandomElementalEffect", propertyMap, "0");
+			AddPropertyToMap(pl, "MyClassification", propertyMap, "0");
+			AddPropertyToMap(pl, "MinimumDifficultyForRandomElementalEffect", propertyMap, "0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
@@ -2716,34 +2808,35 @@ namespace DungeonDefendersOfflinePreprocessor
 		public int AddGiveEquipmentToPlayersToDB(UObject obj, ExportedTemplateDatabase db)
 		{
 			Dictionary<string, string> propertyMap = new Dictionary<string, string>();
+			var pl = PreloadProperties(obj);
 
 			// Give equipment entries array
-			AddArrayPropertyToMap(obj, "GiveEquipmentEntries", propertyMap);
+			AddArrayPropertyToMap(pl, "GiveEquipmentEntries", propertyMap);
 
 			// Flags (byte)
-			AddPropertyToMap(obj, "bGiveToEveryone", propertyMap, "0");
-			AddPropertyToMap(obj, "bNotifyUser", propertyMap, "0");
-			AddPropertyToMap(obj, "bAutoLockEquipment", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceEquipmentIntoItemBox", propertyMap, "0");
-			AddPropertyToMap(obj, "bOnlyGiveToUniqueProfile", propertyMap, "0");
-			AddPropertyToMap(obj, "bOnlyGiveToPrimaryLocalPlayer", propertyMap, "0");
-			AddPropertyToMap(obj, "bUseNightmareRandomizerMultiplier", propertyMap, "0");
-			AddPropertyToMap(obj, "bAllowTranscendentGear", propertyMap, "0");
-			AddPropertyToMap(obj, "bForceGiveEquipmentEvenOnFirstWave", propertyMap, "0");
-			AddPropertyToMap(obj, "bChooseRandomRewardEntry", propertyMap, "0");
-			AddPropertyToMap(obj, "bChooseTheBestReward", propertyMap, "0");
-			AddPropertyToMap(obj, "FactorUpgradesForBestReward", propertyMap, "0");
-			AddPropertyToMap(obj, "bIgnoreMapOfTheWeek", propertyMap, "0");
+			AddPropertyToMap(pl, "bGiveToEveryone", propertyMap, "0");
+			AddPropertyToMap(pl, "bNotifyUser", propertyMap, "0");
+			AddPropertyToMap(pl, "bAutoLockEquipment", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceEquipmentIntoItemBox", propertyMap, "0");
+			AddPropertyToMap(pl, "bOnlyGiveToUniqueProfile", propertyMap, "0");
+			AddPropertyToMap(pl, "bOnlyGiveToPrimaryLocalPlayer", propertyMap, "0");
+			AddPropertyToMap(pl, "bUseNightmareRandomizerMultiplier", propertyMap, "0");
+			AddPropertyToMap(pl, "bAllowTranscendentGear", propertyMap, "0");
+			AddPropertyToMap(pl, "bForceGiveEquipmentEvenOnFirstWave", propertyMap, "0");
+			AddPropertyToMap(pl, "bChooseRandomRewardEntry", propertyMap, "0");
+			AddPropertyToMap(pl, "bChooseTheBestReward", propertyMap, "0");
+			AddPropertyToMap(pl, "FactorUpgradesForBestReward", propertyMap, "0");
+			AddPropertyToMap(pl, "bIgnoreMapOfTheWeek", propertyMap, "0");
 
 			// Floats
-			AddPropertyToMap(obj, "NightmareRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HardcoreRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraInsaneRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "ExtraInsaneHardcoreRandomizerMultiplier", propertyMap, "0.0");
-			AddPropertyToMap(obj, "HardcoreMinimumTranscendentRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "NightmareRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HardcoreRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraInsaneRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "ExtraInsaneHardcoreRandomizerMultiplier", propertyMap, "0.0");
+			AddPropertyToMap(pl, "HardcoreMinimumTranscendentRandomizerMultiplier", propertyMap, "0.0");
 
 			// Ints
-			AddPropertyToMap(obj, "NumberOfRewardsToChooseFrom", propertyMap, "0");
+			AddPropertyToMap(pl, "NumberOfRewardsToChooseFrom", propertyMap, "0");
 
 			propertyMap["Template"] = obj.GetPath();
 			propertyMap["Class"] = (obj.Class?.Name?.Name ?? "");
