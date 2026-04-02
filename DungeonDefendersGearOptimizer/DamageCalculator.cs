@@ -900,8 +900,6 @@ namespace DDUP
 			return projBonus + Math.Max(weaponTemplate.BaseNumProjectiles, 1);
 		}
 
-		// TODO : SBSAnimExponent is now through the pipeline- it doesn't need to hardcode to 0.75		
-
 		private float GetFamiliarProjectileMultBasedOnClass(ref DunDefProjectile_Data proj )
 		{
 			string c = tdb!.GetString(proj.Class);
@@ -914,6 +912,31 @@ namespace DDUP
 				return mult;
 			}
 			return 1.0f;
+		}
+
+		/// <summary>
+		/// Calculates the total DoT (damage-over-time) contribution from a projectile's fire and staff DoT effects.
+		/// Returns the total extra damage dealt per projectile hit from all DoT clouds.
+		/// </summary>
+		private static float GetProjectileDoTDamage(ref DunDefProjectile_Data projTemplate)
+		{
+			float dotDamage = 0.0f;
+
+			// Meteor fire DoT (from DamagingFireEmitters GasCloud)
+			if (projTemplate.FireDamageScale > 0 && projTemplate.FireCloudEffectInterval > 0)
+			{
+				float numTicks = projTemplate.FireCloudLifeSpan / projTemplate.FireCloudEffectInterval;
+				dotDamage += projTemplate.FireCloudDamageAmount * projTemplate.FireDamageScale * numTicks;
+			}
+
+			// StaffDot DoT (from DotTemplate GasCloud)
+			if (projTemplate.DotDamageScale > 0 && projTemplate.DotCloudEffectInterval > 0)
+			{
+				float numTicks = projTemplate.DotCloudLifeSpan / projTemplate.DotCloudEffectInterval;
+				dotDamage += projTemplate.DotCloudDamageAmount * projTemplate.DotDamageScale * numTicks;
+			}
+
+			return dotDamage;
 		}
 
 		//====================================================================================================
@@ -949,6 +972,7 @@ namespace DDUP
 
 			// ProjDamage base from the projectile template
 			float projDamage = 0.0f;
+			float dotDamageTotal = 0.0f;
 			int templateCounts = 0;
 			float projMultiplier = 0.0f;
 			if (familiarTemplate.ProjectileTemplate != -1)
@@ -956,6 +980,7 @@ namespace DDUP
 				var projTemplate = tdb!.GetDunDefProjectile(familiarTemplate.ProjectileTemplate);
 				projMultiplier += GetFamiliarProjectileMultBasedOnClass(ref projTemplate);
 				projDamage += projTemplate.ProjDamage;
+				dotDamageTotal += GetProjectileDoTDamage(ref projTemplate);
 				templateCounts++;
 			}
 
@@ -967,6 +992,7 @@ namespace DDUP
 					var projTemplate = tdb!.GetDunDefProjectile(tdb!.GetIntArrayElem(familiarTemplate.ProjectileTemplates.Start + i));
 					projMultiplier += GetFamiliarProjectileMultBasedOnClass(ref projTemplate);
 					projDamage += projTemplate.ProjDamage;
+					dotDamageTotal += GetProjectileDoTDamage(ref projTemplate);
 					templateCounts++;
 				}
 			}
@@ -974,6 +1000,7 @@ namespace DDUP
 			if (templateCounts > 0)
 			{
 				projDamage /= templateCounts;
+				dotDamageTotal /= templateCounts;
 				projMultiplier /= templateCounts;
 			}
 			else
@@ -981,7 +1008,9 @@ namespace DDUP
 				projMultiplier = 1.0f;
 			}
 
-				// select between melee and ranged
+			// Add DoT damage contribution (fire clouds, staff DoT) to base projectile damage
+			projDamage += dotDamageTotal;
+
 			float projBase = projMultiplier * (projDamage * familiarTemplate.ProjectileDamageMultiplier + weaponDamageBonus);
 			float pawnMult = Player_GetPawnDamageMult(ref heroInfo);
 
@@ -1008,14 +1037,14 @@ namespace DDUP
 			ItemViewRow viewRow, bool bUseUpgraded,
 			ref HeroInfo heroInfo,
 			ref HeroEquipment_Data equipTemplate,
-			ref HeroEquipment_Familiar_Data familiarTemplate)
+			ref HeroEquipment_Familiar_Data familiarTemplate, bool bIsFromMelee = false)
 		{
 
 			if (familiarTemplate.bDoFamiliarAbilities == 0)
 				return (0, "Does not attack");
 
 			var (baseDmg, elemDmg, attackInterval, numProj) =
-				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, false);
+				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, bIsFromMelee);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
 
@@ -1058,9 +1087,7 @@ namespace DDUP
 			// baseDmg already includes NightmareDamageMultiplier * ExtraNightmareDamageMultiplier.
 			// Melee additionally multiplies by ExtraNightmareMeleeDamageMultiplier (melee-specific nightmare factor).
 			float damage = baseDmg * familiarTemplate.ExtraNightmareMeleeDamageMultiplier;
-
-			
-
+		
 			string scalingNote = "";
 			if (viewRow.QualityRank > 12)
 			{
@@ -1075,6 +1102,17 @@ namespace DDUP
 
 			string dmgStr = DDEquipmentInfo.FormatCompact(damage);
 			string tooltip = $"{dmgStr} melee every {attackInterval:F2} seconds{scalingNote}";
+
+			// When bAlsoShootProjectile is set, the familiar shoots a projectile (via ShootProjectile()
+			// anim-notify 2000) when the target is out of MeleeRange, using the same attack interval.
+			if (familiarTemplate.bAlsoShootProjectile != 0)
+			{
+				var (projDps, projTooltip) = GetPetProjectileDPS(viewRow, bUseUpgraded, ref heroInfo, ref equipTemplate, ref familiarTemplate, true);
+				if (projDps > 0)
+					tooltip += $"\r\nAlso shoots projectile when out of melee range: {projTooltip}";
+				else
+					tooltip += $"\r\nAlso shoots projectile when out of melee range (ERR): {projTooltip}";
+			}
 
 			return (dps, tooltip);
 		}
