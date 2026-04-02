@@ -1,12 +1,14 @@
 ﻿
 TODO:
 
-PRIORITY
-
-(DONE) Event list problem (see Teinelai's .dun file) - final patch, delver's eyewear, crystalline defender, molon labe, mr crackers, sun staff, and armor 21k vs armor 14k
 
 * Blue headers on event list are hard to read in night mode
-
+* -15% for missing a side, -25% if missing both or negative
+* When selecting a hero, change column icons to match class
+* Projectile on melee pets (Review Lover Snake)
+* Guardian CV prices off
+* Upgrading hero equipment automatically is confusing for new players
+* More tutorial
 
 * Survey for DDGO
 * HHP as side for DPS?
@@ -222,6 +224,7 @@ features for 1.6:
 (DONE) Export to .csv
 (DONE) 3 piece resistances (sort of works now, but not really)
 
+(DONE) Event list problem (see Teinelai's .dun file) - final patch, delver's eyewear, crystalline defender, molon labe, mr crackers, sun staff, and armor 21k vs armor 14k
 
 
 NOTES:
