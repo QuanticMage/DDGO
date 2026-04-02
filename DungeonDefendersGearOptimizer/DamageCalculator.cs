@@ -1032,27 +1032,33 @@ namespace DDUP
 			float projBase = projMultiplier * (projDamage * familiarTemplate.ProjectileDamageMultiplier + weaponDamageBonus);
 			float pawnMult = Player_GetPawnDamageMult(ref heroInfo);
 
-			float dmgMultChain =
+			// TowerDamageScaling.GetProjectileDamage() only includes these multipliers:
+			//   StanceDmgRed * max(ProjDmgMult * ProjDmg + StatVal, 1) * AbsoluteDamageMultiplier * NightmareMult
+			// pawnMult and HeroBonusPetDamageMultiplier are NOT in the projectile's Damage field —
+			// they're applied later via TakeDamage to both the direct hit and DoT equally.
+			float projDmgMultChain =
 				familiarTemplate.AbsoluteDamageMultiplier *
 				familiarTemplate.NightmareDamageMultiplier *
-				familiarTemplate.ExtraNightmareDamageMultiplier *
-				pawnMult *
-				heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
+				familiarTemplate.ExtraNightmareDamageMultiplier;
 
-			float scaledDirectHit = MathF.Max(projBase, 1.0f) * dmgMultChain;
+			// The projectile's Damage value (used in DoT ratio Damage/default.ProjDamage)
+			float projDamageValue = MathF.Max(projBase, 1.0f) * projDmgMultChain;
+
+			// Full damage including pawn/hero pet multipliers (applied at TakeDamage time)
+			float externalMult = pawnMult * heroInfo.PlayerTemplateData.HeroBonusPetDamageMultiplier;
+			float scaledDirectHit = projDamageValue * externalMult;
 
 			// DoT only applies to projectile attacks, not melee swings — melee familiars
 			// don't spawn projectiles (so no DoT cloud). Melee familiars with bAlsoShootProjectile
 			// get DoT via the separate GetPetProjectileDPS call with bIsMelee=false.
 			//
 			// .uc formula: Dot.DamageAmount *= DotDamageScale * ((default.ProjDamage > 0) ? Damage/default.ProjDamage : 1.0)
-			// default.ProjDamage resolves through the archetype chain to the template's ProjDamage.
-			// DoT per tick = CloudDamageAmount * DamageScale * (scaledDamage / templateProjDamage).
+			// Uses projDamageValue (without pawnMult/HeroPetMult) as the projectile's Damage field.
 			float scaledDoTPerTick = 0.0f;
 			if (bIncludeDoT && projDamage > 0 && dotPerTickTotal > 0)
 			{
-				float dotScaleRatio = scaledDirectHit / projDamage;
-				scaledDoTPerTick = dotPerTickTotal * dotScaleRatio;
+				float dotScaleRatio = projDamageValue / projDamage;
+				scaledDoTPerTick = dotPerTickTotal * dotScaleRatio * externalMult;
 			}
 
 			float baseDmg = scaledDirectHit + scaledDoTPerTick * dotNumTicks;
