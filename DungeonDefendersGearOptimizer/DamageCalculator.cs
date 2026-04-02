@@ -954,7 +954,7 @@ namespace DDUP
 		//======================================================================================================
 		private (float baseDmg, float elemDmg, float interval, int numProj, float scaledDirectHit, float scaledDoTPerTick, float dotNumTicks)
 			GetPetBaseStats(ItemViewRow viewRow, bool bUseUpgraded, ref HeroInfo heroInfo,
-							ref HeroEquipment_Familiar_Data familiarTemplate, bool bIsMelee)
+							ref HeroEquipment_Familiar_Data familiarTemplate, bool bIsMelee, bool bIncludeDoT = true)
 		{
 			int weaponDamageBonus = bUseUpgraded ? viewRow.UpgradedWeaponDamageBonus : viewRow.WeaponDamageBonus;
 			int shotsPerSecBonus = bUseUpgraded ? viewRow.UpgradedWeaponShotsPerSecondBonus : viewRow.WeaponShotsPerSecondBonus;
@@ -1043,7 +1043,7 @@ namespace DDUP
 			// don't spawn projectiles (so no DoT cloud). Melee familiars with bAlsoShootProjectile
 			// get DoT via the separate GetPetProjectileDPS call with bIsMelee=false.
 			float scaledDoTPerTick = 0.0f;
-			if (!bIsMelee && projDamage > 0 && dotPerTickTotal > 0)
+			if (bIncludeDoT && projDamage > 0 && dotPerTickTotal > 0)
 			{
 				// DoT scales by (Damage / default.ProjDamage) — the ratio of fully-scaled damage
 				// to base ProjDamage — matching the .uc formula:
@@ -1132,7 +1132,7 @@ namespace DDUP
 
 
 			var (baseDmg, elemDmg, attackInterval, numProj, _, _, _) =
-				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, true);
+				GetPetBaseStats(viewRow, bUseUpgraded, ref heroInfo, ref familiarTemplate, bIsMelee: true, bIncludeDoT: false);
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
 
