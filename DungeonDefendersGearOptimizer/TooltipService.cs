@@ -26,7 +26,17 @@ public sealed class TooltipService : ITooltipService
 		_initialized = true;
 
 		_dotNetRef = DotNetObjectReference.Create(this);
-		await _js.InvokeVoidAsync("setupGlobalTooltips", _dotNetRef);
+		try
+		{
+			await _js.InvokeVoidAsync("setupGlobalTooltips", _dotNetRef);
+		}
+		catch
+		{
+			// Allow retry on next render if JS call failed (e.g. slow load, extension interference)
+			_initialized = false;
+			_dotNetRef?.Dispose();
+			_dotNetRef = null;
+		}
 	}
 
 	[JSInvokable("ShowGlobalTooltip")]

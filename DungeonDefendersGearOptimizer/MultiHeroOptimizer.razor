@@ -28,7 +28,7 @@
                         <span class="mho-col-pri mho-priority">@(i + 1)</span>
 
                         <div class="mho-col-hero">
-                            <select class="mho-select" value="@slot.HeroKey" @onchange="(e) => OnHeroChanged(i, e)">
+                            <select class="mho-select" aria-label="Hero @(i + 1)" value="@slot.HeroKey" @onchange="(e) => OnHeroChanged(i, e)">
                                 <option value="">-- Select Hero --</option>
                                 @foreach (var h in HeroChoices)
                                 {
@@ -38,7 +38,7 @@
                         </div>
 
                         <div class="mho-col-mode">
-                            <select class="mho-select" value="@slot.RatingMode" @onchange="(e) => OnModeChanged(i, e)">
+                            <select class="mho-select" aria-label="Rating mode for hero @(i + 1)" value="@slot.RatingMode" @onchange="(e) => OnModeChanged(i, e)">
                                 @foreach (var rm in Ratings.RatingModes)
                                 {
                                     <option value="@rm.Name">@rm.Name</option>

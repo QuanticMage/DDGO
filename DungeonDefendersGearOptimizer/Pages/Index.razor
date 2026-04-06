@@ -203,7 +203,7 @@
                                @oninput="@((e) => SetUi(u => u with { PanelZoom = double.Parse(e.Value!.ToString()!, System.Globalization.CultureInfo.InvariantCulture) }))" />
                     </div>
                 </label>
-            <label class="utility-select" data-tooltip=@Tips["DarkMode"] style="zoom:0.75;">
+            <div class="utility-select" data-tooltip=@Tips["DarkMode"] style="zoom:0.75;">
                 <button type="button"
                         class="theme-toggle @(_ui.Theme == "dark" ? "theme-toggle--active" : "")"
                         title="Toggle dark mode"
@@ -212,7 +212,7 @@
                         <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
                     </svg>
                 </button>
-            </label>
+            </div>
                 @* <label class="utility-toggle" data-tooltip=@Tips["LivePrices"]>
                     <input type="checkbox"
                            class="tool-filter"
@@ -482,8 +482,11 @@
                         </div>
 
                         <div class="event-overlay-tools">
-                            <input class="event-search"
+                            <input id="event-search" name="event-search"
+                                   class="event-search"
                                    placeholder="Search categories…"
+                                   aria-label="Search categories"
+                                   autocomplete="off"
                                    @onchange="OnEventSearchChanged" />
                         </div>
 
@@ -592,8 +595,8 @@
 
                         <th class="importance-cell dps-type-cell">
                             <div class="th-center" data-tooltip=@Tips["DPSMode"]>
-                                <label class="dps-type-label">DPS Mode:</label>
-                                <select class="dps-type-select" @bind="DPSMode">
+                                <label class="dps-type-label" for="dps-mode-select">DPS Mode:</label>
+                                <select id="dps-mode-select" name="dps-mode" class="dps-type-select" @bind="DPSMode">
                                     <option value="DPS">DPS</option>
                                     
                                     <option value="Stats">Stats</option>

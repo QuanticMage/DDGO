@@ -19,8 +19,8 @@ else
         <!-- ── Controls strip ── -->
         <div class="controls-strip">
             <div class="ctrl-row">
-                <span class="ctrl-label">Type</span>
-                <select @bind="_selectedTypeIdx" @bind:after="ClearResults">
+                <label class="ctrl-label" for="dbs-type">Type</label>
+                <select id="dbs-type" name="dbs-type" @bind="_selectedTypeIdx" @bind:after="ClearResults">
                     @for (int i = 0; i < DbSearchHelper.StructTypes.Length; i++)
                     {
                         int idx = i;
@@ -30,24 +30,27 @@ else
             </div>
 
             <div class="ctrl-row">
-                <span class="ctrl-label">Columns</span>
-                <input type="text" class="ctrl-input" value="@_columnsInput"
+                <label class="ctrl-label" for="dbs-columns">Columns</label>
+                <input id="dbs-columns" name="dbs-columns" type="text" class="ctrl-input" value="@_columnsInput"
                        @oninput="OnColumnsInput" @onkeydown="OnCtrlKeyDown"
-                       placeholder="comma-separated field names, e.g. ProjDamage, AttackInterval" />
+                       placeholder="comma-separated field names, e.g. ProjDamage, AttackInterval"
+                       autocomplete="off" />
             </div>
 
             <div class="ctrl-row">
-                <span class="ctrl-label">Name filter</span>
-                <input type="text" class="ctrl-input" value="@_nameFilter"
+                <label class="ctrl-label" for="dbs-name">Name filter</label>
+                <input id="dbs-name" name="dbs-name" type="text" class="ctrl-input" value="@_nameFilter"
                        @oninput="OnNameFilterInput" @onkeydown="OnCtrlKeyDown"
-                       placeholder="template name substring…" />
+                       placeholder="template name substring…"
+                       autocomplete="off" />
             </div>
 
             <div class="ctrl-row">
-                <span class="ctrl-label">Expression</span>
-                <input type="text" class="ctrl-input" value="@_filterExpr"
+                <label class="ctrl-label" for="dbs-expr">Expression</label>
+                <input id="dbs-expr" name="dbs-expr" type="text" class="ctrl-input" value="@_filterExpr"
                        @oninput="OnFilterExprInput" @onkeydown="OnCtrlKeyDown"
-                       placeholder="e.g.  ManaCostMin > 0  and  NightmareDamageMultiplier != 1" />
+                       placeholder="e.g.  ManaCostMin > 0  and  NightmareDamageMultiplier != 1"
+                       autocomplete="off" />
             </div>
 
             <div class="ctrl-row">

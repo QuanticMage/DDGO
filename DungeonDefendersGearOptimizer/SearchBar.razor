@@ -3,9 +3,12 @@
         <span class="searchbar_icon" aria-hidden="true">🔎</span>
 
         <input @ref="_inputRef"
+               id="item-search" name="item-search"
                class="searchbar_input"
                type="search"
                placeholder="Custom search…"
+               aria-label="Custom item search"
+               autocomplete="off"
                value="@_current"
                @oninput="HandleInput"
                @onkeydown="HandleKeyDown" />
