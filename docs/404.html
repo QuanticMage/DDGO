@@ -40,7 +40,9 @@
 
     <script>
 		window.setupGlobalTooltips = (dotNetHelper) => {
-			// Prevent double-registration if called multiple times (e.g., Blazor reconnects)
+			// Allow re-registration with a new dotNetHelper (e.g., after Blazor reinitializes)
+			// but only register DOM listeners once.
+			window.__tooltipHelper = dotNetHelper;
 			if (window.__globalTooltipsInstalled) return;
 			window.__globalTooltipsInstalled = true;
 
@@ -71,13 +73,13 @@
 				if (!text) return;
 
 				const rect = el.getBoundingClientRect();
-				dotNetHelper.invokeMethodAsync(
+				window.__tooltipHelper?.invokeMethodAsync(
 					"ShowGlobalTooltip",
 					text,
 					rect.left + rect.width / 2,
 					rect.top,
 					window.innerWidth
-				);
+				).catch(() => {});
 			};
 
 			const queueShow = (el) => {
@@ -92,7 +94,7 @@
 			const hide = () => {
 				clearTimeout(showTimer);
 				showTimer = null;
-				dotNetHelper.invokeMethodAsync("HideGlobalTooltip");
+				window.__tooltipHelper?.invokeMethodAsync("HideGlobalTooltip").catch(() => {});
 			};
 
 			document.addEventListener(
