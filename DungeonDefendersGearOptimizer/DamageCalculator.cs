@@ -1089,11 +1089,29 @@ namespace DDUP
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
 
-			// Mythical scaling: TowerDamageScaling uses bMythicalScaleTowerDamage + MythicalScaleDamageStatType (Tower Damage).
-			// WithProjectileAI uses bMythicalScaleHeroDamage + Hero Damage stat (MythicalScaleDamageStatType defaults to LU_HeroDamage for those).
-			// DoT scales through Damage/default.ProjDamage ratio, so hero scaling affects both.
+			// Two independent scaling paths:
+			// Always-on: ScaleHeroDamage/ScaleTowerDamage — set directly on spawned projectile using the
+			//   projectile template's own ScaleDamageStatType/Exponent (no familiar-level override).
+			// Mythical: bMythicalScaleHeroDamage/bMythicalScaleTowerDamage + quality > 12 — uses the
+			//   familiar's MythicalScaleDamageStatType/Exponent override (not the projectile template's).
+			// DoT scales through the Damage/default.ProjDamage ratio, so both paths affect it equally.
 			string scalingNote = "";
-			if (viewRow.QualityRank > 12 && (familiarTemplate.bMythicalScaleTowerDamage != 0 || familiarTemplate.bMythicalScaleHeroDamage != 0))
+			if (familiarTemplate.ScaleHeroDamage != 0 || familiarTemplate.ScaleTowerDamage != 0)
+			{
+				int projId = familiarTemplate.ProjectileTemplate != -1 ? familiarTemplate.ProjectileTemplate
+					: (familiarTemplate.ProjectileTemplates.Count > 0 ? tdb!.GetIntArrayElem(familiarTemplate.ProjectileTemplates.Start) : -1);
+				if (projId != -1)
+				{
+					var projTemplate = tdb!.GetDunDefProjectile(projId);
+					float heroScaleMult = Hero_GetHeroStatMult(projTemplate.ScaleDamageStatType, ref heroInfo);
+					float heroScale = MathF.Pow(heroScaleMult, projTemplate.ScaleDamageStatExponent);
+					baseDmg *= heroScale;
+					scaledDirectHit *= heroScale;
+					scaledDoTPerTick *= heroScale;
+					scalingNote = " (scaled)";
+				}
+			}
+			else if (viewRow.QualityRank > 12 && (familiarTemplate.bMythicalScaleTowerDamage != 0 || familiarTemplate.bMythicalScaleHeroDamage != 0))
 			{
 				float heroScaleMult = Hero_GetHeroStatMult(familiarTemplate.MythicalScaleDamageStatType, ref heroInfo);
 				float heroScale = MathF.Pow(heroScaleMult, familiarTemplate.MythicalScaleDamageStatExponent);
@@ -1151,13 +1169,14 @@ namespace DDUP
 			// Melee additionally multiplies by ExtraNightmareMeleeDamageMultiplier (melee-specific nightmare factor).
 			float damage = baseDmg * familiarTemplate.ExtraNightmareMeleeDamageMultiplier;
 		
+			// .uc condition: (ScaleMeleeDamageForHero || (bMythicalScaleHeroDamage && quality > 12))
+			// ScaleMeleeDamageForHero is always-on (not quality-gated).
+			// Stat type is ScaleMeleeDamageForHeroStatType (configurable, not hardcoded to Hero Damage).
 			string scalingNote = "";
-			if (viewRow.QualityRank > 12 && (familiarTemplate.bMythicalScaleTowerDamage != 0 || familiarTemplate.bMythicalScaleHeroDamage != 0))
+			if (familiarTemplate.ScaleMeleeDamageForHero != 0 || (viewRow.QualityRank > 12 && familiarTemplate.bMythicalScaleHeroDamage != 0))
 			{
-				//Damage = (((GetProjectileDamage()) * ((Class'UDKGame.DunDefGameReplicationInfo'.static.GetGRI().bSimulateNightmareMode) ? ExtraNightmareMeleeDamageMultiplier: 1.0000000)) *((ScaleMeleeDamageForHero || bMythicalScaleHeroDamage && int(NameIndex_QualityDescriptor) > int(12)) ? EquipmentHero.GetStatModifier(OwnerPlayer, ScaleMeleeDamageForHeroStatType) * *ScaleDamageStatExponent : 1.0000000)) *RandomMultiplier;
-				float ScaleDamageStatExponent = familiarTemplate.ScaleDamageStatExponent;
-				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
-				damage *= MathF.Pow(heroScaleMult, ScaleDamageStatExponent);
+				float heroScaleMult = Hero_GetHeroStatMult(familiarTemplate.ScaleMeleeDamageForHeroStatType, ref heroInfo);
+				damage *= MathF.Pow(heroScaleMult, familiarTemplate.ScaleDamageStatExponent);
 				scalingNote = " (hero dmg scaled)";
 			}
 
