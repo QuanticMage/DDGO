@@ -845,3 +845,30 @@ html[data-theme="dark"] .grid-wrap::-webkit-scrollbar-corner {
     background: var(--bg-body);
 }
 
+
+/* Event pane — dark mode contrast fixes */
+html[data-theme="dark"] .event-cat-hdr {
+    color: #99aaee;
+    background: rgba(100, 110, 255, 0.14);
+    border-color: rgba(120, 130, 255, 0.25);
+}
+
+html[data-theme="dark"] .event-row {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-default);
+}
+
+html[data-theme="dark"] .event-overlay-close,
+html[data-theme="dark"] .event-overlay-export {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-default);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .event-overlay-close:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+html[data-theme="dark"] .event-overlay-export:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
