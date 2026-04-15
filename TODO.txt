@@ -1,5 +1,14 @@
 ﻿
 TODO:
+recreate this: Copy of Damage per Upgrade - Google Sheets
+
+Single stat builder list (thp/trange/tdmg)
+Stat  Price
+1100  30
+1150  60
+1200  150
+1250  300
+1300+ cheater+
 
 
 * Blue headers on event list are hard to read in night mode

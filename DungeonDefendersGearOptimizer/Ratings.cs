@@ -130,7 +130,7 @@ namespace DDUP
 				Icon = "png/Guardian_Tinyicon.png",
 				UpgradePriority = "",
 				RatingStatsPriority = new List<DDStat>() { DDStat.TowerHealth, DDStat.TowerRate, DDStat.TowerRange  },
-				SidesStatsPriority = new List<DDStat>() { },
+				SidesStatsPriority = new List<DDStat>() { DDStat.TowerDamage },
 				RequireResists = false,
 				DPSMode = "Stats",
 				APIRoles = "",
@@ -156,7 +156,7 @@ namespace DDUP
 				Icon = "png/AB1/Countess AB1.png",
 				UpgradePriority = "",
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility1 },
-				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
 				RequireResists = true,
 				DPSMode = "DPS",
 				APIRoles = "dps ab1",
@@ -169,10 +169,23 @@ namespace DDUP
 				Icon = "png/AB2/Hero Boost Monk AB2.png",
 				UpgradePriority = "",
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility2 },
-				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroCastRate },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
 				RequireResists = true,
 				DPSMode = "DPS",
 				APIRoles = "dps ab2",
+				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Hybrid DPS",
+				Icon = "png/Hero Damage.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.HeroAbility1, DDStat.HeroAbility2 },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
+				RequireResists = true,
+				DPSMode = "DPS",
+				APIRoles = "",
 				CanBeBestFor = true
 			},
 
@@ -182,7 +195,7 @@ namespace DDUP
 				Icon = "png/Hero Damage.png",
 				UpgradePriority = "",
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage },
-				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility1, DDStat.HeroAbility2, DDStat.HeroCastRate },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth, DDStat.HeroAbility1, DDStat.HeroAbility2 },
 				RequireResists = true,
 				DPSMode = "DPS",
 				APIRoles = "",
@@ -194,8 +207,8 @@ namespace DDUP
 				Name = "Gunwitch",
 				Icon = "png/Gunwitch_TinyIcon.png",
 				UpgradePriority = "",
-				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage },
-				SidesStatsPriority = new List<DDStat>() { DDStat.TowerRate, DDStat.HeroHealth },
+				RatingStatsPriority = new List<DDStat>() { DDStat.HeroDamage, DDStat.TowerDamage, DDStat.TowerRate },
+				SidesStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
 				RequireResists = true,
 				DPSMode = "DPS",
 				APIRoles = "gunwitch",
@@ -217,7 +230,7 @@ namespace DDUP
 
 			new RatingModeInfo
 			{
-				Name = "Guardian Summoner",
+				Name = "Boost Summoner",
 				Icon = "png/Summoner_TinyIcon.png",
 				UpgradePriority = "",
 				RatingStatsPriority = new List<DDStat>() { DDStat.HeroHealth },
@@ -238,16 +251,17 @@ namespace DDUP
 		static Dictionary<string, int[]> CV_Values = new() {
 			["Builder App"]= new int[] { 2000, 25, 2050, 35, 2100, 50, 2150, 80, 2200, 150, 2250, 220, 2300, 500, 2350, 1000, 2400, 4000, 2450, 8000, 2500, 20000 }, // app builder
 			["DPS AB2"]= new int[] { 1400, 20, 1450, 35, 1500, 50, 1550, 75, 1580, 150, 1600, 250, 1650, 500, 1700, 1000, 1750, 2000, 1800, 8000, 1850, 15000 }, // dps ab2
-			["DPS AB1"]= new int[] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1650, 300, 1700, 500, 1750, 1000, 1800, 2500  }, // dps ab1
-			["Builder Summoner"]= new int[]	 { 1000, 10, 1050, 12, 1100, 15, 1150, 25, 1200, 30, 1250, 100, 1300, 500, 1350, 1500 }, // summoner
-			["Builder Hermit"]= new int[]	 { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // hermit
-			["Gunwitch"]= new int[]	 { 1400, 20, 1500, 40, 1550, 60, 1600, 250, 1700, 600, 1750, 1200, 1800, 2000 }, // gunwitch
-			["Builder TRange"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 800, 1350, 1500 }, //trange
-			["Builder EV"]= new int[]	 { 1000, 5, 1050, 15, 1100, 25, 1150, 50, 1200, 100, 1250, 200, 1300, 500, 1350, 1500 }, // builder ev
-			["AB1 Only"]= new int[]	 { 1000, 20, 1050, 40, 1100, 100, 1150, 250, 1200, 1500, 1250, 3000 }, // ab1 only		
+			["DPS AB1"]= new int[] { 1400, 20, 1500, 40, 1550, 60, 1600, 100, 1650, 300, 1700, 500, 1750, 1000, 1800, 2500  }, // dps ab1			
+			["Builder TRange"] = new int[] { 1000, 5, 1050, 15, 1100, 30, 1150, 60, 1200, 150, 1250, 300, 1300, 750, 1350, 1500 }, //trange
+			["Builder EV"] = new int[] { 1000, 5, 1050, 15, 1100, 30, 1150, 60, 1200, 150, 1250, 300, 1300, 750, 1350, 1500 }, // builder ev
+			["Builder Summoner"]= new int[] { 1000, 5, 1050, 15, 1100, 30, 1150, 60, 1200, 150, 1250, 300, 1300, 750, 1350, 1500 }, // summoner
+			["Builder Hermit"]= new int[] { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // hermit
+			["Hybrid DPS"] = new int[] { 1900, 20, 2000, 40, 2050, 60, 2150, 100, 2200, 200, 2250, 400, 2300, 700, 2350, 1200, 2400, 2000 }, // based off gunwitch
+			["Gunwitch"] = new int[] { 1900, 20, 2000, 40, 2050, 60, 2150, 100, 2200, 200, 2250, 400, 2300, 700, 2350, 1200, 2400, 2000 }, // gunwitch
+			["AB1 Only"] = new int[] { 1000, 20, 1050, 40, 1100, 100, 1150, 250, 1200, 1500, 1250, 3000 }, // ab1 only		
 			["Builder Guardian"] = new int[] { 2000, 13, 2050, 17, 2100, 24, 2150, 40, 2200, 75, 2250, 110, 2300, 250, 2350, 500, 2400, 1000 }, // use hermit values for now
 		};
-
+		
 
 		// how best to evaluate... ? 
 		static Dictionary<string, float>[] BestRatings = new Dictionary<string, float>[RatingModes.Count];

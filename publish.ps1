@@ -15,5 +15,9 @@ Copy-Item "$Source\*" $Target -Recurse -Force
 $nojekyll = Join-Path $Target ".nojekyll"
 New-Item -ItemType File -Path $nojekyll -Force | Out-Null
 
+# GitHub Pages SPA routing: copy index.html as 404.html so direct navigation
+# to Blazor routes (e.g. /dbsearch) loads the app instead of returning a 404.
+Copy-Item (Join-Path $Target "index.html") (Join-Path $Target "404.html") -Force
+
 
 

@@ -1374,7 +1374,8 @@ namespace DDUP
 
 		// HeroEquipment_Familiar_Melee
 		public float ScaleDamageStatExponent;
-		public int ScaleMeleeDamageForHeroStatType;  
+		public int ScaleMeleeDamageForHeroStatType;
+		public byte ScaleMeleeDamageForHero;          // always-on hero stat scaling (no quality gate)
 
 		// HeroEquipment_Familiar_Melee_TowerScaling
 		public float BaseDamageToHealRatio;
@@ -1504,12 +1505,28 @@ namespace DDUP
 		public float EnemyClearSlowTime;
 		public float EnemyClearWeakenTime;
 		public byte bShootProjectileWithoutTarget;
-		public byte bMythicalScaleTowerDamage;
+		public byte ScaleTowerDamage;             // always-on tower stat scaling (TowerDamageScaling)
+		public byte ScaleHeroDamage;              // always-on hero stat scaling (WithProjectileAI)
+		public byte bMythicalScaleTowerDamage;    // quality-gated tower stat scaling (TowerDamageScaling)
+		public byte bMythicalScaleHeroDamage;     // quality-gated hero stat scaling (WithProjectileAI)
 		public float MythicalScaleDamageStatExponent;
-		public int MythicalScaleDamageStatType;  // LevelUpValueType enum
+		public int MythicalScaleDamageStatType;   // LevelUpValueType enum
 		public byte bIgnoreElementInTargeting;
 		public byte bProjectilesCollideWithOwner;
 		public int AttackAnimationAlt;  // string index
+
+		// HeroEquipment_Familiar_WithProjectileAI — health cost system
+		public byte bAddHealthCostToDamage;       // adds health-cost component as bonus damage
+		public byte bAddHealthCost;               // actually deducts health from hero each shot
+		public float HealthCostPercentage;        // fraction of max health used as cost
+		public float HealthCostToDamageMultiplier;// converts health cost to bonus damage
+
+		// HeroEquipment_Familiar_WithProjectileAI — multi-template behaviour
+		public byte bChooseRandomProjectileTemplate; // true = pick one randomly; false = fire by index
+
+		// HeroEquipment_Familiar_WithProjectileAI — stacking damage
+		public byte bUseStackingDamagePerArchetype;
+		public float PercIncreasePerStack;
 
 		// HeroEquipment_Familiar_AoeBuffer
 		public float StaticBuffRange;
@@ -1663,7 +1680,10 @@ namespace DDUP
 			EnemyClearSlowTime = Parse.Float(propertyMap, "EnemyClearSlowTime");
 			EnemyClearWeakenTime = Parse.Float(propertyMap, "EnemyClearWeakenTime");
 			bShootProjectileWithoutTarget = Parse.BoolByte(propertyMap, "bShootProjectileWithoutTarget");
+			ScaleTowerDamage = Parse.BoolByte(propertyMap, "ScaleTowerDamage");
+			ScaleHeroDamage = Parse.BoolByte(propertyMap, "ScaleHeroDamage");
 			bMythicalScaleTowerDamage = Parse.BoolByte(propertyMap, "bMythicalScaleTowerDamage");
+			bMythicalScaleHeroDamage = Parse.BoolByte(propertyMap, "bMythicalScaleHeroDamage");
 			MythicalScaleDamageStatExponent = Parse.Float(propertyMap, "MythicalScaleDamageStatExponent");
 			MythicalScaleDamageStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap.ContainsKey("MythicalScaleDamageStatType") ? propertyMap["MythicalScaleDamageStatType"] : "")
 				? (int)ImportMaps._LevelUpValueTypes[propertyMap["MythicalScaleDamageStatType"]]
@@ -1671,6 +1691,19 @@ namespace DDUP
 			bIgnoreElementInTargeting = Parse.BoolByte(propertyMap, "bIgnoreElementInTargeting");
 			bProjectilesCollideWithOwner = Parse.BoolByte(propertyMap, "bProjectilesCollideWithOwner");
 			AttackAnimationAlt = db.AddString(propertyMap.ContainsKey("AttackAnimationAlt") ? propertyMap["AttackAnimationAlt"] : "");
+
+			// WithProjectileAI — health cost system
+			bAddHealthCostToDamage = Parse.BoolByte(propertyMap, "bAddHealthCostToDamage");
+			bAddHealthCost = Parse.BoolByte(propertyMap, "bAddHealthCost");
+			HealthCostPercentage = Parse.Float(propertyMap, "HealthCostPercentage");
+			HealthCostToDamageMultiplier = Parse.Float(propertyMap, "HealthCostToDamageMultiplier");
+
+			// WithProjectileAI — multi-template behaviour
+			bChooseRandomProjectileTemplate = Parse.BoolByte(propertyMap, "bChooseRandomProjectileTemplate");
+
+			// WithProjectileAI — stacking damage
+			bUseStackingDamagePerArchetype = Parse.BoolByte(propertyMap, "bUseStackingDamagePerArchetype");
+			PercIncreasePerStack = Parse.Float(propertyMap, "PercIncreasePerStack");
 
 			// AoeBuffer
 			StaticBuffRange = Parse.Float(propertyMap, "StaticBuffRange");
@@ -1684,6 +1717,7 @@ namespace DDUP
 			ScaleMeleeDamageForHeroStatType = ImportMaps._LevelUpValueTypes.ContainsKey(propertyMap.ContainsKey("ScaleMeleeDamageForHeroStatType") ? propertyMap["ScaleMeleeDamageForHeroStatType"] : "")
 				? (int)ImportMaps._LevelUpValueTypes[propertyMap["ScaleMeleeDamageForHeroStatType"]]
 				: Parse.Int(propertyMap, "ScaleMeleeDamageForHeroStatType");
+			ScaleMeleeDamageForHero = Parse.BoolByte(propertyMap, "ScaleMeleeDamageForHero");
 
 		}
 	}

@@ -1089,12 +1089,13 @@ namespace DDUP
 
 			if (attackInterval <= 0.0f) return (0.0f, "");
 
-			// Mythical hero damage scaling: WithProjectileAI sets spawned projectile ScaleHeroDamage when QualityRank > 12.
+			// Mythical scaling: TowerDamageScaling uses bMythicalScaleTowerDamage + MythicalScaleDamageStatType (Tower Damage).
+			// WithProjectileAI uses bMythicalScaleHeroDamage + Hero Damage stat (MythicalScaleDamageStatType defaults to LU_HeroDamage for those).
 			// DoT scales through Damage/default.ProjDamage ratio, so hero scaling affects both.
 			string scalingNote = "";
-			if (viewRow.QualityRank > 12)
+			if (viewRow.QualityRank > 12 && (familiarTemplate.bMythicalScaleTowerDamage != 0 || familiarTemplate.bMythicalScaleHeroDamage != 0))
 			{
-				float heroScaleMult = Hero_GetHeroDamageMult(ref heroInfo);
+				float heroScaleMult = Hero_GetHeroStatMult(familiarTemplate.MythicalScaleDamageStatType, ref heroInfo);
 				float heroScale = MathF.Pow(heroScaleMult, familiarTemplate.MythicalScaleDamageStatExponent);
 				baseDmg *= heroScale;
 				scaledDirectHit *= heroScale;
@@ -1151,7 +1152,7 @@ namespace DDUP
 			float damage = baseDmg * familiarTemplate.ExtraNightmareMeleeDamageMultiplier;
 		
 			string scalingNote = "";
-			if (viewRow.QualityRank > 12)
+			if (viewRow.QualityRank > 12 && (familiarTemplate.bMythicalScaleTowerDamage != 0 || familiarTemplate.bMythicalScaleHeroDamage != 0))
 			{
 				//Damage = (((GetProjectileDamage()) * ((Class'UDKGame.DunDefGameReplicationInfo'.static.GetGRI().bSimulateNightmareMode) ? ExtraNightmareMeleeDamageMultiplier: 1.0000000)) *((ScaleMeleeDamageForHero || bMythicalScaleHeroDamage && int(NameIndex_QualityDescriptor) > int(12)) ? EquipmentHero.GetStatModifier(OwnerPlayer, ScaleMeleeDamageForHeroStatType) * *ScaleDamageStatExponent : 1.0000000)) *RandomMultiplier;
 				float ScaleDamageStatExponent = familiarTemplate.ScaleDamageStatExponent;
