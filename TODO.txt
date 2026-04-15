@@ -1,26 +1,17 @@
 ﻿
 TODO:
-recreate this: Copy of Damage per Upgrade - Google Sheets
+* recreate this: Copy of Damage per Upgrade - Google Sheets
 
-Single stat builder list (thp/trange/tdmg)
-Stat  Price
-1100  30
-1150  60
-1200  150
-1250  300
-1300+ cheater+
-
-
-* Blue headers on event list are hard to read in night mode
-* -15% for missing a side, -25% if missing both or negative
+* (DONE) Blue headers on event list are hard to read in night mode
+* (DONE) 15% for missing a side, -25% if missing both or negative
 * When selecting a hero, change column icons to match class
 * Projectile on melee pets (Review Lover Snake)
-* Guardian CV prices off
+* (?) Guardian CV prices off
 * Upgrading hero equipment automatically is confusing for new players
 * More tutorial
 
 * Survey for DDGO
-* HHP as side for DPS?
+* (DONE) HHP as side for DPS?
 
 * Given damage curves, what's the ideal ratio of stats?  When does one stat not matter as much?
 * Gunwitch TRate as main or side?

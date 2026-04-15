@@ -740,17 +740,41 @@ h1 {
     line-height: 1;    
 }
 
-.value-icon .value-emoji {    
-    font-size: clamp( 12px, 0.8vw ,16px);
-    font-size: clamp( 12px, 0.8vw ,16px);
-    letter-spacing: -5px;
+.value-emoji-wrap {
+    position: relative;
+    display: inline-block;
 }
 
-.value-icon .value-text {    
-    line-height: 1;
-    font-size: clamp( 12px, 0.8vw, 15px);    
+.value-icon .value-emoji {
+    font-size: clamp( 12px, 0.8vw ,16px);
+    letter-spacing: -5px;
+    display: block;
 }
-    
+
+.value-icon .value-text {
+    line-height: 1;
+    font-size: clamp( 12px, 0.8vw, 15px);
+}
+
+.cv-warning {
+    position: absolute;
+    bottom: -1px;
+    right: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #b8922a;
+    color: #fff8e0;
+    font-size: 7px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    cursor: default;
+    user-select: none;
+}
+
 
 .stats-row {
     display: flex; /* Lays children out in a row */

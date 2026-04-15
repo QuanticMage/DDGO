@@ -122,6 +122,9 @@ namespace DDUP
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
 
+		public float CvMissingSidesPenalty = 1.0f;
+		public string CvMissingSidesNote = "";
+
 		public string[] CachedStatValues = new string[11];
 		public string CachedResistanceTooltip = "";
 		public string CachedUpgradesToMaxResistText = "";

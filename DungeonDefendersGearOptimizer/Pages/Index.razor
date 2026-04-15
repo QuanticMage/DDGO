@@ -891,11 +891,17 @@
                                 <span class="rating-primary">@r.Rating</span>
                                 <span class="rating-sides">@r.Sides</span>
                             </td>
-                            <td>                     
+                            <td>
                                 <span class="value-icon" data-tooltip="@r.CachedValueDisplayTooltip">
                                     @if (r.CachedValueDisplayIcons != "")
                                     {
-                                        <span class="value-emoji">@r.CachedValueDisplayIcons</span>
+                                        <span class="value-emoji-wrap">
+                                            <span class="value-emoji">@r.CachedValueDisplayIcons</span>
+                                            @if (r.CvMissingSidesNote != "")
+                                            {
+                                                <span class="cv-warning" data-tooltip="@r.CvMissingSidesNote">!</span>
+                                            }
+                                        </span>
                                     }
                                     @if (r.CachedValueDisplayText != "")
                                     {
