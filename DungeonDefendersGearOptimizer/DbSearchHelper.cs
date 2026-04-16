@@ -172,16 +172,97 @@ namespace DDUP
 
 		// ======================== FIELD RESOLUTION ========================
 
+		// Parse "FieldName[N]" → ("FieldName", N), or "FieldName" → ("FieldName", -1)
+		private static (string fieldName, int elemIdx) ParseIndexedSegment(string segment)
+		{
+			int open = segment.IndexOf('[');
+			if (open < 0) return (segment, -1);
+			int close = segment.IndexOf(']', open);
+			if (close < 0 || !int.TryParse(segment[(open + 1)..close], out int idx)) return (segment, -1);
+			return (segment[..open], idx);
+		}
+
+		// Get a single array element as a struct object (for dot-notation recursion); null for primitives
+		private static object? GetArrayStructElement(ExportedTemplateDatabase db, Array_Data ad, string fieldName, Type structType, int elemIdx)
+		{
+			if (elemIdx < 0 || elemIdx >= ad.Count) return null;
+			if (IsDirectPoolArrayType(ad.Type))
+				return GetDirectPoolStruct(db, ad.Type, ad.Start + elemIdx);
+			if (ArrayCrossRefs.ContainsKey((structType, fieldName)))
+			{
+				var span = db.GetIntArrayElemsSpan(ad.Start, ad.Count);
+				int refIdx = span[elemIdx];
+				return refIdx >= 0 ? GetStructByIndexEntry(db, refIdx) : null;
+			}
+			return null;
+		}
+
+		// Format a single array element as a display string
+		private static string FormatArrayElement(ExportedTemplateDatabase db, Array_Data ad, string fieldName, Type structType, int elemIdx)
+		{
+			if (elemIdx < 0 || elemIdx >= ad.Count) return "?";
+			if (IsDirectPoolArrayType(ad.Type))
+			{
+				var elem = GetDirectPoolStruct(db, ad.Type, ad.Start + elemIdx);
+				return elem != null ? SummarizePoolStruct(elem) : "?";
+			}
+			if (ArrayCrossRefs.TryGetValue((structType, fieldName), out var refType))
+			{
+				var span = db.GetIntArrayElemsSpan(ad.Start, ad.Count);
+				int refIdx = span[elemIdx];
+				if (refIdx < 0 || refIdx >= db.GetIndexEntryCount()) return "?";
+				return db.ExtractQuotedString(db.GetString(db.GetIndexEntry(refIdx).TemplateName));
+			}
+			if (ad.Type == VarType.Float)
+			{
+				var span = db.GetFloatArrayElemsSpan(ad.Start, ad.Count);
+				return span[elemIdx].ToString("G6");
+			}
+			if (ad.Type == VarType.String)
+			{
+				var span = db.GetIntArrayElemsSpan(ad.Start, ad.Count);
+				return db.GetString(span[elemIdx]);
+			}
+			var intSpan = db.GetIntArrayElemsSpan(ad.Start, ad.Count);
+			return intSpan[elemIdx].ToString();
+		}
+
+		// Get a single array element as a raw value (for filter comparisons)
+		private static object? GetArrayElementRaw(ExportedTemplateDatabase db, Array_Data ad, int elemIdx)
+		{
+			if (elemIdx < 0 || elemIdx >= ad.Count) return null;
+			if (ad.Type == VarType.Float)
+			{
+				var span = db.GetFloatArrayElemsSpan(ad.Start, ad.Count);
+				return span[elemIdx];
+			}
+			var intSpan = db.GetIntArrayElemsSpan(ad.Start, ad.Count);
+			return (object)intSpan[elemIdx];
+		}
+
 		// Resolve dot-notation path to raw value (for filter comparisons)
 		public static object? ResolveToRaw(object structObj, string fieldPath, ExportedTemplateDatabase db,
 			object? extraStruct = null)
 		{
 			string[] parts = fieldPath.Split('.', 2);
-			var field = structObj.GetType().GetField(parts[0], BindingFlags.Public | BindingFlags.Instance);
+			var (segField, elemIdx) = ParseIndexedSegment(parts[0]);
+			var field = structObj.GetType().GetField(segField, BindingFlags.Public | BindingFlags.Instance);
 			if (field == null)
 				return extraStruct != null ? ResolveToRaw(extraStruct, fieldPath, db) : null;
 
 			var value = field.GetValue(structObj);
+
+			if (elemIdx >= 0)
+			{
+				if (value is not Array_Data ad) return null;
+				if (parts.Length > 1)
+				{
+					var elem = GetArrayStructElement(db, ad, segField, structObj.GetType(), elemIdx);
+					return elem != null ? ResolveToRaw(elem, parts[1], db) : null;
+				}
+				return GetArrayElementRaw(db, ad, elemIdx);
+			}
+
 			if (parts.Length == 1) return value;
 
 			if (value is int idx && idx >= 0)
@@ -203,12 +284,25 @@ namespace DDUP
 			object? extraStruct = null)
 		{
 			string[] parts = fieldPath.Split('.', 2);
+			var (segField, elemIdx) = ParseIndexedSegment(parts[0]);
 			var type = structObj.GetType();
-			var field = type.GetField(parts[0], BindingFlags.Public | BindingFlags.Instance);
+			var field = type.GetField(segField, BindingFlags.Public | BindingFlags.Instance);
 			if (field == null)
 				return extraStruct != null ? ResolveToDisplay(extraStruct, fieldPath, db) : "?";
 
 			var value = field.GetValue(structObj);
+
+			if (elemIdx >= 0)
+			{
+				if (value is not Array_Data ad) return "?";
+				if (parts.Length > 1)
+				{
+					var elem = GetArrayStructElement(db, ad, segField, type, elemIdx);
+					return elem != null ? ResolveToDisplay(elem, parts[1], db) : "?";
+				}
+				return FormatArrayElement(db, ad, segField, type, elemIdx);
+			}
+
 			if (parts.Length == 1) return FormatForDisplay(parts[0], value, type, db);
 
 			if (value is int idx && idx >= 0)
