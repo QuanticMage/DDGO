@@ -122,7 +122,6 @@ namespace DDUP
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
 
-		public float CvMissingSidesPenalty = 1.0f;
 		public string CvMissingSidesNote = "";
 
 		public string[] CachedStatValues = new string[11];
@@ -307,9 +306,16 @@ namespace DDUP
 			if (Value > 0)
 			{
 				if (Value > 300)
-					return ("💰", "?", "Estimated " + Value.ToString() + "cv");
+				{
+					string tooltip = "Estimated " + Value.ToString() + "cv";
+					if (CvMissingSidesNote != "") tooltip += "<br>" + CvMissingSidesNote;
+					return ("💰", "?", tooltip);
+				}
 				else
-					return ("💎", Value.ToString() + "cv", "");
+				{
+					string tooltip = CvMissingSidesNote != "" ? Value.ToString() + "cv<br>" + CvMissingSidesNote : "";
+					return ("💎", Value.ToString() + "cv", tooltip);
+				}
 			}
 			else
 			{

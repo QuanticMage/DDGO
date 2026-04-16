@@ -382,22 +382,7 @@ namespace DDUP
 						{
 							int rawValue = (int)(EvaluateExponential(vr.CachedRatings[i], CV_Values[RatingModes[i].Name]));
 
-							// Apply sides penalty before comparing: missing or negative sides reduce CV
 							value = rawValue;
-							if (vr.IsArmor && rawValue > 0)
-							{
-								bool isDPS = RatingModes[i].DPSMode == "DPS";
-								float penaltyFactor = 1.0f;
-								foreach (var stat in RatingModes[i].SidesStatsPriority)
-								{
-									if (vr.Stats[(int)stat] <= 0)
-									{
-										float pct = (stat == DDStat.HeroHealth && isDPS) ? 0.40f : 0.25f;
-										penaltyFactor *= (1.0f - pct);
-									}
-								}
-								value = (int)(rawValue * penaltyFactor);
-							}
 
 							if (value > bestValue)
 							{
@@ -430,41 +415,25 @@ namespace DDUP
 					JsonQueries[JsonQueryIndex++] = vr;
 				}
 
-				// Compute and store sides penalty info for the winning mode
+				// Detect missing sides and store a note for display
 				if (bestValue != 0 && vr.IsArmor)
 				{
 					var bestMode = RatingModes[bestIndex];
-					bool isDPSWinner = bestMode.DPSMode == "DPS";
-					float winnerPenalty = 1.0f;
-					var penaltyParts = new System.Collections.Generic.List<string>();
+					bool hasMissingSide = false;
 
 					foreach (var stat in bestMode.SidesStatsPriority)
 					{
 						if (vr.Stats[(int)stat] <= 0)
 						{
-							float pct = (stat == DDStat.HeroHealth && isDPSWinner) ? 0.40f : 0.25f;
-							winnerPenalty *= (1.0f - pct);
-							string label = DDDatabase.DDStatToString(stat);
-							string extra = (stat == DDStat.HeroHealth && isDPSWinner) ? " (DPS piece)" : "";
-							penaltyParts.Add($"-{(int)(pct * 100)}% missing side {label}{extra}");
+							hasMissingSide = true;
+							break;
 						}
 					}
 
-					if (penaltyParts.Count > 0)
-					{
-						vr.CvMissingSidesPenalty = winnerPenalty;
-						int estimatedCv = (int)((float)bestValue / 5.0f + 0.5f) * 5;
-						string estimatedSuffix = estimatedCv > 300 ? $"<br>Estimated {estimatedCv}cv" : "";
-						vr.CvMissingSidesNote = string.Join("<br>", penaltyParts) + estimatedSuffix;
-					}
-					else
-					{
-						vr.CvMissingSidesPenalty = 1.0f;
-						vr.CvMissingSidesNote = "";
-					}
+					vr.CvMissingSidesNote = hasMissingSide ? "Trading value may be lower due to missing sides" : "";
 				}
 
-				// return CV value (already penalized for missing sides)
+				// return CV value
 				if (bestValue != 0)
 				{
 					if (vr.IsArmor)
