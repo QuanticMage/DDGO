@@ -781,6 +781,8 @@ namespace DDUP
 				case "type": value = r.Type ?? ""; return true;
 				case "best": value = r.BestFor ?? ""; return true;
 				case "name": value = r.Name ?? ""; return true;
+				case "desc":
+				case "description": value = r.Description ?? ""; return true;
 				default: return false;
 			}
 		}

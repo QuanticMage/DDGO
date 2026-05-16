@@ -25,9 +25,16 @@ namespace DDUP
 			public List<DDStat> SidesStatsPriority = new();
 			public bool RequireResists = false;
 			public string DPSMode = "Stats";
-			public string APIRoles = "";			
+			public string APIRoles = "";
 			public bool CanBeBestFor = false;
 			public int ListIndex = -1;
+			// Optional search/filter expression auto-applied when this mode is selected.
+			public string SearchFilter = "";
+			// Optional filter-chip selections auto-applied when this mode is selected.
+			// null = leave the chip group untouched; empty list = clear it.
+			public List<string>? FilterTypes = null;
+			public List<string>? FilterSets = null;
+			public List<string>? FilterOther = null;
 		};
 		
 		private static Dictionary<string, RatingModeInfo>? RatingMap = null;
@@ -239,6 +246,23 @@ namespace DDUP
 				DPSMode = "Stats",
 				APIRoles = "",
 				CanBeBestFor = true
+			},
+
+			new RatingModeInfo
+			{
+				Name = "Poly vs. EG",
+				Icon = "png/Icon_Polybius.png",
+				UpgradePriority = "",
+				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange, DDStat.TowerHealth },
+				SidesStatsPriority = new List<DDStat>(),
+				RequireResists = false,
+				DPSMode = "Guardian Boost Range",
+				APIRoles = "",
+				CanBeBestFor = false,
+				SearchFilter = "desc:Guardians",
+				FilterTypes = new List<string>() { "Pets" },
+				FilterSets = new List<string>(),
+				FilterOther = new List<string>()
 			}
 		};
 

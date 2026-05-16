@@ -47,6 +47,7 @@ namespace DDUP
 		public string Quality { get; set; }
 		public string Type { get; set; }
 		public string Set { get; set; }
+		public string Description { get; set; } = "";
 
 		public int Level { get; set; }
 		public int MaxLevel { get; set; }
@@ -119,6 +120,8 @@ namespace DDUP
 
 		public string GeneratedName { get; set; }
 
+		public string CachedNameTooltip = "";
+
 		public List<int> CachedRatings = new List<int>();
 		public List<int> CachedSides = new List<int>();
 
@@ -158,6 +161,7 @@ namespace DDUP
 				string Quality,
 				string Type,
 				string Set,
+				string Description,
 				int Level,
 				int MaxLevel,
 
@@ -221,6 +225,7 @@ namespace DDUP
 			this.QualityRank = GetQualityRank(this.Quality);
 			this.Type = Type;
 			this.Set = Set;
+			this.Description = Description ?? "";
 
 			this.Level = Level;
 			this.MaxLevel = MaxLevel;
@@ -280,6 +285,18 @@ namespace DDUP
 
 			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();
 			this.GeneratedName = GeneratedName;
+
+			{
+				string nameTip = this.PlainName != this.GeneratedName
+					? "[" + this.GeneratedName + "]"
+					: "";
+				if (!string.IsNullOrWhiteSpace(this.Description))
+				{
+					if (nameTip != "") nameTip += "<br>";
+					nameTip += System.Net.WebUtility.HtmlEncode(this.Description.Trim());
+				}
+				this.CachedNameTooltip = nameTip;
+			}
 
 			this.WeaponDamageBonus = WeaponDamageBonus;
 			this.WeaponShotsPerSecondBonus = WeaponShotsPerSecondBonus;

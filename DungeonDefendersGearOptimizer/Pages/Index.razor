@@ -12,7 +12,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>Apr 15 2026 - Version 1.12</i></div>
+        <div class="build"><i>May 16, 2026 - Version 1.13</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -372,6 +372,11 @@
                                     </div>
 
                                     <div class="tt-row">
+                                        <span class="k">Field</span>
+                                        <span class="v"><code>Description:Mythical</code> → Description contains 'Mythical'</span>
+                                    </div>
+
+                                    <div class="tt-row">
                                         <span class="k">Compare</span>
                                         <span class="v"><code>Ab1&gt;=500</code> → Ability 1 is greater or equal to 500</span>
                                     </div>
@@ -598,8 +603,10 @@
                                 <label class="dps-type-label" for="dps-mode-select">DPS Mode:</label>
                                 <select id="dps-mode-select" name="dps-mode" class="dps-type-select" @bind="DPSMode">
                                     <option value="DPS">DPS</option>
-                                    
+
                                     <option value="Stats">Stats</option>
+
+                                    <option value="Guardian Boost Range">Guardian Boost Range</option>
                                 </select>
                             </div>
                         </th>
@@ -776,8 +783,8 @@
                             <div class="col-resizer"></div>
                         </th>
                         <th class="sortable">
-                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))" data-tooltip="Estimated DPS in Nightmare">
-                               <span class="hdr-text">Estimated Nightmare DPS</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
+                            <button type="button" class="th-btn" @onclick="() => SortBy(nameof(ItemViewRow.DPS))" data-tooltip="@(DPSMode == "Guardian Boost Range" ? "Guardian familiar tower-boost range" : "Estimated DPS in Nightmare")">
+                               <span class="hdr-text">@(DPSMode == "Guardian Boost Range" ? "Boost Range" : "Estimated Nightmare DPS")</span>  <span class="sort-glyph">@SortGlyph(nameof(ItemViewRow.DPS))</span>
                             </button>
                             <div class="col-resizer"></div>
                         </th>
@@ -912,7 +919,7 @@
                             <td class="text bestfor">@r.BestFor</td>
                             <td class="text cell-type">@r.Type</td>
                             <td class="text cell-type">@r.Set</td>
-                            <td class="text cell-name" data-tooltip='@(r.PlainName != r.GeneratedName ? "[" + r.GeneratedName + "]" : "")' h-tooltip="@r.FunHashString">
+                            <td class="text cell-name" data-tooltip="@r.CachedNameTooltip" h-tooltip="@r.FunHashString">
                                 <span class="name-row">
                                     <img class="atlas-icon"
                                          alt=""
@@ -1297,7 +1304,7 @@
 
     private static readonly string[] ValidTags =
      {
-        "name", "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides",
+        "name", "location", "value", "quality", "rating", "lvl", "maxlvl", "set", "type", "best", "sides", "description",
         "thp", "tdmg", "trate", "trange", "hhp", "hdmg", "hrate", "hspd", "ab1", "ab2",
         "ressum", "resavg", "resg", "resp", "resf", "resl",
     };
@@ -1341,13 +1348,30 @@
         return Task.CompletedTask;
     }
 
-    private Task HandleChangedRatingMode(string? mode)
+    private async Task HandleChangedRatingMode(string? mode)
     {
         if (string.IsNullOrWhiteSpace(mode))
-            return Task.CompletedTask;
+            return;
 
-        SetUi(u => u with { RatingMode = mode });
-        return Task.CompletedTask;
+        // Some modes carry associated filter-chip selections / a custom search
+        // filter that are auto-applied on select. The incoming `mode` is a
+        // formatted label ("Name (Name) [stats]"), so resolve it by name prefix.
+        var info = Ratings.RatingModes.FirstOrDefault(v => mode.StartsWith(v.Name));
+
+        SetUi(u =>
+        {
+            u = u with { RatingMode = mode };
+            if (info?.FilterTypes != null)
+                u = u with { SelectedTypes = info.FilterTypes.ToImmutableArray() };
+            if (info?.FilterSets != null)
+                u = u with { SelectedSets = info.FilterSets.ToImmutableArray() };
+            if (info?.FilterOther != null)
+                u = u with { SelectedOther = info.FilterOther.ToImmutableArray() };
+            return u;
+        });
+
+        if (info != null && !string.IsNullOrWhiteSpace(info.SearchFilter))
+            await ApplySearch(info.SearchFilter);
     }
 
     private Task HandleEquipmentClick(ItemViewRow row)
@@ -1868,8 +1892,10 @@
 
             if (r.DPS == 0.0f)
                 r.CachedDPSString = "";
+            else if (_ui.DPSMode == "Guardian Boost Range")
+                r.CachedDPSString = MathF.Round(r.DPS).ToString("0");
             else
-                r.CachedDPSString = DDEquipmentInfo.FormatCompact(r.DPS);       
+                r.CachedDPSString = DDEquipmentInfo.FormatCompact(r.DPS);
         }                   
     }
 
@@ -2421,7 +2447,18 @@
             v.DPS = 0.0f;
             v.DPSTooltip = "";
 
-            if (v.Type == "Weapon")
+            if (_ui.DPSMode == "Guardian Boost Range")
+            {
+                // This mode repurposes the DPS column to show the Guardian
+                // familiar's tower-boost range. Non-pets stay blank.
+                if (v.Type == "Pet" && weaponTemplate.FamiliarDataIndex >= 0)
+                {
+                    var familiarTemplate = TemplateDB.GetHeroEquipment_Familiar(weaponTemplate.FamiliarDataIndex);
+                    (dps[i], tips[i]) = _damageCalculator.GetGuardianBoostRange(
+                        db.Items[v.Idx].WeaponClipAmmoBonus, ref familiarTemplate);
+                }
+            }
+            else if (v.Type == "Weapon")
             {
                 if (!IsWeaponSetValid(v.Set))
                     continue;

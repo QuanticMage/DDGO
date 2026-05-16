@@ -298,10 +298,10 @@ public class DDEquipmentInfo
 				Name: name,
 				Location: this.Location,
 				EquippedHeroId: this.EquippedHeroId,
-				//this.Description + $"{Color1.R},{Color1.G},{Color1.B},{Color1.A} -  {Color2.R},{Color2.G},{Color2.B},{Color2.A}" ?? "",
 				Quality: this.Quality ?? "",
 				Type: this.Type ?? "",
 				Set: this.Set ?? "",
+				Description: this.Description ?? "",
 				Level: this.Level,
 				MaxLevel: this.MaxLevel,
 
@@ -640,8 +640,16 @@ public class DDDatabase
 				else if (equip.weaponType == (int)WeaponType.Monk) { set = "Monk"; }
 
 
-				if (Items[i].Description.Trim() == "")
-					Items[i].Description = TemplateDB.GetString(equip.Description);
+				// In-game flavor text is the localized EquipmentDescription; the plain
+				// `Description` field is an internal default ("0"/"O") and is not the
+				// text shown to the player. Prefer the per-item save value when it is
+				// a real sentence (matches HeroEquipment.uc's Len > 2 check).
+				string desc = Items[i].Description.Trim();
+				if (desc.Length <= 2)
+					desc = TemplateDB.GetString(equip.EquipmentDescription).Trim();
+				if (desc.Length <= 2)
+					desc = "";
+				Items[i].Description = desc;
 
 
 				//string baseName = GetProperty(obj, "EquipmentName")?.Value?.Replace("\"", "");

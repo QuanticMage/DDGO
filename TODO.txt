@@ -1,6 +1,9 @@
 ﻿
 TODO:
 * recreate this: Copy of Damage per Upgrade - Google Sheets
+* add text to show you can still drag even when the main thing is open
+* add date of last export
+* i probably should not exclude events that are equipped on the character you are looking at?
 
 * (DONE) Blue headers on event list are hard to read in night mode
 * (DONE) 15% for missing a side, -25% if missing both or negative

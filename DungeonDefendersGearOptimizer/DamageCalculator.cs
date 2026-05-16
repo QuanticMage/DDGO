@@ -831,6 +831,26 @@ namespace DDUP
 			}
 		}
 
+		// Tower-boost range for "Guardian" familiars (HeroEquipment_Familiar_TowerBooster).
+		// Mirrors GetBoostRange() in HeroEquipment_Familiar_TowerBooster.uc:
+		//   boostRange = BaseBoostRange * clamp(GetEquipmentStatValue(EQS_CLIPAMMO), 1, MaxRangeBoostStat) ^ BoostRangeExponent
+		// where GetEquipmentStatValue(4, false) resolves to the item's WeaponClipAmmoBonus.
+		// Returns (0, "") for familiars that are not tower boosters.
+		public (float, string) GetGuardianBoostRange(int clipAmmoStat, ref HeroEquipment_Familiar_Data familiarTemplate)
+		{
+			if (familiarTemplate.BaseBoostRange <= 0f || familiarTemplate.MaxRangeBoostStat <= 0f)
+				return (0f, "");
+
+			float stat = MathF.Max(MathF.Min(clipAmmoStat, familiarTemplate.MaxRangeBoostStat), 1f);
+			float range = familiarTemplate.BaseBoostRange * MathF.Pow(stat, familiarTemplate.BoostRangeExponent);
+
+			string tip =
+				$"Guardian tower-boost range\r\n" +
+				$"{familiarTemplate.BaseBoostRange:0.#} base x clamp({clipAmmoStat}, 1, {familiarTemplate.MaxRangeBoostStat:0.#})^{familiarTemplate.BoostRangeExponent:0.##}";
+
+			return (clipAmmoStat, tip);
+		}
+
 		public int GetDisplayWeaponDamage(ItemViewRow viewRow, bool bShowUpgraded, ref HeroInfo heroInfo, ref HeroEquipment_Data equipTemplate)
 		{
 			var weaponTemplate = tdb!.GetDunDefWeapon(equipTemplate.EquipmentWeaponTemplate);
