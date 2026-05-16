@@ -2516,6 +2516,12 @@
             {
               //   Console.WriteLine($"Template: {TemplateDB.GetString(weaponTemplate.Template)} Pet Index: {weaponTemplate.FamiliarDataIndex}");
                 if (weaponTemplate.FamiliarDataIndex < 0) continue;
+
+                // Tower-boost familiars (Guardians) deal no damage — leave DPS at 0.
+                if (TemplateDB.GetString(weaponTemplate.Class)
+                        .StartsWith("HeroEquipment_Familiar_TowerBoost", StringComparison.Ordinal))
+                    continue;
+
                 var familiarTemplate = TemplateDB.GetHeroEquipment_Familiar(weaponTemplate.FamiliarDataIndex);
                 _damageCalculator.CalculateUpgradedPetStats(v, ref weaponTemplate, ref familiarTemplate);
                 bool isMelee = familiarTemplate.MeleeHitRadius > 0;

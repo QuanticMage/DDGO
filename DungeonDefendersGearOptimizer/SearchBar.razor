@@ -36,9 +36,16 @@
         }
     }
 
-    private void HandleInput(ChangeEventArgs e)
+    private async Task HandleInput(ChangeEventArgs e)
     {
-        _current = e.Value?.ToString() ?? "";
+        var newValue = e.Value?.ToString() ?? "";
+        bool wasCleared = _current.Length > 0 && newValue.Length == 0;
+        _current = newValue;
+
+        // The native clear (X) button on <input type="search"> fires `input`,
+        // not `search`/`keydown`, so submit on clear to refresh the grid.
+        if (wasCleared)
+            await SubmitSearch();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
