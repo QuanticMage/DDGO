@@ -2309,7 +2309,7 @@
         for (int i = 0; i < n; i++)
         {            
             var r = _rows[i];
-            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists, (_ui.DPSMode != "Stats"));
+            newRatings[i] = Ratings.EvalRatingAndUpgrades(r, _RatingStatsPriority, _SidesStatsPriority, _bRequireResists, (_ui.DPSMode == "DPS"));
 
             if (((i & 127) == 0) && (i!=0))
             {

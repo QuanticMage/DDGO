@@ -376,7 +376,7 @@ namespace DDUP
 			
 			for (int i = 0; i < Ratings.RatingModes.Count; i++ )
 			{
-				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists, RatingModes[i].DPSMode != "Stats");
+				(int rating, int sides) = EvalRatingAndUpgrades(vr, RatingModes[i].RatingStatsPriority, RatingModes[i].SidesStatsPriority, RatingModes[i].RequireResists, RatingModes[i].DPSMode == "DPS");
 				vr.CachedRatings.Add(rating);
 				vr.CachedSides.Add(sides);
 			}
