@@ -315,6 +315,26 @@ namespace DDUP
 
 		private (string emojiText, string text, string tooltip) GetValueDisplay()
 		{
+			// Items described as "Guardian" show a fixed point value by quality
+			// instead of the estimated coal value. Display-only — does not affect Value.
+			if (Description.Contains("Guardian", StringComparison.OrdinalIgnoreCase))
+			{
+				int pts = Quality switch
+				{
+					"Ult++" => 50,
+					"Ult+" => 8,
+					"Ult90" => 2,
+					"Ult93" => 2,
+					"Supreme" => 1,
+					"Mythic" => 0,
+					"Trans" => 0,
+					"Godly" => 0,
+					"Cursed" => 0,
+					_ => 10,
+				};
+				return ("", pts + " pts", "Guardian point value");
+			}
+
 			if (IsEvent && (Value == 0))
 			{
 				return ("💰", "?", "Unknown Event Value");
@@ -441,7 +461,19 @@ namespace DDUP
 				"Supreme" => 15,
 				"Trans" => 14,
 				"Mythic" => 13,
-				// TODO: fill this in some day
+				"Godly" => 12,
+				"Legendary" => 11,
+				"Epic" => 10,
+				"Amazing" => 9,
+				"Powerful" => 8,
+				"Shining" => 7,
+				"Polished" => 6,
+				"Sturdy" => 5,
+				"Solid" => 4,
+				"Stocky" => 3,
+				"Worn" => 2,
+				"Torn" => 1,
+				"Cursed" => 0,				
 				_ => 0
 			};
 		}

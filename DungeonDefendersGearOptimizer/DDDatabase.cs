@@ -1,5 +1,6 @@
 ﻿using DDUP;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
+using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
@@ -567,21 +568,12 @@ public class DDDatabase
 		{
 			var itemInfo = Items[i];
 			string quality = "Unknown";
-			if (itemInfo.NameQualityIdx == 19) quality = "Ult++";
-			else if (itemInfo.NameQualityIdx == 18) quality = "Ult+";
-			else if (itemInfo.NameQualityIdx == 17) quality = "Ult93";
-			else if (itemInfo.NameQualityIdx == 16) quality = "Ult90";
-			else if (itemInfo.NameQualityIdx == 15) quality = "Supreme";
-			else if (itemInfo.NameQualityIdx == 14) quality = "Trans";
-			else if (itemInfo.NameQualityIdx == 13) quality = "Mythic";
-			else if (itemInfo.NameQualityIdx == 12) quality = "Cursed";
-			else if (itemInfo.NameQualityIdx == 11) quality = "Torn";
-			else if (itemInfo.NameQualityIdx == 10) quality = "Worn";
-			else if (itemInfo.NameQualityIdx == 9) quality = "Stocky";
-			else if (itemInfo.NameQualityIdx == 6) quality = "Polished";
-			else if (itemInfo.NameQualityIdx == 1) quality = "Legendary";
-			else if (itemInfo.NameQualityIdx == 0) quality = "Godly";
 
+			string[] qualityList = { "Godly", "Legendary", "Epic", "Amazing", "Powerful", "Shining", "Polished", "Sturdy", "Solid", "Stocky", "Worn", "Torn", "Cursed", "Mythic", "Trans", "Supreme", "Ult90", "Ult93", "Ult+", "Ult++" };
+
+			if ((itemInfo.NameQualityIdx < 20) && (itemInfo.NameQualityIdx >= 0))
+				quality = qualityList[itemInfo.NameQualityIdx];
+			
 			string type = "Unknown";
 			string set = "";
 			bool isArmor = false;
