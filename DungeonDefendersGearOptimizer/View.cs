@@ -315,7 +315,7 @@ namespace DDUP
 
 		// True when this item is a "Guardian" item (shown with a fixed point value).
 		public bool IsGuardian =>
-			Description.Contains("Guardian", StringComparison.OrdinalIgnoreCase);
+			Description.Contains("Guardians vs Poly Machines", StringComparison.OrdinalIgnoreCase);
 
 		// Fixed point value for Guardian items, derived from quality.
 		public int GuardianPoints => Quality switch
