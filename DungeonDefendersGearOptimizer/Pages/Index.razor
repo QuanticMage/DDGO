@@ -2642,11 +2642,15 @@
                 loc = CmpStr(a.Location, b.Location);
                 if (loc == 0) loc = Cmp(a.IndexInFolder, b.IndexInFolder);
             }
+            // Guardian items display a fixed point value instead of coal value,
+            // so the Est. Value column sorts them by pts. Used as a single, total-order
+            // key (a mixed pts/Value comparator would be non-transitive and scramble Sort).
+            static int EstValueKey(ItemViewRow r) => r.IsGuardian ? r.GuardianPoints : r.Value;
 
             int c = _sortColumn switch
             {
                 nameof(ItemViewRow.Rating) => Cmp(a.Rating, b.Rating),
-                nameof(ItemViewRow.Value) => Cmp(a.Value, b.Value),
+                nameof(ItemViewRow.Value) => Cmp(EstValueKey(a), EstValueKey(b)),
                 nameof(ItemViewRow.BestFor) => CmpStr(a.BestFor, b.BestFor),
                 nameof(ItemViewRow.Level) => Cmp(a.Level, b.Level),
                 nameof(ItemViewRow.MaxLevel) => Cmp(a.MaxLevel, b.MaxLevel),
@@ -2677,7 +2681,7 @@
 
             // primary sort direction
             c *= dir;
-            if (c != 0) return c;
+            if (c != 0) return c;            
 
             // tie-breakers (desc, like you were doing)
             c = b.Rating.CompareTo(a.Rating);

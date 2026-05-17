@@ -313,26 +313,32 @@ namespace DDUP
 			(CachedValueDisplayIcons, CachedValueDisplayText, CachedValueDisplayTooltip) = GetValueDisplay();	
 		}
 
+		// True when this item is a "Guardian" item (shown with a fixed point value).
+		public bool IsGuardian =>
+			Description.Contains("Guardian", StringComparison.OrdinalIgnoreCase);
+
+		// Fixed point value for Guardian items, derived from quality.
+		public int GuardianPoints => Quality switch
+		{
+			"Ult++" => 50,
+			"Ult+" => 8,
+			"Ult90" => 2,
+			"Ult93" => 2,
+			"Supreme" => 1,
+			"Mythic" => 0,
+			"Trans" => 0,
+			"Godly" => 0,
+			"Cursed" => 0,
+			_ => 10,
+		};
+
 		private (string emojiText, string text, string tooltip) GetValueDisplay()
 		{
 			// Items described as "Guardian" show a fixed point value by quality
 			// instead of the estimated coal value. Display-only — does not affect Value.
-			if (Description.Contains("Guardian", StringComparison.OrdinalIgnoreCase))
+			if (IsGuardian)
 			{
-				int pts = Quality switch
-				{
-					"Ult++" => 50,
-					"Ult+" => 8,
-					"Ult90" => 2,
-					"Ult93" => 2,
-					"Supreme" => 1,
-					"Mythic" => 0,
-					"Trans" => 0,
-					"Godly" => 0,
-					"Cursed" => 0,
-					_ => 10,
-				};
-				return ("", pts + " pts", "Guardian point value");
+				return ("", GuardianPoints + " pts", "Poly vs. EG Contest Value");
 			}
 
 			if (IsEvent && (Value == 0))
