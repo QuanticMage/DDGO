@@ -712,6 +712,12 @@ html[data-theme="dark"] .dz2-btn-ghost {
     box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
+/* Export button: same as the ghost button but a stronger border. Must beat the
+   dark ghost rule above (same specificity), so it comes after it. */
+html[data-theme="dark"] .dz2-btn-export {
+    border-color: rgba(255,255,255,0.55);
+}
+
 html[data-theme="dark"] .dz2-help-caret {
     color: var(--text-tertiary);
 }

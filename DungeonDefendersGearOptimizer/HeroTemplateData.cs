@@ -384,6 +384,31 @@
 				WeaponType = "Squire"
 			},
 		};
+
+		// Maps an in-game hero template to the DunDefPlanner API class_id.
+		// See https://dundefplanner.com/api/docs/#/Account%20Heroes/post_importHeroes_php
+		// DunDefPlanner only models the 11 base classes, so the gender/variant heroes
+		// (Adept, Countess, Ranger, Initiate, Gunwitch) map to their base class — they
+		// share identical tower mechanics.
+		public static readonly Dictionary<string, int> DunDefPlannerClassId = new()
+		{
+			["DunDefPlayers.HeroTemplateApprentice"]            = 2,  // Apprentice
+			["DunDefPlayers.HeroTemplateSquire"]                = 1,  // Squire
+			["DunDefPlayers.HeroTemplateInitiate"]              = 3,  // Huntress
+			["DunDefPlayers.HeroTemplateRecruit"]               = 4,  // Monk
+			["DunDefNewHeroes.HeroTemplateSorceress"]           = 2,  // Adept    -> Apprentice
+			["DunDefNewHeroes.HeroTemplateLadyKnight"]          = 1,  // Countess -> Squire
+			["DunDefNewHeroes.HeroTemplateHunter"]              = 3,  // Ranger   -> Huntress
+			["DunDefNewHeroes.HeroTemplateMonkette"]            = 4,  // Initiate -> Monk
+			["DunDefNewHeroes.HeroTemplateJester"]              = 7,  // Jester
+			["DunDefNewHeroes.HeroTemplateSummoner"]            = 6,  // Summoner
+			["DunDefNewHeroes.HeroTemplateRobotGirl"]           = 5,  // Series EV
+			["DunDefNewHeroes.HeroTemplateBarbarian"]           = 11, // Barbarian
+			["Hermit.hero.HeroArchetypes.HeroTemplateHermit"]   = 12, // Hermit
+			["Gunwitch.hero.HeroArchetypes.HeroTemplateGunwitch"] = 15, // Gunwitch
+			["Warden.hero.Archetype.HeroTemplateWarden"]        = 13, // Warden
+			["Guardian.hero.Archetypes.HeroTemplateGuardian"]   = 14, // Guardian
+		};
 	}
 
 }

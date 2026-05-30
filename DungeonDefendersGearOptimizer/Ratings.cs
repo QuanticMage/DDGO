@@ -247,23 +247,6 @@ namespace DDUP
 				APIRoles = "",
 				CanBeBestFor = true
 			},
-
-			new RatingModeInfo
-			{
-				Name = "Poly vs. EG",
-				Icon = "png/Icon_Polybius.png",
-				UpgradePriority = "",
-				RatingStatsPriority = new List<DDStat>() { DDStat.TowerDamage, DDStat.TowerRate, DDStat.TowerRange, DDStat.TowerHealth },
-				SidesStatsPriority = new List<DDStat>(),
-				RequireResists = false,
-				DPSMode = "Guardian Boost Range",
-				APIRoles = "",
-				CanBeBestFor = false,
-				SearchFilter = "desc:Guardians",
-				FilterTypes = new List<string>() { "Pets" },
-				FilterSets = new List<string>(),
-				FilterOther = new List<string>()
-			}
 		};
 
 

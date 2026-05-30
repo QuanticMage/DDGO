@@ -226,6 +226,29 @@
 			}
 		};
 
+		// DunDefPlanner hero import (browser handoff flow).
+		// Submits a top-level form POST with one field named `payload`; DunDefPlanner
+		// stores it, then redirects to its Steam login / import-confirmation page.
+		// Opens in a new tab so the optimizer stays loaded.
+		window.dundefPlanner = {
+			importHeroes: (payloadJson) => {
+				const form = document.createElement('form');
+				form.method = 'post';
+				form.action = 'https://dundefplanner.com/importHeroes.php';
+				form.target = '_blank';
+
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = 'payload';
+				input.value = payloadJson;
+
+				form.appendChild(input);
+				document.body.appendChild(form);
+				form.submit();
+				document.body.removeChild(form);
+			}
+		};
+
     </script>
 
 

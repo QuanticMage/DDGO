@@ -12,7 +12,7 @@
 <div class="top-pane">
     <div class="left-pane">
         <h1>Dungeon Defenders Gear Optimizer</h1>
-        <div class="build"><i>May 16, 2026 - Version 1.13</i></div>
+        <div class="build"><i>May 30, 2026 - Version 1.14</i></div>
         <div id="@_dropZoneId" class="dropzone dz2 @( _isDragOver ? "over" : "" )">
 
             @* ============== EMPTY FILE TILE, BEFORE WE'VE LOADED ============== *@            
@@ -74,7 +74,7 @@
                 </div>
             }
             else
-  @* ============== LOADED FILE TILE ============== *@          
+  @* ============== LOADED FILE TILE ============== *@
             {
                 <div class="dz2-card-loaded">
                     <div class="dz2-filename">@_loadedFileName</div>
@@ -106,6 +106,10 @@
                         </button>
                         <button type="button" class="dz2-btn dz2-btn-ghost" @onclick="ExportToCSV">
                             <span>Export to .csv</span>
+                        </button>
+                        <button type="button" class="dz2-btn dz2-btn-ghost dz2-btn-export" @onclick="ExportHeroesToDunDefPlanner"
+                                data-tooltip="Export hero tower stats to DunDefPlanner">
+                            <span>Export Heroes to DunDefPlanner</span>
                         </button>
                     </div>
                 </div>
@@ -2642,10 +2646,8 @@
                 loc = CmpStr(a.Location, b.Location);
                 if (loc == 0) loc = Cmp(a.IndexInFolder, b.IndexInFolder);
             }
-            // Guardian items display a fixed point value instead of coal value,
-            // so the Est. Value column sorts them by pts. Used as a single, total-order
-            // key (a mixed pts/Value comparator would be non-transitive and scramble Sort).
-            static int EstValueKey(ItemViewRow r) => r.IsGuardian ? r.GuardianPoints : r.Value;
+
+            static int EstValueKey(ItemViewRow r) => r.Value;
 
             int c = _sortColumn switch
             {
@@ -3227,5 +3229,86 @@
             "text/csv;charset=utf-8",
             csvText
         );
+    }
+
+    // Upgraded contribution of one equipped item to a single stat, matching
+    // CharacterPanel.UpdateCharacterTotalStats (armor always gets its set bonus,
+    // negative stats are never scaled).
+    private static int UpgradedStatContribution(ItemViewRow v, DDStat stat)
+    {
+        int baseStat = v.UpgradedStats[(int)stat];
+        float multiplier = (v.IsArmor && baseStat >= 0) ? v.SetBonus : 1.0f;
+        return (int)Math.Ceiling(multiplier * baseStat);
+    }
+
+    // Sends each real account hero's upgraded tower stats to DunDefPlanner via the
+    // browser-handoff import flow. Only heroes loaded from the .dun file are sent;
+    // the synthetic "Test" heroes from the picker are never in _lastLoadedHeroes.
+    private async Task ExportHeroesToDunDefPlanner()
+    {
+        if (_lastLoadedHeroes is null || _lastLoadedHeroes.Count == 0)
+        {
+            _status2 = "No heroes loaded to export.";
+            StateHasChanged();
+            return;
+        }
+
+        // Equipped item rows grouped by the hero that wears them.
+        var rowsByHero = _rows
+            .Where(r => r.IsEquipped && !string.IsNullOrEmpty(r.EquippedHeroId))
+            .GroupBy(r => r.EquippedHeroId!)
+            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.Ordinal);
+
+        var heroes = new List<object>();
+        foreach (var hero in _lastLoadedHeroes)
+        {
+            if (hero is null || string.IsNullOrWhiteSpace(hero.Template)) continue;
+            if (!HeroTemplateData.DunDefPlannerClassId.TryGetValue(hero.Template, out int classId)) continue;
+
+            // Start from the hero's own assigned tower stats, then add upgraded gear.
+            int thp = hero.Stats[(int)DDStat.TowerHealth];
+            int trate = hero.Stats[(int)DDStat.TowerRate];
+            int tdmg = hero.Stats[(int)DDStat.TowerDamage];
+            int trange = hero.Stats[(int)DDStat.TowerRange];
+
+            if (rowsByHero.TryGetValue(hero.ResolveGuid(), out var equipped))
+            {
+                foreach (var v in equipped)
+                {
+                    thp += UpgradedStatContribution(v, DDStat.TowerHealth);
+                    trate += UpgradedStatContribution(v, DDStat.TowerRate);
+                    tdmg += UpgradedStatContribution(v, DDStat.TowerDamage);
+                    trange += UpgradedStatContribution(v, DDStat.TowerRange);
+                }
+            }
+
+            string name = string.IsNullOrWhiteSpace(hero.Name)
+                ? HeroTemplateData.Map[hero.Template].ClassName
+                : hero.Name.Trim();
+            if (name.Length > 80) name = name.Substring(0, 80);
+
+            heroes.Add(new
+            {
+                class_id = classId,
+                name,
+                tower_hp = Math.Max(0, thp),
+                tower_damage = Math.Max(0, tdmg),
+                tower_range = Math.Max(0, trange),
+                tower_rate = Math.Max(0, trate),
+            });
+        }
+
+        if (heroes.Count == 0)
+        {
+            _status2 = "No exportable heroes found.";
+            StateHasChanged();
+            return;
+        }
+
+        string json = System.Text.Json.JsonSerializer.Serialize(new { heroes });
+        await JS.InvokeVoidAsync("dundefPlanner.importHeroes", json);
+
+        _status2 = $"Sent {heroes.Count} hero{(heroes.Count == 1 ? "" : "es")} to DunDefPlanner — finish the import in the new tab.";
+        StateHasChanged();
     }
 }

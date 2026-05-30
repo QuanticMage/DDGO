@@ -1577,6 +1577,12 @@ live-btn {
     box-shadow: 0 6px 18px rgba(0,0,0,0.18);
 }
 
+/* Identical to .dz2-btn-ghost, just with a stronger border to draw the eye.
+   Dark-mode border lives in app.css so it can out-specify the dark ghost rule. */
+.dz2-btn-export {
+    border-color: rgba(0,0,0,0.5);
+}
+
 .dz2-help {
     margin-top: 14px;
     background: transparent;
@@ -1623,10 +1629,17 @@ live-btn {
 
 .dz2-actions {
     display: flex;
-    gap: 14px;
+    gap: 8px;
     margin-top: 14px;
     flex-wrap: wrap;
 }
+
+    /* Size to content (drop the 100px floor) and keep labels on one line so all
+       the actions pack onto a single row. */
+    .dz2-actions .dz2-btn {
+        min-width: 0;
+        white-space: nowrap;
+    }
 
 .dz2-fileline {
     display: flex;
