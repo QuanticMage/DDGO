@@ -578,7 +578,10 @@ public class DDDatabase
 			string set = "";
 			bool isArmor = false;
 			//Items[i].Description = "Unknown";
-			Items[i].GeneratedName = (Items[i].ForgerName != "")? Items[i].ForgerName : Items[i].Template;
+			// Whitespace, not "", is the game's default ForgerName. Testing != "" let a blank
+			// name win over the Template fallback, so an unresolved template rendered as an
+			// empty Name cell instead of showing which path failed to resolve.
+			Items[i].GeneratedName = !string.IsNullOrWhiteSpace(Items[i].ForgerName) ? Items[i].ForgerName : Items[i].Template;
 
 			Items[i].Quality = quality;
 			Items[i].Idx = i;

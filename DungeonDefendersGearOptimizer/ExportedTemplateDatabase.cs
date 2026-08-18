@@ -110,8 +110,13 @@ namespace DDUP
 		// String data for loaded database
 		private List<string> LoadedStrings = new();
 
-		// Index lookup for loaded database
-		private Dictionary<string, int> LoadedTemplateIndexMap = new Dictionary<string, int>();
+		// Index lookup for loaded database.
+		// Case-insensitive on purpose: .dun saves do not preserve the capitalisation of the
+		// package path they store, e.g. "DunDefAccessories.masks.AccessoryEquipment_Mask17"
+		// against the exported "DunDefAccessories.Masks.AccessoryEquipment_Mask17". An
+		// ordinal comparer misses those and the item silently falls through to
+		// Type = "Unknown" with no name, icon or equip slot.
+		private Dictionary<string, int> LoadedTemplateIndexMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
 		public byte[] SaveToRaw()
 		{
