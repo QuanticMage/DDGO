@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36202.13
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.37301.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDUP", "DungeonDefendersGearOptimizer\DDUP.csproj", "{0D935D87-2290-4A90-B6DD-B47279BFDCCB}"
 EndProject

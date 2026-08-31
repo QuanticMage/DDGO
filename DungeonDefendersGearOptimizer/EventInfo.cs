@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace DDUP
 {	
@@ -102,12 +104,15 @@ namespace DDUP
 			new ("Cheshire", "Pets > Exclusives", "Buffed Drippy Totem Shatters Juicy Necromancer", 2750),
 			new ("Chicken Lover 3000", "Weapons > Monk", "Shattered Endless Champion Boosts Chaotic Ogre", 43),
 			new ("Chocolate Wafer Roll", "Weapons > Monk", "Goated Goated Armory Shatters Chaotic Wretch", 100),
-			new ("Christmas Nesso", "Pets > DPS", "Shiny Grim Fireball Launches Ancient Minion", 200),
+			//new ("Christmas Nesso", "Pets > DPS", "Shiny Grim Fireball Launches Ancient Minion", 200), - -changed
+			new ("Christmas Nesso", "Pets > DPS", "Fragile Enchanted Lightning Repairs Mid Corruptor", 200),
 			new ("Church", "Pets > DPS", "Radiant Fragile Stronghold Shatters Chaotic Raider", 188),			
 			new ("Cinnabar", "Pets > Collectibles", "Sweaty Tactical Totem Ratios Corrupted Fiend", 76),
 			new ("Cinnamon", "Pets > Guardians", "Chaotic Swift Workshop Breaches Shattered Raider", 183),
 			new ("Cloud Bracers", "Accessories > High End Bracers", "Mythic Fragile Sentinel Freezes Luminous Ogre", 326),
-			new ("Cobra's Whisper", "Weapons > Apprentice", "Mid Nerfed Stronghold Builds Beloved Cultist", 108),
+			//new ("Cobra's Whisper", "Weapons > Apprentice", "Mid Nerfed Stronghold Builds Beloved Cultist", 108), -- seems to be off now
+			new ("Clood", "Pets > Collectibles", "Mythic Nerfed Tower Summons Shiny Horde", 0),			
+			new ("Cobra's Whisper", "Weapons > Apprentice", "Mid Grim Shiro Fortifies Ancient Horde", 108),
 			new ("Copper Egg", "Pets > Builder", "Goated Buffed Huntress Locks Tilted Invader", 175),
 			new ("Crimson", "Weapons > Squire", "Enchanted Hardened Barricade Shocks Swift Destroyer", 64),		
 			new ("Cursed Brownie", "Pets > Collectibles", "Cracked Endless Relic Carries Wild Warlock", 88),
@@ -160,6 +165,7 @@ namespace DDUP
 			new ("Greater Magicite of Christmas", "Pets > Exclusives", "Goated Buffed Relic Pops Hardened Marauder", 2913),
 			new ("Greater Magicite of Love", "Pets > Exclusives", "Shattered Endless Huntress Breaches Sweaty Swarm", 11875),
 			new ("Greater Magicite of Pumpkin", "Pets > Builder", "Cracked Cooked Beacon Wipes Buffed Ogre", 378),
+			new ("Greater Magicite of the Rainbow", "Pets > Builder", "Brutal Tilted Trap Freezes Ancient Spider", 0),
 			new ("Greater Magicite of the Water", "Pets > Exclusives", "Chaotic Corrupted Sigil Wins Hardened Goblin", 20165),
 			new ("Greater Magicite of the Wind", "Pets > Builder", "Chaotic Swift Warden Rushes Tactical Berserker", 374),
 			new ("Grinch's #1 Fan", "Pets > Collectibles", "Fortified Mid Vanguard Freezes Mid Destroyer", 42),
@@ -186,6 +192,7 @@ namespace DDUP
 			new ("Lime Pie", "Pets > Guardians", "Endless Tilted Guardian Breaches Juicy Brood", 204),
 			new ("Limetori", "Pets > Exclusives", "Endless Locked Workshop Camps Luminous Cultist", 2125),
 			new ("Lover's Shackles", "Accessories > Mid End Bracers", "Fire Endless Champion Burns Mid Horde", 0),
+			new ("Lover's Shackles", "Accessories > Mid End Bracers", "Locked Shattered Harpoon Farms Endless Wretch", 0), // kay
 			new ("Lumen", "Weapons > Huntress", "Beloved Goated Apprentice Summons Locked Invader", 59),
 			new ("Lunar Demon", "Weapons > Apprentice", "Beloved Grim Apprentice Boosts Beloved Goblin", 54),
 			new ("Lunar Magic", "Weapons > Apprentice", "Swift Fire Aura Rushes Cooked Warlock", 43),
@@ -226,6 +233,7 @@ namespace DDUP
 			new ("Odin's Mask", "Accessories > Masks", "Sweaty Chaotic Obelisk Breaches Shattered Invader", 44),
 			new ("Olaf", "Pets > Exclusives", "Corrupted Mid Armory Wipes Ancient Swarm", 413),
 			new ("Old One's Stache", "Accessories > Masks", "Wild Grim Banner Builds Ancient Spider", 46),
+			new ("Old One's Stache", "Accessories > Masks", "Cracked Buffed Huntress Shocks Beloved Raider", 46), // kay			
 			new ("Ork Hat", "Accessories > High End Hats", "Fire Corrupted Monk Boosts Brutal Swarm", 1512),// akatiki/rl/old school/1
 			new ("Ork Hat", "Accessories > High End Hats", "Nerfed Fragile Workshop Shatters Chaotic Cultist", 1512), // akatiki/rl/old school/2			
 			new ("Ork Hat", "Accessories > High End Hats", "Shiny Nerfed Defender Farms Locked Pack", 1512), // akatiki/rl/normal/1
@@ -253,6 +261,7 @@ namespace DDUP
 			new ("Personal Resort", "Pets > Streamer", "Brutal Luminous Warden Spams Mid Fiend", 267),
 			new ("Personal Resort", "Pets > Streamer",  "Hardened Nerfed Lightning Boosts Mid Ogre", 267),
 			new ("Phrosty", "Pets > Streamer", "Locked Shattered Core Camps Shiny Raider", 9),
+			new ("Pixel Seahorse", "Pets > Exclusive", "Endless Corrupted Squire Wipes Goated Demon", 0), // Kay?			
 			new ("Ploutonion", "Accessories > Shields", "Ancient Radiant Champion Fortifies Swift Ogre", 136),
 			new ("Plum", "Pets > DPS", "Locked Buffed Stronghold Deletes Juicy Pillager", 900),
 			new ("Pole of the North Star", "Weapons > Exclusive", "Mid Enchanted Monk Camps Cracked Invader", 1042),
@@ -304,6 +313,7 @@ namespace DDUP
 			new ("Something Yellow", "Accessories > Hats", "Luminous Brutal Forge Clutches Beloved Overlord", 50),
 			new ("Spartan Shield", "Accessories > Shields", "Fortified Drippy Monk Explodes Drippy Pillager", 133),
 			new ("Spartan Shield", "Accessories > Shields",  "Fragile Ancient Harpoon Repels Corrupted Abomination", 133),
+			new ("Spartan Shield", "Accessories > Shields",  "Chaotic Mythic Forge Repels Enchanted Wyvern", 133),
 			new ("Spartan Spear", "Weapons > Monk", "Wild Cracked Apprentice Deletes Radiant Swarm", 113),
 			new ("Spazmatism", "Pets > DPS", "Endless Fragile Crystal Clutches Sweaty Warlock", 256),
 			new ("Spearmint", "Weapons > Monk", "Locked Luminous Builder Wipes Tactical Orc", 46),

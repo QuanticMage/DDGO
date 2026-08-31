@@ -48,6 +48,7 @@ namespace DDUP
 		public string Type { get; set; }
 		public string Set { get; set; }
 		public string Description { get; set; } = "";
+		public string TimeStamp { get; set; } = "";
 
 		public int Level { get; set; }
 		public int MaxLevel { get; set; }

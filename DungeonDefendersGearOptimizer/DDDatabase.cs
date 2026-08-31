@@ -170,6 +170,7 @@ public class DDEquipmentInfo
 	public string ForgerName = "";
 	public string Description = "";
 	public string Template = "";
+	public string TimeStamp = "";
 	public string Location = "";
 	public string? EquippedHeroId;
 
@@ -357,6 +358,8 @@ public class DDEquipmentInfo
 				WeaponAdditionalDamageAmount: this.WeaponAdditionalDamageAmount,
 				WeaponAltDamageBonus: this.WeaponAltDamageBonus
 			);
+
+			cachedItemRow.TimeStamp = this.TimeStamp ?? "";
 		}
 		return cachedItemRow;
 	}
@@ -976,7 +979,7 @@ public class DDDatabase
 		e.ForgerName = ReadFString(reader);   // 0xc4a
 		e.Description = ReadFString(reader);   // 0xc55
 		e.Template = ReadFString(reader);      // 0xc59
-		_ = ReadFString(reader); // timestamp
+		e.TimeStamp = ReadFString(reader); // timestamp (save version 47+)
 
 		e.FolderID = reader.ReadInt32();
 		e.bIsSecondary = reader.ReadByte() > 0 ? true : false;
