@@ -194,7 +194,7 @@ namespace DDUP
 			new ("Lieutenant Sparkles", "Pets > Collectibles", "Luminous Brutal Guardian Wins Cooked Swarm", 75),
 			new ("Lime Pie", "Pets > Guardians", "Endless Tilted Guardian Breaches Juicy Brood", 200),
 			new ("Limetori", "Pets > Exclusives", "Endless Locked Workshop Camps Luminous Cultist", 2750),
-			new ("Lightning Peak", "Accessories > Mid End Hats", "Locked Ancient Armory Defends Fire Overlord", 138)
+			new ("Lightning Peak", "Accessories > Mid End Hats", "Locked Ancient Armory Defends Fire Overlord", 138),
 			new ("Lover's Shackles", "Accessories > Mid End Bracers", "Fire Endless Champion Burns Mid Horde", 260),
 			new ("Lover's Shackles", "Accessories > Mid End Bracers", "Locked Shattered Harpoon Farms Endless Wretch", 260), // kay
 			new ("Lumen", "Weapons > Huntress", "Beloved Goated Apprentice Summons Locked Invader", 58),
@@ -304,7 +304,7 @@ namespace DDUP
 			new ("Skittles (Purple)", "Pets > DPS","Sweaty Drippy Harpoon Snowballs Fragile Pillager", 50),
 			new ("Skittles (Red)", "Pets > DPS","Luminous Sweaty Fireball Locks Endless Horde", 50),
 			new ("Skittles (Yellow)", "Pets > DPS","Grim Mythic Forge Channels Cooked Warlock", 56),
-			new ("Small Albino", "Pets > Exclusive", "Mythic Mythic Vanguard Locks Luminous Corruptor", 0)
+			new ("Small Albino", "Pets > Exclusive", "Mythic Mythic Vanguard Locks Luminous Corruptor", 0),
 			new ("Snowballer 3000", "Weapons > Huntress", "Drippy Locked Totem Wipes Fire Corruptor", 40),
 			new ("Something Blue", "Accessories > Hats", "Fortified Radiant Forge Defends Mid Berserker", 58),
 			new ("Something Coral", "Accessories > Hats", "Tilted Shiny Protector Explodes Ancient Beast", 50),
@@ -321,7 +321,7 @@ namespace DDUP
 			new ("Something Red", "Accessories > Hats", "Drippy Chaotic Guardian Defends Radiant Kobold", 50),
 			new ("Something Violet", "Accessories > Hats", "Goated Shattered Defender Smashes Drippy Marauder", 62),
 			new ("Something Yellow", "Accessories > Hats", "Luminous Brutal Forge Clutches Beloved Overlord", 44),
-			new ("Sour Worm", "Weapons > Huntress", "Brutal Endless Workshop Throws Sweaty Assassin", 158)
+			new ("Sour Worm", "Weapons > Huntress", "Brutal Endless Workshop Throws Sweaty Assassin", 158),
 			new ("Spartan Shield", "Accessories > Shields", "Fortified Drippy Monk Explodes Drippy Pillager", 115),
 			new ("Spartan Shield", "Accessories > Shields",  "Fragile Ancient Harpoon Repels Corrupted Abomination", 115),
 			new ("Spartan Shield", "Accessories > Shields",  "Chaotic Mythic Forge Repels Enchanted Wyvern", 115),
