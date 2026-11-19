@@ -102,6 +102,7 @@ namespace DDUP
 			new ("Carapace of the Queen", "Accessories > Shields", "Swift Swift Shiro Wipes Swift Necromancer", 63),
 			new ("Care Bear 300/1", "Unknown","Shattered Locked Defender Camps Shattered Ogre", 1200),
 			new ("Care Bear", "Pets > Collectibles", "Endless Nerfed Warden Repairs Goated Raider", 75),
+			new ("Cascade", "Weapons > Apprentice", "Fragile Cracked Armory Defends Sweaty Assassin", 105),
 			new ("Celebracers", "Accessories > High End Bracers", "Shattered Enchanted Apprentice Pops Cracked Kobold", 400),
 			new ("Celebration", "Accessories > High End Hats", "Grim Buffed Shiro Snowballs Nerfed Goblin", 625),
 			new ("Cheshire", "Pets > Exclusives", "Buffed Drippy Totem Shatters Juicy Necromancer", 3000),
@@ -116,6 +117,7 @@ namespace DDUP
 			new ("Clood", "Pets > Collectibles", "Mythic Nerfed Tower Summons Shiny Horde", 183),			
 			new ("Cobra's Whisper", "Weapons > Apprentice", "Mid Grim Shiro Fortifies Ancient Horde", 105),
 			new ("Copper Egg", "Pets > Builder", "Goated Buffed Huntress Locks Tilted Invader", 220),
+			new ("Constellation Diamond", "Pets > Exclusives", "Fire Drippy Defender Spams Enchanted Wretch", 0), // exclusive description
 			new ("Constellation Magicite", "Pets > Exclusives", "Brutal Buffed Tower Fortifies Enchanted Destroyer", 0), // exclusive description
 			new ("Constellation Magicite", "Pets > Exclusives", "Swift Buffed Forge Boosts Corrupted Ogre", 0), // non-exclusive description
 			new ("Crimson", "Weapons > Squire", "Enchanted Hardened Barricade Shocks Swift Destroyer", 53),		
@@ -363,7 +365,7 @@ namespace DDUP
 			new ("Terra's Magicite Brooch", "Accessories > Hats", "Goated Tactical Banner Boosts Swift Spider", 45),
 			new ("Templar Shield", "Accessories > Shields", "Swift Goated Builder Deletes Mythic Wyvern", 279),
 			new ("Tess", "Pets > Exclusives", "Juicy Buffed Beacon Throws Tactical Ogre", 500),
-			new ("The Aristocrat's Gaze", "Accessories > High End Masks", "Enchanted Juicy Fireball Ratios Brutal Ogre", 581),
+			new ("The Aristocrat's Gaze", "Accessories > High End Masks", "Enchanted Juicy Fireball Ratios Brutal Ogre", 581),			
 			new ("The Cavalry", "Pets > DPS", "Swift Buffed Trap Wins Ancient Ravager", 68),
 			new ("The Cavalry", "Pets > DPS", "Sweaty Mythic Obelisk Wipes Heroic Swarm", 68),
 			new ("The Devil's Poolskimmer", "Weapons > Monk", "Luminous Swift Obelisk Explodes Endless Ravager", 55),
