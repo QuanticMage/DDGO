@@ -66,25 +66,26 @@ namespace DDUP
 			new ("Black Mage", "Pets > Exclusives", "Tilted Mid Champion Summons Ancient Warlock", 600),
 			new ("bLACK mAGICK", "Pets > DPS", "Shattered Locked Warden Camps Luminous Spider", 95),
 			new ("Black Satin Peak", "Accessories > Mid End Hats", "Beloved Shiny Guardian Channels Shattered Brood", 60),
-			new ("Black Shades", "Accessories > High End Masks", "Shattered Fragile Banner Shatters Hardened Brood", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Tilted Mid Relic Locks Juicy Orc", 850), 
-			new ("Black Shades", "Accessories > High End Masks", "Fortified Brutal Monk Repairs Corrupted Beast", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Cracked Endless Stronghold Builds Brutal Corruptor", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Sweaty Cooked Core Carries Hardened Assassin", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Grim Wild Totem Repairs Swift Berserker", 850), 
-			new ("Black Shades", "Accessories > High End Masks", "Goated Corrupted Totem Shatters Mythic Horde", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Chaotic Tilted Trap Spams Fragile Warlock", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Locked Fire Defender Pops Enchanted Horde", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Luminous Drippy Protector Farms Radiant Beast", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Chaotic Cracked Tower Withstands Shiny Assassin", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Drippy Wild Core Throws Heroic Invader", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Swift Fortified Armory Camps Grim Raider", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Nerfed Grim Harpoon Repels Fire Spider", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Tactical Sweaty Relic Pops Wild Demon", 850),
-			new ("Black Shades", "Accessories > High End Masks", "Cooked Shiny Guardian Summons Tactical Ravager", 850),
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Shattered Fragile Banner Shatters Hardened Brood", 850), //Top 1 RL 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tilted Mid Relic Locks Juicy Orc", 850), //Top 2 NM 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Fortified Brutal Monk Repairs Corrupted Beast", 850), //Top 2 NM 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cracked Endless Stronghold Builds Brutal Corruptor", 850), //
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Sweaty Cooked Core Carries Hardened Assassin", 850), //Top 1 NM 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Grim Wild Totem Repairs Swift Berserker", 850), //Top 1 NM 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Goated Corrupted Totem Shatters Mythic Horde", 850), //Top 1 NM 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Tilted Trap Spams Fragile Warlock", 850), //Top 1 NM 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Locked Fire Defender Pops Enchanted Horde", 850), //Top 2 NM 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Luminous Drippy Protector Farms Radiant Beast", 850), //Top 2 RL 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Cracked Tower Withstands Shiny Assassin", 850), //Top 2 RL 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Drippy Wild Core Throws Heroic Invader", 850), //Top 2 RL 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Swift Fortified Armory Camps Grim Raider", 850), //Top 1 RL 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Nerfed Grim Harpoon Repels Fire Spider", 850), //Top 1 RL 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tactical Sweaty Relic Pops Wild Demon", 850), //Top 1 RL 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cooked Shiny Guardian Summons Tactical Ravager", 850), //Top 2 RL 4p
 			new ("Black Shades", "Accessories > High End Masks", "Heroic Chaotic Trap Shocks Fire Wretch", 850), // you are speed
 			new ("Black Shades", "Accessories > High End Masks", "Fortified Nerfed Forge Locks Sweaty Spider", 850), // from DWHU
-			new ("Black Shades", "Accessories > High End Masks", "Fire Goated Guardian Pops Endless Corruptor", 850), // ToE Speedrun
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Fire Goated Guardian Pops Endless Corruptor", 2600), // ToE Speedrun
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Heroic Chaotic Trap Shocks Fire WretchHeroic Chaotic Trap Shocks Fire Wretch", 2600), // ToE Speedrun
 			new ("Blahaj", "Pets > DPS", "Nerfed Fire Sigil Pops Cooked Brood", 250),
 			new ("Blessed Brownie", "Pets > Exclusives", "Grim Hardened Barricade Freezes Luminous Ogre", 985),
 			new ("Bling! Bling! Bracers", "Accessories > Bracers", "Juicy Locked Defender Builds Chaotic Wyvern", 55),
@@ -118,9 +119,9 @@ namespace DDUP
 			new ("Clood", "Pets > Collectibles", "Mythic Nerfed Tower Summons Shiny Horde", 183),			
 			new ("Cobra's Whisper", "Weapons > Apprentice", "Mid Grim Shiro Fortifies Ancient Horde", 105),
 			new ("Copper Egg", "Pets > Builder", "Goated Buffed Huntress Locks Tilted Invader", 220),
-			new ("Constellation Diamond", "Pets > Exclusives", "Fire Drippy Defender Spams Enchanted Wretch", 0), // exclusive description
-			new ("Constellation Magicite", "Pets > Exclusives", "Brutal Buffed Tower Fortifies Enchanted Destroyer", 0), // exclusive description
-			new ("Constellation Magicite", "Pets > Exclusives", "Swift Buffed Forge Boosts Corrupted Ogre", 0), // non-exclusive description
+			new ("Constellation Diamond (Exclusive)", "Pets > Exclusives", "Fire Drippy Defender Spams Enchanted Wretch", 0), // exclusive description
+			new ("Constellation Magicite (Exclusive)", "Pets > Exclusives", "Brutal Buffed Tower Fortifies Enchanted Destroyer", 0), // exclusive description
+			new ("Constellation Magicite", "Pets > Builder", "Swift Buffed Forge Boosts Corrupted Ogre", 0), // non-exclusive description
 			new ("Crimson", "Weapons > Squire", "Enchanted Hardened Barricade Shocks Swift Destroyer", 53),		
 			new ("Cursed Brownie", "Pets > Collectibles", "Cracked Endless Relic Carries Wild Warlock", 93),
 			new ("Darkling", "Pets > Streamer", "Nerfed Shattered Forge Yeets Drippy Wyvern", 101),
@@ -157,6 +158,7 @@ namespace DDUP
 			new ("Fire Balloon", "Pets > DPS", "Juicy Endless Aura Shatters Locked Ogre", 160),
 			new ("Firestorm", "Weapons > Huntress", "Wild Fragile Vanguard Burns Cracked Ogre", 63),
 			new ("First Contact", "Weapons > Monk", "Shiny Wild Relic Boosts Shiny Overlord", 60),
+			new ("free event token", "Pets > Collectibles", "Swift Ancient Vanguard Breaches Endless Ogre", 400),
 			new ("Furious George", "Pets > Collectibles", "Corrupted Corrupted Shiro Shatters Radiant Assassin", 50),
 			new ("Gaia's Last Gift", "Weapons > Huntress", "Buffed Wild Crystal Defends Tactical Wyvern", 145),
 			new ("Gaia's Last Gift", "Weapons > Huntress", "Heroic Endless Vanguard Launches Heroic Wyvern", 145),
@@ -251,25 +253,25 @@ namespace DDUP
 			new ("Olaf", "Pets > Exclusives", "Corrupted Mid Armory Wipes Ancient Swarm", 437),
 			new ("Old One's Stache", "Accessories > Masks", "Wild Grim Banner Builds Ancient Spider", 45),
 			new ("Old One's Stache", "Accessories > Masks", "Cracked Buffed Huntress Shocks Beloved Raider", 45), // kay			
-			new ("Ork Hat", "Accessories > High End Hats", "Fire Corrupted Monk Boosts Brutal Swarm", 1215),// akatiki/rl/old school/1
-			new ("Ork Hat", "Accessories > High End Hats", "Nerfed Fragile Workshop Shatters Chaotic Cultist", 1215), // akatiki/rl/old school/2			
-			new ("Ork Hat", "Accessories > High End Hats", "Shiny Nerfed Defender Farms Locked Pack", 1215), // akatiki/rl/normal/1
-			new ("Ork Hat", "Accessories > High End Hats", "Radiant Tilted Obelisk Breaches Cooked Orc", 1215), // akatiki/rl/normal/2			
-			new ("Ork Hat", "Accessories > High End Hats", "Mythic Swift Trap Deletes Enchanted Assassin", 1215), // akatiki/rl/hard/1
-			new ("Ork Hat", "Accessories > High End Hats", "Heroic Grim Protector Locks Nerfed Spider", 1215), // akatiki/rl/hard/2
-			new ("Ork Hat", "Accessories > High End Hats", "Chaotic Ancient Huntress Carries Wild Goblin", 1215), // akatiki/rl/extreme/1
-			new ("Ork Hat", "Accessories > High End Hats", "Nerfed Juicy Aura Ratios Beloved Necromancer", 1215), // akatiki/rl/extreme/2
-			new ("Ork Hat", "Accessories > High End Hats", "Drippy Juicy Monk Fortifies Swift Kobold", 1215), // non-exclusive
-			new ("Ork Hat", "Accessories > High End Hats", "Mythic Grim Beacon Freezes Ancient Wretch", 1215),// akatiki/nm/old school/1
-			new ("Ork Hat", "Accessories > High End Hats", "Enchanted Swift Builder Withstands Shiny Minion", 1215),// akatiki/nm/old school/2
-			new ("Ork Hat", "Accessories > High End Hats", "Beloved Nerfed Crystal Fortifies Mid Spider", 1215),// akatiki/nm/normal/1
-			new ("Ork Hat", "Accessories > High End Hats", "Enchanted Chaotic Fireball Launches Endless Ravager", 1215),// akatiki/nm/normal/2		
-			new ("Ork Hat", "Accessories > High End Hats", "Radiant Swift Aura Yeets Ancient Brood", 1215),// akatiki/nm/hard/1
-			new ("Ork Hat", "Accessories > High End Hats", "Chaotic Cracked Fireball Pops Radiant Berserker", 1215),// akatiki/nm/hard/2
-			new ("Ork Hat", "Accessories > High End Hats", "Sweaty Tilted Lightning Rushes Beloved Brood", 1215), // akatiki/nm/extreme/1
-			new ("Ork Hat", "Accessories > High End Hats", "Mythic Corrupted Relic Locks Luminous Horde", 1215), // akatiki/nm/extreme/2
-			new ("Ork Hat", "Accessories > High End Hats", "Corrupted Beloved Vanguard Carries Swift Minion", 1215), // akatiki/nm/extreme/3
-			new ("Ork Hat", "Accessories > High End Hats", "Mid Drippy Champion Snowballs Heroic Warlock", 1215), // ToE Speedrun
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Fire Corrupted Monk Boosts Brutal Swarm", 1200),// akatiki/rl/old school/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Nerfed Fragile Workshop Shatters Chaotic Cultist", 1200), // akatiki/rl/old school/2			
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Shiny Nerfed Defender Farms Locked Pack", 1200), // akatiki/rl/normal/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Radiant Tilted Obelisk Breaches Cooked Orc", 1200), // akatiki/rl/normal/2			
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Mythic Swift Trap Deletes Enchanted Assassin", 1200), // akatiki/rl/hard/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Heroic Grim Protector Locks Nerfed Spider", 1200), // akatiki/rl/hard/2
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Chaotic Ancient Huntress Carries Wild Goblin", 1200), // akatiki/rl/extreme/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Nerfed Juicy Aura Ratios Beloved Necromancer", 1200), // akatiki/rl/extreme/2
+			new ("Ork Hat", "Accessories > High End Hats", "Drippy Juicy Monk Fortifies Swift Kobold", 700), // non-exclusive
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Mythic Grim Beacon Freezes Ancient Wretch", 1200),// akatiki/nm/old school/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Enchanted Swift Builder Withstands Shiny Minion", 1200),// akatiki/nm/old school/2
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Beloved Nerfed Crystal Fortifies Mid Spider", 1200),// akatiki/nm/normal/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Enchanted Chaotic Fireball Launches Endless Ravager", 1200),// akatiki/nm/normal/2		
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Radiant Swift Aura Yeets Ancient Brood", 1200),// akatiki/nm/hard/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Chaotic Cracked Fireball Pops Radiant Berserker", 1200),// akatiki/nm/hard/2
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Sweaty Tilted Lightning Rushes Beloved Brood", 1200), // akatiki/nm/extreme/1
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Mythic Corrupted Relic Locks Luminous Horde", 1200), // akatiki/nm/extreme/2
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Corrupted Beloved Vanguard Carries Swift Minion", 1200), // akatiki/nm/extreme/3
+			new ("Ork Hat (Exclusive)", "Accessories > Exclusives", "Mid Drippy Champion Snowballs Heroic Warlock", 1200), // ToE Speedrun
 			new ("Overload", "Pets > Builder", "Chaotic Goated Core Carries Luminous Pillager", 153),
 			new ("Overlord", "Pets > Streamer", "Heroic Mid Stronghold Shatters Ancient Kobold", 121),
 			new ("Paper Straw", "Weapons > Exclusive", "Beloved Nerfed Huntress Wins Sweaty Necromancer", 285),
@@ -341,14 +343,14 @@ namespace DDUP
 			new ("Spearmint", "Weapons > Monk", "Locked Luminous Builder Wipes Tactical Orc", 52),
 			new ("Speed Freak Feather", "Accessories > Hats", "Ancient Endless Guardian Clutches Brutal Swarm", 45),
 			new ("Speedster", "Pets > Collectibles", "Endless Grim Tower Summons Hardened Demon", 50),
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Cooked Ancient Squire Deletes Juicy Wyvern", 883),         
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Chaotic Hardened Totem Explodes Locked Abomination", 883), // Fastest
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Goated Hardened Beacon Clutches Chaotic Marauder", 883), // Mistymire
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Juicy Beloved Forge Ratios Shiny Horde", 883), // Aquanos
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Shattered Juicy Tower Spams Fire Corruptor", 883), // Sky City
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Juicy Goated Sigil Shocks Brutal Raider", 883), // Crystalline Dimension
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Corrupted Heroic Banner Smashes Grim Ravager", 883), // Moraggo		
-			new ("Speedy Cloud Bracers", "Accessories > Exclusives", "Heroic Fortified Banner Boosts Wild Dragon", 883), // ToE Speedrun
+			new ("Speedy Cloud Bracers", "Accessories > High End Bracers", "Cooked Ancient Squire Deletes Juicy Wyvern", 612),         
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Chaotic Hardened Totem Explodes Locked Abomination", 950), // Fastest
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Goated Hardened Beacon Clutches Chaotic Marauder", 950), // Mistymire
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Juicy Beloved Forge Ratios Shiny Horde", 950), // Aquanos
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Shattered Juicy Tower Spams Fire Corruptor", 950), // Sky City
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Juicy Goated Sigil Shocks Brutal Raider", 950), // Crystalline Dimension
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Corrupted Heroic Banner Smashes Grim Ravager", 950), // Moraggo		
+			new ("Speedy Cloud Bracers (Exclusive)", "Accessories > Exclusives", "Heroic Fortified Banner Boosts Wild Dragon", 950), // ToE Speedrun
 			new ("Speedy", "Pets > DPS", "Enchanted Brutal Armory Breaches Wild Pillager", 48),
 			new ("Splash Ops", "Weapons > Huntress", "Mid Grim Monk Shocks Goated Shaman", 50),
 			new ("Spoony lvl 100", "Weapons > Exclusive", "Wild Buffed Apprentice Repels Mid Ravager", 1200),
