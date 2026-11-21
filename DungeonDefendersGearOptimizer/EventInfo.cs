@@ -66,22 +66,22 @@ namespace DDUP
 			new ("Black Mage", "Pets > Exclusives", "Tilted Mid Champion Summons Ancient Warlock", 600),
 			new ("bLACK mAGICK", "Pets > DPS", "Shattered Locked Warden Camps Luminous Spider", 95),
 			new ("Black Satin Peak", "Accessories > Mid End Hats", "Beloved Shiny Guardian Channels Shattered Brood", 60),
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Shattered Fragile Banner Shatters Hardened Brood", 850), //Top 1 RL 1p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tilted Mid Relic Locks Juicy Orc", 850), //Top 2 NM 4p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Fortified Brutal Monk Repairs Corrupted Beast", 850), //Top 2 NM 3p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cracked Endless Stronghold Builds Brutal Corruptor", 850), //
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Sweaty Cooked Core Carries Hardened Assassin", 850), //Top 1 NM 4p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Grim Wild Totem Repairs Swift Berserker", 850), //Top 1 NM 3p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Goated Corrupted Totem Shatters Mythic Horde", 850), //Top 1 NM 2p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Tilted Trap Spams Fragile Warlock", 850), //Top 1 NM 1p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Locked Fire Defender Pops Enchanted Horde", 850), //Top 2 NM 2p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Luminous Drippy Protector Farms Radiant Beast", 850), //Top 2 RL 3p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Cracked Tower Withstands Shiny Assassin", 850), //Top 2 RL 2p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Drippy Wild Core Throws Heroic Invader", 850), //Top 2 RL 1p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Swift Fortified Armory Camps Grim Raider", 850), //Top 1 RL 4p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Nerfed Grim Harpoon Repels Fire Spider", 850), //Top 1 RL 3p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tactical Sweaty Relic Pops Wild Demon", 850), //Top 1 RL 2p
-			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cooked Shiny Guardian Summons Tactical Ravager", 850), //Top 2 RL 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Shattered Fragile Banner Shatters Hardened Brood", 2600), //Top 1 RL 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tilted Mid Relic Locks Juicy Orc", 2600), //Top 2 NM 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Fortified Brutal Monk Repairs Corrupted Beast", 2600), //Top 2 NM 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cracked Endless Stronghold Builds Brutal Corruptor", 2600), //
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Sweaty Cooked Core Carries Hardened Assassin", 2600), //Top 1 NM 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Grim Wild Totem Repairs Swift Berserker", 2600), //Top 1 NM 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Goated Corrupted Totem Shatters Mythic Horde", 2600), //Top 1 NM 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Tilted Trap Spams Fragile Warlock", 2600), //Top 1 NM 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Locked Fire Defender Pops Enchanted Horde", 2600), //Top 2 NM 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Luminous Drippy Protector Farms Radiant Beast", 2600), //Top 2 RL 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Chaotic Cracked Tower Withstands Shiny Assassin", 2600), //Top 2 RL 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Drippy Wild Core Throws Heroic Invader", 2600), //Top 2 RL 1p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Swift Fortified Armory Camps Grim Raider", 2600), //Top 1 RL 4p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Nerfed Grim Harpoon Repels Fire Spider", 2600), //Top 1 RL 3p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Tactical Sweaty Relic Pops Wild Demon", 2600), //Top 1 RL 2p
+			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Cooked Shiny Guardian Summons Tactical Ravager", 2600), //Top 2 RL 4p
 			new ("Black Shades", "Accessories > High End Masks", "Heroic Chaotic Trap Shocks Fire Wretch", 850), // you are speed
 			new ("Black Shades", "Accessories > High End Masks", "Fortified Nerfed Forge Locks Sweaty Spider", 850), // from DWHU
 			new ("Black Shades (Exclusive)", "Accessories > Exclusives", "Fire Goated Guardian Pops Endless Corruptor", 2600), // ToE Speedrun
