@@ -308,7 +308,7 @@ namespace DDUP
 			new ("Sapphire", "Weapons > Squire", "Hardened Shiny Relic Explodes Fire Swarm", 50),
 			new ("Serpent of the North", "Pets > DPS", "Brutal Hardened Lightning Withstands Beloved Corruptor", 58),
 			new ("Shield of Mirrors", "Accessories > Shields", "Beloved Brutal Totem Boosts Locked Warlock", 50),
-			new ("Shadow Bringer", "Weapons > Exclusive", "Nerfed Enchanted Armory Ratios Goated Ravager", 285),
+			new ("Shadow Bringer", "Weapons > Streamer", "Nerfed Enchanted Armory Ratios Goated Ravager", 285),
 			new ("Silver Egg", "Pets > Builder", "Shiny Sweaty Protector Repels Fortified Wretch", 225),
 			new ("Silver Nugget", "Pets > Exclusives", "Sweaty Radiant Guardian Smashes Ancient Goblin", 800),
 			new ("Skittles (Blue)", "Pets > DPS","Luminous Fire Forge Rushes Hardened Necromancer", 49),
