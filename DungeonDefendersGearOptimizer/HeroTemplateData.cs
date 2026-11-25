@@ -383,6 +383,27 @@
 				ExtraType = "Shield",
 				WeaponType = "Squire"
 			},
+			// ============== Shaman ==============
+			["Shaman.hero.Archetypes.HeroTemplateShaman"] = new HeroTemplateData
+			{
+				Index = 16,
+				ClassName = "Shaman",
+				StatIcons = new() {
+					"png/Hero Health.png",
+					"png/Move Speed.png",
+					"png/Hero Damage.png",
+					"png/Cast Rate.png",
+					"png/AB1/Shaman AB1.png",
+					"png/AB2/Shaman AB2.png",
+					"png/Tower Health.png",
+					"png/Tower Rate.png",
+					"png/Tower Damage.png",
+					"png/Tower Range.png",
+				},
+				ClassIcon = "png/shaman_TinyIcon.png",
+				ExtraType = "None",
+				WeaponType = "Apprentice"
+			},
 		};
 
 		// Maps an in-game hero template to the DunDefPlanner API class_id.
@@ -408,6 +429,7 @@
 			["Gunwitch.hero.HeroArchetypes.HeroTemplateGunwitch"] = 15, // Gunwitch
 			["Warden.hero.Archetype.HeroTemplateWarden"]        = 13, // Warden
 			["Guardian.hero.Archetypes.HeroTemplateGuardian"]   = 14, // Guardian
+			["Shaman.hero.Archetypes.HeroTemplateShaman"]   = 16, // Shaman
 		};
 	}
 
